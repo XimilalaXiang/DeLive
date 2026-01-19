@@ -15,7 +15,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false)
   const [toasts, setToasts] = useState<ToastMessage[]>([])
   const [isInitialized, setIsInitialized] = useState(false)
-  const { loadSessions, loadSettings, settings, initTheme } = useTranscriptStore()
+  const { loadSessions, loadSettings, loadTags, settings, initTheme } = useTranscriptStore()
   const hasCheckedApiKey = useRef(false)
 
   // 初始化加载
@@ -23,8 +23,9 @@ function App() {
     initTheme()
     loadSettings()
     loadSessions()
+    loadTags()
     setIsInitialized(true)
-  }, [initTheme, loadSettings, loadSessions])
+  }, [initTheme, loadSettings, loadSessions, loadTags])
 
   // 只在初始化完成后检查一次是否需要弹出设置窗口
   useEffect(() => {

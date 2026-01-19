@@ -1,10 +1,12 @@
 import { create } from 'zustand'
-import type { TranscriptSession, RecordingState, AppSettings, SonioxToken } from '../types'
+import type { TranscriptSession, RecordingState, AppSettings, SonioxToken, Tag } from '../types'
 import { 
   getSessions, 
   saveSessions, 
   getSettings, 
-  saveSettings, 
+  saveSettings,
+  getTags,
+  saveTags,
   generateId, 
   formatDate, 
   formatTime 
@@ -81,6 +83,20 @@ interface TranscriptState {
   loadSessions: () => void
   updateSessionTitle: (id: string, title: string) => void
   deleteSession: (id: string) => void
+  updateSessionTags: (sessionId: string, tagIds: string[]) => void
+  
+  // 标签
+  tags: Tag[]
+  loadTags: () => void
+  addTag: (name: string, color: string) => Tag
+  deleteTag: (id: string) => void
+  updateTag: (id: string, updates: Partial<Tag>) => void
+  
+  // 标签筛选
+  selectedTagIds: string[]
+  setSelectedTagIds: (ids: string[]) => void
+  toggleTagFilter: (tagId: string) => void
+  clearTagFilter: () => void
   
   // 设置
   settings: AppSettings
@@ -156,6 +172,7 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
       createdAt: now,
       updatedAt: now,
       transcript: '',
+      tagIds: [],
     }
     
     const sessions = [session, ...get().sessions]
@@ -204,6 +221,68 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
     saveSessions(sessions)
     set({ sessions })
   },
+  updateSessionTags: (sessionId, tagIds) => {
+    const sessions = get().sessions.map(s =>
+      s.id === sessionId ? { ...s, tagIds, updatedAt: Date.now() } : s
+    )
+    saveSessions(sessions)
+    set({ sessions })
+  },
+  
+  // 标签
+  tags: [],
+  loadTags: () => {
+    const tags = getTags()
+    set({ tags })
+  },
+  addTag: (name, color) => {
+    const newTag: Tag = {
+      id: generateId(),
+      name,
+      color,
+    }
+    const tags = [...get().tags, newTag]
+    saveTags(tags)
+    set({ tags })
+    return newTag
+  },
+  deleteTag: (id) => {
+    // 删除标签
+    const tags = get().tags.filter(t => t.id !== id)
+    saveTags(tags)
+    
+    // 从所有会话中移除该标签
+    const sessions = get().sessions.map(s => ({
+      ...s,
+      tagIds: s.tagIds?.filter(tid => tid !== id) || []
+    }))
+    saveSessions(sessions)
+    
+    // 从筛选中移除
+    const selectedTagIds = get().selectedTagIds.filter(tid => tid !== id)
+    
+    set({ tags, sessions, selectedTagIds })
+  },
+  updateTag: (id, updates) => {
+    const tags = get().tags.map(t =>
+      t.id === id ? { ...t, ...updates } : t
+    )
+    saveTags(tags)
+    set({ tags })
+  },
+  
+  // 标签筛选
+  selectedTagIds: [],
+  setSelectedTagIds: (ids) => set({ selectedTagIds: ids }),
+  toggleTagFilter: (tagId) => {
+    const { selectedTagIds } = get()
+    if (selectedTagIds.includes(tagId)) {
+      set({ selectedTagIds: selectedTagIds.filter(id => id !== tagId) })
+    } else {
+      set({ selectedTagIds: [...selectedTagIds, tagId] })
+    }
+  },
+  clearTagFilter: () => set({ selectedTagIds: [] }),
   
   // 设置
   settings: { apiKey: '', languageHints: ['zh', 'en'] },

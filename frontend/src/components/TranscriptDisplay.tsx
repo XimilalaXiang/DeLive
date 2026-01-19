@@ -1,24 +1,53 @@
-import { useEffect, useRef } from 'react'
-import { FileText, Mic, AlertCircle } from 'lucide-react'
+import { useEffect, useRef, useState, useCallback } from 'react'
+import { FileText, Mic, AlertCircle, ArrowDown } from 'lucide-react'
 import { useTranscriptStore } from '../stores/transcriptStore'
 
 export function TranscriptDisplay() {
   const { finalTranscript, nonFinalTranscript, recordingState, currentSessionId } = useTranscriptStore()
   const containerRef = useRef<HTMLDivElement>(null)
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true)
+  const [showScrollButton, setShowScrollButton] = useState(false)
 
-  // 自动滚动到底部
+  // 检查是否滚动到底部（允许一定的误差）
+  const isAtBottom = useCallback(() => {
+    if (!containerRef.current) return true
+    const { scrollTop, scrollHeight, clientHeight } = containerRef.current
+    // 允许 30px 的误差范围
+    return scrollHeight - scrollTop - clientHeight < 30
+  }, [])
+
+  // 处理滚动事件
+  const handleScroll = useCallback(() => {
+    const atBottom = isAtBottom()
+    setShouldAutoScroll(atBottom)
+    setShowScrollButton(!atBottom && (finalTranscript || nonFinalTranscript))
+  }, [isAtBottom, finalTranscript, nonFinalTranscript])
+
+  // 智能自动滚动：只有当用户在底部时才自动滚动
   useEffect(() => {
-    if (containerRef.current) {
+    if (containerRef.current && shouldAutoScroll) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight
     }
-  }, [finalTranscript, nonFinalTranscript])
+  }, [finalTranscript, nonFinalTranscript, shouldAutoScroll])
+
+  // 滚动到底部按钮点击
+  const scrollToBottom = useCallback(() => {
+    if (containerRef.current) {
+      containerRef.current.scrollTo({
+        top: containerRef.current.scrollHeight,
+        behavior: 'smooth'
+      })
+      setShouldAutoScroll(true)
+      setShowScrollButton(false)
+    }
+  }, [])
 
   const isEmpty = !finalTranscript && !nonFinalTranscript
   const isRecording = recordingState === 'recording'
   const isStarting = recordingState === 'starting'
 
   return (
-    <div className="bg-white dark:bg-surface-900 rounded-xl border border-surface-200 dark:border-surface-800 shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-surface-900 rounded-xl border border-surface-200 dark:border-surface-800 shadow-sm overflow-hidden relative">
       {/* 头部 */}
       <div className="flex items-center justify-between px-5 py-3 border-b border-surface-200 dark:border-surface-800 bg-surface-50 dark:bg-surface-850">
         <div className="flex items-center gap-2">
@@ -41,6 +70,9 @@ export function TranscriptDisplay() {
         )}
         {isRecording && (
           <div className="flex items-center gap-2">
+            {!shouldAutoScroll && (
+              <span className="text-xs text-zinc-400 dark:text-zinc-500 mr-2">已暂停自动滚动</span>
+            )}
             <span className="relative flex h-2.5 w-2.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
@@ -53,7 +85,8 @@ export function TranscriptDisplay() {
       {/* 转录内容 */}
       <div 
         ref={containerRef}
-        className="h-[300px] overflow-y-auto p-5"
+        onScroll={handleScroll}
+        className="h-[300px] overflow-y-auto p-5 scroll-smooth"
       >
         {isStarting ? (
           <div className="h-full flex flex-col items-center justify-center text-amber-500 dark:text-amber-400">
@@ -97,7 +130,7 @@ export function TranscriptDisplay() {
             )}
           </div>
         ) : (
-          <p className="text-base leading-relaxed whitespace-pre-wrap">
+          <p className="text-base leading-relaxed whitespace-pre-wrap text-zinc-800 dark:text-zinc-200">
             <span className="transcript-final">{finalTranscript}</span>
             <span className="transcript-nonfinal">{nonFinalTranscript}</span>
             {isRecording && (
@@ -106,6 +139,20 @@ export function TranscriptDisplay() {
           </p>
         )}
       </div>
+
+      {/* 滚动到底部按钮 */}
+      {showScrollButton && isRecording && (
+        <button
+          onClick={scrollToBottom}
+          className="absolute bottom-16 right-4 flex items-center gap-1.5 px-3 py-2 
+                   bg-primary-600 hover:bg-primary-700 text-white text-xs font-medium
+                   rounded-full shadow-lg transition-all duration-200
+                   animate-bounce hover:animate-none"
+        >
+          <ArrowDown className="w-3.5 h-3.5" />
+          <span>回到底部</span>
+        </button>
+      )}
 
       {/* 底部状态栏 */}
       {(finalTranscript || nonFinalTranscript) && (
