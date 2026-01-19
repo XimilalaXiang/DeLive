@@ -17,8 +17,8 @@ function createWindow() {
     height: 800,
     minWidth: 800,
     minHeight: 600,
-    title: 'DesktopLive - 桌面音频实时转录',
-    icon: path.join(__dirname, '../frontend/public/favicon.svg'),
+    title: 'DeLive - 桌面音频实时转录',
+    icon: path.join(__dirname, '../build/icon.ico'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -26,10 +26,10 @@ function createWindow() {
       // 允许使用 getDisplayMedia API
       backgroundThrottling: false,
     },
-    // 窗口样式
-    frame: true,
-    titleBarStyle: 'default',
-    backgroundColor: '#ffffff',
+    // 无边框窗口 - 自定义标题栏
+    frame: false,
+    titleBarStyle: 'hidden',
+    backgroundColor: '#0c0a09',
     show: false, // 先隐藏，等加载完成后显示
   })
 
@@ -116,20 +116,22 @@ function createWindow() {
 
 function createTray() {
   // 创建托盘图标
-  const iconPath = path.join(__dirname, '../frontend/public/favicon.svg')
-  let trayIcon = nativeImage.createEmpty()
+  const iconPath = path.join(__dirname, '../build/icon.ico')
+  let trayIcon = nativeImage.createFromPath(iconPath)
   
-  try {
-    const loadedIcon = nativeImage.createFromPath(iconPath)
-    if (!loadedIcon.isEmpty()) {
-      trayIcon = loadedIcon
-    }
-  } catch {
-    // 使用空图标
+  // 如果 ICO 加载失败，尝试加载 PNG
+  if (trayIcon.isEmpty()) {
+    const pngPath = path.join(__dirname, '../build/icon.png')
+    trayIcon = nativeImage.createFromPath(pngPath)
+  }
+  
+  // 如果都失败了，使用空图标
+  if (trayIcon.isEmpty()) {
+    trayIcon = nativeImage.createEmpty()
   }
 
   tray = new Tray(trayIcon)
-  tray.setToolTip('DesktopLive - 桌面音频实时转录')
+  tray.setToolTip('DeLive - 桌面音频实时转录')
 
   const contextMenu = Menu.buildFromTemplate([
     {
@@ -226,6 +228,27 @@ ipcMain.handle('get-app-version', () => {
 
 ipcMain.handle('minimize-to-tray', () => {
   mainWindow?.hide()
+})
+
+// 窗口控制 - 用于自定义标题栏
+ipcMain.handle('window-minimize', () => {
+  mainWindow?.minimize()
+})
+
+ipcMain.handle('window-maximize', () => {
+  if (mainWindow?.isMaximized()) {
+    mainWindow.unmaximize()
+  } else {
+    mainWindow?.maximize()
+  }
+})
+
+ipcMain.handle('window-close', () => {
+  mainWindow?.close()
+})
+
+ipcMain.handle('window-is-maximized', () => {
+  return mainWindow?.isMaximized() ?? false
 })
 
 // 开机自启动相关

@@ -1,10 +1,10 @@
 {
-  "name": "desktop-live",
+  "name": "delive",
   "version": "1.0.0",
   "description": "Windows桌面音频实时转录系统 - 基于Soniox V3 ASR",
   "private": true,
   "main": "dist-electron/main.js",
-  "author": "DesktopLive",
+  "author": "XimilalaXiang",
   "license": "MIT",
   "scripts": {
     "dev": "concurrently \"npm run dev:client\" \"npm run dev:electron\"",
@@ -18,37 +18,48 @@
     "pack": "npm run build && electron-builder --dir",
     "dist": "npm run build && electron-builder",
     "dist:win": "npm run build && electron-builder --win",
-    "install:all": "npm install && cd frontend && npm install && cd ../server && npm install"
+    "install:all": "npm install && cd frontend && npm install && cd ../server && npm install",
+    "generate-icons": "node scripts/generate-icons.mjs"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
     "electron": "^40.0.0",
     "electron-builder": "^25.1.8",
+    "png-to-ico": "^3.0.1",
+    "sharp": "^0.34.5",
     "typescript": "^5.0.0",
     "wait-on": "^8.0.0"
   },
   "build": {
-    "appId": "com.desktoplive.app",
-    "productName": "DesktopLive",
-    "copyright": "Copyright © 2024 DesktopLive",
+    "appId": "com.delive.app",
+    "productName": "DeLive",
+    "copyright": "Copyright © 2024 XimilalaXiang",
+    "icon": "build/icon",
     "directories": {
       "output": "release"
     },
     "files": [
       "dist-electron/**/*",
       "frontend/dist/**/*",
-      "frontend/public/**/*"
+      "frontend/public/**/*",
+      "build/icon.ico",
+      "build/icon.png"
     ],
     "win": {
+      "icon": "build/icon.ico",
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         },
         {
           "target": "portable",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "artifactName": "${productName}-${version}-${arch}.${ext}"
@@ -58,7 +69,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "DesktopLive"
+      "shortcutName": "DeLive"
     },
     "portable": {
       "artifactName": "${productName}-${version}-portable.${ext}"

@@ -9,6 +9,7 @@ import {
   ToastContainer,
   AnimatedThemeToggler,
   SourcePicker,
+  TitleBar,
   type ToastMessage 
 } from './components'
 
@@ -64,10 +65,16 @@ function App() {
     addToast('error', message)
   }, [addToast])
 
+  // 检测是否在 Electron 环境中
+  const isElectron = !!window.electronAPI?.isElectron
+
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
+      {/* 自定义标题栏 - 仅 Electron */}
+      <TitleBar />
+      
       {/* 头部 - 使用玻璃拟态效果 */}
-      <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className={`sticky z-40 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 ${isElectron ? 'top-8 mt-8' : 'top-0'}`}>
         <div className="container max-w-5xl mx-auto px-4 sm:px-6">
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
@@ -76,7 +83,7 @@ function App() {
                 <Waves className="h-5 w-5" />
               </div>
               <div className="flex flex-col gap-0.5">
-                <h1 className="text-lg font-bold leading-none tracking-tight">DesktopLive</h1>
+                <h1 className="text-lg font-bold leading-none tracking-tight">DeLive</h1>
                 <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">桌面音频实时转录</p>
               </div>
             </div>
@@ -147,8 +154,8 @@ function App() {
       <footer className="border-t border-border/40 bg-muted/40 mt-auto">
         <div className="container max-w-5xl mx-auto px-4 sm:px-6 py-6">
           <p className="text-center text-xs text-muted-foreground">
-            Powered by <a href="https://soniox.com" target="_blank" rel="noopener noreferrer" 
-                         className="font-medium underline underline-offset-4 hover:text-primary transition-colors">Soniox</a> Speech-to-Text API
+            Open Source on <a href="https://github.com/XimilalaXiang/DeLive" target="_blank" rel="noopener noreferrer" 
+                         className="font-medium underline underline-offset-4 hover:text-primary transition-colors">GitHub</a>
           </p>
         </div>
       </footer>

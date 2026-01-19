@@ -1,10 +1,11 @@
-export { ApiKeyConfig } from "./ApiKeyConfig"
-export { TranscriptDisplay } from "./TranscriptDisplay"
-export { RecordingControls } from "./RecordingControls"
-export { HistoryPanel } from "./HistoryPanel"
-export { PreviewModal } from "./PreviewModal"
-export { TagSelector, TagFilter, TagManager } from "./TagSelector"
-export { Toast, ToastContainer } from "./Toast"
-export type { ToastMessage } from "./Toast"
-export { SourcePicker } from "./SourcePicker"
-export { AnimatedThemeToggler } from "./AnimatedThemeToggler"
+export { ApiKeyConfig } from './ApiKeyConfig'
+export { TranscriptDisplay } from './TranscriptDisplay'
+export { RecordingControls } from './RecordingControls'
+export { HistoryPanel } from './HistoryPanel'
+export { PreviewModal } from './PreviewModal'
+export { TagSelector, TagFilter, TagManager } from './TagSelector'
+export { Toast, ToastContainer } from './Toast'
+export type { ToastMessage } from './Toast'
+export { SourcePicker } from './SourcePicker'
+export { TitleBar } from './TitleBar'
+export { AnimatedThemeToggler } from './AnimatedThemeToggler'

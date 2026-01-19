@@ -45,3 +45,9 @@ coverage/
 # Misc
 *.tsbuildinfo
 .eslintcache
+
+# Temporary files
+tmp/
+
+# API documentation (private)
+soniox的api调用文档.md
