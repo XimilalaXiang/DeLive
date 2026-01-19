@@ -7,7 +7,7 @@ import { TagSelector, TagFilter } from './TagSelector'
 import type { TranscriptSession } from '../types'
 
 export function HistoryPanel() {
-  const { sessions, tags, updateSessionTitle, deleteSession, selectedTagIds, searchQuery, setSearchQuery } = useTranscriptStore()
+  const { sessions, tags, updateSessionTitle, deleteSession, selectedTagIds, searchQuery, setSearchQuery, t } = useTranscriptStore()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingTitle, setEditingTitle] = useState('')
   const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set())
@@ -96,7 +96,7 @@ export function HistoryPanel() {
 
   const handleDelete = (e: React.MouseEvent, id: string) => {
     e.stopPropagation()
-    if (confirm('确定要删除这条记录吗？')) {
+    if (confirm(t.history.deleteConfirm)) {
       deleteSession(id)
     }
   }
@@ -117,9 +117,9 @@ export function HistoryPanel() {
     yesterday.setDate(yesterday.getDate() - 1)
 
     if (dateStr === today.toISOString().split('T')[0]) {
-      return '今天'
+      return t.common.today
     } else if (dateStr === yesterday.toISOString().split('T')[0]) {
-      return '昨天'
+      return t.common.yesterday
     }
     return dateStr
   }
@@ -140,12 +140,12 @@ export function HistoryPanel() {
               <div className="p-1 rounded bg-background border border-border shadow-sm">
                 <History className="w-4 h-4 text-primary" />
               </div>
-              <span className="text-sm font-semibold text-foreground">历史记录</span>
+              <span className="text-sm font-semibold text-foreground">{t.history.title}</span>
             </div>
             <span className="text-xs font-medium text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
               {(selectedTagIds.length > 0 || searchQuery.trim())
-                ? `${filteredSessions.length}/${sessions.length} 条`
-                : `${sessions.length} 条`
+                ? `${filteredSessions.length}/${sessions.length} ${t.common.items}`
+                : `${sessions.length} ${t.common.items}`
               }
             </span>
           </div>
@@ -158,7 +158,7 @@ export function HistoryPanel() {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={handleSearchKeyDown}
-              placeholder="搜索标题或内容，按回车确认..."
+              placeholder={t.history.searchPlaceholder}
               className="w-full h-9 pl-9 pr-8 text-sm rounded-md border border-input bg-background
                        placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1"
             />
@@ -189,10 +189,10 @@ export function HistoryPanel() {
               </div>
               <p className="text-sm">
                 {searchQuery.trim() 
-                  ? `未找到包含"${searchQuery}"的记录` 
+                  ? t.history.noSearchResults(searchQuery)
                   : selectedTagIds.length > 0 
-                    ? '没有匹配的记录' 
-                    : '暂无历史记录'
+                    ? t.history.noMatchingRecords
+                    : t.history.noRecords
                 }
               </p>
             </div>
@@ -275,21 +275,21 @@ export function HistoryPanel() {
                                   <button
                                     onClick={(e) => startEditing(e, session)}
                                     className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-background rounded-md transition-all shadow-sm border border-transparent hover:border-border"
-                                    title="编辑标题"
+                                    title={t.history.editTitle}
                                   >
                                     <Pencil className="w-3.5 h-3.5" />
                                   </button>
                                   <button
                                     onClick={(e) => handleExport(e, session)}
                                     className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-background rounded-md transition-all shadow-sm border border-transparent hover:border-border"
-                                    title="导出TXT"
+                                    title={t.history.exportTxt}
                                   >
                                     <Download className="w-3.5 h-3.5" />
                                   </button>
                                   <button
                                     onClick={(e) => handleDelete(e, session.id)}
                                     className="p-1.5 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md transition-all shadow-sm border border-transparent hover:border-red-200 dark:hover:border-red-900"
-                                    title="删除"
+                                    title={t.common.delete}
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
                                   </button>

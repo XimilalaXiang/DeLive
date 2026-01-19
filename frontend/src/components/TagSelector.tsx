@@ -11,7 +11,7 @@ interface TagSelectorProps {
 }
 
 export function TagSelector({ sessionId, sessionTagIds, compact = false }: TagSelectorProps) {
-  const { tags, addTag, deleteTag, updateSessionTags } = useTranscriptStore()
+  const { tags, addTag, deleteTag, updateSessionTags, t } = useTranscriptStore()
   const [isOpen, setIsOpen] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const [isManaging, setIsManaging] = useState(false)
@@ -37,7 +37,7 @@ export function TagSelector({ sessionId, sessionTagIds, compact = false }: TagSe
 
   const handleDeleteTag = (e: React.MouseEvent, tagId: string, tagName: string) => {
     e.stopPropagation()
-    if (confirm(`确定删除标签"${tagName}"吗？此操作会从所有会话中移除该标签。`)) {
+    if (confirm(t.tag.deleteConfirm(tagName))) {
       deleteTag(tagId)
     }
   }
@@ -76,7 +76,7 @@ export function TagSelector({ sessionId, sessionTagIds, compact = false }: TagSe
                     transition-colors ${compact ? 'text-[10px]' : ''}`}
         >
           <TagIcon className="w-3 h-3" />
-          {!compact && <span>标签</span>}
+          {!compact && <span>{t.tag.tags}</span>}
         </button>
       </div>
 
@@ -104,17 +104,17 @@ export function TagSelector({ sessionId, sessionTagIds, compact = false }: TagSe
             {isManaging ? (
               <div className="p-2">
                 <div className="flex items-center justify-between mb-2 px-1">
-                  <span className="text-xs font-medium text-muted-foreground">管理标签</span>
+                  <span className="text-xs font-medium text-muted-foreground">{t.tag.manageTags}</span>
                   <button
                     onClick={() => setIsManaging(false)}
                     className="text-xs text-primary hover:text-primary/80 font-medium"
                   >
-                    完成
+                    {t.common.done}
                   </button>
                 </div>
                 {tags.length === 0 ? (
                   <p className="text-xs text-muted-foreground text-center py-4">
-                    暂无标签
+                    {t.tag.noTags}
                   </p>
                 ) : (
                   <div className="space-y-1 max-h-48 overflow-y-auto">
@@ -134,7 +134,7 @@ export function TagSelector({ sessionId, sessionTagIds, compact = false }: TagSe
                             onClick={(e) => handleDeleteTag(e, tag.id, tag.name)}
                             className="p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 
                                      rounded transition-colors"
-                            title="删除标签"
+                            title={t.common.delete}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -151,7 +151,7 @@ export function TagSelector({ sessionId, sessionTagIds, compact = false }: TagSe
                   type="text"
                   value={newTagName}
                   onChange={e => setNewTagName(e.target.value)}
-                  placeholder="标签名称"
+                  placeholder={t.tag.tagName}
                   className="flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   autoFocus
                   onKeyDown={e => {
@@ -176,7 +176,7 @@ export function TagSelector({ sessionId, sessionTagIds, compact = false }: TagSe
                     onClick={() => setIsCreating(false)}
                     className="px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
                   >
-                    取消
+                    {t.common.cancel}
                   </button>
                   <button
                     onClick={handleCreateTag}
@@ -184,7 +184,7 @@ export function TagSelector({ sessionId, sessionTagIds, compact = false }: TagSe
                     className="px-2 py-1 text-xs bg-primary text-primary-foreground rounded 
                              hover:bg-primary/90 disabled:opacity-50"
                   >
-                    创建
+                    {t.common.create}
                   </button>
                 </div>
               </div>
@@ -225,7 +225,7 @@ export function TagSelector({ sessionId, sessionTagIds, compact = false }: TagSe
                              hover:bg-muted hover:text-foreground rounded transition-colors"
                   >
                     <Plus className="w-4 h-4" />
-                    <span>创建新标签</span>
+                    <span>{t.tag.createNew}</span>
                   </button>
                   {tags.length > 0 && (
                     <button
@@ -234,7 +234,7 @@ export function TagSelector({ sessionId, sessionTagIds, compact = false }: TagSe
                                hover:bg-muted hover:text-foreground rounded transition-colors"
                     >
                       <Settings className="w-4 h-4" />
-                      <span>管理标签</span>
+                      <span>{t.tag.manageTags}</span>
                     </button>
                   )}
                 </div>
@@ -249,7 +249,7 @@ export function TagSelector({ sessionId, sessionTagIds, compact = false }: TagSe
 
 // 标签筛选栏组件
 export function TagFilter() {
-  const { tags, selectedTagIds, toggleTagFilter, clearTagFilter } = useTranscriptStore()
+  const { tags, selectedTagIds, toggleTagFilter, clearTagFilter, t } = useTranscriptStore()
 
   if (tags.length === 0) return null
 
@@ -259,7 +259,7 @@ export function TagFilter() {
 
   return (
     <div className="flex items-center gap-2 flex-wrap animate-in slide-in-from-top-2 fade-in">
-      <span className="text-xs text-muted-foreground">筛选:</span>
+      <span className="text-xs text-muted-foreground">{t.tag.filter}</span>
       {tags.map(tag => {
         const color = getTagColor(tag.color)
         const isSelected = selectedTagIds.includes(tag.id)
@@ -283,7 +283,7 @@ export function TagFilter() {
           onClick={clearTagFilter}
           className="text-xs text-muted-foreground hover:text-primary transition-colors hover:underline"
         >
-          清除筛选
+          {t.tag.clearFilter}
         </button>
       )}
     </div>
@@ -292,7 +292,7 @@ export function TagFilter() {
 
 // 标签管理组件（用于设置页面）
 export function TagManager() {
-  const { tags, deleteTag, updateTag } = useTranscriptStore()
+  const { tags, deleteTag, updateTag, t } = useTranscriptStore()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingName, setEditingName] = useState('')
 
@@ -316,7 +316,7 @@ export function TagManager() {
   if (tags.length === 0) {
     return (
       <div className="text-sm text-muted-foreground text-center py-4">
-        暂无标签，在历史记录中添加
+        {t.tag.noTagsHint}
       </div>
     )
   }
@@ -357,12 +357,12 @@ export function TagManager() {
                   onClick={() => startEditing(tag)}
                   className="p-1 text-muted-foreground hover:text-foreground"
                 >
-                  编辑
+                  {t.common.edit}
                 </button>
               )}
               <button
                 onClick={() => {
-                  if (confirm(`确定删除标签"${tag.name}"吗？`)) {
+                  if (confirm(t.tag.deleteConfirm(tag.name))) {
                     deleteTag(tag.id)
                   }
                 }}

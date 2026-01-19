@@ -4,7 +4,7 @@
 
 捕获你的电脑正在播放的任何声音（浏览器视频、在线会议、播客等），实时转录为文字。
 
-![DeLive Screenshot](./screenshot.png)
+<img width="1506" height="975" alt="PixPin_2026-01-19_22-26-21" src="https://github.com/user-attachments/assets/f0d26fe3-ae9c-4d24-8b5d-b12f2095acb7" />
 
 ## ✨ 功能特性
 

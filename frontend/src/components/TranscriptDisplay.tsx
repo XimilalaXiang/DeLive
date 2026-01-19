@@ -3,7 +3,7 @@ import { FileText, Mic, AlertCircle, ArrowDown, Activity } from 'lucide-react'
 import { useTranscriptStore } from '../stores/transcriptStore'
 
 export function TranscriptDisplay() {
-  const { finalTranscript, nonFinalTranscript, recordingState, currentSessionId } = useTranscriptStore()
+  const { finalTranscript, nonFinalTranscript, recordingState, currentSessionId, t } = useTranscriptStore()
   const containerRef = useRef<HTMLDivElement>(null)
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true)
   const [showScrollButton, setShowScrollButton] = useState(false)
@@ -55,7 +55,7 @@ export function TranscriptDisplay() {
             <Activity className="w-4 h-4 text-primary" />
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-semibold tracking-tight">实时转录</span>
+            <span className="text-sm font-semibold tracking-tight">{t.transcript.title}</span>
             {currentSessionId && (
               <span className="text-[10px] text-muted-foreground font-mono">
                 ID: {currentSessionId.slice(0, 8)}
@@ -71,14 +71,14 @@ export function TranscriptDisplay() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
             </span>
-            正在启动
+            {t.recording.starting.replace('...', '')}
           </div>
         )}
         {isRecording && (
           <div className="flex items-center gap-3">
             {!shouldAutoScroll && (
               <span className="text-xs font-medium text-muted-foreground animate-in fade-in">
-                已暂停滚动
+                {t.transcript.scrollPaused}
               </span>
             )}
             <div className="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400 shadow-sm">
@@ -106,8 +106,8 @@ export function TranscriptDisplay() {
                  <div className="h-2 w-2 bg-primary rounded-full"></div>
               </div>
             </div>
-            <p className="text-sm font-medium text-foreground">正在连接 Soniox...</p>
-            <p className="text-xs mt-2 opacity-80">请在弹出窗口中选择要共享的音频源</p>
+            <p className="text-sm font-medium text-foreground">{t.transcript.connecting}</p>
+            <p className="text-xs mt-2 opacity-80">{t.transcript.selectAudioSource}</p>
           </div>
         ) : isEmpty ? (
           <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
@@ -120,19 +120,19 @@ export function TranscriptDisplay() {
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-foreground">正在监听音频...</p>
-                  <p className="text-xs mt-1">转录结果将实时显示在这里</p>
+                  <p className="text-sm font-medium text-foreground">{t.transcript.listening}</p>
+                  <p className="text-xs mt-1">{t.transcript.resultsWillAppear}</p>
                 </div>
                 
                 <div className="mt-6 p-3 bg-amber-50/50 dark:bg-amber-950/10 rounded-lg border border-amber-100 dark:border-amber-900/30 text-left">
                   <div className="flex items-start gap-2.5">
                     <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
                     <div className="space-y-1">
-                      <p className="text-xs font-medium text-amber-700 dark:text-amber-400">没有内容显示？</p>
+                      <p className="text-xs font-medium text-amber-700 dark:text-amber-400">{t.transcript.noContentTitle}</p>
                       <ul className="text-[10px] text-amber-600/80 dark:text-amber-500/80 list-disc list-inside space-y-0.5 leading-relaxed">
-                        <li>检查页面是否正在播放声音</li>
-                        <li>确认共享时勾选了"共享音频"</li>
-                        <li>F12 控制台查看是否有报错</li>
+                        {t.transcript.noContentTips.map((tip, index) => (
+                          <li key={index}>{tip}</li>
+                        ))}
                       </ul>
                     </div>
                   </div>
@@ -144,8 +144,8 @@ export function TranscriptDisplay() {
                   <Mic className="w-8 h-8" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium">准备就绪</p>
-                  <p className="text-xs">点击下方按钮开始录制</p>
+                  <p className="text-sm font-medium">{t.transcript.ready}</p>
+                  <p className="text-xs">{t.transcript.clickToStart}</p>
                 </div>
               </div>
             )}
@@ -173,7 +173,7 @@ export function TranscriptDisplay() {
                    transition-all duration-300 animate-in slide-in-from-bottom-4"
         >
           <ArrowDown className="w-3.5 h-3.5" />
-          <span>回到底部</span>
+          <span>{t.transcript.scrollToBottom}</span>
         </button>
       )}
 
@@ -182,12 +182,12 @@ export function TranscriptDisplay() {
         <div className="px-6 py-2.5 border-t border-border bg-muted/30 flex items-center justify-between text-xs">
           <div className="flex items-center gap-2 text-muted-foreground">
             <FileText className="w-3.5 h-3.5" />
-            <span>已转录 {finalTranscript.length} 字符</span>
+            <span>{t.transcript.transcribed} {finalTranscript.length} {t.common.characters}</span>
           </div>
           {isRecording && (
             <div className="flex items-center gap-1.5 text-green-600 dark:text-green-400">
               <div className="w-1.5 h-1.5 bg-current rounded-full animate-pulse"></div>
-              <span className="font-medium">实时更新中</span>
+              <span className="font-medium">{t.transcript.liveUpdating}</span>
             </div>
           )}
         </div>

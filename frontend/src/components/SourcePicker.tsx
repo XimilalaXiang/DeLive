@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Monitor, AppWindow, X, Loader2, RefreshCw } from 'lucide-react'
+import { useTranscriptStore } from '../stores/transcriptStore'
 
 // 使用全局定义的 DesktopSource 类型
 
@@ -10,6 +11,7 @@ interface SourcePickerProps {
 }
 
 export function SourcePicker({ isOpen, onSelect, onCancel }: SourcePickerProps) {
+  const { t } = useTranscriptStore()
   const [sources, setSources] = useState<DesktopSource[]>([])
   const [loading, setLoading] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -28,7 +30,7 @@ export function SourcePicker({ isOpen, onSelect, onCancel }: SourcePickerProps) 
         setSelectedId(firstScreen.id)
       }
     } catch (error) {
-      console.error('加载桌面源失败:', error)
+      console.error(t.sourcePicker.loadFailed, error)
     } finally {
       setLoading(false)
     }
@@ -64,8 +66,8 @@ export function SourcePicker({ isOpen, onSelect, onCancel }: SourcePickerProps) 
               <Monitor className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold tracking-tight">选择要捕获的内容</h2>
-              <p className="text-xs text-muted-foreground">选择一个屏幕或窗口进行音频捕获</p>
+              <h2 className="text-lg font-semibold tracking-tight">{t.sourcePicker.title}</h2>
+              <p className="text-xs text-muted-foreground">{t.sourcePicker.subtitle}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -73,7 +75,7 @@ export function SourcePicker({ isOpen, onSelect, onCancel }: SourcePickerProps) 
               onClick={loadSources}
               disabled={loading}
               className="p-2 hover:bg-muted rounded-lg transition-colors text-muted-foreground hover:text-foreground"
-              title="刷新列表"
+              title={t.sourcePicker.refresh}
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
@@ -91,7 +93,7 @@ export function SourcePicker({ isOpen, onSelect, onCancel }: SourcePickerProps) 
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <Loader2 className="w-8 h-8 animate-spin mb-3" />
-              <p className="text-sm">正在获取可用的屏幕和窗口...</p>
+              <p className="text-sm">{t.sourcePicker.loading}</p>
             </div>
           ) : (
             <>
@@ -100,7 +102,7 @@ export function SourcePicker({ isOpen, onSelect, onCancel }: SourcePickerProps) 
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
                     <Monitor className="w-4 h-4" />
-                    屏幕 ({screens.length})
+                    {t.sourcePicker.screens} ({screens.length})
                   </h3>
                   <div className="grid grid-cols-2 gap-3">
                     {screens.map(source => (
@@ -141,7 +143,7 @@ export function SourcePicker({ isOpen, onSelect, onCancel }: SourcePickerProps) 
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
                     <AppWindow className="w-4 h-4" />
-                    窗口 ({windows.length})
+                    {t.sourcePicker.windows} ({windows.length})
                   </h3>
                   <div className="grid grid-cols-3 gap-3">
                     {windows.map(source => (
@@ -185,7 +187,7 @@ export function SourcePicker({ isOpen, onSelect, onCancel }: SourcePickerProps) 
               {sources.length === 0 && !loading && (
                 <div className="text-center py-12 text-muted-foreground">
                   <Monitor className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>未找到可用的屏幕或窗口</p>
+                  <p>{t.sourcePicker.noSources}</p>
                 </div>
               )}
             </>
@@ -195,21 +197,21 @@ export function SourcePicker({ isOpen, onSelect, onCancel }: SourcePickerProps) 
         {/* 底部 */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-muted/30">
           <p className="text-xs text-muted-foreground">
-            选择后将捕获该屏幕/窗口的系统音频
+            {t.sourcePicker.captureHint}
           </p>
           <div className="flex items-center gap-3">
             <button
               onClick={onCancel}
               className="px-4 py-2 text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-lg transition-colors"
             >
-              取消
+              {t.common.cancel}
             </button>
             <button
               onClick={handleSelect}
               disabled={!selectedId}
               className="px-4 py-2 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              开始捕获
+              {t.sourcePicker.startCapture}
             </button>
           </div>
         </div>

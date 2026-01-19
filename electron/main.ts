@@ -166,16 +166,39 @@ function createTray() {
 }
 
 function registerShortcuts() {
-  // 注册全局快捷键（可选功能）
-  // 例如：Ctrl+Shift+R 显示/隐藏窗口
-  globalShortcut.register('CommandOrControl+Shift+D', () => {
+  // 注册全局快捷键 - 显示/隐藏窗口
+  const shortcut = 'CommandOrControl+Shift+D'
+  
+  const toggleWindow = () => {
     if (mainWindow?.isVisible()) {
       mainWindow.hide()
     } else {
       mainWindow?.show()
       mainWindow?.focus()
     }
-  })
+  }
+  
+  // 尝试注册快捷键
+  const registered = globalShortcut.register(shortcut, toggleWindow)
+  
+  if (registered) {
+    console.log(`全局快捷键 ${shortcut} 注册成功`)
+  } else {
+    console.warn(`全局快捷键 ${shortcut} 注册失败，可能被其他程序占用`)
+    
+    // 尝试备用快捷键
+    const backupShortcut = 'CommandOrControl+Alt+D'
+    const backupRegistered = globalShortcut.register(backupShortcut, toggleWindow)
+    
+    if (backupRegistered) {
+      console.log(`备用快捷键 ${backupShortcut} 注册成功`)
+    } else {
+      console.warn(`备用快捷键 ${backupShortcut} 也注册失败`)
+    }
+  }
+  
+  // 检查快捷键是否已注册
+  console.log(`快捷键 ${shortcut} 已注册: ${globalShortcut.isRegistered(shortcut)}`)
 }
 
 // 单实例锁定

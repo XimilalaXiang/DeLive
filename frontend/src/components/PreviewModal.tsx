@@ -1,6 +1,7 @@
 import { X, Download, Calendar, Clock, FileText } from 'lucide-react'
 import type { TranscriptSession } from '../types'
 import { exportToTxt } from '../utils/storage'
+import { useTranscriptStore } from '../stores/transcriptStore'
 
 interface PreviewModalProps {
   session: TranscriptSession | null
@@ -8,6 +9,8 @@ interface PreviewModalProps {
 }
 
 export function PreviewModal({ session, onClose }: PreviewModalProps) {
+  const { t } = useTranscriptStore()
+  
   if (!session) return null
 
   const handleExport = () => {
@@ -70,7 +73,7 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
               <div className="bg-muted w-16 h-16 rounded-full flex items-center justify-center mb-4">
                 <FileText className="w-8 h-8 opacity-50" />
               </div>
-              <p className="text-sm">此记录没有转录内容</p>
+              <p className="text-sm">{t.preview.noContent}</p>
             </div>
           )}
         </div>
@@ -78,14 +81,14 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
         {/* 底部信息和操作 */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-muted/30">
           <span className="text-sm text-muted-foreground">
-            共 {session.transcript?.length || 0} 个字符
+            {t.preview.totalCharacters} {session.transcript?.length || 0} {t.common.characters}
           </span>
           <div className="flex items-center gap-3">
             <button
               onClick={onClose}
               className="px-4 py-2 text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-lg transition-colors"
             >
-              关闭
+              {t.common.close}
             </button>
             {session.transcript && (
               <button
@@ -94,7 +97,7 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
                          bg-primary hover:bg-primary/90 rounded-lg transition-colors shadow-sm"
               >
                 <Download className="w-4 h-4" />
-                导出 TXT
+                {t.preview.exportTxt}
               </button>
             )}
           </div>

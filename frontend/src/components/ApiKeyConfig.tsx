@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Settings, Eye, EyeOff, Check, X, Key, Download, Upload, AlertCircle, Power } from 'lucide-react'
+import { Settings, Eye, EyeOff, Check, X, Key, Download, Upload, AlertCircle, Power, Globe } from 'lucide-react'
 import { useTranscriptStore } from '../stores/transcriptStore'
 import { exportAllData, validateBackupData, importDataOverwrite, importDataMerge } from '../utils/storage'
 
@@ -9,7 +9,7 @@ interface ApiKeyConfigProps {
 }
 
 export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
-  const { settings, updateSettings, loadSessions, loadTags } = useTranscriptStore()
+  const { settings, updateSettings, loadSessions, loadTags, t, language, setLanguage } = useTranscriptStore()
   const [apiKey, setApiKey] = useState(settings.apiKey)
   const [showKey, setShowKey] = useState(false)
   const [languageHints, setLanguageHints] = useState(settings.languageHints.join(', '))
@@ -48,7 +48,7 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
   // 导出数据
   const handleExport = () => {
     exportAllData()
-    setImportMessage({ type: 'success', text: '数据已导出' })
+    setImportMessage({ type: 'success', text: t.settings.dataExported })
     setTimeout(() => setImportMessage(null), 3000)
   }
 
@@ -67,30 +67,26 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
       const data = JSON.parse(text)
       
       if (!validateBackupData(data)) {
-        setImportMessage({ type: 'error', text: '无效的备份文件格式' })
+        setImportMessage({ type: 'error', text: t.settings.invalidBackupFile })
         return
       }
 
       // 询问导入模式
-      const mode = confirm(
-        `检测到备份文件包含 ${data.sessions.length} 条会话和 ${data.tags.length} 个标签。\n\n` +
-        `点击"确定"将覆盖现有数据\n` +
-        `点击"取消"将合并数据（保留现有，添加新数据）`
-      )
+      const mode = confirm(t.settings.importConfirm(data.sessions.length, data.tags.length))
 
       if (mode) {
         // 覆盖模式
         const result = importDataOverwrite(data)
         setImportMessage({ 
           type: 'success', 
-          text: `已导入 ${result.sessions} 条会话和 ${result.tags} 个标签` 
+          text: t.settings.importedOverwrite(result.sessions, result.tags)
         })
       } else {
         // 合并模式
         const result = importDataMerge(data)
         setImportMessage({ 
           type: 'success', 
-          text: `已合并数据：新增 ${result.newSessions} 条会话和 ${result.newTags} 个标签` 
+          text: t.settings.importedMerge(result.newSessions, result.newTags)
         })
       }
 
@@ -98,7 +94,7 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
       loadSessions()
       loadTags()
     } catch {
-      setImportMessage({ type: 'error', text: '文件解析失败，请确保是有效的JSON文件' })
+      setImportMessage({ type: 'error', text: t.settings.importFailed })
     }
 
     // 清空文件输入，允许再次选择同一文件
@@ -109,16 +105,16 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
 
   return (
     <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
-      <div className="bg-card text-card-foreground border border-border rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="bg-card text-card-foreground border border-border rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
         {/* 头部 */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/30">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/30 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 text-primary rounded-lg border border-primary/20">
               <Settings className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold tracking-tight">API 设置</h2>
-              <p className="text-xs text-muted-foreground">配置 Soniox API 连接</p>
+              <h2 className="text-lg font-semibold tracking-tight">{t.settings.title}</h2>
+              <p className="text-xs text-muted-foreground">{t.settings.subtitle}</p>
             </div>
           </div>
           <button
@@ -129,20 +125,20 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
           </button>
         </div>
 
-        {/* 内容 */}
-        <div className="p-6 space-y-6">
+        {/* 内容 - 可滚动 */}
+        <div className="p-6 space-y-6 overflow-y-auto flex-1">
           {/* API Key 输入 */}
           <div className="space-y-3">
             <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2">
               <Key className="w-3.5 h-3.5 text-muted-foreground" />
-              Soniox API 密钥
+              {t.settings.apiKey}
             </label>
             <div className="relative group">
               <input
                 type={showKey ? 'text' : 'password'}
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                placeholder="输入你的 Soniox API 密钥"
+                placeholder={t.settings.apiKeyPlaceholder}
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pr-10 font-mono"
               />
               <button
@@ -158,26 +154,62 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
               </button>
             </div>
             <p className="text-[10px] text-muted-foreground">
-              在 <a href="https://console.soniox.com" target="_blank" rel="noopener noreferrer" 
-                   className="text-primary font-medium hover:underline underline-offset-2">console.soniox.com</a> 获取你的 API 密钥
+              {t.settings.apiKeyHint} <a href="https://console.soniox.com" target="_blank" rel="noopener noreferrer" 
+                   className="text-primary font-medium hover:underline underline-offset-2">console.soniox.com</a>
             </p>
           </div>
 
           {/* 语言提示 */}
           <div className="space-y-3">
             <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              语言提示 (Language Hints)
+              {t.settings.languageHints}
             </label>
             <input
               type="text"
               value={languageHints}
               onChange={(e) => setLanguageHints(e.target.value)}
-              placeholder="zh, en"
+              placeholder={t.settings.languageHintsPlaceholder}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             />
             <p className="text-[10px] text-muted-foreground">
-              用逗号分隔的语言代码，例如: zh, en, ja, ko
+              {t.settings.languageHintsDesc}
             </p>
+          </div>
+
+          {/* 分隔线 */}
+          <div className="border-t border-border" />
+
+          {/* 界面语言设置 */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium leading-none flex items-center gap-2">
+              <Globe className="w-3.5 h-3.5 text-muted-foreground" />
+              {t.settings.interfaceLanguage}
+            </label>
+            <p className="text-[10px] text-muted-foreground">
+              {t.settings.interfaceLanguageDesc}
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setLanguage('zh')}
+                className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all
+                          ${language === 'zh' 
+                            ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-2 border-green-500 ring-2 ring-green-500/20' 
+                            : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
+                          }`}
+              >
+                {t.settings.languageChinese}
+              </button>
+              <button
+                onClick={() => setLanguage('en')}
+                className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all
+                          ${language === 'en' 
+                            ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-2 border-green-500 ring-2 ring-green-500/20' 
+                            : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
+                          }`}
+              >
+                {t.settings.languageEnglish}
+              </button>
+            </div>
           </div>
 
           {/* 分隔线 */}
@@ -187,10 +219,10 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
           <div className="space-y-3">
             <label className="text-sm font-medium leading-none flex items-center gap-2">
               <Download className="w-3.5 h-3.5 text-muted-foreground" />
-              数据管理
+              {t.settings.dataManagement}
             </label>
             <p className="text-[10px] text-muted-foreground">
-              导出数据以备份或迁移到其他设备，导入时可选择覆盖或合并现有数据
+              {t.settings.dataManagementDesc}
             </p>
             <div className="flex gap-2">
               <button
@@ -200,7 +232,7 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
                          rounded-md transition-colors"
               >
                 <Download className="w-4 h-4" />
-                导出数据
+                {t.settings.exportData}
               </button>
               <button
                 onClick={handleImportClick}
@@ -209,7 +241,7 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
                          rounded-md transition-colors"
               >
                 <Upload className="w-4 h-4" />
-                导入数据
+                {t.settings.importData}
               </button>
               <input
                 ref={fileInputRef}
@@ -244,12 +276,12 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
               <div className="space-y-3">
                 <label className="text-sm font-medium leading-none flex items-center gap-2">
                   <Power className="w-3.5 h-3.5 text-muted-foreground" />
-                  启动设置
+                  {t.settings.launchSettings}
                 </label>
                 <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
                   <div>
-                    <p className="text-sm font-medium">开机自动启动</p>
-                    <p className="text-[10px] text-muted-foreground">系统启动时自动运行并最小化到托盘</p>
+                    <p className="text-sm font-medium">{t.settings.autoLaunch}</p>
+                    <p className="text-[10px] text-muted-foreground">{t.settings.autoLaunchDesc}</p>
                   </div>
                   <button
                     onClick={() => handleAutoLaunchChange(!autoLaunch)}
@@ -268,19 +300,19 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
         </div>
 
         {/* 底部按钮 */}
-        <div className="flex justify-end gap-3 px-6 py-4 bg-muted/30 border-t border-border">
+        <div className="flex justify-end gap-3 px-6 py-4 bg-muted/30 border-t border-border flex-shrink-0">
           <button
             onClick={onClose}
             className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
           >
-            取消
+            {t.common.cancel}
           </button>
           <button
             onClick={handleSave}
             className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 gap-2"
           >
             <Check className="w-4 h-4" />
-            保存
+            {t.common.save}
           </button>
         </div>
       </div>

@@ -7,7 +7,7 @@ interface RecordingControlsProps {
 }
 
 export function RecordingControls({ onError }: RecordingControlsProps) {
-  const { recordingState, settings, currentTranscript } = useTranscriptStore()
+  const { recordingState, settings, currentTranscript, t } = useTranscriptStore()
   const { startRecording, stopRecording } = useSoniox({
     onError,
     onStarted: () => console.log('[UI] Recording started'),
@@ -23,7 +23,7 @@ export function RecordingControls({ onError }: RecordingControlsProps) {
   const handleClick = () => {
     if (isIdle) {
       if (!settings.apiKey) {
-        onError('请先在设置中配置 API 密钥')
+        onError(t.recording.configureApiFirst)
         return
       }
       startRecording()
@@ -57,22 +57,22 @@ export function RecordingControls({ onError }: RecordingControlsProps) {
           {isStarting ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              <span>正在启动...</span>
+              <span>{t.recording.starting}</span>
             </>
           ) : isStopping ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              <span>正在停止...</span>
+              <span>{t.recording.stopping}</span>
             </>
           ) : isRecording ? (
             <>
               <Square className="w-5 h-5 fill-current" />
-              <span>停止录制</span>
+              <span>{t.recording.stopRecording}</span>
             </>
           ) : (
             <>
               <Mic className="w-5 h-5" />
-              <span>开始录制</span>
+              <span>{t.recording.startRecording}</span>
             </>
           )}
         </button>
@@ -82,7 +82,7 @@ export function RecordingControls({ onError }: RecordingControlsProps) {
       <div className="text-center h-12 flex flex-col justify-center">
         {isStarting && (
           <p className="text-sm font-medium text-amber-600 dark:text-amber-400 animate-in fade-in slide-in-from-bottom-1">
-            请在弹出的窗口中选择标签页，并勾选 <strong className="underline decoration-2 underline-offset-2">共享音频</strong>
+            {t.recording.selectSource} <strong className="underline decoration-2 underline-offset-2">{t.recording.shareAudio}</strong>
           </p>
         )}
         {isRecording && (
@@ -92,18 +92,18 @@ export function RecordingControls({ onError }: RecordingControlsProps) {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
               </span>
-              正在捕获音频
+              {t.recording.capturingAudio}
             </div>
             {!currentTranscript && (
               <p className="text-xs text-muted-foreground">
-                等待音频输入... 请确保页面有声音
+                {t.recording.waitingForAudio}
               </p>
             )}
           </div>
         )}
         {isIdle && !settings.apiKey && (
           <p className="text-sm text-amber-600 dark:text-amber-400 animate-in fade-in">
-            ↑ 请先点击右上角配置 API 密钥
+            {t.recording.clickToConfigureApi}
           </p>
         )}
       </div>

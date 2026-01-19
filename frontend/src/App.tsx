@@ -18,7 +18,7 @@ function App() {
   const [showSourcePicker, setShowSourcePicker] = useState(false)
   const [toasts, setToasts] = useState<ToastMessage[]>([])
   const [isInitialized, setIsInitialized] = useState(false)
-  const { loadSessions, loadSettings, loadTags, settings, initTheme } = useTranscriptStore()
+  const { loadSessions, loadSettings, loadTags, settings, initTheme, t } = useTranscriptStore()
   const hasCheckedApiKey = useRef(false)
 
   // 初始化加载
@@ -83,8 +83,8 @@ function App() {
                 <Waves className="h-5 w-5" />
               </div>
               <div className="flex flex-col gap-0.5">
-                <h1 className="text-lg font-bold leading-none tracking-tight">DeLive</h1>
-                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">桌面音频实时转录</p>
+                <h1 className="text-lg font-bold leading-none tracking-tight">{t.app.name}</h1>
+                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">{t.app.subtitle}</p>
               </div>
             </div>
 
@@ -106,7 +106,7 @@ function App() {
                 `}
               >
                 <Settings className="w-4 h-4 mr-2" />
-                <span>{settings.apiKey ? '设置' : '配置 API'}</span>
+                <span>{settings.apiKey ? t.common.settings : t.common.configureApi}</span>
               </button>
             </div>
           </div>
@@ -124,10 +124,10 @@ function App() {
               </div>
               <div className="space-y-1">
                 <h3 className="font-medium leading-none tracking-tight text-amber-900 dark:text-amber-200">
-                  需要配置 API 密钥
+                  {t.api.needConfig}
                 </h3>
                 <div className="text-sm text-amber-800 dark:text-amber-300">
-                  请点击右上角的"配置 API"按钮，输入你的 Soniox API 密钥以开始使用。
+                  {t.api.needConfigDesc}
                 </div>
               </div>
             </div>
@@ -154,7 +154,7 @@ function App() {
       <footer className="border-t border-border/40 bg-muted/40 mt-auto">
         <div className="container max-w-5xl mx-auto px-4 sm:px-6 py-6">
           <p className="text-center text-xs text-muted-foreground">
-            Open Source on <a href="https://github.com/XimilalaXiang/DeLive" target="_blank" rel="noopener noreferrer" 
+            {t.app.footer} <a href="https://github.com/XimilalaXiang/DeLive" target="_blank" rel="noopener noreferrer" 
                          className="font-medium underline underline-offset-4 hover:text-primary transition-colors">GitHub</a>
           </p>
         </div>
@@ -174,7 +174,7 @@ function App() {
             const success = await window.electronAPI?.selectSource(sourceId)
             setShowSourcePicker(false)
             if (!success) {
-              addToast('error', '选择源失败')
+              addToast('error', t.sourcePicker.selectFailed)
             }
           }}
           onCancel={() => {

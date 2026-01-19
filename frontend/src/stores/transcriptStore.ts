@@ -11,6 +11,13 @@ import {
   formatDate, 
   formatTime 
 } from '../utils/storage'
+import { 
+  type Language, 
+  type Translations, 
+  getTranslations, 
+  getSavedLanguage, 
+  saveLanguage 
+} from '../i18n'
 
 // 主题类型定义
 type Theme = 'light' | 'dark' | 'system'
@@ -56,6 +63,11 @@ const applyTheme = (resolvedTheme: ResolvedTheme) => {
 }
 
 interface TranscriptState {
+  // 语言状态
+  language: Language
+  t: Translations
+  setLanguage: (lang: Language) => void
+  
   // 主题状态
   theme: Theme
   resolvedTheme: ResolvedTheme
@@ -113,6 +125,14 @@ interface TranscriptState {
 }
 
 export const useTranscriptStore = create<TranscriptState>((set, get) => ({
+  // 语言状态
+  language: getSavedLanguage(),
+  t: getTranslations(getSavedLanguage()),
+  setLanguage: (lang) => {
+    saveLanguage(lang)
+    set({ language: lang, t: getTranslations(lang) })
+  },
+  
   // 主题状态
   theme: 'system',
   resolvedTheme: 'light',
@@ -168,9 +188,10 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
   startNewSession: () => {
     const id = generateId()
     const now = Date.now()
+    const { t } = get()
     const session: TranscriptSession = {
       id,
-      title: `转录 ${formatTime(now)}`,
+      title: t.session.defaultTitle(formatTime(now)),
       date: formatDate(now),
       time: formatTime(now),
       createdAt: now,

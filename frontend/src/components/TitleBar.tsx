@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Minus, Square, X, Maximize2 } from 'lucide-react'
+import { useTranscriptStore } from '../stores/transcriptStore'
 
 /**
  * 自定义标题栏组件 - 仅在 Electron 环境中显示
@@ -7,6 +8,7 @@ import { Minus, Square, X, Maximize2 } from 'lucide-react'
  */
 export function TitleBar() {
   const [isMaximized, setIsMaximized] = useState(false)
+  const { t } = useTranscriptStore()
 
   // 检查窗口是否最大化
   useEffect(() => {
@@ -63,7 +65,7 @@ export function TitleBar() {
         <button
           onClick={handleMinimize}
           className="h-8 w-12 flex items-center justify-center hover:bg-muted/80 transition-colors"
-          title="最小化"
+          title={t.titleBar.minimize}
         >
           <Minus className="w-4 h-4 text-muted-foreground" />
         </button>
@@ -72,7 +74,7 @@ export function TitleBar() {
         <button
           onClick={handleMaximize}
           className="h-8 w-12 flex items-center justify-center hover:bg-muted/80 transition-colors"
-          title={isMaximized ? '还原' : '最大化'}
+          title={isMaximized ? t.titleBar.restore : t.titleBar.maximize}
         >
           {isMaximized ? (
             <Maximize2 className="w-3.5 h-3.5 text-muted-foreground" />
@@ -85,7 +87,7 @@ export function TitleBar() {
         <button
           onClick={handleClose}
           className="h-8 w-12 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors group"
-          title="关闭"
+          title={t.titleBar.close}
         >
           <X className="w-4 h-4 text-muted-foreground group-hover:text-white" />
         </button>
