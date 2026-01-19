@@ -1,0 +1,20 @@
+{
+  "name": "desktop-live",
+  "version": "1.0.0",
+  "description": "Windows桌面音频实时转录系统 - 基于Soniox V3 ASR",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:client": "cd frontend && npm run dev",
+    "dev:server": "cd server && npm run dev",
+    "build": "cd frontend && npm run build",
+    "start": "cd server && npm start",
+    "install:all": "npm install && cd frontend && npm install && cd ../server && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
