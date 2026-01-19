@@ -1,5 +1,7 @@
 # DeLive 🎙️
 
+**中文 | [English](./README_EN.md)**
+
 **Windows 桌面音频实时转录系统** - 基于 Soniox V3 ASR
 
 捕获你的电脑正在播放的任何声音（浏览器视频、在线会议、播客等），实时转录为文字。
@@ -76,7 +78,6 @@ DeLive/
 │   │   ├── types/        # TypeScript 类型
 │   │   └── utils/        # 工具函数
 │   └── ...
-├── server/            # Node.js 后端（临时 API 密钥生成）
 ├── build/             # 应用图标资源
 ├── scripts/           # 构建脚本
 └── package.json
@@ -90,7 +91,6 @@ DeLive/
 | 前端 | React 18 + TypeScript + Vite |
 | 样式 | Tailwind CSS |
 | 状态管理 | Zustand |
-| 后端 | Node.js + Express |
 | ASR 引擎 | Soniox V3 (stt-rt-v3) |
 | 打包工具 | electron-builder |
 
@@ -102,13 +102,13 @@ DeLive/
 
 ## 📝 API 说明
 
-### 临时 API 密钥
+### API 密钥
 
-出于安全考虑，前端不会直接使用你的 Soniox API 密钥。而是通过后端生成临时 API 密钥（有效期 5 分钟）用于 WebSocket 连接。
+你的 Soniox API 密钥保存在本地 localStorage 中，直接用于与 Soniox WebSocket 服务建立连接。密钥仅存储在你的设备上，不会上传到任何服务器。
 
 ### 音频捕获
 
-使用 Electron 的 `desktopCapturer` API 配合系统音频回环（loopback）捕获桌面音频，无需安装虚拟音频设备。
+使用浏览器的 `getDisplayMedia` API 捕获系统音频，无需安装虚拟音频设备。选择屏幕共享时需勾选"共享音频"选项。
 
 ## ⚠️ 注意事项
 
