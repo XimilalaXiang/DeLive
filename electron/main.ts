@@ -131,7 +131,7 @@ function createCaptionWindow() {
   // 高度 = (字体大小 * 行高 * 行数) + padding
   // 高度 = (24 * 1.5 * 2) + 20 + 24 = 72 + 44 ≈ 120
   const windowWidth = 800
-  const windowHeight = 100 // 更紧凑的高度，适合2行字幕
+  const windowHeight = 120 // 增加高度以显示完整圆角
   const windowX = Math.round((screenWidth - windowWidth) / 2)
   const windowY = screenHeight - windowHeight - 30 // 距离底部 30px
 
@@ -751,7 +751,7 @@ ipcMain.handle('caption-reset-position', () => {
     const primaryDisplay = screen.getPrimaryDisplay()
     const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize
     const windowWidth = 800
-    const windowHeight = 100 // 更紧凑的高度
+    const windowHeight = 120 // 增加高度以显示完整圆角
     const windowX = Math.round((screenWidth - windowWidth) / 2)
     const windowY = screenHeight - windowHeight - 30
     

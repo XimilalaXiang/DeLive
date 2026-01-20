@@ -169,14 +169,14 @@ export function CaptionOverlay() {
     <div
       ref={containerRef}
       className={`
-        w-full h-full flex items-end justify-center
+        w-full h-full flex items-center justify-center
         ${isDraggable ? 'cursor-move' : 'cursor-default'}
         ${isDragging ? 'select-none' : ''}
       `}
       onMouseDown={handleMouseDown}
       style={{
         WebkitAppRegion: isDraggable ? 'drag' : 'no-drag',
-        paddingBottom: '10px',
+        padding: '10px',
       } as React.CSSProperties}
     >
       {/* 拖拽模式指示器 */}
@@ -191,7 +191,7 @@ export function CaptionOverlay() {
       <div
         ref={contentRef}
         className={`
-          px-6 py-3 rounded-lg transition-opacity duration-200 relative
+          px-6 py-3 transition-opacity duration-200 relative
           ${showPlaceholder ? 'opacity-0' : 'opacity-100'}
           ${isDraggable ? 'border-2 border-dashed border-blue-400' : ''}
         `}
@@ -207,6 +207,7 @@ export function CaptionOverlay() {
           maxWidth: '90%',
           textAlign: 'left',
           lineHeight: 1.5,
+          borderRadius: '12px', // 四个角都是圆角
         }}
       >
         {/* 渲染每一行 */}
