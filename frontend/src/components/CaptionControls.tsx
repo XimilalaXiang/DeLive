@@ -191,156 +191,170 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
         )}
       </div>
 
-      {/* 设置面板 */}
+      {/* 设置面板 - 模态框形式，带背景模糊 */}
       {showSettings && isEnabled && (
-        <div className="absolute top-full left-0 mt-2 w-80 p-4 bg-card border border-border rounded-xl shadow-xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold flex items-center gap-2">
-              <Settings className="w-4 h-4" />
-              {t.caption?.styleSettings}
-            </h3>
-            <button
-              onClick={() => setShowSettings(false)}
-              className="p-1 rounded hover:bg-muted transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className="space-y-4">
-            {/* 字体大小 */}
-            <div>
-              <label className="text-xs font-medium text-muted-foreground flex items-center gap-1 mb-2">
-                <Type className="w-3 h-3" />
-                {t.caption?.fontSize}: {style.fontSize}px
-              </label>
-              <input
-                type="range"
-                min="16"
-                max="72"
-                value={style.fontSize}
-                onChange={(e) => handleStyleChange({ fontSize: parseInt(e.target.value) })}
-                className="w-full h-2 bg-muted rounded-full appearance-none cursor-pointer
-                         [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 
-                         [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer"
-              />
-            </div>
-
-            {/* 字体选择 */}
-            <div>
-              <label className="text-xs font-medium text-muted-foreground mb-2 block">
-                {t.caption?.fontFamily}
-              </label>
-              <div className="flex flex-wrap gap-1">
-                {presetFonts.map((font) => (
-                  <button
-                    key={font.value}
-                    onClick={() => handleStyleChange({ fontFamily: font.value })}
-                    className={`
-                      px-2 py-1 text-xs rounded transition-all
-                      ${style.fontFamily === font.value 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'bg-muted hover:bg-accent'
-                      }
-                    `}
-                    style={{ fontFamily: font.value }}
-                  >
-                    {font.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 文字颜色 */}
-            <div>
-              <label className="text-xs font-medium text-muted-foreground flex items-center gap-1 mb-2">
-                <Palette className="w-3 h-3" />
-                {t.caption?.textColor}
-              </label>
-              <div className="flex gap-2">
-                {presetColors.map((color) => (
-                  <button
-                    key={color.value}
-                    onClick={() => handleStyleChange({ textColor: color.value })}
-                    className={`
-                      w-8 h-8 rounded-full border-2 transition-all
-                      ${style.textColor === color.value 
-                        ? 'border-primary scale-110' 
-                        : 'border-transparent hover:scale-105'
-                      }
-                    `}
-                    style={{ backgroundColor: color.value }}
-                    title={color.name}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* 背景颜色 */}
-            <div>
-              <label className="text-xs font-medium text-muted-foreground mb-2 block">
-                {t.caption?.backgroundColor}
-              </label>
-              <div className="flex flex-wrap gap-1">
-                {presetBackgrounds.map((bg) => (
-                  <button
-                    key={bg.value}
-                    onClick={() => handleStyleChange({ backgroundColor: bg.value })}
-                    className={`
-                      px-2 py-1 text-xs rounded transition-all
-                      ${style.backgroundColor === bg.value 
-                        ? 'ring-2 ring-primary' 
-                        : ''
-                      }
-                    `}
-                    style={{ 
-                      backgroundColor: bg.value,
-                      color: bg.value.includes('0, 0, 0, 0)') ? 'inherit' : '#fff',
-                    }}
-                  >
-                    {bg.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 文字阴影 */}
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-medium text-muted-foreground">
-                {t.caption?.textShadow}
-              </label>
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          onClick={() => setShowSettings(false)}
+        >
+          {/* 背景遮罩 - 半透明黑色 + 模糊效果 */}
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+          
+          {/* 设置面板内容 */}
+          <div 
+            className="relative w-96 max-h-[80vh] overflow-y-auto p-6 bg-card border border-border rounded-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Settings className="w-5 h-5" />
+                {t.caption?.styleSettings || '字幕样式设置'}
+              </h3>
               <button
-                onClick={() => handleStyleChange({ textShadow: !style.textShadow })}
-                className={`
-                  relative inline-flex h-6 w-11 items-center rounded-full transition-colors
-                  ${style.textShadow ? 'bg-primary' : 'bg-muted'}
-                `}
+                onClick={() => setShowSettings(false)}
+                className="p-2 rounded-lg hover:bg-muted transition-colors"
               >
-                <span
-                  className={`
-                    inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform
-                    ${style.textShadow ? 'translate-x-6' : 'translate-x-1'}
-                  `}
-                />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* 最大行数 */}
-            <div>
-              <label className="text-xs font-medium text-muted-foreground flex items-center gap-1 mb-2">
-                <Maximize2 className="w-3 h-3" />
-                {t.caption?.maxLines}: {style.maxLines}
-              </label>
-              <input
-                type="range"
-                min="1"
-                max="5"
-                value={style.maxLines}
-                onChange={(e) => handleStyleChange({ maxLines: parseInt(e.target.value) })}
-                className="w-full h-2 bg-muted rounded-full appearance-none cursor-pointer
-                         [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 
-                         [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer"
-              />
+            <div className="space-y-5">
+              {/* 字体大小 */}
+              <div>
+                <label className="text-sm font-medium text-muted-foreground flex items-center gap-2 mb-3">
+                  <Type className="w-4 h-4" />
+                  {t.caption?.fontSize || '字体大小'}: {style.fontSize}px
+                </label>
+                <input
+                  type="range"
+                  min="16"
+                  max="72"
+                  value={style.fontSize}
+                  onChange={(e) => handleStyleChange({ fontSize: parseInt(e.target.value) })}
+                  className="w-full h-2 bg-muted rounded-full appearance-none cursor-pointer
+                           [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 
+                           [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer
+                           [&::-webkit-slider-thumb]:shadow-md"
+                />
+              </div>
+
+              {/* 字体选择 */}
+              <div>
+                <label className="text-sm font-medium text-muted-foreground mb-3 block">
+                  {t.caption?.fontFamily || '字体'}
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {presetFonts.map((font) => (
+                    <button
+                      key={font.value}
+                      onClick={() => handleStyleChange({ fontFamily: font.value })}
+                      className={`
+                        px-3 py-1.5 text-sm rounded-lg transition-all
+                        ${style.fontFamily === font.value 
+                          ? 'bg-primary text-primary-foreground' 
+                          : 'bg-muted hover:bg-accent'
+                        }
+                      `}
+                      style={{ fontFamily: font.value }}
+                    >
+                      {font.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 文字颜色 */}
+              <div>
+                <label className="text-sm font-medium text-muted-foreground flex items-center gap-2 mb-3">
+                  <Palette className="w-4 h-4" />
+                  {t.caption?.textColor || '文字颜色'}
+                </label>
+                <div className="flex gap-3">
+                  {presetColors.map((color) => (
+                    <button
+                      key={color.value}
+                      onClick={() => handleStyleChange({ textColor: color.value })}
+                      className={`
+                        w-10 h-10 rounded-full border-2 transition-all shadow-sm
+                        ${style.textColor === color.value 
+                          ? 'border-primary scale-110 ring-2 ring-primary/30' 
+                          : 'border-transparent hover:scale-105'
+                        }
+                      `}
+                      style={{ backgroundColor: color.value }}
+                      title={color.name}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* 背景颜色 */}
+              <div>
+                <label className="text-sm font-medium text-muted-foreground mb-3 block">
+                  {t.caption?.backgroundColor || '背景颜色'}
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {presetBackgrounds.map((bg) => (
+                    <button
+                      key={bg.value}
+                      onClick={() => handleStyleChange({ backgroundColor: bg.value })}
+                      className={`
+                        px-3 py-1.5 text-sm rounded-lg transition-all
+                        ${style.backgroundColor === bg.value 
+                          ? 'ring-2 ring-primary' 
+                          : ''
+                        }
+                      `}
+                      style={{ 
+                        backgroundColor: bg.value,
+                        color: bg.value.includes('0, 0, 0, 0)') ? 'inherit' : '#fff',
+                      }}
+                    >
+                      {bg.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 文字阴影 */}
+              <div className="flex items-center justify-between py-2">
+                <label className="text-sm font-medium text-muted-foreground">
+                  {t.caption?.textShadow || '文字阴影'}
+                </label>
+                <button
+                  onClick={() => handleStyleChange({ textShadow: !style.textShadow })}
+                  className={`
+                    relative inline-flex h-7 w-12 items-center rounded-full transition-colors
+                    ${style.textShadow ? 'bg-primary' : 'bg-muted'}
+                  `}
+                >
+                  <span
+                    className={`
+                      inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform
+                      ${style.textShadow ? 'translate-x-6' : 'translate-x-1'}
+                    `}
+                  />
+                </button>
+              </div>
+
+              {/* 最大行数 */}
+              <div>
+                <label className="text-sm font-medium text-muted-foreground flex items-center gap-2 mb-3">
+                  <Maximize2 className="w-4 h-4" />
+                  {t.caption?.maxLines || '最大行数'}: {style.maxLines}
+                </label>
+                <input
+                  type="range"
+                  min="1"
+                  max="5"
+                  value={style.maxLines}
+                  onChange={(e) => handleStyleChange({ maxLines: parseInt(e.target.value) })}
+                  className="w-full h-2 bg-muted rounded-full appearance-none cursor-pointer
+                           [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 
+                           [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer
+                           [&::-webkit-slider-thumb]:shadow-md"
+                />
+              </div>
             </div>
           </div>
         </div>

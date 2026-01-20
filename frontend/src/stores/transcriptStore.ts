@@ -223,15 +223,21 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
     return id
   },
   endCurrentSession: () => {
-    const { currentSessionId, finalTranscript, sessions } = get()
-    if (currentSessionId && finalTranscript) {
+    const { currentSessionId, finalTranscript, nonFinalTranscript, currentTranscript, sessions } = get()
+    // 保存完整的转录内容（包括 final 和 non-final）
+    // 对于火山引擎，final 只在会话结束时发送，所以需要保存 currentTranscript
+    const transcriptToSave = currentTranscript || finalTranscript || nonFinalTranscript
+    if (currentSessionId && transcriptToSave) {
       const updatedSessions = sessions.map(s => 
         s.id === currentSessionId 
-          ? { ...s, transcript: finalTranscript, updatedAt: Date.now() }
+          ? { ...s, transcript: transcriptToSave, updatedAt: Date.now() }
           : s
       )
       saveSessions(updatedSessions)
       set({ sessions: updatedSessions })
+      console.log('[TranscriptStore] 会话已保存, 文本长度:', transcriptToSave.length)
+    } else {
+      console.log('[TranscriptStore] 会话未保存: currentSessionId=', currentSessionId, ', transcriptToSave=', transcriptToSave?.substring(0, 50))
     }
     set({ currentSessionId: null })
   },

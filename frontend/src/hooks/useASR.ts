@@ -119,24 +119,34 @@ export function useASR(options: UseASROptions = {}) {
       })
 
       // 监听部分结果（火山引擎等使用此事件）
+      // 注意：火山引擎的 partial 是当前句子的完整文本，不是增量
       provider.on('onPartial', (text: string) => {
         console.log('[useASR] 收到 partial:', text.substring(0, 50))
-        // 转换为 token 格式
-        processTokens([{
-          text,
-          is_final: false,
-          start_ms: 0,
-          end_ms: 0,
-        }])
+        
+        // 获取当前已确认的文本
+        const state = useTranscriptStore.getState()
+        const { finalTranscript, setTranscript } = state
+        const fullText = finalTranscript + text
+        
+        console.log('[useASR] onPartial - finalTranscript:', finalTranscript.substring(0, 50), 'partial:', text.substring(0, 50))
+        
+        // 更新 nonFinalTranscript 用于显示（不修改 finalTranscript）
+        setTranscript(finalTranscript, text)
         
         // 更新字幕窗口（中间结果）
-        window.electronAPI?.captionUpdateText(text, false)
+        window.electronAPI?.captionUpdateText(fullText, false)
       })
 
       // 监听最终结果（火山引擎等使用此事件）
+      // 注意：火山引擎的 final 是当前句子的最终确认文本
       provider.on('onFinal', (text: string) => {
         console.log('[useASR] 收到 final:', text.substring(0, 50))
-        // 转换为 token 格式
+        
+        // 获取当前 finalTokens 长度用于调试
+        const beforeState = useTranscriptStore.getState()
+        console.log('[useASR] onFinal 前 - finalTranscript:', beforeState.finalTranscript.substring(0, 50), 'finalTokens 数量:', beforeState.finalTokens.length)
+        
+        // 添加到 finalTokens 以便保存（这会自动更新 finalTranscript）
         processTokens([{
           text,
           is_final: true,
@@ -144,8 +154,12 @@ export function useASR(options: UseASROptions = {}) {
           end_ms: 0,
         }])
         
+        // 获取更新后的 finalTranscript
+        const afterState = useTranscriptStore.getState()
+        console.log('[useASR] onFinal 后 - finalTranscript:', afterState.finalTranscript.substring(0, 50), 'finalTokens 数量:', afterState.finalTokens.length)
+        
         // 更新字幕窗口（最终结果）
-        window.electronAPI?.captionUpdateText(text, true)
+        window.electronAPI?.captionUpdateText(afterState.finalTranscript, true)
       })
 
       provider.on('onError', (error: ASRError) => {
