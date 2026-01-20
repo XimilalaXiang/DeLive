@@ -1,6 +1,6 @@
-<div align="center">
+<img src="assets/header.png" alt="DeLive Header">
 
-<img src="assets/icon.svg" width="128" height="128" alt="DeLive Logo">
+<div align="center">
 
 # DeLive
 
