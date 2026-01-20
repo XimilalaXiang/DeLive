@@ -1,6 +1,12 @@
-# DeLive 🎙️
+<div align="center">
 
-**English | [简体中文](./README_ZH.md) | [繁體中文](./README_TW.md) | [日本語](./README_JA.md)**
+<img src="assets/icon.svg" width="128" height="128" alt="DeLive Logo">
+
+# DeLive
+
+**Windows Desktop Audio Real-time Transcription | Multi-ASR Provider Support**
+
+English | [简体中文](./README_ZH.md) | [繁體中文](./README_TW.md) | [日本語](./README_JA.md)
 
 [![Version](https://img.shields.io/github/v/release/XimilalaXiang/DeLive?label=Version&color=blue)](https://github.com/XimilalaXiang/DeLive/releases)
 [![License](https://img.shields.io/github/license/XimilalaXiang/DeLive?label=License&color=green)](https://github.com/XimilalaXiang/DeLive/blob/main/LICENSE)
@@ -8,11 +14,15 @@
 [![Downloads](https://img.shields.io/github/downloads/XimilalaXiang/DeLive/total?label=Downloads&color=orange)](https://github.com/XimilalaXiang/DeLive/releases)
 [![Stars](https://img.shields.io/github/stars/XimilalaXiang/DeLive?style=social)](https://github.com/XimilalaXiang/DeLive)
 
-**Windows Desktop Audio Real-time Transcription** - Multi-ASR Provider Support
+[Features](#-features) • [Quick Start](#-quick-start) • [Usage](#-usage)
+
+</div>
 
 Capture any audio playing on your computer (browser videos, online meetings, podcasts, etc.) and transcribe it to text in real-time.
 
-<img width="1506" height="975" alt="PixPin_2026-01-19_22-26-21" src="https://github.com/user-attachments/assets/f0d26fe3-ae9c-4d24-8b5d-b12f2095acb7" />
+<div align="center">
+<img width="800" alt="DeLive Screenshot" src="https://github.com/user-attachments/assets/f0d26fe3-ae9c-4d24-8b5d-b12f2095acb7" />
+</div>
 
 ## ✨ Features
 
@@ -282,4 +292,8 @@ Apache 2.0 License - Free to use, modify, and distribute with attribution
 
 ---
 
-Made with ❤️ by [XimilalaXiang](https://github.com/XimilalaXiang)
+<div align="center">
+
+**Made with ❤️ by [XimilalaXiang](https://github.com/XimilalaXiang)**
+
+</div>

@@ -1,6 +1,12 @@
-# DeLive 🎙️
+<div align="center">
 
-**[English](./README.md) | [简体中文](./README_ZH.md) | [繁體中文](./README_TW.md) | 日本語**
+<img src="assets/icon.svg" width="128" height="128" alt="DeLive Logo">
+
+# DeLive
+
+**Windows デスクトップ音声リアルタイム文字起こしシステム | マルチASRプロバイダー対応**
+
+[English](./README.md) | [简体中文](./README_ZH.md) | [繁體中文](./README_TW.md) | 日本語
 
 [![バージョン](https://img.shields.io/github/v/release/XimilalaXiang/DeLive?label=バージョン&color=blue)](https://github.com/XimilalaXiang/DeLive/releases)
 [![ライセンス](https://img.shields.io/github/license/XimilalaXiang/DeLive?label=ライセンス&color=green)](https://github.com/XimilalaXiang/DeLive/blob/main/LICENSE)
@@ -8,11 +14,15 @@
 [![ダウンロード](https://img.shields.io/github/downloads/XimilalaXiang/DeLive/total?label=ダウンロード&color=orange)](https://github.com/XimilalaXiang/DeLive/releases)
 [![Stars](https://img.shields.io/github/stars/XimilalaXiang/DeLive?style=social)](https://github.com/XimilalaXiang/DeLive)
 
-**Windows デスクトップ音声リアルタイム文字起こしシステム** - マルチASRプロバイダー対応
+[機能](#-機能) • [クイックスタート](#-クイックスタート) • [使い方](#-使い方)
+
+</div>
 
 パソコンで再生されている音声（ブラウザ動画、オンライン会議、ポッドキャストなど）をキャプチャし、リアルタイムでテキストに変換します。
 
-<img width="1506" height="975" alt="PixPin_2026-01-19_22-26-21" src="https://github.com/user-attachments/assets/f0d26fe3-ae9c-4d24-8b5d-b12f2095acb7" />
+<div align="center">
+<img width="800" alt="DeLive スクリーンショット" src="https://github.com/user-attachments/assets/f0d26fe3-ae9c-4d24-8b5d-b12f2095acb7" />
+</div>
 
 ## ✨ 機能
 
@@ -282,4 +292,8 @@ Apache 2.0 ライセンス - 著作権表示を保持すれば自由に使用、
 
 ---
 
-Made with ❤️ by [XimilalaXiang](https://github.com/XimilalaXiang)
+<div align="center">
+
+**Made with ❤️ by [XimilalaXiang](https://github.com/XimilalaXiang)**
+
+</div>

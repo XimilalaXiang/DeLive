@@ -1,6 +1,12 @@
-# DeLive 🎙️
+<div align="center">
 
-**[English](./README.md) | [简体中文](./README_ZH.md) | 繁體中文 | [日本語](./README_JA.md)**
+<img src="assets/icon.svg" width="128" height="128" alt="DeLive Logo">
+
+# DeLive
+
+**Windows 桌面音訊即時轉錄系統 | 支援多 ASR 服務提供商**
+
+[English](./README.md) | [简体中文](./README_ZH.md) | 繁體中文 | [日本語](./README_JA.md)
 
 [![版本](https://img.shields.io/github/v/release/XimilalaXiang/DeLive?label=版本&color=blue)](https://github.com/XimilalaXiang/DeLive/releases)
 [![授權](https://img.shields.io/github/license/XimilalaXiang/DeLive?label=授權&color=green)](https://github.com/XimilalaXiang/DeLive/blob/main/LICENSE)
@@ -8,11 +14,15 @@
 [![下載量](https://img.shields.io/github/downloads/XimilalaXiang/DeLive/total?label=下載量&color=orange)](https://github.com/XimilalaXiang/DeLive/releases)
 [![Stars](https://img.shields.io/github/stars/XimilalaXiang/DeLive?style=social)](https://github.com/XimilalaXiang/DeLive)
 
-**Windows 桌面音訊即時轉錄系統** - 支援多 ASR 服務提供商
+[功能特色](#-功能特色) • [快速開始](#-快速開始) • [使用步驟](#-使用步驟)
+
+</div>
 
 擷取您的電腦正在播放的任何聲音（瀏覽器影片、線上會議、Podcast 等），即時轉錄為文字。
 
-<img width="1506" height="975" alt="PixPin_2026-01-19_22-26-21" src="https://github.com/user-attachments/assets/f0d26fe3-ae9c-4d24-8b5d-b12f2095acb7" />
+<div align="center">
+<img width="800" alt="DeLive 截圖" src="https://github.com/user-attachments/assets/f0d26fe3-ae9c-4d24-8b5d-b12f2095acb7" />
+</div>
 
 ## ✨ 功能特色
 
@@ -282,4 +292,8 @@ Apache 2.0 授權 - 可自由使用、修改和分發，需保留版權聲明
 
 ---
 
-Made with ❤️ by [XimilalaXiang](https://github.com/XimilalaXiang)
+<div align="center">
+
+**Made with ❤️ by [XimilalaXiang](https://github.com/XimilalaXiang)**
+
+</div>
