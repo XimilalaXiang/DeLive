@@ -1,6 +1,6 @@
 import { Mic, Square, Loader2 } from 'lucide-react'
 import { useTranscriptStore } from '../stores/transcriptStore'
-import { useSoniox } from '../hooks/useSoniox'
+import { useASR } from '../hooks/useASR'
 
 interface RecordingControlsProps {
   onError: (message: string) => void
@@ -8,11 +8,26 @@ interface RecordingControlsProps {
 
 export function RecordingControls({ onError }: RecordingControlsProps) {
   const { recordingState, settings, currentTranscript, t } = useTranscriptStore()
-  const { startRecording, stopRecording } = useSoniox({
+  const { startRecording, stopRecording } = useASR({
     onError,
     onStarted: () => console.log('[UI] Recording started'),
     onFinished: () => console.log('[UI] Recording finished'),
   })
+  
+  // 获取当前提供商的配置
+  const currentVendor = settings.currentVendor || 'soniox'
+  const currentConfig = settings.providerConfigs?.[currentVendor]
+  
+  // 根据提供商类型检查配置
+  const hasApiKey = (() => {
+    if (currentVendor === 'volc') {
+      // 火山引擎需要 appKey 和 accessKey
+      const volcConfig = currentConfig as { appKey?: string; accessKey?: string } | undefined
+      return !!(volcConfig?.appKey && volcConfig?.accessKey)
+    }
+    // 其他提供商使用 apiKey
+    return !!(currentConfig?.apiKey || settings.apiKey)
+  })()
 
   const isIdle = recordingState === 'idle'
   const isRecording = recordingState === 'recording'
@@ -22,7 +37,7 @@ export function RecordingControls({ onError }: RecordingControlsProps) {
 
   const handleClick = () => {
     if (isIdle) {
-      if (!settings.apiKey) {
+      if (!hasApiKey) {
         onError(t.recording.configureApiFirst)
         return
       }
@@ -101,7 +116,7 @@ export function RecordingControls({ onError }: RecordingControlsProps) {
             )}
           </div>
         )}
-        {isIdle && !settings.apiKey && (
+        {isIdle && !hasApiKey && (
           <p className="text-sm text-amber-600 dark:text-amber-400 animate-in fade-in">
             {t.recording.clickToConfigureApi}
           </p>

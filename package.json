@@ -1,7 +1,7 @@
 {
   "name": "delive",
-  "version": "1.0.0",
-  "description": "Windows桌面音频实时转录系统 - 基于Soniox V3 ASR",
+  "version": "1.0.1",
+  "description": "Windows桌面音频实时转录系统 - 支持多ASR提供商",
   "private": true,
   "main": "dist-electron/main.js",
   "author": "XimilalaXiang",

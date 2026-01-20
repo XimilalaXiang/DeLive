@@ -2,12 +2,27 @@ import express from 'express'
 import cors from 'cors'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { createServer } from 'http'
+import { WebSocketServer } from 'ws'
+import { createVolcProxyServer } from './volcProxy.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const app = express()
 const PORT = process.env.PORT || 3001
+
+// 创建 HTTP 服务器
+const server = createServer(app)
+
+// 创建 WebSocket 服务器用于火山引擎代理
+const wss = new WebSocketServer({ 
+  server,
+  path: '/ws/volc'
+})
+
+// 初始化火山引擎代理
+createVolcProxyServer(wss)
 
 // 中间件
 app.use(cors())
@@ -67,6 +82,7 @@ if (process.env.NODE_ENV === 'production') {
   })
 }
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`)
+  console.log(`🔌 WebSocket proxy for Volcengine available at ws://localhost:${PORT}/ws/volc`)
 })

@@ -1,34 +1,8 @@
-// Soniox API 相关类型
-export interface SonioxToken {
-  text: string
-  start_ms?: number
-  end_ms?: number
-  confidence?: number
-  is_final: boolean
-  speaker?: string
-  language?: string
-  translation_status?: 'none' | 'original' | 'translation'
-  source_language?: string
-}
+// 重新导出 ASR 相关类型
+export * from './asr'
 
-export interface SonioxResponse {
-  tokens?: SonioxToken[]
-  final_audio_proc_ms?: number
-  total_audio_proc_ms?: number
-  finished?: boolean
-  error_code?: string
-  error_message?: string
-}
-
-export interface SonioxConfig {
-  api_key: string
-  model: string
-  audio_format: string
-  language_hints?: string[]
-  enable_language_identification?: boolean
-  enable_speaker_diarization?: boolean
-  enable_endpoint_detection?: boolean
-}
+// 兼容旧代码：保留 Soniox 类型别名
+export type { SonioxToken, SonioxResponse, SonioxConfig } from './asr/vendors/soniox'
 
 // 标签类型
 export interface Tag {
@@ -65,7 +39,20 @@ export interface TranscriptSession {
 // 应用状态类型
 export type RecordingState = 'idle' | 'starting' | 'recording' | 'stopping'
 
+// 提供商配置类型
+export interface ProviderConfigData {
+  apiKey: string
+  languageHints?: string[]
+  [key: string]: unknown
+}
+
+// 应用设置（支持多提供商）
 export interface AppSettings {
+  // 兼容旧版：保留单一 API Key（用于 Soniox）
   apiKey: string
   languageHints: string[]
+  // 新增：当前选择的提供商
+  currentVendor?: string
+  // 新增：各提供商的配置
+  providerConfigs?: Record<string, ProviderConfigData>
 }

@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { TranscriptSession, RecordingState, AppSettings, SonioxToken, Tag } from '../types'
+import type { TranscriptSession, RecordingState, AppSettings, SonioxToken, Tag, ProviderConfigData } from '../types'
 import { 
   getSessions, 
   saveSessions, 
@@ -18,6 +18,8 @@ import {
   getSavedLanguage, 
   saveLanguage 
 } from '../i18n'
+import { providerRegistry } from '../providers'
+import type { ASRProviderInfo } from '../types/asr'
 
 // 主题类型定义
 type Theme = 'light' | 'dark' | 'system'
@@ -118,6 +120,12 @@ interface TranscriptState {
   settings: AppSettings
   loadSettings: () => void
   updateSettings: (settings: Partial<AppSettings>) => void
+  
+  // 多提供商支持
+  availableProviders: ASRProviderInfo[]
+  setCurrentVendor: (vendorId: string) => void
+  updateProviderConfig: (vendorId: string, config: Partial<ProviderConfigData>) => void
+  getProviderConfig: (vendorId: string) => ProviderConfigData | undefined
   
   // Token处理
   processTokens: (tokens: SonioxToken[]) => void
@@ -314,15 +322,58 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
   setSearchQuery: (query) => set({ searchQuery: query }),
   
   // 设置
-  settings: { apiKey: '', languageHints: ['zh', 'en'] },
+  settings: { apiKey: '', languageHints: ['zh', 'en'], currentVendor: 'soniox', providerConfigs: {} },
   loadSettings: () => {
     const settings = getSettings()
+    // 兼容旧版配置：如果有 apiKey 但没有 providerConfigs，则迁移到 soniox 配置
+    if (settings.apiKey && (!settings.providerConfigs || !settings.providerConfigs['soniox'])) {
+      settings.currentVendor = 'soniox'
+      settings.providerConfigs = {
+        ...settings.providerConfigs,
+        soniox: {
+          apiKey: settings.apiKey,
+          languageHints: settings.languageHints,
+        },
+      }
+    }
     set({ settings })
   },
   updateSettings: (newSettings) => {
     const settings = { ...get().settings, ...newSettings }
     saveSettings(settings)
     set({ settings })
+  },
+  
+  // 多提供商支持
+  availableProviders: providerRegistry.getAllProviders(),
+  setCurrentVendor: (vendorId) => {
+    const { settings } = get()
+    const newSettings = { ...settings, currentVendor: vendorId }
+    saveSettings(newSettings)
+    set({ settings: newSettings })
+  },
+  updateProviderConfig: (vendorId, config) => {
+    const { settings } = get()
+    const currentConfig = settings.providerConfigs?.[vendorId] || { apiKey: '' }
+    const newProviderConfigs = {
+      ...settings.providerConfigs,
+      [vendorId]: { ...currentConfig, ...config },
+    }
+    // 同时更新顶层 apiKey 以保持兼容
+    const newApiKey = vendorId === settings.currentVendor 
+      ? (config.apiKey ?? currentConfig.apiKey ?? settings.apiKey)
+      : settings.apiKey
+    const newSettings = { 
+      ...settings, 
+      providerConfigs: newProviderConfigs,
+      apiKey: newApiKey,
+    }
+    saveSettings(newSettings)
+    set({ settings: newSettings })
+  },
+  getProviderConfig: (vendorId) => {
+    const { settings } = get()
+    return settings.providerConfigs?.[vendorId]
   },
   
   // Token处理

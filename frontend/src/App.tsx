@@ -40,16 +40,31 @@ function App() {
     }
   }, [])
 
+  // 检查当前提供商是否已配置
+  const currentVendor = settings.currentVendor || 'soniox'
+  const currentConfig = settings.providerConfigs?.[currentVendor]
+  
+  // 根据提供商类型检查配置
+  const hasApiKey = (() => {
+    if (currentVendor === 'volc') {
+      // 火山引擎需要 appKey 和 accessKey
+      const volcConfig = currentConfig as { appKey?: string; accessKey?: string } | undefined
+      return !!(volcConfig?.appKey && volcConfig?.accessKey)
+    }
+    // 其他提供商使用 apiKey
+    return !!(currentConfig?.apiKey || settings.apiKey)
+  })()
+
   // 只在初始化完成后检查一次是否需要弹出设置窗口
   useEffect(() => {
     if (isInitialized && !hasCheckedApiKey.current) {
       hasCheckedApiKey.current = true
       // 只有当本地确实没有保存API密钥时才弹出设置窗口
-      if (!settings.apiKey) {
+      if (!hasApiKey) {
         setShowSettings(true)
       }
     }
-  }, [isInitialized, settings.apiKey])
+  }, [isInitialized, hasApiKey])
 
   // Toast 管理
   const addToast = useCallback((type: 'success' | 'error', message: string) => {
@@ -99,14 +114,14 @@ function App() {
                 className={`
                   inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50
                   h-9 px-4 py-2
-                  ${!settings.apiKey 
+                  ${!hasApiKey 
                     ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-sm' 
                     : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                   }
                 `}
               >
                 <Settings className="w-4 h-4 mr-2" />
-                <span>{settings.apiKey ? t.common.settings : t.common.configureApi}</span>
+                <span>{hasApiKey ? t.common.settings : t.common.configureApi}</span>
               </button>
             </div>
           </div>
@@ -116,7 +131,7 @@ function App() {
       {/* 主内容 */}
       <main className="container max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8">
         {/* API 未配置提示 */}
-        {isInitialized && !settings.apiKey && (
+        {isInitialized && !hasApiKey && (
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/50 dark:bg-amber-900/20">
             <div className="flex items-start gap-3">
               <div className="p-1.5 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400">

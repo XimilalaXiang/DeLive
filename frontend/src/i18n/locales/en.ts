@@ -33,9 +33,9 @@ export const en: Translations = {
   // Settings page
   settings: {
     title: 'API Settings',
-    subtitle: 'Configure Soniox API connection',
-    apiKey: 'Soniox API Key',
-    apiKeyPlaceholder: 'Enter your Soniox API key',
+    subtitle: 'Configure speech recognition service',
+    apiKey: 'API Key',
+    apiKeyPlaceholder: 'Enter your API key',
     apiKeyHint: 'Get your API key at',
     languageHints: 'Language Hints',
     languageHintsPlaceholder: 'zh, en',
@@ -61,6 +61,28 @@ export const en: Translations = {
     interfaceLanguageDesc: 'Choose the display language for the app interface',
     languageChinese: '中文',
     languageEnglish: 'English',
+    // ASR provider settings
+    asrProvider: 'Speech Recognition Service',
+    asrProviderDesc: 'Choose a speech recognition provider. Different providers have different features and pricing.',
+    // API test
+    testConfig: 'Test Configuration',
+    testing: 'Testing...',
+    testSuccess: 'Configuration verified!',
+    testFailed: 'Configuration verification failed',
+  },
+
+  // Provider related
+  provider: {
+    streaming: 'Streaming',
+    needConfig: 'Config needed',
+    cloudProviders: 'Cloud Services',
+    localProviders: 'Local Models',
+    soniox: 'Soniox V3',
+    sonioxDesc: 'High-precision real-time speech recognition, supports 60+ languages',
+    openai: 'OpenAI Whisper',
+    openaiDesc: 'High-quality speech recognition, supports multiple languages and audio formats',
+    volc: 'Volcengine',
+    volcDesc: 'ByteDance speech recognition service, optimized for Chinese',
   },
 
   // Recording controls
@@ -147,8 +169,8 @@ export const en: Translations = {
 
   // API related prompts
   api: {
-    needConfig: 'API Key Required',
-    needConfigDesc: 'Please click "Configure API" button in the top right corner and enter your Soniox API key to get started.',
+    needConfig: 'ASR Service Configuration Required',
+    needConfigDesc: 'Please click "Configure API" button in the top right corner, select a speech recognition provider, and enter the corresponding API key to get started.',
   },
 
   // Title bar

@@ -1,131 +1,236 @@
 # DeLive 🎙️
 
-**中文 | [English](./README_EN.md)**
+**English | [中文](./README_ZH.md) | [日本語](./README_JA.md)**
 
-**Windows 桌面音频实时转录系统** - 基于 Soniox V3 ASR
+**Windows Desktop Audio Real-time Transcription** - Multi-ASR Provider Support
 
-捕获你的电脑正在播放的任何声音（浏览器视频、在线会议、播客等），实时转录为文字。
+Capture any audio playing on your computer (browser videos, online meetings, podcasts, etc.) and transcribe it to text in real-time.
 
 <img width="1506" height="975" alt="PixPin_2026-01-19_22-26-21" src="https://github.com/user-attachments/assets/f0d26fe3-ae9c-4d24-8b5d-b12f2095acb7" />
 
-## ✨ 功能特性
+## ✨ Features
 
-- 🎯 **实时转录** - 捕获系统音频，即时转换为文字
-- 🌍 **多语言支持** - 支持中文、英文及 60+ 种语言
-- 📚 **历史记录** - 按日期/时间分组，支持自定义标题和标签
-- 📤 **导出功能** - 一键导出为 TXT 文件
-- 🎨 **深色/浅色主题** - 支持主题切换，保护眼睛
-- 🖥️ **现代化界面** - 无边框窗口，自定义标题栏
-- 🚀 **开机自启动** - 可选开机自动启动，最小化到托盘
-- 💾 **数据备份** - 支持导入/导出数据，轻松迁移
+- 🎯 **Real-time Transcription** - Capture system audio and convert to text instantly
+- 🔌 **Multi-Provider Support** - Supports Soniox, Volcengine, and more ASR providers
+- 🌍 **Multi-language Support** - Supports Chinese, English, and 60+ languages
+- 📚 **History Records** - Grouped by date/time, with custom titles and tags
+- 📤 **Export Function** - One-click export to TXT files
+- 🎨 **Dark/Light Theme** - Theme switching to protect your eyes
+- 🖥️ **Modern UI** - Frameless window with custom title bar
+- 🚀 **Auto Start** - Optional auto-start at login, minimize to tray
+- 💾 **Data Backup** - Import/export data for easy migration
+- 🌐 **Interface Language** - Supports Chinese and English interface
 
-## 🚀 快速开始
+## 🏗️ System Architecture
 
-### 前置要求
+```mermaid
+graph TB
+    subgraph "User Interface Layer"
+        UI[React Frontend]
+        EC[Electron Container]
+    end
+    
+    subgraph "Audio Processing Layer"
+        AC[Audio Capture<br/>getDisplayMedia]
+        AP[Audio Processor<br/>AudioProcessor]
+        MR[MediaRecorder]
+    end
+    
+    subgraph "ASR Abstraction Layer"
+        PR[Provider Registry]
+        BP[BaseASRProvider]
+        
+        subgraph "Service Providers"
+            SP[Soniox Provider]
+            VP[Volc Provider]
+            MP[More Providers...]
+        end
+    end
+    
+    subgraph "Backend Service Layer"
+        PS[Proxy Server<br/>Express + WS]
+        VC[Volcengine Proxy<br/>volcProxy]
+    end
+    
+    subgraph "External ASR Services"
+        SONIOX[Soniox API<br/>WebSocket]
+        VOLC[Volcengine API<br/>WebSocket]
+    end
+    
+    UI --> EC
+    EC --> AC
+    AC --> AP
+    AC --> MR
+    
+    AP -->|PCM 16kHz| VP
+    MR -->|WebM/Opus| SP
+    
+    PR --> BP
+    BP --> SP
+    BP --> VP
+    BP --> MP
+    
+    SP -->|Direct| SONIOX
+    VP --> PS
+    PS --> VC
+    VC -->|With Headers| VOLC
+    
+    style UI fill:#61dafb,color:#000
+    style EC fill:#47848f,color:#fff
+    style PR fill:#f59e0b,color:#000
+    style PS fill:#10b981,color:#fff
+    style SONIOX fill:#6366f1,color:#fff
+    style VOLC fill:#ef4444,color:#fff
+```
+
+### Architecture Overview
+
+| Layer | Component | Description |
+|-------|-----------|-------------|
+| **User Interface** | React + Electron | Modern desktop application interface |
+| **Audio Processing** | AudioProcessor / MediaRecorder | Process audio format based on ASR service requirements |
+| **ASR Abstraction** | Provider Registry | Unified ASR service interface, supports dynamic provider switching |
+| **Backend Service** | Express + WebSocket | Proxy for services requiring custom Headers |
+| **External Services** | Soniox / Volcengine | Actual speech recognition cloud services |
+
+## 🔌 Supported ASR Services
+
+| Provider | Status | Features |
+|----------|--------|----------|
+| **Soniox** | ✅ Supported | High accuracy, multi-language, direct WebSocket |
+| **Volcengine** | ✅ Supported | Chinese optimized, proxy connection |
+| *More providers* | 🔜 Planned | Extensible architecture, easy to add new providers |
+
+## 🚀 Quick Start
+
+### Prerequisites
 
 - Node.js 18+
-- Soniox API 密钥 ([获取地址](https://console.soniox.com))
+- ASR Service API Key (choose one):
+  - [Soniox API Key](https://console.soniox.com)
+  - [Volcengine APP ID and Access Token](https://console.volcengine.com/speech/app)
 
-### 安装
+### Installation
 
 ```bash
-# 克隆项目
+# Clone the project
 git clone https://github.com/XimilalaXiang/DeLive.git
 cd DeLive
 
-# 安装所有依赖
+# Install all dependencies
 npm run install:all
 ```
 
-### 开发模式
+### Development Mode
 
 ```bash
-# 启动开发模式（前端 + Electron）
+# Start backend server (required for Volcengine)
+cd server && npm run dev
+
+# In another terminal, start frontend + Electron
 npm run dev
 ```
 
-### 打包构建
+### Build
 
 ```bash
-# 打包 Windows 应用
+# Build Windows application
 npm run dist:win
 ```
 
-打包后的文件位于 `release/` 目录：
-- `DeLive-x.x.x-x64.exe` - 安装程序
-- `DeLive-x.x.x-portable.exe` - 便携版
+Built files are located in the `release/` directory:
+- `DeLive-x.x.x-x64.exe` - Installer
+- `DeLive-x.x.x-portable.exe` - Portable version
 
-## 📖 使用步骤
+## 📖 Usage
 
-1. **配置 API 密钥** - 首次使用会自动弹出设置窗口，输入你的 Soniox API 密钥
-2. **开始录制** - 点击"开始录制"按钮
-3. **选择音频源** - 在弹出的窗口中选择要共享的屏幕/窗口
-4. **实时转录** - 系统将自动捕获音频并显示转录结果
-5. **停止录制** - 点击"停止录制"按钮，转录内容将自动保存到历史记录
+1. **Select Provider** - Click settings and choose your ASR service provider
+2. **Configure API Key** - Enter the corresponding API key for your provider
+3. **Test Configuration** - Click "Test Config" to verify settings
+4. **Start Recording** - Click the "Start Recording" button
+5. **Select Audio Source** - Choose the screen/window to share (check "Share audio")
+6. **Real-time Transcription** - The system will automatically capture audio and display results
+7. **Stop Recording** - Click "Stop Recording", transcription will be saved to history
 
-## 📁 项目结构
+## 📁 Project Structure
 
 ```
 DeLive/
-├── electron/          # Electron 主进程
-│   ├── main.ts           # 主进程入口
-│   └── preload.ts        # 预加载脚本
-├── frontend/          # React 前端
+├── electron/              # Electron main process
+│   ├── main.ts               # Main process entry
+│   └── preload.ts            # Preload script
+├── frontend/              # React frontend
 │   ├── src/
-│   │   ├── components/   # UI 组件
-│   │   ├── hooks/        # 自定义 Hooks
-│   │   ├── stores/       # Zustand 状态管理
-│   │   ├── types/        # TypeScript 类型
-│   │   └── utils/        # 工具函数
+│   │   ├── components/       # UI components
+│   │   ├── hooks/            # Custom Hooks
+│   │   ├── providers/        # ASR provider implementations
+│   │   │   ├── base.ts           # Base class
+│   │   │   ├── registry.ts       # Provider registry
+│   │   │   └── implementations/  # Provider implementations
+│   │   ├── stores/           # Zustand state management
+│   │   ├── types/            # TypeScript types
+│   │   │   └── asr/              # ASR related type definitions
+│   │   ├── utils/            # Utility functions
+│   │   │   └── audioProcessor.ts # Audio processor
+│   │   └── i18n/             # Internationalization
 │   └── ...
-├── build/             # 应用图标资源
-├── scripts/           # 构建脚本
+├── server/                # Backend proxy service
+│   └── src/
+│       ├── index.ts          # Express server
+│       └── volcProxy.ts      # Volcengine WebSocket proxy
+├── build/                 # App icon resources
+├── scripts/               # Build scripts
 └── package.json
 ```
 
-## 🔧 技术栈
+## 🔧 Tech Stack
 
-| 层级 | 技术 |
-|------|------|
-| 桌面框架 | Electron 40 |
-| 前端 | React 18 + TypeScript + Vite |
-| 样式 | Tailwind CSS |
-| 状态管理 | Zustand |
-| ASR 引擎 | Soniox V3 (stt-rt-v3) |
-| 打包工具 | electron-builder |
+| Layer | Technology |
+|-------|------------|
+| Desktop Framework | Electron 40 |
+| Frontend | React 18 + TypeScript + Vite |
+| Styling | Tailwind CSS |
+| State Management | Zustand |
+| Backend | Express + ws |
+| ASR Engine | Soniox V3 / Volcengine |
+| Bundler | electron-builder |
 
-## ⌨️ 快捷键
+## ⌨️ Keyboard Shortcuts
 
-| 快捷键 | 功能 |
-|--------|------|
-| `Ctrl+Shift+D` | 显示/隐藏主窗口 |
+| Shortcut | Function |
+|----------|----------|
+| `Ctrl+Shift+D` | Show/Hide main window |
 
-## 📝 API 说明
+## 🔧 Adding New ASR Providers
 
-### API 密钥
+DeLive uses an extensible provider architecture. To add a new provider:
 
-你的 Soniox API 密钥保存在本地 localStorage 中，直接用于与 Soniox WebSocket 服务建立连接。密钥仅存储在你的设备上，不会上传到任何服务器。
+1. Create a new Provider class in `frontend/src/providers/implementations/`
+2. Extend `BaseASRProvider` and implement required methods
+3. Register the new provider in `registry.ts`
+4. If the service requires custom Headers, add a proxy in `server/src/`
 
-### 音频捕获
+Refer to existing implementations (`SonioxProvider.ts` and `VolcProvider.ts`) for detailed guidance.
 
-使用浏览器的 `getDisplayMedia` API 捕获系统音频，无需安装虚拟音频设备。选择屏幕共享时需勾选"共享音频"选项。
+## ⚠️ Notes
 
-## ⚠️ 注意事项
+1. **System Requirements** - Windows 10/11 64-bit
+2. **API Quota** - Be aware of each provider's API usage limits
+3. **Volcengine** - Requires starting the backend server (`cd server && npm run dev`)
+4. **Tray Behavior** - Clicking close minimizes to tray, right-click tray icon and select "Exit" to fully close
 
-1. **系统要求** - Windows 10/11 64位
-2. **API 配额** - 注意 Soniox API 的使用配额限制
-3. **托盘行为** - 点击关闭按钮会最小化到托盘，右键托盘图标选择"退出"完全关闭
-
-## 📄 许可证
+## 📄 License
 
 MIT License
 
-## 🙏 致谢
+## 🙏 Acknowledgments
 
-- [Soniox](https://soniox.com) - 提供强大的语音识别 API
-- [Electron](https://www.electronjs.org/) - 跨平台桌面应用框架
-- [React](https://react.dev/) - 用户界面库
-- [Tailwind CSS](https://tailwindcss.com/) - CSS 框架
+- [Soniox](https://soniox.com) - Powerful speech recognition API
+- [Volcengine](https://www.volcengine.com) - Chinese-optimized speech recognition service
+- [BiBi-Keyboard](https://github.com/BryceWG/BiBi-Keyboard) - Multi-provider architecture reference
+- [Electron](https://www.electronjs.org/) - Cross-platform desktop application framework
+- [React](https://react.dev/) - User interface library
+- [Tailwind CSS](https://tailwindcss.com/) - CSS framework
 
 ---
 

@@ -31,9 +31,9 @@ export const zh = {
   // 设置页面
   settings: {
     title: 'API 设置',
-    subtitle: '配置 Soniox API 连接',
-    apiKey: 'Soniox API 密钥',
-    apiKeyPlaceholder: '输入你的 Soniox API 密钥',
+    subtitle: '配置语音识别服务',
+    apiKey: 'API 密钥',
+    apiKeyPlaceholder: '输入你的 API 密钥',
     apiKeyHint: '获取你的 API 密钥',
     languageHints: '语言提示 (Language Hints)',
     languageHintsPlaceholder: 'zh, en',
@@ -59,6 +59,28 @@ export const zh = {
     interfaceLanguageDesc: '选择应用界面显示的语言',
     languageChinese: '中文',
     languageEnglish: 'English',
+    // ASR 提供商设置
+    asrProvider: '语音识别服务',
+    asrProviderDesc: '选择语音识别服务提供商，不同提供商有不同的特性和价格',
+    // API 测试
+    testConfig: '测试配置',
+    testing: '正在测试...',
+    testSuccess: '配置验证成功！',
+    testFailed: '配置验证失败',
+  },
+
+  // 提供商相关
+  provider: {
+    streaming: '流式',
+    needConfig: '需配置',
+    cloudProviders: '云端服务',
+    localProviders: '本地模型',
+    soniox: 'Soniox V3',
+    sonioxDesc: '高精度实时语音识别，支持 60+ 种语言',
+    openai: 'OpenAI Whisper',
+    openaiDesc: '高质量语音识别，支持多种语言和音频格式',
+    volc: '火山引擎',
+    volcDesc: '字节跳动旗下语音识别服务，支持中文优化',
   },
 
   // 录制控制
@@ -145,8 +167,8 @@ export const zh = {
 
   // API 相关提示
   api: {
-    needConfig: '需要配置 API 密钥',
-    needConfigDesc: '请点击右上角的"配置 API"按钮，输入你的 Soniox API 密钥以开始使用。',
+    needConfig: '需要配置 ASR 服务',
+    needConfigDesc: '请点击右上角的"配置 API"按钮，选择一个语音识别服务提供商并输入相应的 API 密钥以开始使用。',
   },
 
   // 标题栏
