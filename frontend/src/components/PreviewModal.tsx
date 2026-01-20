@@ -1,6 +1,7 @@
-import { X, Download, Calendar, Clock, FileText } from 'lucide-react'
+import { X, Download, Calendar, Clock, FileText, Subtitles } from 'lucide-react'
 import type { TranscriptSession } from '../types'
 import { exportToTxt } from '../utils/storage'
+import { downloadSubtitle } from '../utils/subtitleExport'
 import { useTranscriptStore } from '../stores/transcriptStore'
 
 interface PreviewModalProps {
@@ -15,6 +16,10 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
 
   const handleExport = () => {
     exportToTxt(session)
+  }
+
+  const handleExportSrt = () => {
+    downloadSubtitle(session, 'srt')
   }
 
   // 点击背景关闭
@@ -83,7 +88,7 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
           <span className="text-sm text-muted-foreground">
             {t.preview.totalCharacters} {session.transcript?.length || 0} {t.common.characters}
           </span>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button
               onClick={onClose}
               className="px-4 py-2 text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-lg transition-colors"
@@ -91,14 +96,25 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
               {t.common.close}
             </button>
             {session.transcript && (
-              <button
-                onClick={handleExport}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary-foreground 
-                         bg-primary hover:bg-primary/90 rounded-lg transition-colors shadow-sm"
-              >
-                <Download className="w-4 h-4" />
-                {t.preview.exportTxt}
-              </button>
+              <>
+                <button
+                  onClick={handleExportSrt}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-primary/30
+                           text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors"
+                  title={t.history?.exportSrt || 'Export SRT'}
+                >
+                  <Subtitles className="w-4 h-4" />
+                  SRT
+                </button>
+                <button
+                  onClick={handleExport}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary-foreground 
+                           bg-primary hover:bg-primary/90 rounded-lg transition-colors shadow-sm"
+                >
+                  <Download className="w-4 h-4" />
+                  {t.preview.exportTxt}
+                </button>
+              </>
             )}
           </div>
         </div>

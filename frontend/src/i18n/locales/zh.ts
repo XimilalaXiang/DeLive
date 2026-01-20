@@ -128,6 +128,8 @@ export const zh = {
     deleteConfirm: '确定要删除这条记录吗？',
     editTitle: '编辑标题',
     exportTxt: '导出TXT',
+    exportSrt: '导出SRT字幕',
+    exportVtt: '导出VTT字幕',
   },
 
   // 标签

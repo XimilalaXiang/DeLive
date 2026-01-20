@@ -23,6 +23,16 @@ export const TAG_COLORS = [
   { name: 'red', bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-700 dark:text-red-300', border: 'border-red-200 dark:border-red-800' },
 ] as const
 
+// 转录 Token 类型（用于保存时间戳信息）
+export interface TranscriptTokenData {
+  text: string
+  startMs?: number
+  endMs?: number
+  speaker?: string
+  language?: string
+  confidence?: number
+}
+
 // 转录会话类型
 export interface TranscriptSession {
   id: string
@@ -34,6 +44,7 @@ export interface TranscriptSession {
   transcript: string
   duration?: number // 毫秒
   tagIds?: string[] // 关联的标签ID列表
+  tokens?: TranscriptTokenData[] // 带时间戳的 tokens（用于 SRT 导出）
 }
 
 // 应用状态类型

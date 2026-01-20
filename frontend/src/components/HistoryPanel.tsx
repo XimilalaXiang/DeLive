@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react'
-import { History, Calendar, Download, Pencil, Trash2, Check, X, ChevronDown, ChevronRight, Search } from 'lucide-react'
+import { History, Calendar, Pencil, Trash2, Check, X, ChevronDown, ChevronRight, Search, FileText, Subtitles } from 'lucide-react'
 import { useTranscriptStore } from '../stores/transcriptStore'
 import { exportToTxt } from '../utils/storage'
+import { downloadSubtitle } from '../utils/subtitleExport'
 import { PreviewModal } from './PreviewModal'
 import { TagSelector, TagFilter } from './TagSelector'
 import type { TranscriptSession } from '../types'
@@ -104,6 +105,11 @@ export function HistoryPanel() {
   const handleExport = (e: React.MouseEvent, session: TranscriptSession) => {
     e.stopPropagation()
     exportToTxt(session, tags)
+  }
+
+  const handleExportSrt = (e: React.MouseEvent, session: TranscriptSession) => {
+    e.stopPropagation()
+    downloadSubtitle(session, 'srt')
   }
 
   const handlePreview = (session: TranscriptSession) => {
@@ -284,7 +290,14 @@ export function HistoryPanel() {
                                     className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-background rounded-md transition-all shadow-sm border border-transparent hover:border-border"
                                     title={t.history.exportTxt}
                                   >
-                                    <Download className="w-3.5 h-3.5" />
+                                    <FileText className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={(e) => handleExportSrt(e, session)}
+                                    className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md transition-all shadow-sm border border-transparent hover:border-primary/30"
+                                    title={t.history?.exportSrt || 'Export SRT'}
+                                  >
+                                    <Subtitles className="w-3.5 h-3.5" />
                                   </button>
                                   <button
                                     onClick={(e) => handleDelete(e, session.id)}

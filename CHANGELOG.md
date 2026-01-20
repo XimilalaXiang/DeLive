@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.2] - 2026-01-20
+
+### Added / 新增
+- 🎬 SRT/VTT subtitle export - Export transcriptions as subtitle files
+- 🎬 SRT/VTT 字幕导出 - 将转录内容导出为字幕文件
+- ⏱️ Token timestamp support - Save timing information for subtitle generation
+- ⏱️ Token 时间戳支持 - 保存时间信息用于字幕生成
+
+---
+
 ## [1.0.1] - 2026-01-20
 
 ### Added / 新增

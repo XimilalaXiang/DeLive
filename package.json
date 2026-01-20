@@ -1,6 +1,6 @@
 {
   "name": "delive",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Windows桌面音频实时转录系统 - 支持多ASR提供商",
   "private": true,
   "main": "dist-electron/main.js",

@@ -130,6 +130,8 @@ export const en: Translations = {
     deleteConfirm: 'Are you sure you want to delete this record?',
     editTitle: 'Edit title',
     exportTxt: 'Export TXT',
+    exportSrt: 'Export SRT Subtitle',
+    exportVtt: 'Export VTT Subtitle',
   },
 
   // Tags

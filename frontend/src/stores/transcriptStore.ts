@@ -405,9 +405,19 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
     // 实时保存到当前会话
     const { currentSessionId, sessions } = get()
     if (currentSessionId) {
+      // 将 tokens 转换为可保存的格式
+      const tokenData = newFinalTokens.map(t => ({
+        text: t.text,
+        startMs: t.start_ms,
+        endMs: t.end_ms,
+        speaker: t.speaker,
+        language: t.language,
+        confidence: t.confidence,
+      }))
+      
       const updatedSessions = sessions.map(s =>
         s.id === currentSessionId
-          ? { ...s, transcript: finalText, updatedAt: Date.now() }
+          ? { ...s, transcript: finalText, tokens: tokenData, updatedAt: Date.now() }
           : s
       )
       // 不频繁保存到localStorage，只更新内存中的状态
