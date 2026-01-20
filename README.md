@@ -265,7 +265,11 @@ Refer to existing implementations (`SonioxProvider.ts` and `VolcProvider.ts`) fo
 
 ## 📄 License
 
-MIT License
+Apache License 2.0
+
+```
+Apache 2.0 License - Free to use, modify, and distribute with attribution
+```
 
 ## 🙏 Acknowledgments
 
