@@ -86,6 +86,15 @@ body {
   background: var(--scrollbar-thumb-hover);
 }
 
+/* 隐藏滚动条但保留功能 */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
 /* ===== 动画 ===== */
 @keyframes pulse-recording {
   0%, 100% {
@@ -107,4 +116,38 @@ body {
 
 .transcript-nonfinal {
   color: var(--text-muted);
+}
+
+/* ===== 自定义滑块样式 (CaptionControls) ===== */
+.custom-range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  background: #ffffff;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  border: 2px solid #e5e5e5;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.custom-range-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.3);
+}
+
+.custom-range-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: #ffffff;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  border: 2px solid #e5e5e5;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.custom-range-slider::-moz-range-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.3);
 }

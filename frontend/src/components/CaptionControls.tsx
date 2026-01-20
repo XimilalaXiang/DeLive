@@ -7,8 +7,6 @@ import { useState, useEffect, useCallback } from 'react'
 import { 
   Subtitles, 
   Settings, 
-  Move, 
-  Lock, 
   RotateCcw, 
   Palette,
   Type,
@@ -62,7 +60,6 @@ interface CaptionControlsProps {
 export function CaptionControls({ className = '' }: CaptionControlsProps) {
   const { t } = useTranscriptStore()
   const [isEnabled, setIsEnabled] = useState(false)
-  const [isDraggable, setIsDraggable] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [style, setStyle] = useState<CaptionStyle>({
     fontSize: 24,
@@ -79,7 +76,6 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
 
     window.electronAPI.captionGetStatus().then((status) => {
       setIsEnabled(status.enabled)
-      setIsDraggable(status.draggable)
       setStyle(status.style)
     })
   }, [])
@@ -100,13 +96,6 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
     if (!window.electronAPI?.captionToggle) return
     const newState = await window.electronAPI.captionToggle()
     setIsEnabled(newState)
-  }, [])
-
-  // 切换拖拽模式
-  const handleToggleDraggable = useCallback(async () => {
-    if (!window.electronAPI?.captionToggleDraggable) return
-    const newState = await window.electronAPI.captionToggleDraggable()
-    setIsDraggable(newState)
   }, [])
 
   // 重置位置
@@ -150,21 +139,6 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
         {/* 字幕已启用时显示的额外控制 */}
         {isEnabled && (
           <>
-            {/* 拖拽模式切换 */}
-            <button
-              onClick={handleToggleDraggable}
-              className={`
-                p-2 rounded-lg transition-all duration-200
-                ${isDraggable 
-                  ? 'bg-blue-500 text-white' 
-                  : 'bg-muted text-muted-foreground hover:bg-accent'
-                }
-              `}
-              title={isDraggable ? t.caption?.lockPosition : t.caption?.adjustPosition}
-            >
-              {isDraggable ? <Lock className="w-4 h-4" /> : <Move className="w-4 h-4" />}
-            </button>
-
             {/* 重置位置 */}
             <button
               onClick={handleResetPosition}
@@ -225,7 +199,7 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
               }}
             >
               <h3 className="text-lg font-semibold flex items-center gap-2">
-                <Subtitles className="w-5 h-5 text-primary" />
+                <Subtitles className="w-5 h-5 text-foreground" />
                 {t.caption?.styleSettings || '字幕样式设置'}
               </h3>
               <button
@@ -267,32 +241,22 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
                 <label className="text-sm font-medium flex items-center gap-2">
                   <Type className="w-4 h-4 text-muted-foreground" />
                   <span>{t.caption?.fontSize || '字体大小'}</span>
-                  <span className="ml-auto text-green-500 font-mono font-bold">{style.fontSize}px</span>
+                  <span className="ml-auto text-foreground font-mono">{style.fontSize}px</span>
                 </label>
-                <div className="relative">
+                <div className="relative flex items-center">
+                  <span className="text-xs text-muted-foreground mr-2">16</span>
                   <input
                     type="range"
                     min="16"
                     max="72"
                     value={style.fontSize}
                     onChange={(e) => handleStyleChange({ fontSize: parseInt(e.target.value) })}
-                    className="w-full h-3 rounded-full appearance-none cursor-pointer"
+                    className="w-full h-2 rounded-full appearance-none cursor-pointer custom-range-slider"
                     style={{
-                      background: `linear-gradient(to right, #22c55e 0%, #22c55e ${((style.fontSize - 16) / (72 - 16)) * 100}%, rgba(128, 128, 128, 0.3) ${((style.fontSize - 16) / (72 - 16)) * 100}%, rgba(128, 128, 128, 0.3) 100%)`,
+                      background: `linear-gradient(to right, #ffffff 0%, #ffffff ${((style.fontSize - 16) / (72 - 16)) * 100}%, rgba(255, 255, 255, 0.2) ${((style.fontSize - 16) / (72 - 16)) * 100}%, rgba(255, 255, 255, 0.2) 100%)`,
                     }}
                   />
-                  <style>{`
-                    input[type="range"]::-webkit-slider-thumb {
-                      -webkit-appearance: none;
-                      width: 24px;
-                      height: 24px;
-                      background: #22c55e;
-                      border-radius: 50%;
-                      cursor: pointer;
-                      box-shadow: 0 0 10px rgba(34, 197, 94, 0.5), 0 2px 6px rgba(0,0,0,0.3);
-                      border: 3px solid white;
-                    }
-                  `}</style>
+                  <span className="text-xs text-muted-foreground ml-2">72</span>
                 </div>
               </div>
 
@@ -301,7 +265,7 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
                 <label className="text-sm font-medium flex items-center gap-2">
                   <Maximize2 className="w-4 h-4 text-muted-foreground" />
                   <span>{t.caption?.maxLines || '最大行数'}</span>
-                  <span className="ml-auto text-green-500 font-mono font-bold">{style.maxLines} 行</span>
+                  <span className="ml-auto text-foreground font-mono">{style.maxLines} 行</span>
                 </label>
                 <div className="flex gap-2">
                   {[1, 2, 3, 4, 5].map((num) => (
@@ -309,10 +273,10 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
                       key={num}
                       onClick={() => handleStyleChange({ maxLines: num })}
                       className={`
-                        flex-1 py-2 rounded-lg font-medium text-sm transition-all
+                        flex-1 py-2 rounded-lg font-medium text-sm transition-all relative
                         ${style.maxLines === num 
-                          ? 'bg-green-500 text-white border-2 border-green-400 shadow-[0_0_12px_rgba(34,197,94,0.5)]' 
-                          : 'bg-muted hover:bg-accent border-2 border-transparent'
+                          ? 'bg-muted text-foreground ring-2 ring-white shadow-[0_0_10px_rgba(255,255,255,0.2)]' 
+                          : 'bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground border border-transparent'
                         }
                       `}
                     >
@@ -327,16 +291,16 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
                 <label className="text-sm font-medium">
                   {t.caption?.fontFamily || '字体'}
                 </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="flex gap-2 overflow-x-auto p-2 -mx-2 no-scrollbar">
                   {presetFonts.map((font) => (
                     <button
                       key={font.value}
                       onClick={() => handleStyleChange({ fontFamily: font.value })}
                       className={`
-                        px-3 py-2 text-sm rounded-lg transition-all text-left
+                        px-3 py-2 text-xs rounded-lg transition-all whitespace-nowrap
                         ${style.fontFamily === font.value 
-                          ? 'bg-green-500 text-white border-2 border-green-400 shadow-[0_0_12px_rgba(34,197,94,0.5)]' 
-                          : 'bg-muted hover:bg-accent border-2 border-transparent'
+                          ? 'bg-muted text-foreground ring-1 ring-white shadow-[0_0_8px_rgba(255,255,255,0.15)]' 
+                          : 'bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground border border-transparent'
                         }
                       `}
                       style={{ fontFamily: font.value }}
@@ -359,15 +323,15 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
                       key={color.value}
                       onClick={() => handleStyleChange({ textColor: color.value })}
                       className={`
-                        w-12 h-12 rounded-full transition-all
+                        w-8 h-8 rounded-full transition-all relative
                         ${style.textColor === color.value 
-                          ? 'ring-4 ring-green-500 ring-offset-2 ring-offset-background scale-110 shadow-[0_0_16px_rgba(34,197,94,0.6)]' 
-                          : 'hover:scale-105 shadow-md'
+                          ? 'ring-2 ring-white scale-110 shadow-[0_0_10px_rgba(255,255,255,0.3)]' 
+                          : 'hover:scale-105 shadow-sm opacity-80 hover:opacity-100'
                         }
                       `}
                       style={{ 
                         backgroundColor: color.value,
-                        border: color.value === '#ffffff' ? '2px solid rgba(0,0,0,0.2)' : 'none',
+                        border: color.value === '#ffffff' ? '1px solid rgba(255,255,255,0.2)' : 'none',
                       }}
                       title={color.name}
                     />
@@ -380,16 +344,16 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
                 <label className="text-sm font-medium">
                   {t.caption?.backgroundColor || '背景颜色'}
                 </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="flex gap-2 overflow-x-auto p-2 -mx-2 no-scrollbar">
                   {presetBackgrounds.map((bg) => (
                     <button
                       key={bg.value}
                       onClick={() => handleStyleChange({ backgroundColor: bg.value })}
                       className={`
-                        px-3 py-2 text-sm rounded-lg transition-all
+                        px-3 py-2 text-xs rounded-lg transition-all whitespace-nowrap
                         ${style.backgroundColor === bg.value 
-                          ? 'ring-2 ring-green-500 ring-offset-1 ring-offset-background shadow-[0_0_12px_rgba(34,197,94,0.5)]' 
-                          : ''
+                          ? 'ring-1 ring-white shadow-[0_0_8px_rgba(255,255,255,0.15)]' 
+                          : 'opacity-70 hover:opacity-100'
                         }
                       `}
                       style={{ 
@@ -407,32 +371,34 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
               {/* 文字阴影 */}
               <div 
                 className={`
-                  flex items-center justify-between p-4 rounded-xl transition-all
+                  flex items-center justify-between p-4 rounded-xl transition-all border
                   ${style.textShadow 
-                    ? 'border-2 border-green-500 shadow-[0_0_12px_rgba(34,197,94,0.4)]' 
-                    : 'border-2 border-gray-600'
+                    ? 'border-white bg-muted shadow-[0_0_10px_rgba(255,255,255,0.15)]' 
+                    : 'border-transparent bg-muted/50 hover:bg-muted'
                   }
                 `}
-                style={{ backgroundColor: 'var(--muted, rgba(255,255,255,0.05))' }}
               >
                 <label className="text-sm font-medium flex items-center gap-2">
-                  <Sun className={`w-4 h-4 ${style.textShadow ? 'text-green-500' : 'text-muted-foreground'}`} />
+                  <Sun className={`w-4 h-4 ${style.textShadow ? 'text-white' : 'text-muted-foreground'}`} />
                   <span>{t.caption?.textShadow || '文字阴影'}</span>
                 </label>
                 <button
                   onClick={() => handleStyleChange({ textShadow: !style.textShadow })}
                   className={`
-                    relative inline-flex h-8 w-16 items-center rounded-full transition-all
+                    relative inline-flex h-6 w-11 items-center rounded-full transition-all
                     ${style.textShadow 
-                      ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]' 
-                      : 'bg-gray-600'
+                      ? 'bg-white' 
+                      : 'bg-zinc-600'
                     }
                   `}
                 >
                   <span
                     className={`
-                      inline-block h-6 w-6 transform rounded-full bg-white shadow-md transition-transform
-                      ${style.textShadow ? 'translate-x-9' : 'translate-x-1'}
+                      inline-block h-4 w-4 transform rounded-full shadow-sm transition-transform
+                      ${style.textShadow 
+                        ? 'translate-x-6 bg-black' 
+                        : 'translate-x-1 bg-zinc-400'
+                      }
                     `}
                   />
                 </button>
