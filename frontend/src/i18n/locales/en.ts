@@ -185,4 +185,22 @@ export const en: Translations = {
   session: {
     defaultTitle: (time: string) => `Transcript ${time}`,
   },
+
+  // Auto update
+  update: {
+    checking: 'Checking for updates...',
+    available: 'Update Available',
+    newVersion: 'Version',
+    readyToDownload: 'is available for download',
+    downloadNow: 'Download Now',
+    upToDate: 'You are up to date',
+    downloading: 'Downloading update...',
+    downloaded: 'Update downloaded',
+    readyToInstall: 'Version',
+    installPrompt: 'is ready to install',
+    installNow: 'Install and Restart',
+    error: 'Update failed',
+    retry: 'Retry',
+    checkForUpdates: 'Check for Updates',
+  },
 }

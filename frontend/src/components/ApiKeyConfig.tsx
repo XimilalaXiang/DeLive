@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react'
-import { Settings, Eye, EyeOff, Check, X, Key, Download, Upload, AlertCircle, Power, Globe, Cpu, PlayCircle, Loader2 } from 'lucide-react'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { Settings, Eye, EyeOff, Check, X, Key, Download, Upload, AlertCircle, Power, Globe, Cpu, PlayCircle, Loader2, RefreshCw } from 'lucide-react'
 import { useTranscriptStore } from '../stores/transcriptStore'
 import { exportAllData, validateBackupData, importDataOverwrite, importDataMerge } from '../utils/storage'
 import { ProviderSelector } from './ProviderSelector'
@@ -44,6 +44,8 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
   const [autoLaunch, setAutoLaunch] = useState(false)
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle')
   const [testMessage, setTestMessage] = useState('')
+  const [updateStatus, setUpdateStatus] = useState<'idle' | 'checking' | 'available' | 'not-available' | 'error'>('idle')
+  const [appVersion, setAppVersion] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
   
   // 当提供商改变时更新表单
@@ -59,10 +61,11 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
     }
   }, [currentVendor, settings])
 
-  // 加载开机自启动状态（仅 Electron 环境）
+  // 加载开机自启动状态和应用版本（仅 Electron 环境）
   useEffect(() => {
-    if (isOpen && window.electronAPI?.getAutoLaunch) {
-      window.electronAPI.getAutoLaunch().then(setAutoLaunch)
+    if (isOpen && window.electronAPI) {
+      window.electronAPI.getAutoLaunch?.().then(setAutoLaunch)
+      window.electronAPI.getAppVersion?.().then(setAppVersion)
     }
   }, [isOpen])
 
@@ -73,6 +76,27 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
       setAutoLaunch(result)
     }
   }
+
+  // 手动检查更新
+  const handleCheckUpdate = useCallback(async () => {
+    if (!window.electronAPI?.checkForUpdates) return
+    
+    setUpdateStatus('checking')
+    const result = await window.electronAPI.checkForUpdates()
+    
+    if (result.error) {
+      setUpdateStatus('error')
+      setTimeout(() => setUpdateStatus('idle'), 3000)
+    } else if (result.success) {
+      // 等待更新事件通知
+      setTimeout(() => {
+        if (updateStatus === 'checking') {
+          setUpdateStatus('not-available')
+          setTimeout(() => setUpdateStatus('idle'), 3000)
+        }
+      }, 5000)
+    }
+  }, [updateStatus])
 
   // 测试 API 配置
   const handleTestConfig = async () => {
@@ -679,6 +703,86 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
                       className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform
                                 ${autoLaunch ? 'translate-x-6' : 'translate-x-1'}`}
                     />
+                  </button>
+                </div>
+              </div>
+
+              {/* 检查更新 */}
+              <div className="border-t border-border" />
+              <div className="space-y-3">
+                <label className="text-sm font-medium leading-none flex items-center gap-2">
+                  <RefreshCw className="w-3.5 h-3.5 text-muted-foreground" />
+                  {t.update?.checkForUpdates || '检查更新'}
+                </label>
+                
+                {/* 启动时自动检查更新开关 */}
+                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                  <div>
+                    <p className="text-sm font-medium">
+                      {language === 'zh' ? '启动时自动检查更新' : 'Auto-check on startup'}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {language === 'zh' ? '每次启动应用时自动检查是否有新版本' : 'Automatically check for updates when app starts'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const newValue = settings.autoCheckUpdate === false ? true : false
+                      updateSettings({ autoCheckUpdate: newValue })
+                    }}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors
+                              ${settings.autoCheckUpdate !== false ? 'bg-green-500' : 'bg-gray-400 dark:bg-gray-600'}`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform
+                                ${settings.autoCheckUpdate !== false ? 'translate-x-6' : 'translate-x-1'}`}
+                    />
+                  </button>
+                </div>
+                
+                {/* 当前版本和手动检查按钮 */}
+                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                  <div>
+                    <p className="text-sm font-medium">
+                      {language === 'zh' ? '当前版本' : 'Current Version'}: {appVersion || '-'}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {updateStatus === 'checking' 
+                        ? (t.update?.checking || '正在检查更新...')
+                        : updateStatus === 'not-available'
+                        ? (t.update?.upToDate || '已是最新版本')
+                        : updateStatus === 'error'
+                        ? (t.update?.error || '检查更新失败')
+                        : (language === 'zh' ? '点击按钮检查是否有新版本' : 'Click to check for updates')
+                      }
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleCheckUpdate}
+                    disabled={updateStatus === 'checking'}
+                    className={`inline-flex items-center justify-center gap-2 h-9 px-4 text-sm font-medium rounded-md transition-colors
+                              ${updateStatus === 'checking'
+                                ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                                : updateStatus === 'not-available'
+                                ? 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/50'
+                                : updateStatus === 'error'
+                                ? 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/50'
+                                : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                              }`}
+                  >
+                    {updateStatus === 'checking' ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : updateStatus === 'not-available' ? (
+                      <Check className="w-4 h-4" />
+                    ) : updateStatus === 'error' ? (
+                      <AlertCircle className="w-4 h-4" />
+                    ) : (
+                      <RefreshCw className="w-4 h-4" />
+                    )}
+                    {updateStatus === 'checking' 
+                      ? (language === 'zh' ? '检查中...' : 'Checking...')
+                      : (t.update?.checkForUpdates || '检查更新')
+                    }
                   </button>
                 </div>
               </div>

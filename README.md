@@ -1,6 +1,6 @@
 # DeLive 🎙️
 
-**English | [中文](./README_ZH.md) | [日本語](./README_JA.md)**
+**English | [简体中文](./README_ZH.md) | [繁體中文](./README_TW.md) | [日本語](./README_JA.md)**
 
 **Windows Desktop Audio Real-time Transcription** - Multi-ASR Provider Support
 
@@ -20,6 +20,7 @@ Capture any audio playing on your computer (browser videos, online meetings, pod
 - 🚀 **Auto Start** - Optional auto-start at login, minimize to tray
 - 💾 **Data Backup** - Import/export data for easy migration
 - 🌐 **Interface Language** - Supports Chinese and English interface
+- 🔄 **Auto Update** - Automatic check and download updates from GitHub Releases
 
 ## 🏗️ System Architecture
 

@@ -1,5 +1,6 @@
-import { app, BrowserWindow, shell, ipcMain, Tray, Menu, nativeImage, globalShortcut, desktopCapturer, session } from 'electron'
+import { app, BrowserWindow, shell, ipcMain, Tray, Menu, nativeImage, globalShortcut, desktopCapturer, session, dialog } from 'electron'
 import path from 'path'
+import { autoUpdater } from 'electron-updater'
 
 // 禁用 GPU 加速以避免某些系统上的问题
 // app.disableHardwareAcceleration()
@@ -10,6 +11,85 @@ let isQuitting = false
 
 // 开发模式判断
 const isDev = process.env.NODE_ENV === 'development'
+
+// ============ 自动更新配置 ============
+// 配置自动更新
+autoUpdater.autoDownload = false // 不自动下载，让用户确认
+autoUpdater.autoInstallOnAppQuit = true // 退出时自动安装
+
+// 自动更新事件处理
+function setupAutoUpdater() {
+  // 检查更新出错
+  autoUpdater.on('error', (error) => {
+    console.error('自动更新错误:', error)
+    // 如果是 404 错误（没有发布版本），静默处理，不通知用户
+    if (error.message.includes('404') || error.message.includes('latest.yml')) {
+      console.log('未找到发布版本，跳过更新检查')
+      return
+    }
+    mainWindow?.webContents.send('update-error', error.message)
+  })
+
+  // 检查更新中
+  autoUpdater.on('checking-for-update', () => {
+    console.log('正在检查更新...')
+    mainWindow?.webContents.send('checking-for-update')
+  })
+
+  // 有可用更新
+  autoUpdater.on('update-available', (info) => {
+    console.log('发现新版本:', info.version)
+    mainWindow?.webContents.send('update-available', {
+      version: info.version,
+      releaseDate: info.releaseDate,
+      releaseNotes: info.releaseNotes,
+    })
+  })
+
+  // 没有可用更新
+  autoUpdater.on('update-not-available', (info) => {
+    console.log('当前已是最新版本:', info.version)
+    mainWindow?.webContents.send('update-not-available', {
+      version: info.version,
+    })
+  })
+
+  // 下载进度
+  autoUpdater.on('download-progress', (progress) => {
+    console.log(`下载进度: ${progress.percent.toFixed(2)}%`)
+    mainWindow?.webContents.send('download-progress', {
+      percent: progress.percent,
+      bytesPerSecond: progress.bytesPerSecond,
+      transferred: progress.transferred,
+      total: progress.total,
+    })
+  })
+
+  // 下载完成
+  autoUpdater.on('update-downloaded', (info) => {
+    console.log('更新下载完成:', info.version)
+    mainWindow?.webContents.send('update-downloaded', {
+      version: info.version,
+    })
+    
+    // 显示对话框询问用户是否立即安装
+    dialog.showMessageBox(mainWindow!, {
+      type: 'info',
+      title: '更新已就绪',
+      message: `新版本 ${info.version} 已下载完成`,
+      detail: '点击"立即安装"将关闭应用并安装更新，点击"稍后"将在下次启动时自动安装。',
+      buttons: ['立即安装', '稍后'],
+      defaultId: 0,
+      cancelId: 1,
+    }).then((result) => {
+      if (result.response === 0) {
+        // 用户选择立即安装
+        isQuitting = true
+        autoUpdater.quitAndInstall(false, true)
+      }
+    })
+  })
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -221,6 +301,13 @@ if (!gotTheLock) {
     createWindow()
     createTray()
     registerShortcuts()
+    
+    // 设置自动更新（仅在生产模式下）
+    if (!isDev) {
+      setupAutoUpdater()
+      // 注意：自动检查更新现在由前端控制，根据用户设置决定
+      // 应用会在窗口加载完成后通过 IPC 请求检查更新
+    }
 
     app.on('activate', () => {
       // macOS: 点击 dock 图标时重新创建窗口
@@ -307,4 +394,46 @@ ipcMain.handle('get-desktop-sources', async () => {
     console.error('获取桌面源失败:', error)
     return []
   }
+})
+
+// ============ 自动更新 IPC 处理 ============
+// 手动检查更新
+ipcMain.handle('check-for-updates', async () => {
+  if (isDev) {
+    return { error: '开发模式下不支持自动更新' }
+  }
+  try {
+    const result = await autoUpdater.checkForUpdates()
+    return { 
+      success: true, 
+      version: result?.updateInfo.version 
+    }
+  } catch (error) {
+    console.error('检查更新失败:', error)
+    return { 
+      error: error instanceof Error ? error.message : '检查更新失败' 
+    }
+  }
+})
+
+// 下载更新
+ipcMain.handle('download-update', async () => {
+  if (isDev) {
+    return { error: '开发模式下不支持自动更新' }
+  }
+  try {
+    await autoUpdater.downloadUpdate()
+    return { success: true }
+  } catch (error) {
+    console.error('下载更新失败:', error)
+    return { 
+      error: error instanceof Error ? error.message : '下载更新失败' 
+    }
+  }
+})
+
+// 立即安装更新
+ipcMain.handle('install-update', () => {
+  isQuitting = true
+  autoUpdater.quitAndInstall(false, true)
 })

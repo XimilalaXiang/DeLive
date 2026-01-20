@@ -183,6 +183,24 @@ export const zh = {
   session: {
     defaultTitle: (time: string) => `转录 ${time}`,
   },
+
+  // 自动更新
+  update: {
+    checking: '正在检查更新...',
+    available: '发现新版本',
+    newVersion: '新版本',
+    readyToDownload: '可供下载',
+    downloadNow: '立即下载',
+    upToDate: '已是最新版本',
+    downloading: '正在下载更新...',
+    downloaded: '更新已下载完成',
+    readyToInstall: '版本',
+    installPrompt: '已准备就绪，点击安装',
+    installNow: '立即安装并重启',
+    error: '更新失败',
+    retry: '重试',
+    checkForUpdates: '检查更新',
+  },
 }
 
 export type Translations = typeof zh

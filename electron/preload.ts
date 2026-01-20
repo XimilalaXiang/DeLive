@@ -9,6 +9,20 @@ interface DesktopSource {
   isScreen: boolean
 }
 
+// 更新信息类型
+interface UpdateInfo {
+  version: string
+  releaseDate?: string
+  releaseNotes?: string
+}
+
+interface DownloadProgress {
+  percent: number
+  bytesPerSecond: number
+  transferred: number
+  total: number
+}
+
 // 暴露安全的 API 给渲染进程
 contextBridge.exposeInMainWorld('electronAPI', {
   // 获取应用版本
@@ -42,6 +56,47 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return () => ipcRenderer.removeListener('show-source-picker', callback)
   },
   
+  // ============ 自动更新 API ============
+  // 检查更新
+  checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+  
+  // 下载更新
+  downloadUpdate: () => ipcRenderer.invoke('download-update'),
+  
+  // 安装更新
+  installUpdate: () => ipcRenderer.invoke('install-update'),
+  
+  // 更新事件监听
+  onCheckingForUpdate: (callback: () => void) => {
+    ipcRenderer.on('checking-for-update', callback)
+    return () => ipcRenderer.removeListener('checking-for-update', callback)
+  },
+  
+  onUpdateAvailable: (callback: (info: UpdateInfo) => void) => {
+    ipcRenderer.on('update-available', (_event, info) => callback(info))
+    return () => ipcRenderer.removeAllListeners('update-available')
+  },
+  
+  onUpdateNotAvailable: (callback: (info: { version: string }) => void) => {
+    ipcRenderer.on('update-not-available', (_event, info) => callback(info))
+    return () => ipcRenderer.removeAllListeners('update-not-available')
+  },
+  
+  onDownloadProgress: (callback: (progress: DownloadProgress) => void) => {
+    ipcRenderer.on('download-progress', (_event, progress) => callback(progress))
+    return () => ipcRenderer.removeAllListeners('download-progress')
+  },
+  
+  onUpdateDownloaded: (callback: (info: { version: string }) => void) => {
+    ipcRenderer.on('update-downloaded', (_event, info) => callback(info))
+    return () => ipcRenderer.removeAllListeners('update-downloaded')
+  },
+  
+  onUpdateError: (callback: (error: string) => void) => {
+    ipcRenderer.on('update-error', (_event, error) => callback(error))
+    return () => ipcRenderer.removeAllListeners('update-error')
+  },
+  
   // 检测是否在 Electron 环境中运行
   isElectron: true,
 })
@@ -54,6 +109,19 @@ declare global {
     thumbnail: string
     appIcon: string | null
     isScreen: boolean
+  }
+  
+  interface UpdateInfo {
+    version: string
+    releaseDate?: string
+    releaseNotes?: string
+  }
+  
+  interface DownloadProgress {
+    percent: number
+    bytesPerSecond: number
+    transferred: number
+    total: number
   }
   
   interface Window {
@@ -70,6 +138,16 @@ declare global {
       selectSource: (sourceId: string) => Promise<boolean>
       cancelSourceSelection: () => Promise<void>
       onShowSourcePicker: (callback: () => void) => () => void
+      // 自动更新 API
+      checkForUpdates: () => Promise<{ success?: boolean; version?: string; error?: string }>
+      downloadUpdate: () => Promise<{ success?: boolean; error?: string }>
+      installUpdate: () => void
+      onCheckingForUpdate: (callback: () => void) => () => void
+      onUpdateAvailable: (callback: (info: UpdateInfo) => void) => () => void
+      onUpdateNotAvailable: (callback: (info: { version: string }) => void) => () => void
+      onDownloadProgress: (callback: (progress: DownloadProgress) => void) => () => void
+      onUpdateDownloaded: (callback: (info: { version: string }) => void) => () => void
+      onUpdateError: (callback: (error: string) => void) => () => void
       isElectron: boolean
     }
   }

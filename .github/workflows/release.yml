@@ -1,0 +1,87 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取完整历史以生成 changelog
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install root dependencies
+        run: npm install
+      
+      - name: Install frontend dependencies
+        run: npm install
+        working-directory: ./frontend
+      
+      - name: Install server dependencies
+        run: npm install
+        working-directory: ./server
+      
+      - name: Build and Package
+        run: npm run dist:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Get version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+        shell: bash
+      
+      - name: Generate Release Notes
+        id: release_notes
+        run: |
+          echo "NOTES<<EOF" >> $GITHUB_OUTPUT
+          echo "## DeLive ${{ steps.get_version.outputs.VERSION }}" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "### 📥 下载 / Downloads" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "| 文件 / File | 说明 / Description |" >> $GITHUB_OUTPUT
+          echo "|-------------|---------------------|" >> $GITHUB_OUTPUT
+          echo "| \`DeLive-${{ steps.get_version.outputs.VERSION }}-x64.exe\` | Windows 安装包 / Windows Installer |" >> $GITHUB_OUTPUT
+          echo "| \`DeLive-${{ steps.get_version.outputs.VERSION }}-portable.exe\` | 便携版（无需安装）/ Portable Version |" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "### 🔄 更新内容 / What's Changed" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "请查看 [完整更新日志](https://github.com/${{ github.repository }}/commits/v${{ steps.get_version.outputs.VERSION }})" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "### 📖 使用说明 / Usage" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "1. 下载上方的安装包或便携版" >> $GITHUB_OUTPUT
+          echo "2. 运行安装或直接打开便携版" >> $GITHUB_OUTPUT
+          echo "3. 在设置中配置 ASR 服务商的 API 密钥" >> $GITHUB_OUTPUT
+          echo "4. 开始录制并享受实时转录！" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "---" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/v${{ steps.get_version.outputs.VERSION }}...HEAD" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        shell: bash
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: DeLive v${{ steps.get_version.outputs.VERSION }}
+          body: ${{ steps.release_notes.outputs.NOTES }}
+          draft: false
+          prerelease: false
+          files: |
+            release/*.exe
+            release/*.exe.blockmap
+            release/latest.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

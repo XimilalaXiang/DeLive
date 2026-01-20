@@ -12,6 +12,7 @@ import {
   TitleBar,
   type ToastMessage 
 } from './components'
+import { UpdateNotification } from './components/UpdateNotification'
 
 function App() {
   const [showSettings, setShowSettings] = useState(false)
@@ -29,6 +30,25 @@ function App() {
     loadTags()
     setIsInitialized(true)
   }, [initTheme, loadSettings, loadSessions, loadTags])
+
+  // 启动时自动检查更新（根据设置）
+  useEffect(() => {
+    if (!isInitialized) return
+    
+    // 默认启用自动检查更新，除非用户明确禁用
+    const autoCheckUpdate = settings.autoCheckUpdate !== false
+    
+    if (autoCheckUpdate && window.electronAPI?.checkForUpdates) {
+      // 延迟 3 秒检查更新，避免影响启动性能
+      const timer = setTimeout(() => {
+        window.electronAPI?.checkForUpdates().catch((err) => {
+          console.error('自动检查更新失败:', err)
+        })
+      }, 3000)
+      
+      return () => clearTimeout(timer)
+    }
+  }, [isInitialized, settings.autoCheckUpdate])
 
   // 监听 Electron 的源选择器请求
   useEffect(() => {
@@ -201,6 +221,9 @@ function App() {
 
       {/* Toast 通知 */}
       <ToastContainer toasts={toasts} onClose={removeToast} />
+
+      {/* 更新通知 */}
+      <UpdateNotification />
     </div>
   )
 }

@@ -55,4 +55,6 @@ export interface AppSettings {
   currentVendor?: string
   // 新增：各提供商的配置
   providerConfigs?: Record<string, ProviderConfigData>
+  // 自动更新设置
+  autoCheckUpdate?: boolean
 }

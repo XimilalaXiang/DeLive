@@ -73,9 +73,18 @@
     },
     "portable": {
       "artifactName": "${productName}-${version}-portable.${ext}"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "XimilalaXiang",
+      "repo": "DeLive",
+      "releaseType": "release"
     }
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "electron-updater": "^6.7.3"
   }
 }
