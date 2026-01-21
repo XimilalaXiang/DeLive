@@ -33,6 +33,17 @@ export interface TranscriptTokenData {
   confidence?: number
 }
 
+// 字幕样式
+export interface CaptionStyle {
+  fontSize: number
+  fontFamily: string
+  textColor: string
+  backgroundColor: string
+  textShadow: boolean
+  maxLines: number
+  width: number
+}
+
 // 转录会话类型
 export interface TranscriptSession {
   id: string
@@ -68,4 +79,6 @@ export interface AppSettings {
   providerConfigs?: Record<string, ProviderConfigData>
   // 自动更新设置
   autoCheckUpdate?: boolean
+  // 字幕样式
+  captionStyle?: CaptionStyle
 }

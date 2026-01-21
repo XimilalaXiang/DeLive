@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { TranscriptSession, RecordingState, AppSettings, SonioxToken, Tag, ProviderConfigData } from '../types'
+import type { TranscriptSession, RecordingState, AppSettings, SonioxToken, Tag, ProviderConfigData, CaptionStyle } from '../types'
 import { 
   getSessions, 
   saveSessions, 
@@ -24,6 +24,16 @@ import type { ASRProviderInfo } from '../types/asr'
 // 主题类型定义
 type Theme = 'light' | 'dark' | 'system'
 type ResolvedTheme = 'light' | 'dark'
+
+const defaultCaptionStyle: CaptionStyle = {
+  fontSize: 24,
+  fontFamily: 'Microsoft YaHei, sans-serif',
+  textColor: '#ffffff',
+  backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  textShadow: true,
+  maxLines: 2,
+  width: 800,
+}
 
 // 获取系统主题
 const getSystemTheme = (): ResolvedTheme => {
@@ -328,7 +338,7 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
   setSearchQuery: (query) => set({ searchQuery: query }),
   
   // 设置
-  settings: { apiKey: '', languageHints: ['zh', 'en'], currentVendor: 'soniox', providerConfigs: {} },
+  settings: { apiKey: '', languageHints: ['zh', 'en'], currentVendor: 'soniox', providerConfigs: {}, captionStyle: defaultCaptionStyle },
   loadSettings: () => {
     const settings = getSettings()
     // 兼容旧版配置：如果有 apiKey 但没有 providerConfigs，则迁移到 soniox 配置
@@ -342,7 +352,12 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
         },
       }
     }
-    set({ settings })
+    set({
+      settings: {
+        ...settings,
+        captionStyle: settings.captionStyle || defaultCaptionStyle,
+      }
+    })
   },
   updateSettings: (newSettings) => {
     const settings = { ...get().settings, ...newSettings }

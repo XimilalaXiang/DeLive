@@ -15,17 +15,7 @@ import {
   Sun
 } from 'lucide-react'
 import { useTranscriptStore } from '../stores/transcriptStore'
-
-// 字幕样式接口
-interface CaptionStyle {
-  fontSize: number
-  fontFamily: string
-  textColor: string
-  backgroundColor: string
-  textShadow: boolean
-  maxLines: number
-  width: number
-}
+import type { CaptionStyle } from '../types'
 
 // 预设颜色
 const presetColors = [
@@ -59,7 +49,7 @@ interface CaptionControlsProps {
 }
 
 export function CaptionControls({ className = '' }: CaptionControlsProps) {
-  const { t } = useTranscriptStore()
+  const { t, settings, updateSettings } = useTranscriptStore()
   const [isEnabled, setIsEnabled] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [style, setStyle] = useState<CaptionStyle>({
@@ -81,6 +71,18 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
       setStyle(status.style)
     })
   }, [])
+
+  // 将已保存的样式同步到主进程（应用启动后保持用户配置）
+  useEffect(() => {
+    if (!window.electronAPI?.captionUpdateStyle) return
+    if (!settings.captionStyle) return
+
+    window.electronAPI.captionUpdateStyle(settings.captionStyle).then((updated) => {
+      setStyle(updated)
+    }).catch(() => {
+      // 忽略同步失败，用户再调整时会重新保存
+    })
+  }, [settings.captionStyle])
 
   // 监听字幕状态变化
   useEffect(() => {
@@ -111,7 +113,8 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
     if (!window.electronAPI?.captionUpdateStyle) return
     const updatedStyle = await window.electronAPI.captionUpdateStyle(newStyle)
     setStyle(updatedStyle)
-  }, [])
+    updateSettings({ captionStyle: updatedStyle })
+  }, [updateSettings])
 
   // 如果不在 Electron 环境，不渲染
   if (!window.electronAPI?.captionToggle) {

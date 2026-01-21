@@ -1,10 +1,20 @@
-import type { TranscriptSession, AppSettings, Tag } from '../types'
+import type { TranscriptSession, AppSettings, Tag, CaptionStyle } from '../types'
 
 const STORAGE_KEYS = {
   SESSIONS: 'desktoplive_sessions',
   SETTINGS: 'desktoplive_settings',
   TAGS: 'desktoplive_tags',
 } as const
+
+const DEFAULT_CAPTION_STYLE: CaptionStyle = {
+  fontSize: 24,
+  fontFamily: 'Microsoft YaHei, sans-serif',
+  textColor: '#ffffff',
+  backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  textShadow: true,
+  maxLines: 2,
+  width: 800,
+}
 
 // ==================== 会话相关 ====================
 
@@ -90,6 +100,7 @@ export function getSettings(): AppSettings {
   return {
     apiKey: '',
     languageHints: ['zh', 'en'],
+    captionStyle: DEFAULT_CAPTION_STYLE,
   }
 }
 
