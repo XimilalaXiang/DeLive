@@ -14,7 +14,7 @@
 [![下载量](https://img.shields.io/github/downloads/XimilalaXiang/DeLive/total?label=下载量&color=orange)](https://github.com/XimilalaXiang/DeLive/releases)
 [![Stars](https://img.shields.io/github/stars/XimilalaXiang/DeLive?style=social)](https://github.com/XimilalaXiang/DeLive)
 
-[为何选择 DeLive](#何时使用-delive) • [快速开始](#快速开始) • [系统架构](#系统架构)
+[为何选择 DeLive](#-何时使用-delive) • [快速开始](#-快速开始) • [系统架构](#-系统架构)
 
 </div>
 
@@ -24,7 +24,7 @@
 <img width="800" alt="DeLive 截图" src="https://github.com/user-attachments/assets/f0d26fe3-ae9c-4d24-8b5d-b12f2095acb7" />
 </div>
 
-## 💡 何时使用 DeLive {#何时使用-delive}
+## 💡 何时使用 DeLive
 
 **当所有其他路都被堵死时的最终选择。**
 
@@ -52,7 +52,7 @@
 - **双语界面** - 中文和英文界面任意切换
 - **自动更新** - 自动检测和下载最新版本
 
-## 🏗️ 系统架构 {#系统架构}
+## 🏗️ 系统架构
 
 ```mermaid
 graph TB
@@ -138,7 +138,7 @@ graph TB
 | **火山引擎** | ✅ 支持 | 中文优化、通过代理连接 |
 | *更多服务商* | 🔜 计划中 | 可扩展架构，易于添加新提供商 |
 
-## 🚀 快速开始 {#快速开始}
+## 🚀 快速开始
 
 ### 前置要求
 

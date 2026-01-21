@@ -14,7 +14,7 @@ English | [简体中文](./README_ZH.md) | [繁體中文](./README_TW.md) | [日
 [![Downloads](https://img.shields.io/github/downloads/XimilalaXiang/DeLive/total?label=Downloads&color=orange)](https://github.com/XimilalaXiang/DeLive/releases)
 [![Stars](https://img.shields.io/github/stars/XimilalaXiang/DeLive?style=social)](https://github.com/XimilalaXiang/DeLive)
 
-[Why DeLive](#when-to-use-delive) • [Quick Start](#quick-start) • [Architecture](#system-architecture)
+[Why DeLive](#-when-to-use-delive) • [Quick Start](#-quick-start) • [Architecture](#-system-architecture)
 
 </div>
 
@@ -24,7 +24,7 @@ Directly capture system audio output. No matter how platforms protect their cont
 <img width="800" alt="DeLive Screenshot" src="https://github.com/user-attachments/assets/f0d26fe3-ae9c-4d24-8b5d-b12f2095acb7" />
 </div>
 
-## 💡 When to Use DeLive {#when-to-use-delive}
+## 💡 When to Use DeLive
 
 **Your last resort when all other paths are blocked.**
 
@@ -52,7 +52,7 @@ Need to export subtitles or transcribed content for building knowledge bases, an
 - **Bilingual Interface** - Chinese and English UI language options
 - **Auto Updates** - Automatic detection and download of latest versions
 
-## 🏗️ System Architecture {#system-architecture}
+## 🏗️ System Architecture
 
 ```mermaid
 graph TB
@@ -138,7 +138,7 @@ graph TB
 | **Volcengine** | ✅ Supported | Chinese optimized, proxy connection |
 | *More providers* | 🔜 Planned | Extensible architecture, easy to add new providers |
 
-## 🚀 Quick Start {#quick-start}
+## 🚀 Quick Start
 
 ### Prerequisites
 

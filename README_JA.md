@@ -14,7 +14,7 @@
 [![ダウンロード](https://img.shields.io/github/downloads/XimilalaXiang/DeLive/total?label=ダウンロード&color=orange)](https://github.com/XimilalaXiang/DeLive/releases)
 [![Stars](https://img.shields.io/github/stars/XimilalaXiang/DeLive?style=social)](https://github.com/XimilalaXiang/DeLive)
 
-|[DeLiveを選ぶ理由](#何时使用-delive) • [クイックスタート](#クイックスタート) • [システムアーキテクチャ](#システムアーキテクチャ)|
+[DeLiveを選ぶ理由](#-deliveを使うタイミング) • [クイックスタート](#-クイックスタート) • [システムアーキテクチャ](#-システムアーキテクチャ)
 
 </div>
 
@@ -24,7 +24,7 @@
 <img width="800" alt="DeLive スクリーンショット" src="https://github.com/user-attachments/assets/f0d26fe3-ae9c-4d24-8b5d-b12f2095acb7" />
 </div>
 
-## 💡 何时使用 DeLive {#何时使用-delive}
+## 💡 DeLiveを使うタイミング
 
 **他のすべての手段がblockedされたときの最終手段です。**
 
@@ -52,7 +52,7 @@
 - **バイリンガルインターフェース** - 中文と英語のインターフェースを自由に切り替え
 - **自動更新** - 最新バージョンを自動検出・ダウンロード
 
-## 🏗️ システムアーキテクチャ {#システムアーキテクチャ}
+## 🏗️ システムアーキテクチャ
 
 ```mermaid
 graph TB
@@ -138,7 +138,7 @@ graph TB
 || **火山エンジン** | ✅ 対応 | 中国語最適化、プロキシ経由接続 |
 || *その他のプロバイダー* | 🔜 計画中 | 拡張可能なアーキテクチャ、新しいプロバイダーの追加が容易 |
 
-## 🚀 クイックスタート {#クイックスタート}
+## 🚀 クイックスタート
 
 ### 前提条件
 
