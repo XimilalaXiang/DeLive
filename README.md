@@ -14,7 +14,7 @@ English | [简体中文](./README_ZH.md) | [繁體中文](./README_TW.md) | [日
 [![Downloads](https://img.shields.io/github/downloads/XimilalaXiang/DeLive/total?label=Downloads&color=orange)](https://github.com/XimilalaXiang/DeLive/releases)
 [![Stars](https://img.shields.io/github/stars/XimilalaXiang/DeLive?style=social)](https://github.com/XimilalaXiang/DeLive)
 
-[Why DeLive](#-when-to-use-delive) • [Quick Start](#-quick-start) • [Architecture](#-system-architecture)
+[Why DeLive](#when-to-use-delive) • [Quick Start](#quick-start) • [Architecture](#system-architecture)
 
 </div>
 

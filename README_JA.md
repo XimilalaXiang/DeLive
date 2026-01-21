@@ -14,7 +14,7 @@
 [![ダウンロード](https://img.shields.io/github/downloads/XimilalaXiang/DeLive/total?label=ダウンロード&color=orange)](https://github.com/XimilalaXiang/DeLive/releases)
 [![Stars](https://img.shields.io/github/stars/XimilalaXiang/DeLive?style=social)](https://github.com/XimilalaXiang/DeLive)
 
-|[DeLiveを選ぶ理由](#-何时使用-delive) • [クイックスタート](#-クイックスタート) • [システムアーキテクチャ](#-システムアーキテクチャ)|
+|[DeLiveを選ぶ理由](#何时使用-delive) • [クイックスタート](#クイックスタート) • [システムアーキテクチャ](#システムアーキテクチャ)|
 
 </div>
 
