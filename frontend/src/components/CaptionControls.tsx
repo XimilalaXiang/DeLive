@@ -24,6 +24,7 @@ interface CaptionStyle {
   backgroundColor: string
   textShadow: boolean
   maxLines: number
+  width: number
 }
 
 // 预设颜色
@@ -68,6 +69,7 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
     textShadow: true,
     maxLines: 2,
+    width: 800,
   })
 
   // 获取初始状态
@@ -237,6 +239,28 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
                     className="w-full h-2 rounded-full appearance-none cursor-pointer accent-primary bg-muted"
                   />
                   <span className="text-xs text-muted-foreground ml-2">72</span>
+                </div>
+              </div>
+
+              {/* 字幕宽度 */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium flex items-center gap-2 text-foreground">
+                  <Maximize2 className="w-4 h-4 text-muted-foreground" />
+                  <span>{t.caption?.width || '字幕宽度'}</span>
+                  <span className="ml-auto font-mono">{style.width}px</span>
+                </label>
+                <div className="relative flex items-center">
+                  <span className="text-xs text-muted-foreground mr-2">400</span>
+                  <input
+                    type="range"
+                    min="400"
+                    max="1400"
+                    step="20"
+                    value={style.width}
+                    onChange={(e) => handleStyleChange({ width: parseInt(e.target.value) })}
+                    className="w-full h-2 rounded-full appearance-none cursor-pointer accent-primary bg-muted"
+                  />
+                  <span className="text-xs text-muted-foreground ml-2">1400</span>
                 </div>
               </div>
 

@@ -36,6 +36,7 @@ declare interface CaptionStyle {
   backgroundColor: string
   textShadow: boolean
   maxLines: number
+  width: number
 }
 
 // 字幕状态类型

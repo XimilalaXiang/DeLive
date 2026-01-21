@@ -25,6 +25,7 @@ interface CaptionStyle {
   backgroundColor: string
   textShadow: boolean
   maxLines: number
+  width: number
 }
 
 // 默认样式
@@ -35,6 +36,7 @@ const defaultStyle: CaptionStyle = {
   backgroundColor: 'rgba(0, 0, 0, 0.7)',
   textShadow: true,
   maxLines: 2,
+  width: 800,
 }
 
 // 估算每行可以显示的字符数

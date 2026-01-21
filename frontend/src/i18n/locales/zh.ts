@@ -223,6 +223,7 @@ export const zh = {
     backgroundColor: '背景颜色',
     textShadow: '文字阴影',
     maxLines: '最大行数',
+    width: '字幕宽度',
     preview: '预览效果',
     dragHint: '拖拽调整字幕位置',
     lockHint: '字幕位置已锁定',

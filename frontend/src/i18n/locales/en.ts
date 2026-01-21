@@ -225,6 +225,7 @@ export const en: Translations = {
     backgroundColor: 'Background Color',
     textShadow: 'Text Shadow',
     maxLines: 'Max Lines',
+    width: 'Caption Width',
     preview: 'Preview',
     dragHint: 'Drag to adjust caption position',
     lockHint: 'Caption position is locked',

@@ -369,6 +369,7 @@ interface CaptionStyle {
   backgroundColor: string
   textShadow: boolean
   maxLines: number
+  width: number
 }
 
 let captionStyle: CaptionStyle = {
@@ -378,6 +379,7 @@ let captionStyle: CaptionStyle = {
   backgroundColor: 'rgba(0, 0, 0, 0.7)',
   textShadow: true,
   maxLines: 2,
+  width: 800,
 }
 
 // 根据样式计算窗口高度，确保足够容纳指定行数
@@ -388,6 +390,14 @@ function computeCaptionHeight(style: CaptionStyle): number {
   const controlSpace = 20 // 顶部锁按钮/提示预留
   const height = Math.round(lineHeight * style.maxLines + contentPadding + containerPadding + controlSpace)
   return Math.max(height, 60)
+}
+
+// 根据样式和工作区宽度计算窗口宽度
+function computeCaptionWidth(style: CaptionStyle, workAreaWidth: number): number {
+  const minWidth = 300
+  const maxWidth = Math.max(minWidth, workAreaWidth - 20) // 预留边距
+  const target = Math.round(style.width || 800)
+  return Math.min(Math.max(target, minWidth), maxWidth)
 }
 
 // 开发模式判断
@@ -487,7 +497,7 @@ function createCaptionWindow() {
   // 根据 maxLines=2 和默认字体大小 24px 计算高度
   // 高度 = (字体大小 * 行高 * 行数) + padding
   // 高度 = (24 * 1.5 * 2) + 20 + 24 = 72 + 44 ≈ 120
-  const windowWidth = 800
+  const windowWidth = computeCaptionWidth(captionStyle, screenWidth)
   const windowHeight = computeCaptionHeight(captionStyle)
   const windowX = Math.round((screenWidth - windowWidth) / 2)
   const windowY = screenHeight - windowHeight - 30 // 距离底部 30px
@@ -1061,12 +1071,22 @@ ipcMain.handle('caption-update-style', (_event, newStyle: Partial<CaptionStyle>)
       const bounds = captionWindow.getBounds()
       const display = screen.getDisplayMatching(bounds)
       const workArea = display.workArea
+      const targetWidth = computeCaptionWidth(captionStyle, workArea.width)
       let newY = bounds.y
+      let newX = bounds.x
+
       if (newY + targetHeight > workArea.height) {
         newY = Math.max(0, workArea.height - targetHeight - 10)
       }
+
+      if (newX + targetWidth > workArea.width) {
+        newX = Math.max(0, workArea.width - targetWidth - 10)
+      }
+
       captionWindow.setBounds({
+        width: targetWidth,
         height: targetHeight,
+        x: newX,
         y: newY,
       })
     } catch (error) {
@@ -1128,7 +1148,7 @@ ipcMain.handle('caption-reset-position', () => {
   if (captionWindow) {
     const primaryDisplay = screen.getPrimaryDisplay()
     const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize
-    const windowWidth = 800
+    const windowWidth = computeCaptionWidth(captionStyle, screenWidth)
     const windowHeight = computeCaptionHeight(captionStyle)
     const windowX = Math.round((screenWidth - windowWidth) / 2)
     const windowY = screenHeight - windowHeight - 30
