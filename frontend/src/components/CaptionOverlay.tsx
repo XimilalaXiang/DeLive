@@ -130,15 +130,12 @@ export function CaptionOverlay() {
 
     const cleanup = window.electronAPI.onCaptionInteractiveChanged((interactive) => {
       setIsInteractive(interactive)
-      if (!interactive) {
-        setIsHoverLocal(false)
-      }
     })
 
     return cleanup
   }, [])
 
-  // 本地悬停处理，避免依赖轮询事件
+  // 本地悬停：主动请求交互，避免第一次点击被穿透
   const handleMouseEnter = useCallback(() => {
     setIsHoverLocal(true)
     window.electronAPI?.captionSetInteractive?.(true)
@@ -146,8 +143,6 @@ export function CaptionOverlay() {
 
   const handleMouseLeave = useCallback(() => {
     setIsHoverLocal(false)
-    setIsInteractive(false)
-    // 不在拖拽时才允许关闭交互
     if (!isDragging) {
       window.electronAPI?.captionSetInteractive?.(false)
     }
@@ -193,13 +188,14 @@ export function CaptionOverlay() {
       window.electronAPI?.captionSetBounds({
         x: start.bounds.x + deltaX,
         y: start.bounds.y + deltaY,
+      }).then(() => {
+        // 拖拽过程中保持交互开启，确保按钮可点击
+        window.electronAPI?.captionSetInteractive?.(true)
       })
     }
 
     const handleMouseUp = () => {
       setIsDragging(false)
-      setIsHoverLocal(false)
-      window.electronAPI?.captionSetInteractive?.(false)
       dragStartRef.current = null
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseup', handleMouseUp)
