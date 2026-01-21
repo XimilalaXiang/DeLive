@@ -24,7 +24,7 @@
 <img width="800" alt="DeLive 截图" src="https://github.com/user-attachments/assets/f0d26fe3-ae9c-4d24-8b5d-b12f2095acb7" />
 </div>
 
-## 💡 何时使用 DeLive {#-何时使用-delive}
+## 💡 何时使用 DeLive
 
 **当所有其他路都被堵死时的最终选择。**
 

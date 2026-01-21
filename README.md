@@ -24,7 +24,7 @@ Directly capture system audio output. No matter how platforms protect their cont
 <img width="800" alt="DeLive Screenshot" src="https://github.com/user-attachments/assets/f0d26fe3-ae9c-4d24-8b5d-b12f2095acb7" />
 </div>
 
-## 💡 When to Use DeLive {#-when-to-use-delive}
+## 💡 When to Use DeLive
 
 **Your last resort when all other paths are blocked.**
 
