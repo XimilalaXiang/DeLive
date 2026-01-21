@@ -1,6 +1,6 @@
 {
   "name": "delive",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Windows桌面音频实时转录系统 - 支持多ASR提供商",
   "private": true,
   "main": "dist-electron/main.js",
@@ -22,6 +22,10 @@
     "generate-icons": "node scripts/generate-icons.mjs"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/pako": "^2.0.4",
+    "@types/ws": "^8.18.1",
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
     "electron": "^40.0.0",
@@ -85,6 +89,10 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "electron-updater": "^6.7.3"
+    "cors": "^2.8.5",
+    "electron-updater": "^6.7.3",
+    "express": "^4.21.2",
+    "pako": "^2.1.0",
+    "ws": "^8.19.0"
   }
 }
