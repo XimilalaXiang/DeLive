@@ -51,17 +51,11 @@ export function CaptionOverlay() {
   const [isFinalText, setIsFinalText] = useState(false)
   const [style, setStyle] = useState<CaptionStyle>(defaultStyle)
   const [isDraggable, setIsDraggable] = useState(false)
-  const [isDragging, setIsDragging] = useState(false)
   const [isInteractive, setIsInteractive] = useState(false)
   const [isHoverLocal, setIsHoverLocal] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const [containerWidth, setContainerWidth] = useState(720)
-  const dragStartRef = useRef<{
-    mouseX: number
-    mouseY: number
-    bounds: { x: number; y: number }
-  } | null>(null)
 
   // 监听容器宽度变化
   useEffect(() => {
@@ -138,36 +132,20 @@ export function CaptionOverlay() {
     return cleanup
   }, [])
 
-  // 显示与交互状态同步：只要按钮显示，就强制开启交互；隐藏时关闭交互并清理本地悬停
-  useEffect(() => {
-    if (!window.electronAPI?.captionSetInteractive) return
-    const shouldEnable = isInteractive || isHoverLocal || isDraggable
-    window.electronAPI.captionSetInteractive(shouldEnable)
-    if (!shouldEnable) {
-      setIsHoverLocal(false)
-    }
-  }, [isInteractive, isHoverLocal, isDraggable])
-
-  // 本地悬停：主动请求交互，避免第一次点击被穿透
+  // 本地悬停：用于控制按钮显隐（交互开关由主进程命中检测决定）
   const handleMouseEnter = useCallback(() => {
     setIsHoverLocal(true)
-    window.electronAPI?.captionSetInteractive?.(true)
   }, [])
 
   const handleMouseLeave = useCallback(() => {
     setIsHoverLocal(false)
-    if (!isDragging) {
-      window.electronAPI?.captionSetInteractive?.(false)
-    }
-  }, [isDragging])
+  }, [])
 
   // 切换锁定状态
   const handleToggleLock = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation()
     if (!window.electronAPI?.captionToggleDraggable) return
     await window.electronAPI.captionToggleDraggable()
-    // 锁定/解锁后确保当前可点击，避免第一下穿透
-    window.electronAPI?.captionSetInteractive?.(true)
   }, [])
 
   // 关闭字幕窗口
@@ -178,48 +156,6 @@ export function CaptionOverlay() {
   }, [])
 
   // 拖拽处理
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (!isDraggable) return
-    
-    // 如果点击的是锁按钮，不触发拖拽
-    if ((e.target as HTMLElement).closest('.lock-button')) return
-    
-    setIsDragging(true)
-    // 记录初始鼠标与窗口位置，避免累积偏移
-    window.electronAPI?.captionGetBounds().then((bounds) => {
-      if (!bounds) return
-      dragStartRef.current = {
-        mouseX: e.screenX,
-        mouseY: e.screenY,
-        bounds: { x: bounds.x, y: bounds.y },
-      }
-    })
-
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      const start = dragStartRef.current
-      if (!start) return
-      const deltaX = moveEvent.screenX - start.mouseX
-      const deltaY = moveEvent.screenY - start.mouseY
-      window.electronAPI?.captionSetBounds({
-        x: start.bounds.x + deltaX,
-        y: start.bounds.y + deltaY,
-      }).then(() => {
-        // 拖拽过程中保持交互开启，确保按钮可点击
-        window.electronAPI?.captionSetInteractive?.(true)
-      })
-    }
-
-    const handleMouseUp = () => {
-      setIsDragging(false)
-      dragStartRef.current = null
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
-    }
-
-    document.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('mouseup', handleMouseUp)
-  }, [isDraggable])
-
   // 计算显示行
   const charsPerLine = estimateCharsPerLine(style.fontSize, containerWidth)
   
@@ -250,14 +186,12 @@ export function CaptionOverlay() {
       className={`
         w-full h-full flex items-center justify-center relative
         ${isDraggable ? 'cursor-move' : 'cursor-default'}
-        ${isDragging ? 'select-none' : ''}
       `}
-      onMouseDown={handleMouseDown}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       style={{
-        // 使用自定义拖拽逻辑，禁用原生区域拖拽以避免双重偏移
-        WebkitAppRegion: 'no-drag',
+        // 解锁时使用原生拖拽，锁定时关闭拖拽
+        WebkitAppRegion: isDraggable ? 'drag' : 'no-drag',
         padding: '10px',
       } as React.CSSProperties}
     >

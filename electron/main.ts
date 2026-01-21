@@ -489,9 +489,12 @@ function createCaptionWindow() {
     return
   }
 
+  // 每次创建窗口时重置拖拽状态，避免上一轮解锁状态残留导致新窗口一直不可点
+  captionDraggable = false
+
   // 获取主显示器信息
   const primaryDisplay = screen.getPrimaryDisplay()
-  const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize
+  const { x: workX, y: workY, width: screenWidth, height: screenHeight } = primaryDisplay.workArea
 
   // 字幕窗口默认位置：屏幕底部中央
   // 根据 maxLines=2 和默认字体大小 24px 计算高度
@@ -499,8 +502,8 @@ function createCaptionWindow() {
   // 高度 = (24 * 1.5 * 2) + 20 + 24 = 72 + 44 ≈ 120
   const windowWidth = computeCaptionWidth(captionStyle, screenWidth)
   const windowHeight = computeCaptionHeight(captionStyle)
-  const windowX = Math.round((screenWidth - windowWidth) / 2)
-  const windowY = screenHeight - windowHeight - 30 // 距离底部 30px
+  const windowX = Math.round(workX + (screenWidth - windowWidth) / 2)
+  const windowY = workY + screenHeight - windowHeight - 30 // 距离底部 30px
 
   captionWindow = new BrowserWindow({
     width: windowWidth,
@@ -519,7 +522,7 @@ function createCaptionWindow() {
     skipTaskbar: true,
     
     // 允许调整大小
-    resizable: true,
+    resizable: false,
     
     // 最小尺寸
     minWidth: 300,
@@ -574,6 +577,7 @@ function closeCaptionWindow() {
     captionWindow.close()
     captionWindow = null
     captionEnabled = false
+    captionDraggable = false
     console.log('[Caption] 字幕窗口已关闭')
   }
 }
@@ -585,7 +589,7 @@ function toggleCaptionDraggable(draggable: boolean) {
     captionWindow.setIgnoreMouseEvents(!draggable, { forward: true })
     // 切换可聚焦状态
     captionWindow.setFocusable(draggable)
-    // 同步交互状态缓存并通知渲染层
+    // 同步交互状态缓存并通知渲染层（上锁时交互应为 false，解锁时为 true）
     currentInteractiveMode = draggable
     captionWindow.webContents.send('caption-interactive-changed', draggable)
     // 通知字幕窗口更新拖拽状态
@@ -597,9 +601,12 @@ function toggleCaptionDraggable(draggable: boolean) {
 // 设置字幕窗口是否可交互（用于悬停时显示设置按钮）
 function setCaptionInteractive(interactive: boolean) {
   if (!captionWindow || captionWindow.isDestroyed()) return
-  
+
   // 如果处于拖拽模式，保持可交互
   if (captionDraggable) return
+
+  // 状态未变化时直接返回，避免重复切换导致抖动
+  if (interactive === currentInteractiveMode) return
 
   try {
     currentInteractiveMode = interactive
@@ -1074,15 +1081,15 @@ ipcMain.handle('caption-update-style', (_event, newStyle: Partial<CaptionStyle>)
       let newX = Math.round(currentCenterX - targetWidth / 2)
       let newY = bounds.y
 
-      if (newY + targetHeight > workArea.height) {
-        newY = Math.max(0, workArea.height - targetHeight - 10)
-      }
+      const minX = workArea.x
+      const minY = workArea.y
+      const maxX = workArea.x + Math.max(0, workArea.width - targetWidth - 10)
+      const maxY = workArea.y + Math.max(0, workArea.height - targetHeight - 10)
 
-      if (newX + targetWidth > workArea.width) {
-        newX = Math.max(0, workArea.width - targetWidth - 10)
-      } else if (newX < 0) {
-        newX = 0
-      }
+      if (newY > maxY) newY = maxY
+      if (newY < minY) newY = minY
+      if (newX > maxX) newX = maxX
+      if (newX < minX) newX = minX
 
       captionWindow.setBounds({
         width: targetWidth,
@@ -1133,11 +1140,22 @@ ipcMain.handle('caption-get-bounds', () => {
 ipcMain.handle('caption-set-bounds', (_event, bounds: { x?: number; y?: number; width?: number; height?: number }) => {
   if (captionWindow) {
     const currentBounds = captionWindow.getBounds()
+    const display = screen.getDisplayMatching(currentBounds)
+    const workArea = display.workArea
+
+    const targetWidth = bounds.width ?? currentBounds.width
+    const targetHeight = bounds.height ?? currentBounds.height
+
+    const maxX = workArea.x + Math.max(0, workArea.width - targetWidth)
+    const maxY = workArea.y + Math.max(0, workArea.height - targetHeight)
+    const targetX = Math.min(Math.max(workArea.x, bounds.x ?? currentBounds.x), maxX)
+    const targetY = Math.min(Math.max(workArea.y, bounds.y ?? currentBounds.y), maxY)
+
     captionWindow.setBounds({
-      x: bounds.x ?? currentBounds.x,
-      y: bounds.y ?? currentBounds.y,
-      width: bounds.width ?? currentBounds.width,
-      height: bounds.height ?? currentBounds.height,
+      x: targetX,
+      y: targetY,
+      width: targetWidth,
+      height: targetHeight,
     })
     return true
   }
@@ -1148,12 +1166,12 @@ ipcMain.handle('caption-set-bounds', (_event, bounds: { x?: number; y?: number; 
 ipcMain.handle('caption-reset-position', () => {
   if (captionWindow) {
     const primaryDisplay = screen.getPrimaryDisplay()
-    const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize
+    const { x: workX, y: workY, width: screenWidth, height: screenHeight } = primaryDisplay.workArea
     const windowWidth = computeCaptionWidth(captionStyle, screenWidth)
     const windowHeight = computeCaptionHeight(captionStyle)
-    const windowX = Math.round((screenWidth - windowWidth) / 2)
-    const windowY = screenHeight - windowHeight - 30
-    
+    const windowX = Math.round(workX + (screenWidth - windowWidth) / 2)
+    const windowY = workY + screenHeight - windowHeight - 30
+
     captionWindow.setBounds({
       x: windowX,
       y: windowY,
