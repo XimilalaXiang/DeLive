@@ -380,6 +380,16 @@ let captionStyle: CaptionStyle = {
   maxLines: 2,
 }
 
+// 根据样式计算窗口高度，确保足够容纳指定行数
+function computeCaptionHeight(style: CaptionStyle): number {
+  const lineHeight = style.fontSize * 1.5
+  const contentPadding = 24 // px-? -> py-3 ≈ 12px*2
+  const containerPadding = 20 // 容器 padding: 10px * 2
+  const controlSpace = 20 // 顶部锁按钮/提示预留
+  const height = Math.round(lineHeight * style.maxLines + contentPadding + containerPadding + controlSpace)
+  return Math.max(height, 60)
+}
+
 // 开发模式判断
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -478,7 +488,7 @@ function createCaptionWindow() {
   // 高度 = (字体大小 * 行高 * 行数) + padding
   // 高度 = (24 * 1.5 * 2) + 20 + 24 = 72 + 44 ≈ 120
   const windowWidth = 800
-  const windowHeight = 120 // 增加高度以显示完整圆角
+  const windowHeight = computeCaptionHeight(captionStyle)
   const windowX = Math.round((screenWidth - windowWidth) / 2)
   const windowY = screenHeight - windowHeight - 30 // 距离底部 30px
 
@@ -1044,6 +1054,24 @@ ipcMain.handle('caption-update-style', (_event, newStyle: Partial<CaptionStyle>)
   captionStyle = { ...captionStyle, ...newStyle }
   if (captionWindow) {
     captionWindow.webContents.send('caption-style-update', captionStyle)
+
+    // 样式变化后调整窗口高度，防止行数/字体过大被裁剪
+    try {
+      const targetHeight = computeCaptionHeight(captionStyle)
+      const bounds = captionWindow.getBounds()
+      const display = screen.getDisplayMatching(bounds)
+      const workArea = display.workArea
+      let newY = bounds.y
+      if (newY + targetHeight > workArea.height) {
+        newY = Math.max(0, workArea.height - targetHeight - 10)
+      }
+      captionWindow.setBounds({
+        height: targetHeight,
+        y: newY,
+      })
+    } catch (error) {
+      console.error('[Caption] 调整窗口高度失败:', error)
+    }
   }
   return captionStyle
 })
@@ -1101,7 +1129,7 @@ ipcMain.handle('caption-reset-position', () => {
     const primaryDisplay = screen.getPrimaryDisplay()
     const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize
     const windowWidth = 800
-    const windowHeight = 120 // 增加高度以显示完整圆角
+    const windowHeight = computeCaptionHeight(captionStyle)
     const windowX = Math.round((screenWidth - windowWidth) / 2)
     const windowY = screenHeight - windowHeight - 30
     
