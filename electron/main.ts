@@ -1,4 +1,5 @@
-import { app, BrowserWindow, shell, ipcMain, Tray, Menu, nativeImage, globalShortcut, desktopCapturer, session, dialog, screen } from 'electron'
+import { app, BrowserWindow, shell, ipcMain, Tray, Menu, nativeImage, NativeImage, globalShortcut, desktopCapturer, session, dialog, screen } from 'electron'
+import fs from 'fs'
 import path from 'path'
 import { autoUpdater } from 'electron-updater'
 import { createServer, IncomingMessage } from 'http'
@@ -785,21 +786,32 @@ function createWindow() {
   })
 }
 
+// 读取托盘图标（兼容 asar 内路径）
+function loadTrayIcon(): NativeImage {
+  const appPath = app.getAppPath() // dev: 项目根；prod: app.asar
+  const candidates = [
+    path.join(appPath, 'build', 'icon.ico'),
+    path.join(appPath, 'build', 'icon.png'),
+  ]
+
+  for (const p of candidates) {
+    try {
+      if (fs.existsSync(p)) {
+        const buffer = fs.readFileSync(p)
+        const img = nativeImage.createFromBuffer(buffer)
+        if (!img.isEmpty()) return img
+      }
+    } catch (error) {
+      console.warn('[Tray] 加载图标失败:', p, error)
+    }
+  }
+
+  console.warn('[Tray] 使用空图标（未找到可用图标文件）')
+  return nativeImage.createEmpty()
+}
+
 function createTray() {
-  // 创建托盘图标
-  const iconPath = path.join(__dirname, '../build/icon.ico')
-  let trayIcon = nativeImage.createFromPath(iconPath)
-  
-  // 如果 ICO 加载失败，尝试加载 PNG
-  if (trayIcon.isEmpty()) {
-    const pngPath = path.join(__dirname, '../build/icon.png')
-    trayIcon = nativeImage.createFromPath(pngPath)
-  }
-  
-  // 如果都失败了，使用空图标
-  if (trayIcon.isEmpty()) {
-    trayIcon = nativeImage.createEmpty()
-  }
+  const trayIcon = loadTrayIcon()
 
   tray = new Tray(trayIcon)
   tray.setToolTip('DeLive - 桌面音频实时转录')

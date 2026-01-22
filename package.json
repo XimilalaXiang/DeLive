@@ -1,7 +1,7 @@
 {
   "name": "delive",
-  "version": "1.0.7",
-  "description": "Windows桌面音频实时转录系统 - 支持多ASR提供商",
+  "version": "1.0.9",
+  "description": "DeLive",
   "private": true,
   "main": "dist-electron/main.js",
   "author": "XimilalaXiang",
@@ -71,9 +71,10 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
+      "createDesktopShortcut": false,
       "createStartMenuShortcut": true,
-      "shortcutName": "DeLive"
+      "shortcutName": "DeLive",
+      "include": "build/installer.nsh"
     },
     "portable": {
       "artifactName": "${productName}-${version}-portable.${ext}"
