@@ -691,13 +691,21 @@ function stopMousePositionCheck() {
 }
 
 function createWindow() {
+  // Windows 任务栏应用 ID
+  if (process.platform === 'win32') {
+    app.setAppUserModelId('com.delive.app')
+  }
+
+  // 窗口/任务栏图标路径
+  const windowIconPath = findIconPath()
+
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     minWidth: 800,
     minHeight: 600,
     title: 'DeLive - 桌面音频实时转录',
-    icon: path.join(__dirname, '../build/icon.ico'),
+    icon: windowIconPath || undefined,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -793,34 +801,48 @@ function createWindow() {
   })
 }
 
+// 构建图标候选路径（兼容开发模式和打包后的 asar/unpacked/resources）
+function getIconCandidates(): string[] {
+  const appPath = app.getAppPath() // dev: 项目根；prod: app.asar
+  const resourcesPath = process.resourcesPath
+  const candidates: string[] = []
+
+  // 优先 resources 根目录（extraResources 放置）
+  candidates.push(
+    path.join(resourcesPath, 'icon.ico'),
+    path.join(resourcesPath, 'icon.png'),
+    path.join(resourcesPath, 'build', 'icon.ico'),
+    path.join(resourcesPath, 'build', 'icon.png'),
+  )
+
+  // asar / asar.unpacked
+  candidates.push(
+    path.join(resourcesPath, 'app.asar.unpacked', 'build', 'icon.ico'),
+    path.join(resourcesPath, 'app.asar.unpacked', 'build', 'icon.png'),
+    path.join(appPath, 'build', 'icon.ico'),
+    path.join(appPath, 'build', 'icon.png'),
+  )
+
+  return candidates
+}
+
+function findIconPath(): string | null {
+  const candidates = getIconCandidates()
+  for (const p of candidates) {
+    try {
+      if (fs.existsSync(p)) {
+        return p
+      }
+    } catch (error) {
+      console.warn('[Icon] 检查图标路径失败:', p, error)
+    }
+  }
+  return null
+}
+
 // 读取托盘图标（兼容 asar 内路径和开发模式）
 function loadTrayIcon(): NativeImage {
-  const appPath = app.getAppPath() // dev: 项目根；prod: app.asar
-  const isPackaged = app.isPackaged
-  
-  // 构建候选路径列表
-  const candidates: string[] = []
-  
-  if (isPackaged) {
-    // 打包后：图标在 resources 目录旁边的 build 文件夹
-    // 或者在 asar 包内
-    const resourcesPath = process.resourcesPath
-    candidates.push(
-      path.join(resourcesPath, 'build', 'icon.ico'),
-      path.join(resourcesPath, 'build', 'icon.png'),
-      path.join(appPath, 'build', 'icon.ico'),
-      path.join(appPath, 'build', 'icon.png'),
-      // 也尝试从 app.asar.unpacked 加载
-      path.join(resourcesPath, 'app.asar.unpacked', 'build', 'icon.ico'),
-      path.join(resourcesPath, 'app.asar.unpacked', 'build', 'icon.png'),
-    )
-  } else {
-    // 开发模式：从项目根目录加载
-    candidates.push(
-      path.join(appPath, 'build', 'icon.ico'),
-      path.join(appPath, 'build', 'icon.png'),
-    )
-  }
+  const candidates = getIconCandidates()
 
   console.log('[Tray] 尝试加载图标，候选路径:', candidates)
 
