@@ -219,6 +219,23 @@ Refer to existing implementations (`SonioxProvider.ts` and `VolcProvider.ts`) fo
 3. **Volcengine** - Requires starting the backend server (`cd server && npm run dev`)
 4. **Tray Behavior** - Clicking close minimizes to tray, right-click tray icon and select "Exit" to fully close
 
+### 🛡️ Windows SmartScreen Warning
+
+When you first run DeLive, Windows may display a SmartScreen warning saying "Windows protected your PC". This is **normal behavior** for new applications that haven't yet established reputation with Microsoft.
+
+**Why does this happen?**
+- DeLive is an open-source project without a paid code signing certificate
+- New applications without widespread usage will trigger this warning
+- This does NOT mean the software is harmful
+
+**How to proceed:**
+1. Click **"More info"** on the warning dialog
+2. Click **"Run anyway"** to start DeLive
+
+**Verify Safety:**
+- [VirusTotal Scan Results](https://www.virustotal.com/gui/file/cdc1680fd693ac7b1c08980e8af5b04edf42289a051f9e7ecd4d915db9bce24b/detection) - You can verify the application is safe
+- The source code is fully open and auditable on GitHub
+
 ## 📄 License
 
 MIT License

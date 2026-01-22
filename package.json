@@ -71,10 +71,9 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": false,
+      "createDesktopShortcut": "always",
       "createStartMenuShortcut": true,
-      "shortcutName": "DeLive",
-      "include": "build/installer.nsh"
+      "shortcutName": "DeLive"
     },
     "portable": {
       "artifactName": "${productName}-${version}-portable.${ext}"

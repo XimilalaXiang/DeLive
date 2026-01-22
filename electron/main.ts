@@ -512,6 +512,9 @@ function createCaptionWindow() {
     x: windowX,
     y: windowY,
     
+    // 设置为主窗口的子窗口，这样在任务栏上显示为同一个应用
+    parent: mainWindow || undefined,
+    
     // 透明和无边框
     transparent: true,
     frame: false,
@@ -590,6 +593,8 @@ function toggleCaptionDraggable(draggable: boolean) {
     captionWindow.setIgnoreMouseEvents(!draggable, { forward: true })
     // 切换可聚焦状态
     captionWindow.setFocusable(draggable)
+    // 确保始终不在任务栏显示
+    captionWindow.setSkipTaskbar(true)
     // 同步交互状态缓存并通知渲染层（上锁时交互应为 false，解锁时为 true）
     currentInteractiveMode = draggable
     captionWindow.webContents.send('caption-interactive-changed', draggable)
@@ -613,6 +618,8 @@ function setCaptionInteractive(interactive: boolean) {
     currentInteractiveMode = interactive
     captionWindow.setIgnoreMouseEvents(!interactive, { forward: true })
     captionWindow.setFocusable(interactive)
+    // 确保始终不在任务栏显示
+    captionWindow.setSkipTaskbar(true)
     // 通知字幕窗口交互状态变化
     captionWindow.webContents.send('caption-interactive-changed', interactive)
     console.log(`[Caption] 交互模式已设置: ${interactive ? '开启' : '关闭'}`)
