@@ -54,3 +54,6 @@ soniox的api调用文档.md
 
 # Rules (development only)
 rules/
+
+# Claude/Amp settings
+.claude/

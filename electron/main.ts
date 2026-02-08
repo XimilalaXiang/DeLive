@@ -720,12 +720,29 @@ function createWindow() {
   // 存储待处理的 displayMedia 请求回调
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let pendingDisplayMediaCallback: ((result: any) => void) | null = null
+  // 记住上次选择的源，用于音频设备切换时自动重新捕获
+  let lastSelectedSourceId: string | null = null
 
   // 设置 displayMediaRequestHandler 以支持 getDisplayMedia
-  session.defaultSession.setDisplayMediaRequestHandler((_request, callback) => {
-    // 保存回调，等待用户选择
+  session.defaultSession.setDisplayMediaRequestHandler(async (_request, callback) => {
+    // 如果有上次选择的源，尝试自动复用（音频设备切换时的自动重连）
+    if (lastSelectedSourceId) {
+      try {
+        const sources = await desktopCapturer.getSources({ types: ['screen', 'window'] })
+        const savedSource = sources.find(s => s.id === lastSelectedSourceId)
+        if (savedSource) {
+          console.log('[DisplayMedia] 自动复用上次选择的源:', lastSelectedSourceId)
+          callback({ video: savedSource, audio: 'loopback' as const })
+          return
+        }
+        console.log('[DisplayMedia] 上次选择的源已不可用，显示选择器')
+      } catch (error) {
+        console.error('[DisplayMedia] 自动复用源失败:', error)
+      }
+    }
+
+    // 首次选择或上次的源不可用，显示选择器
     pendingDisplayMediaCallback = callback
-    // 通知渲染进程显示源选择器
     mainWindow?.webContents.send('show-source-picker')
   })
 
@@ -738,6 +755,8 @@ function createWindow() {
       const selectedSource = sources.find(s => s.id === sourceId)
       
       if (selectedSource) {
+        // 记住选择的源
+        lastSelectedSourceId = sourceId
         // 使用正确的类型：'loopback' 是系统音频回环
         pendingDisplayMediaCallback({ video: selectedSource, audio: 'loopback' as const })
         pendingDisplayMediaCallback = null
