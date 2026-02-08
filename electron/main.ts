@@ -817,25 +817,36 @@ function createWindow() {
   })
 }
 
+// 内嵌 32x32 PNG 图标（base64），作为最终 fallback
+// 确保在任何安装/更新场景下托盘图标都能正常显示
+const EMBEDDED_ICON_32_BASE64 = 'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAADjklEQVR4nNWXS08TURSAB6addjrT4NrgFqOJaX0sNMaKGx8b97ox+ke6FApSikIf9EEBQetajY+EqPggdkAoInTaTumUlxtjtLpAPeZOO7etdF5aFp7kLun3zTnn3nMgiP8uEkDaw8X9bLjgYoaFy+iw4ZzLHsp2EG5o3R0oQIttRLzARMUwE139yERXgYmgkwcmnAdmWADbcA7oUG6LDmbCtgB/Hv1NU9j2ePEEExNfsDER2GgBlOC2EDpZsAWzQAczYA3wMxY/3/n35CkwsSPiLQlsEE4HMkD7eaD9abAOpn2Ee8pkiN0WE/awMfHJv8LpoTRYh1bAOrj8mAhm2/TRE0CyseKD5sElAbDe+vBYVybYJqS9ARysNz+A5eaSTwNecBmBH7snwtF7Bb1wsAwsgcWXOtOYDtDCRAuvjHz51rcf0tENH3gPlv7UTMMrahsRLxhNe2n7l3RkuD2QhtvLn+Ha0/XGcN8iWPoXweJNndshwMTEiBq8LSxA+2i+ruZYoPLljgkBULxYKynCqf4UUH0LoXq6G1rZaGFT7cvv8F8k2L64gGsuC8hpd07kJIHptZIy3JsCs3dhi0gkSMy3x4sdWmmf3vgu/fjhuwVccyxQqbnzdrYqoACnvAsoA0D1zB6sSb/QqVVzLHBnFde8KlBuOOd4rYAy3Nw3D1Tv/MWqAJpqGg03vS4L5HHNywI/ccM5agVU4OYb78DcM3ulKhARLmk9MtPr38oCk3lccwSXBCoNVyegBu/9Q4CN5E5rvXCygHNSwDWXBeSGc4xnygLFkjq8dw6oXq5aAnso26H1vGKBCQHXHAtUGs4xxpevYfGrKtzcMwdUF3eg7hrSoeyG2ts+mf4s1bw9yuOaVwXKDecYrRVQhps83OaO7YlGm4zKYLH707A3UoWjtGOBSsMdiqclgedIQAneMwukhwvufIoD/HkDU01KOxaoNBzjW4TxpU9w9WFBEW7ycEB6kmcbziPan3lpZLBslbalo9Vw9XDuteK+aB1aOaV7qvkW4cgYD4fHeN3w8nl7siFcDrTD6YFr3vMGcLIr2UdoRgJI6+Dy/WbDTd1JfSuZFMFsG9rhmgbvSj4iupI6l1I53FMmtMM1Je21o9do0L6l45Qv9cwonOzm3piucy6iKQHQgtYotMmY++Y3VeAbZDcXUrznTQk3tFLe1AE0z9FEQwcNFult37V/TncxfgMkp/kkbDW+hQAAAABJRU5ErkJggg=='
+
 // 构建图标候选路径（兼容开发模式和打包后的 asar/unpacked/resources）
 function getIconCandidates(): string[] {
-  const appPath = app.getAppPath() // dev: 项目根；prod: app.asar
+  const appPath = app.getAppPath()
   const resourcesPath = process.resourcesPath
   const candidates: string[] = []
 
-  // 优先 resources 根目录（extraResources 放置）
+  // 1. extraResources 放置的路径
   candidates.push(
-    path.join(resourcesPath, 'icon.ico'),
-    path.join(resourcesPath, 'icon.png'),
     path.join(resourcesPath, 'build', 'icon.ico'),
     path.join(resourcesPath, 'build', 'icon.png'),
   )
 
-  // asar / asar.unpacked
+  // 2. asarUnpack 解压的路径
   candidates.push(
     path.join(resourcesPath, 'app.asar.unpacked', 'build', 'icon.ico'),
     path.join(resourcesPath, 'app.asar.unpacked', 'build', 'icon.png'),
-    path.join(appPath, 'build', 'icon.ico'),
+  )
+
+  // 3. resources 根目录
+  candidates.push(
+    path.join(resourcesPath, 'icon.ico'),
+    path.join(resourcesPath, 'icon.png'),
+  )
+
+  // 4. asar 内部（仅 fs.readFileSync 可读，nativeImage.createFromPath 不可读）
+  candidates.push(
     path.join(appPath, 'build', 'icon.png'),
   )
 
@@ -856,29 +867,50 @@ function findIconPath(): string | null {
   return null
 }
 
-// 读取托盘图标（兼容 asar 内路径和开发模式）
+// 从文件路径加载图标，优先 createFromPath（支持 ICO），PNG 则用 buffer 方式兼容 asar
+function loadIconFromPath(filePath: string): NativeImage | null {
+  try {
+    if (!fs.existsSync(filePath)) return null
+
+    // 对于 asar 内的路径，createFromPath 不支持，改用 buffer
+    if (filePath.includes('.asar') && !filePath.includes('.asar.unpacked')) {
+      const buffer = fs.readFileSync(filePath)
+      const img = nativeImage.createFromBuffer(buffer)
+      if (!img.isEmpty()) return img
+      return null
+    }
+
+    // 文件系统上的真实文件，用 createFromPath（正确支持 ICO）
+    const img = nativeImage.createFromPath(filePath)
+    if (!img.isEmpty()) return img
+    return null
+  } catch {
+    return null
+  }
+}
+
+// 读取托盘图标
 function loadTrayIcon(): NativeImage {
   const candidates = getIconCandidates()
-
   console.log('[Tray] 尝试加载图标，候选路径:', candidates)
 
+  // 依次尝试文件系统路径
   for (const p of candidates) {
-    try {
-      if (fs.existsSync(p)) {
-        console.log('[Tray] 找到图标文件:', p)
-        // 使用 createFromPath 而非 createFromBuffer，正确支持 ICO 多分辨率格式和 asar 路径
-        const img = nativeImage.createFromPath(p)
-        if (!img.isEmpty()) {
-          console.log('[Tray] 图标加载成功')
-          return img
-        }
-      }
-    } catch (error) {
-      console.warn('[Tray] 加载图标失败:', p, error)
+    const img = loadIconFromPath(p)
+    if (img) {
+      console.log('[Tray] 图标加载成功:', p)
+      return img
     }
   }
 
-  console.warn('[Tray] 使用空图标（未找到可用图标文件）')
+  // 所有路径都失败，使用内嵌的 base64 图标
+  console.log('[Tray] 文件路径均不可用，使用内嵌图标')
+  const fallback = nativeImage.createFromDataURL(`data:image/png;base64,${EMBEDDED_ICON_32_BASE64}`)
+  if (!fallback.isEmpty()) {
+    return fallback
+  }
+
+  console.warn('[Tray] 内嵌图标也失败，使用空图标')
   return nativeImage.createEmpty()
 }
 
