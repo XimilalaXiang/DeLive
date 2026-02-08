@@ -5,8 +5,13 @@ node_modules/
 
 # Build outputs
 dist/
-build/
 dist-electron/
+
+# Build directory (ignore all except icon files)
+build/*
+!build/icon.ico
+!build/icon.png
+!build/icon-*.png
 *.local
 
 # Electron release files (too large for git)
