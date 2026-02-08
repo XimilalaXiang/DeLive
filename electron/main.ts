@@ -866,8 +866,8 @@ function loadTrayIcon(): NativeImage {
     try {
       if (fs.existsSync(p)) {
         console.log('[Tray] 找到图标文件:', p)
-        const buffer = fs.readFileSync(p)
-        const img = nativeImage.createFromBuffer(buffer)
+        // 使用 createFromPath 而非 createFromBuffer，正确支持 ICO 多分辨率格式和 asar 路径
+        const img = nativeImage.createFromPath(p)
         if (!img.isEmpty()) {
           console.log('[Tray] 图标加载成功')
           return img
