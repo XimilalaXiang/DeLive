@@ -77,7 +77,7 @@ export const en: Translations = {
     needConfig: 'Config needed',
     cloudProviders: 'Cloud Services',
     localProviders: 'Local Models',
-    soniox: 'Soniox V3',
+    soniox: 'Soniox V4',
     sonioxDesc: 'High-precision real-time speech recognition, supports 60+ languages',
     openai: 'OpenAI Whisper',
     openaiDesc: 'High-quality speech recognition, supports multiple languages and audio formats',

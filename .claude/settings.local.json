@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(collaborating-with-codex)",
+      "Skill(collaborating-with-gemini)",
+      "Bash(python:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

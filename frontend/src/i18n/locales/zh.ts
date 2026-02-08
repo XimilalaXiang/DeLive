@@ -75,7 +75,7 @@ export const zh = {
     needConfig: '需配置',
     cloudProviders: '云端服务',
     localProviders: '本地模型',
-    soniox: 'Soniox V3',
+    soniox: 'Soniox V4',
     sonioxDesc: '高精度实时语音识别，支持 60+ 种语言',
     openai: 'OpenAI Whisper',
     openaiDesc: '高质量语音识别，支持多种语言和音频格式',

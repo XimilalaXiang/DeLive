@@ -512,9 +512,6 @@ function createCaptionWindow() {
     x: windowX,
     y: windowY,
     
-    // 设置为主窗口的子窗口，这样在任务栏上显示为同一个应用
-    parent: mainWindow || undefined,
-    
     // 透明和无边框
     transparent: true,
     frame: false,

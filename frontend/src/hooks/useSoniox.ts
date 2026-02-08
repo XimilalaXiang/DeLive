@@ -73,7 +73,7 @@ export function useSoniox(options: UseSonioxOptions = {}) {
         // 发送配置 - 直接使用用户的API密钥
         const config: SonioxConfig = {
           api_key: settings.apiKey,
-          model: 'stt-rt-v3',
+          model: 'stt-rt-v4',
           audio_format: 'auto',
           language_hints: settings.languageHints,
           enable_language_identification: true,

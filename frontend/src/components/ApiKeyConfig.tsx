@@ -142,7 +142,7 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
         // 发送配置消息
         ws.send(JSON.stringify({
           api_key: apiKey.trim(),
-          model: 'stt-rt-v3',
+          model: 'stt-rt-v4',
           audio_format: 'auto',
           language_hints: ['zh', 'en'],
         }))

@@ -51,4 +51,4 @@ export interface SonioxProviderConfig {
 
 // Soniox 常量
 export const SONIOX_WEBSOCKET_URL = 'wss://stt-rt.soniox.com/transcribe-websocket'
-export const SONIOX_DEFAULT_MODEL = 'stt-rt-v3'
+export const SONIOX_DEFAULT_MODEL = 'stt-rt-v4'

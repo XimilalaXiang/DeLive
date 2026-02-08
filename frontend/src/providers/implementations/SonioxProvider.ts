@@ -23,7 +23,7 @@ export class SonioxProvider extends BaseASRProvider {
 
   readonly info: ASRProviderInfo = {
     id: 'soniox' as ASRVendor,
-    name: 'Soniox V3',
+    name: 'Soniox V4',
     description: '高精度实时语音识别，支持 60+ 种语言',
     type: 'cloud',
     supportsStreaming: true,
