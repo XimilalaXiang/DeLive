@@ -244,7 +244,7 @@ DeLive/
 || スタイリング | Tailwind CSS |
 || 状態管理 | Zustand |
 || バックエンド | Express + ws |
-|| ASRエンジン | Soniox V3 / 火山エンジン |
+|| ASRエンジン | Soniox V4 / 火山エンジン |
 || バンドラー | electron-builder |
 
 ## ⌨️ キーボードショートカット

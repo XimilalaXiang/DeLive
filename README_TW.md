@@ -244,7 +244,7 @@ DeLive/
 || 樣式 | Tailwind CSS |
 || 狀態管理 | Zustand |
 || 後端 | Express + ws |
-|| ASR 引擎 | Soniox V3 / 火山引擎 |
+|| ASR 引擎 | Soniox V4 / 火山引擎 |
 || 打包工具 | electron-builder |
 
 ## ⌨️ 快捷鍵

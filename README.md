@@ -244,7 +244,7 @@ DeLive/
 | Styling | Tailwind CSS |
 | State Management | Zustand |
 | Backend | Express + ws |
-| ASR Engine | Soniox V3 / Volcengine |
+| ASR Engine | Soniox V4 / Volcengine |
 | Bundler | electron-builder |
 
 ## ⌨️ Keyboard Shortcuts
