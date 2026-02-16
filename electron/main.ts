@@ -1072,16 +1072,65 @@ ipcMain.handle('window-is-maximized', () => {
 })
 
 // 开机自启动相关
+function getAutoLaunchEnabled(): boolean {
+  const settings = app.getLoginItemSettings()
+
+  if (process.platform === 'win32') {
+    const hasEnabledLaunchItem = (settings.launchItems || []).some((item) => item.enabled)
+    return settings.openAtLogin || hasEnabledLaunchItem
+  }
+
+  return settings.openAtLogin
+}
+
+function clearWindowsAutoLaunchEntries(): void {
+  if (process.platform !== 'win32') return
+
+  const settings = app.getLoginItemSettings()
+  const launchItems = settings.launchItems || []
+
+  for (const item of launchItems) {
+    if (!item.enabled) continue
+    try {
+      app.setLoginItemSettings({
+        openAtLogin: false,
+        path: item.path,
+        args: item.args,
+      })
+    } catch (error) {
+      console.warn('[AutoLaunch] 清理启动项失败:', item.path, item.args, error)
+    }
+  }
+
+  try {
+    app.setLoginItemSettings({
+      openAtLogin: false,
+      path: process.execPath,
+      args: [],
+    })
+  } catch (error) {
+    console.warn('[AutoLaunch] 清理当前进程启动项失败:', error)
+  }
+}
+
 ipcMain.handle('get-auto-launch', () => {
-  return app.getLoginItemSettings().openAtLogin
+  return getAutoLaunchEnabled()
 })
 
 ipcMain.handle('set-auto-launch', (_event, enable: boolean) => {
-  app.setLoginItemSettings({
-    openAtLogin: enable,
-    openAsHidden: true, // 启动时隐藏窗口（最小化到托盘）
-  })
-  return app.getLoginItemSettings().openAtLogin
+  if (enable) {
+    app.setLoginItemSettings({
+      openAtLogin: true,
+      openAsHidden: true, // 启动时隐藏窗口（最小化到托盘）
+    })
+  } else {
+    app.setLoginItemSettings({
+      openAtLogin: false,
+    })
+    clearWindowsAutoLaunchEntries()
+  }
+
+  return getAutoLaunchEnabled()
 })
 
 // 获取可用的桌面源（屏幕和窗口）
