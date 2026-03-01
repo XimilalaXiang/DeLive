@@ -138,7 +138,7 @@ export function HistoryPanel() {
 
   return (
     <>
-      <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-hidden">
+      <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md dark:ring-1 dark:ring-white/[0.06]">
         {/* 头部 */}
         <div className="px-6 py-4 border-b border-border bg-muted/30 space-y-3">
           <div className="flex items-center justify-between">
@@ -233,7 +233,7 @@ export function HistoryPanel() {
                           key={session.id}
                           onClick={() => handlePreview(session)}
                           className="group flex flex-col gap-2 px-4 py-3 rounded-lg mx-2
-                                   hover:bg-accent/50 cursor-pointer transition-all duration-200 border border-transparent hover:border-border/50"
+                                   hover:bg-primary/5 cursor-pointer transition-all duration-200 border border-transparent hover:border-primary/20"
                         >
                           {/* 第一行：时间、标题、操作 */}
                           <div className="flex items-center gap-3">

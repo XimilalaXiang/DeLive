@@ -67,6 +67,9 @@ export const zh = {
     testing: '正在测试...',
     testSuccess: '配置验证成功！',
     testFailed: '配置验证失败',
+    // 设置标签页
+    tabService: '服务配置',
+    tabGeneral: '通用设置',
   },
 
   // 提供商相关

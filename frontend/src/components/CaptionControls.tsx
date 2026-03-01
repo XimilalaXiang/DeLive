@@ -129,7 +129,7 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
           onClick={handleToggle}
           className={`
             flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm
-            transition-all duration-200
+            transition-all duration-200 active:scale-[0.97]
             ${isEnabled 
               ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
               : 'bg-muted text-muted-foreground hover:bg-accent'
@@ -147,7 +147,7 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
             {/* 重置位置 */}
             <button
               onClick={handleResetPosition}
-              className="p-2 rounded-lg bg-muted text-muted-foreground hover:bg-accent transition-all duration-200"
+              className="p-2 rounded-lg bg-muted text-muted-foreground hover:bg-accent transition-all duration-200 active:scale-[0.97]"
               title={t.caption?.resetPosition}
             >
               <RotateCcw className="w-4 h-4" />
@@ -157,7 +157,7 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
             <button
               onClick={() => setShowSettings(!showSettings)}
               className={`
-                p-2 rounded-lg transition-all duration-200
+                p-2 rounded-lg transition-all duration-200 active:scale-[0.97]
                 ${showSettings 
                   ? 'bg-primary text-primary-foreground' 
                   : 'bg-muted text-muted-foreground hover:bg-accent'
@@ -182,7 +182,7 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
           
           {/* 设置面板内容 */}
           <div 
-            className="relative w-[420px] max-h-[85vh] flex flex-col rounded-2xl shadow-2xl bg-card border border-border overflow-hidden"
+            className="relative w-[420px] max-h-[85vh] flex flex-col rounded-2xl shadow-2xl dark:ring-1 dark:ring-white/[0.08] bg-card border border-border overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* 头部 - 固定不滚动 */}

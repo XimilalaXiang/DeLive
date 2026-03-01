@@ -52,7 +52,7 @@ export function TranscriptDisplay() {
   const isStarting = recordingState === 'starting'
 
   return (
-    <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-hidden relative transition-all duration-200 hover:shadow-md">
+    <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-hidden relative transition-all duration-200 hover:shadow-lg hover:border-primary/20 dark:ring-1 dark:ring-white/[0.06]">
       {/* 头部 */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/30">
         <div className="flex items-center gap-2.5">

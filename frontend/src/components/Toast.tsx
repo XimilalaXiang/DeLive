@@ -24,11 +24,11 @@ export function Toast({ toast, onClose }: ToastProps) {
   return (
     <div
       className={`
-        flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border
+        flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg backdrop-blur-sm border
         animate-in slide-in-from-right duration-300 fade-in
         ${toast.type === 'error' 
-          ? 'bg-destructive/10 border-destructive/20 text-destructive-foreground' 
-          : 'bg-background border-border text-foreground'
+          ? 'bg-destructive/10 border-destructive/20 text-destructive-foreground dark:ring-1 dark:ring-white/[0.06]' 
+          : 'bg-background border-border text-foreground dark:ring-1 dark:ring-white/[0.06]'
         }
       `}
     >

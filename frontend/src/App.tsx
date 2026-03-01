@@ -110,12 +110,12 @@ function App() {
       <TitleBar />
       
       {/* 头部 - 使用玻璃拟态效果 */}
-      <header className={`sticky z-40 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 ${isElectron ? 'top-8 mt-8' : 'top-0'}`}>
+      <header className={`sticky z-40 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:ring-1 dark:ring-white/[0.06] ${isElectron ? 'top-8 mt-8' : 'top-0'}`}>
         <div className="container max-w-5xl mx-auto px-4 sm:px-6">
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center h-9 w-9 rounded-lg bg-primary text-primary-foreground shadow-sm">
+              <div className="flex items-center justify-center h-9 w-9 rounded-lg bg-primary text-primary-foreground shadow-sm shadow-primary/25">
                 <Waves className="h-5 w-5" />
               </div>
               <div className="flex flex-col gap-0.5">
@@ -136,8 +136,8 @@ function App() {
                   inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50
                   h-9 px-4 py-2
                   ${!hasApiKey 
-                    ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-sm' 
-                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                    ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-sm press-scale' 
+                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80 press-scale'
                   }
                 `}
               >
@@ -153,7 +153,7 @@ function App() {
       <main className="container max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8">
         {/* API 未配置提示 */}
         {isInitialized && !hasApiKey && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/50 dark:bg-amber-900/20">
+          <div className="animate-reveal-up rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/50 dark:bg-amber-900/20">
             <div className="flex items-start gap-3">
               <div className="p-1.5 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400">
                 <Settings className="h-4 w-4" />
@@ -171,12 +171,12 @@ function App() {
         )}
 
         {/* 转录显示区域 - 占据主要视觉 */}
-        <section className="space-y-4">
+        <section className="animate-reveal-up [animation-delay:100ms] space-y-4">
           <TranscriptDisplay />
         </section>
 
         {/* 录制控制 */}
-        <section className="flex flex-col items-center gap-4 py-4">
+        <section className="animate-reveal-up [animation-delay:200ms] flex flex-col items-center gap-4 py-4">
           <RecordingControls onError={handleError} />
           
           {/* 字幕控制 - 仅 Electron 环境 */}
@@ -186,13 +186,13 @@ function App() {
         </section>
 
         {/* 历史记录 */}
-        <section className="space-y-4">
+        <section className="animate-reveal-up [animation-delay:300ms] space-y-4">
           <HistoryPanel />
         </section>
       </main>
 
       {/* 页脚 */}
-      <footer className="border-t border-border/40 bg-muted/40 mt-auto">
+      <footer className="border-t border-border/40 bg-muted/40 mt-auto dark:ring-1 dark:ring-white/[0.04]">
         <div className="container max-w-5xl mx-auto px-4 sm:px-6 py-6">
           <p className="text-center text-xs text-muted-foreground">
             {t.app.footer} <a href="https://github.com/XimilalaXiang/DeLive" target="_blank" rel="noopener noreferrer" 

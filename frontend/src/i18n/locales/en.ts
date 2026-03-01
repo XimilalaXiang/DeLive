@@ -69,6 +69,9 @@ export const en: Translations = {
     testing: 'Testing...',
     testSuccess: 'Configuration verified!',
     testFailed: 'Configuration verification failed',
+    // Settings tabs
+    tabService: 'Service',
+    tabGeneral: 'General',
   },
 
   // Provider related

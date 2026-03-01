@@ -52,7 +52,7 @@ export function RecordingControls({ onError }: RecordingControlsProps) {
       <div className="relative group">
         {/* Glow effect */}
         <div className={`
-          absolute -inset-1 bg-gradient-to-r from-primary to-purple-600 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200
+          absolute -inset-1 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200
           ${isRecording ? 'from-red-500 to-orange-500 opacity-40' : ''}
         `}></div>
         
@@ -64,8 +64,8 @@ export function RecordingControls({ onError }: RecordingControlsProps) {
             transition-all duration-300 shadow-xl
             disabled:opacity-80 disabled:cursor-not-allowed
             ${isRecording 
-              ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90 ring-4 ring-destructive/20' 
-              : 'bg-primary text-primary-foreground hover:bg-primary/90 ring-4 ring-primary/10 hover:ring-primary/20'
+              ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90 ring-4 ring-destructive/20 active:scale-[0.97]' 
+              : 'bg-primary text-primary-foreground hover:bg-primary/90 ring-4 ring-primary/20 hover:ring-primary/30 active:scale-[0.97]'
             }
           `}
         >

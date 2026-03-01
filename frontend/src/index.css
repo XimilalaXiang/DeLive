@@ -14,10 +14,14 @@
   --border-secondary: #d4d4d8;
   
   /* 文字色 */
-  --text-primary: #18181b;
+  --text-primary: #1a1a1e;
   --text-secondary: #3f3f46;
   --text-tertiary: #71717a;
   --text-muted: #a1a1aa;
+  
+  /* 品牌色 */
+  --brand-cyan: #0891b2;
+  --brand-cyan-light: #22d3ee;
   
   /* 滚动条 */
   --scrollbar-track: #f1f1f1;
@@ -27,21 +31,34 @@
 
 /* 深色模式变量 */
 .dark {
-  --bg-primary: #09090b;
-  --bg-secondary: #18181b;
-  --bg-tertiary: #27272a;
+  --bg-primary: #0f1118;
+  --bg-secondary: #171923;
+  --bg-tertiary: #1e2030;
   
-  --border-primary: #27272a;
-  --border-secondary: #3f3f46;
+  --border-primary: #2a2d3a;
+  --border-secondary: #3f3f50;
   
-  --text-primary: #fafafa;
+  --text-primary: #f5f5f7;
   --text-secondary: #e4e4e7;
   --text-tertiary: #a1a1aa;
   --text-muted: #71717a;
   
-  --scrollbar-track: #27272a;
-  --scrollbar-thumb: #52525b;
-  --scrollbar-thumb-hover: #71717a;
+  --brand-cyan: #22d3ee;
+  --brand-cyan-light: #67e8f9;
+  
+  --scrollbar-track: #1e2030;
+  --scrollbar-thumb: #3f3f50;
+  --scrollbar-thumb-hover: #52526b;
+}
+
+/* ===== 全局品牌选中色 ===== */
+::selection {
+  background: hsl(192 91% 37% / 0.3);
+  color: inherit;
+}
+
+.dark ::selection {
+  background: hsl(186 83% 54% / 0.3);
 }
 
 /* ===== View Transition 动画支持 ===== */
@@ -63,7 +80,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  transition: background-color 0.1s ease, color 0.1s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* ===== 滚动条样式 ===== */
@@ -95,7 +112,38 @@ body {
   scrollbar-width: none;  /* Firefox */
 }
 
-/* ===== 动画 ===== */
+/* ===== 入场动画 ===== */
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes reveal-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-reveal-up {
+  animation: reveal-up 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-reveal-fade {
+  animation: reveal-fade 400ms ease-out both;
+}
+
+/* Staggered delays */
+.delay-1 { animation-delay: 80ms; }
+.delay-2 { animation-delay: 160ms; }
+.delay-3 { animation-delay: 240ms; }
+.delay-4 { animation-delay: 320ms; }
+
+/* ===== 录制脉冲动画 ===== */
 @keyframes pulse-recording {
   0%, 100% {
     opacity: 1;
@@ -128,12 +176,12 @@ body {
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0,0,0,0.3);
   border: 2px solid #e5e5e5;
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .custom-range-slider::-webkit-slider-thumb:hover {
   transform: scale(1.1);
-  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 0 4px rgba(8, 145, 178, 0.2);
 }
 
 .custom-range-slider::-moz-range-thumb {
@@ -144,10 +192,28 @@ body {
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0,0,0,0.3);
   border: 2px solid #e5e5e5;
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .custom-range-slider::-moz-range-thumb:hover {
   transform: scale(1.1);
-  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 0 4px rgba(8, 145, 178, 0.2);
+}
+
+/* ===== 交互反馈 ===== */
+.press-scale {
+  transition: transform 0.15s ease;
+}
+.press-scale:active {
+  transform: scale(0.97);
+}
+
+/* ===== Reduce motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  .animate-reveal-up,
+  .animate-reveal-fade {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
 }

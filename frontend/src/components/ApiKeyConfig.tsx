@@ -46,6 +46,7 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
   const [testMessage, setTestMessage] = useState('')
   const [updateStatus, setUpdateStatus] = useState<'idle' | 'checking' | 'available' | 'not-available' | 'error'>('idle')
   const [appVersion, setAppVersion] = useState('')
+  const [activeTab, setActiveTab] = useState<'service' | 'general'>('service')
   const fileInputRef = useRef<HTMLInputElement>(null)
   
   // 当提供商改变时更新表单
@@ -529,8 +530,8 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
-      <div className="bg-card text-card-foreground border border-border rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 bg-black/50 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
+      <div className="bg-card text-card-foreground border border-border rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col dark:ring-1 dark:ring-white/[0.08]">
         {/* 头部 */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/30 flex-shrink-0">
           <div className="flex items-center gap-3">
@@ -550,242 +551,269 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
           </button>
         </div>
 
+        {/* Tab bar */}
+        <div className="flex border-b border-border bg-muted/20 px-6 flex-shrink-0">
+          <button
+            onClick={() => setActiveTab('service')}
+            className={`px-4 py-2.5 text-sm font-medium transition-colors relative ${
+              activeTab === 'service'
+                ? 'text-primary'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {t.settings?.tabService || '服务配置'}
+            {activeTab === 'service' && (
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('general')}
+            className={`px-4 py-2.5 text-sm font-medium transition-colors relative ${
+              activeTab === 'general'
+                ? 'text-primary'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {t.settings?.tabGeneral || '通用设置'}
+            {activeTab === 'general' && (
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
+            )}
+          </button>
+        </div>
+
         {/* 内容 - 可滚动 */}
         <div className="p-6 space-y-6 overflow-y-auto flex-1">
-          {/* ASR 提供商选择 */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium leading-none flex items-center gap-2">
-              <Cpu className="w-3.5 h-3.5 text-muted-foreground" />
-              {t.settings?.asrProvider || '语音识别服务'}
-            </label>
-            <ProviderSelector />
-            <p className="text-[10px] text-muted-foreground">
-              {t.settings?.asrProviderDesc || '选择语音识别服务提供商，不同提供商有不同的特性和价格'}
-            </p>
-          </div>
-
-          {/* 分隔线 */}
-          <div className="border-t border-border" />
-
-          {/* 提供商特定配置字段 */}
-          {renderProviderFields()}
-
-          {/* 语言提示 */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              {t.settings.languageHints}
-            </label>
-            <input
-              type="text"
-              value={languageHints}
-              onChange={(e) => setLanguageHints(e.target.value)}
-              placeholder={t.settings.languageHintsPlaceholder}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            />
-            <p className="text-[10px] text-muted-foreground">
-              {t.settings.languageHintsDesc}
-            </p>
-          </div>
-
-          {/* 分隔线 */}
-          <div className="border-t border-border" />
-
-          {/* 界面语言设置 */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium leading-none flex items-center gap-2">
-              <Globe className="w-3.5 h-3.5 text-muted-foreground" />
-              {t.settings.interfaceLanguage}
-            </label>
-            <p className="text-[10px] text-muted-foreground">
-              {t.settings.interfaceLanguageDesc}
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setLanguage('zh')}
-                className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all
-                          ${language === 'zh' 
-                            ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-2 border-green-500 ring-2 ring-green-500/20' 
-                            : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
-                          }`}
-              >
-                {t.settings.languageChinese}
-              </button>
-              <button
-                onClick={() => setLanguage('en')}
-                className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all
-                          ${language === 'en' 
-                            ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-2 border-green-500 ring-2 ring-green-500/20' 
-                            : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
-                          }`}
-              >
-                {t.settings.languageEnglish}
-              </button>
-            </div>
-          </div>
-
-          {/* 分隔线 */}
-          <div className="border-t border-border" />
-
-          {/* 数据管理 */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium leading-none flex items-center gap-2">
-              <Download className="w-3.5 h-3.5 text-muted-foreground" />
-              {t.settings.dataManagement}
-            </label>
-            <p className="text-[10px] text-muted-foreground">
-              {t.settings.dataManagementDesc}
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={handleExport}
-                className="flex-1 inline-flex items-center justify-center gap-2 h-9 px-3 text-sm font-medium
-                         border border-input bg-background hover:bg-accent hover:text-accent-foreground
-                         rounded-md transition-colors"
-              >
-                <Download className="w-4 h-4" />
-                {t.settings.exportData}
-              </button>
-              <button
-                onClick={handleImportClick}
-                className="flex-1 inline-flex items-center justify-center gap-2 h-9 px-3 text-sm font-medium
-                         border border-input bg-background hover:bg-accent hover:text-accent-foreground
-                         rounded-md transition-colors"
-              >
-                <Upload className="w-4 h-4" />
-                {t.settings.importData}
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".json"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-            </div>
-            
-            {/* 导入结果提示 */}
-            {importMessage && (
-              <div className={`flex items-center gap-2 p-2 rounded-md text-xs ${
-                importMessage.type === 'success' 
-                  ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400' 
-                  : 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400'
-              }`}>
-                {importMessage.type === 'success' ? (
-                  <Check className="w-3.5 h-3.5" />
-                ) : (
-                  <AlertCircle className="w-3.5 h-3.5" />
-                )}
-                {importMessage.text}
-              </div>
-            )}
-          </div>
-
-          {/* 开机自启动（仅 Electron 环境显示） */}
-          {window.electronAPI && (
+          {activeTab === 'service' && (
             <>
-              <div className="border-t border-border" />
+              {/* ASR 提供商选择 */}
               <div className="space-y-3">
                 <label className="text-sm font-medium leading-none flex items-center gap-2">
-                  <Power className="w-3.5 h-3.5 text-muted-foreground" />
-                  {t.settings.launchSettings}
+                  <Cpu className="w-3.5 h-3.5 text-muted-foreground" />
+                  {t.settings?.asrProvider || '语音识别服务'}
                 </label>
-                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                  <div>
-                    <p className="text-sm font-medium">{t.settings.autoLaunch}</p>
-                    <p className="text-[10px] text-muted-foreground">{t.settings.autoLaunchDesc}</p>
-                  </div>
-                  <button
-                    onClick={() => handleAutoLaunchChange(!autoLaunch)}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors
-                              ${autoLaunch ? 'bg-green-500' : 'bg-gray-400 dark:bg-gray-600'}`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform
-                                ${autoLaunch ? 'translate-x-6' : 'translate-x-1'}`}
-                    />
-                  </button>
-                </div>
+                <ProviderSelector />
+                <p className="text-[10px] text-muted-foreground">
+                  {t.settings?.asrProviderDesc || '选择语音识别服务提供商，不同提供商有不同的特性和价格'}
+                </p>
               </div>
 
-              {/* 检查更新 */}
-              <div className="border-t border-border" />
+              {/* 提供商特定配置字段 */}
+              {renderProviderFields()}
+
+              {/* 语言提示 */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  {t.settings.languageHints}
+                </label>
+                <input
+                  type="text"
+                  value={languageHints}
+                  onChange={(e) => setLanguageHints(e.target.value)}
+                  placeholder={t.settings.languageHintsPlaceholder}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  {t.settings.languageHintsDesc}
+                </p>
+              </div>
+            </>
+          )}
+
+          {activeTab === 'general' && (
+            <>
+              {/* 界面语言设置 */}
               <div className="space-y-3">
                 <label className="text-sm font-medium leading-none flex items-center gap-2">
-                  <RefreshCw className="w-3.5 h-3.5 text-muted-foreground" />
-                  {t.update?.checkForUpdates || '检查更新'}
+                  <Globe className="w-3.5 h-3.5 text-muted-foreground" />
+                  {t.settings.interfaceLanguage}
                 </label>
-                
-                {/* 启动时自动检查更新开关 */}
-                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                  <div>
-                    <p className="text-sm font-medium">
-                      {language === 'zh' ? '启动时自动检查更新' : 'Auto-check on startup'}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {language === 'zh' ? '每次启动应用时自动检查是否有新版本' : 'Automatically check for updates when app starts'}
-                    </p>
-                  </div>
+                <p className="text-[10px] text-muted-foreground">
+                  {t.settings.interfaceLanguageDesc}
+                </p>
+                <div className="flex gap-2">
                   <button
-                    onClick={() => {
-                      const newValue = settings.autoCheckUpdate === false ? true : false
-                      updateSettings({ autoCheckUpdate: newValue })
-                    }}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors
-                              ${settings.autoCheckUpdate !== false ? 'bg-green-500' : 'bg-gray-400 dark:bg-gray-600'}`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform
-                                ${settings.autoCheckUpdate !== false ? 'translate-x-6' : 'translate-x-1'}`}
-                    />
-                  </button>
-                </div>
-                
-                {/* 当前版本和手动检查按钮 */}
-                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                  <div>
-                    <p className="text-sm font-medium">
-                      {language === 'zh' ? '当前版本' : 'Current Version'}: {appVersion || '-'}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {updateStatus === 'checking' 
-                        ? (t.update?.checking || '正在检查更新...')
-                        : updateStatus === 'not-available'
-                        ? (t.update?.upToDate || '已是最新版本')
-                        : updateStatus === 'error'
-                        ? (t.update?.error || '检查更新失败')
-                        : (language === 'zh' ? '点击按钮检查是否有新版本' : 'Click to check for updates')
-                      }
-                    </p>
-                  </div>
-                  <button
-                    onClick={handleCheckUpdate}
-                    disabled={updateStatus === 'checking'}
-                    className={`inline-flex items-center justify-center gap-2 h-9 px-4 text-sm font-medium rounded-md transition-colors
-                              ${updateStatus === 'checking'
-                                ? 'bg-muted text-muted-foreground cursor-not-allowed'
-                                : updateStatus === 'not-available'
-                                ? 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/50'
-                                : updateStatus === 'error'
-                                ? 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/50'
-                                : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                    onClick={() => setLanguage('zh')}
+                    className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all
+                              ${language === 'zh' 
+                                ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-2 border-green-500 ring-2 ring-green-500/20' 
+                                : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
                               }`}
                   >
-                    {updateStatus === 'checking' ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : updateStatus === 'not-available' ? (
-                      <Check className="w-4 h-4" />
-                    ) : updateStatus === 'error' ? (
-                      <AlertCircle className="w-4 h-4" />
-                    ) : (
-                      <RefreshCw className="w-4 h-4" />
-                    )}
-                    {updateStatus === 'checking' 
-                      ? (language === 'zh' ? '检查中...' : 'Checking...')
-                      : (t.update?.checkForUpdates || '检查更新')
-                    }
+                    {t.settings.languageChinese}
+                  </button>
+                  <button
+                    onClick={() => setLanguage('en')}
+                    className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all
+                              ${language === 'en' 
+                                ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-2 border-green-500 ring-2 ring-green-500/20' 
+                                : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
+                              }`}
+                  >
+                    {t.settings.languageEnglish}
                   </button>
                 </div>
               </div>
+
+              {/* 数据管理 */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium leading-none flex items-center gap-2">
+                  <Download className="w-3.5 h-3.5 text-muted-foreground" />
+                  {t.settings.dataManagement}
+                </label>
+                <p className="text-[10px] text-muted-foreground">
+                  {t.settings.dataManagementDesc}
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleExport}
+                    className="flex-1 inline-flex items-center justify-center gap-2 h-9 px-3 text-sm font-medium
+                             border border-input bg-background hover:bg-accent hover:text-accent-foreground
+                             rounded-md transition-colors"
+                  >
+                    <Download className="w-4 h-4" />
+                    {t.settings.exportData}
+                  </button>
+                  <button
+                    onClick={handleImportClick}
+                    className="flex-1 inline-flex items-center justify-center gap-2 h-9 px-3 text-sm font-medium
+                             border border-input bg-background hover:bg-accent hover:text-accent-foreground
+                             rounded-md transition-colors"
+                  >
+                    <Upload className="w-4 h-4" />
+                    {t.settings.importData}
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".json"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </div>
+                
+                {/* 导入结果提示 */}
+                {importMessage && (
+                  <div className={`flex items-center gap-2 p-2 rounded-md text-xs ${
+                    importMessage.type === 'success' 
+                      ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400' 
+                      : 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400'
+                  }`}>
+                    {importMessage.type === 'success' ? (
+                      <Check className="w-3.5 h-3.5" />
+                    ) : (
+                      <AlertCircle className="w-3.5 h-3.5" />
+                    )}
+                    {importMessage.text}
+                  </div>
+                )}
+              </div>
+
+              {/* 开机自启动（仅 Electron 环境显示） */}
+              {window.electronAPI && (
+                <>
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium leading-none flex items-center gap-2">
+                      <Power className="w-3.5 h-3.5 text-muted-foreground" />
+                      {t.settings.launchSettings}
+                    </label>
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                      <div>
+                        <p className="text-sm font-medium">{t.settings.autoLaunch}</p>
+                        <p className="text-[10px] text-muted-foreground">{t.settings.autoLaunchDesc}</p>
+                      </div>
+                      <button
+                        onClick={() => handleAutoLaunchChange(!autoLaunch)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors
+                                  ${autoLaunch ? 'bg-green-500' : 'bg-gray-400 dark:bg-gray-600'}`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform
+                                    ${autoLaunch ? 'translate-x-6' : 'translate-x-1'}`}
+                        />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 检查更新 */}
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium leading-none flex items-center gap-2">
+                      <RefreshCw className="w-3.5 h-3.5 text-muted-foreground" />
+                      {t.update?.checkForUpdates || '检查更新'}
+                    </label>
+                    
+                    {/* 启动时自动检查更新开关 */}
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                      <div>
+                        <p className="text-sm font-medium">
+                          {language === 'zh' ? '启动时自动检查更新' : 'Auto-check on startup'}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {language === 'zh' ? '每次启动应用时自动检查是否有新版本' : 'Automatically check for updates when app starts'}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const newValue = settings.autoCheckUpdate === false ? true : false
+                          updateSettings({ autoCheckUpdate: newValue })
+                        }}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors
+                                  ${settings.autoCheckUpdate !== false ? 'bg-green-500' : 'bg-gray-400 dark:bg-gray-600'}`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform
+                                    ${settings.autoCheckUpdate !== false ? 'translate-x-6' : 'translate-x-1'}`}
+                        />
+                      </button>
+                    </div>
+                    
+                    {/* 当前版本和手动检查按钮 */}
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                      <div>
+                        <p className="text-sm font-medium">
+                          {language === 'zh' ? '当前版本' : 'Current Version'}: {appVersion || '-'}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {updateStatus === 'checking' 
+                            ? (t.update?.checking || '正在检查更新...')
+                            : updateStatus === 'not-available'
+                            ? (t.update?.upToDate || '已是最新版本')
+                            : updateStatus === 'error'
+                            ? (t.update?.error || '检查更新失败')
+                            : (language === 'zh' ? '点击按钮检查是否有新版本' : 'Click to check for updates')
+                          }
+                        </p>
+                      </div>
+                      <button
+                        onClick={handleCheckUpdate}
+                        disabled={updateStatus === 'checking'}
+                        className={`inline-flex items-center justify-center gap-2 h-9 px-4 text-sm font-medium rounded-md transition-colors
+                                  ${updateStatus === 'checking'
+                                    ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                                    : updateStatus === 'not-available'
+                                    ? 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/50'
+                                    : updateStatus === 'error'
+                                    ? 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/50'
+                                    : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                                  }`}
+                      >
+                        {updateStatus === 'checking' ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : updateStatus === 'not-available' ? (
+                          <Check className="w-4 h-4" />
+                        ) : updateStatus === 'error' ? (
+                          <AlertCircle className="w-4 h-4" />
+                        ) : (
+                          <RefreshCw className="w-4 h-4" />
+                        )}
+                        {updateStatus === 'checking' 
+                          ? (language === 'zh' ? '检查中...' : 'Checking...')
+                          : (t.update?.checkForUpdates || '检查更新')
+                        }
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
             </>
           )}
         </div>
@@ -794,13 +822,13 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
         <div className="flex justify-end gap-3 px-6 py-4 bg-muted/30 border-t border-border flex-shrink-0">
           <button
             onClick={onClose}
-            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
+            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 press-scale"
           >
             {t.common.cancel}
           </button>
           <button
             onClick={handleSave}
-            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 gap-2"
+            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 gap-2 press-scale"
           >
             <Check className="w-4 h-4" />
             {t.common.save}

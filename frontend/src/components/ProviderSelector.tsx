@@ -133,7 +133,7 @@ export function ProviderSelector({ onSelect }: ProviderSelectorProps) {
         
         {/* 模态框内容 */}
         <div className="absolute inset-0 flex items-center justify-center p-4">
-          <div className="relative w-full max-w-md bg-card border border-border rounded-2xl shadow-2xl animate-in zoom-in-95 fade-in duration-200 overflow-hidden">
+          <div className="relative w-full max-w-md bg-card border border-border rounded-2xl shadow-2xl animate-in zoom-in-95 fade-in duration-200 overflow-hidden dark:ring-1 dark:ring-white/[0.08]">
             {/* 头部 */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-muted/30">
               <div>
