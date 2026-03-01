@@ -81,4 +81,6 @@ export interface AppSettings {
   autoCheckUpdate?: boolean
   // 字幕样式
   captionStyle?: CaptionStyle
+  // 配色主题
+  colorTheme?: string
 }

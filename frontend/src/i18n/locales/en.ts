@@ -72,6 +72,14 @@ export const en: Translations = {
     // Settings tabs
     tabService: 'Service',
     tabGeneral: 'General',
+    // Color theme
+    colorTheme: 'Color Theme',
+    colorThemeDesc: 'Choose the app accent color',
+    themeCyan: 'Cyan',
+    themeViolet: 'Violet',
+    themeRose: 'Rose',
+    themeGreen: 'Emerald',
+    themeAmber: 'Amber',
   },
 
   // Provider related

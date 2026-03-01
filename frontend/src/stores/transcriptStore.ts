@@ -20,6 +20,7 @@ import {
 } from '../i18n'
 import { providerRegistry } from '../providers'
 import type { ASRProviderInfo } from '../types/asr'
+import { type ColorThemeId, defaultColorTheme, applyColorThemeToDOM } from '../themes'
 
 // 主题类型定义
 type Theme = 'light' | 'dark' | 'system'
@@ -83,7 +84,9 @@ interface TranscriptState {
   // 主题状态
   theme: Theme
   resolvedTheme: ResolvedTheme
+  colorTheme: ColorThemeId
   setTheme: (theme: Theme) => void
+  setColorTheme: (colorTheme: ColorThemeId) => void
   initTheme: () => void
   
   // 录制状态
@@ -154,17 +157,26 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
   // 主题状态
   theme: 'system',
   resolvedTheme: 'light',
+  colorTheme: defaultColorTheme,
   setTheme: (theme) => {
     const resolved = resolveTheme(theme)
     localStorage.setItem('theme', theme)
     applyTheme(resolved)
+    applyColorThemeToDOM(get().colorTheme, resolved === 'dark')
     set({ theme, resolvedTheme: resolved })
+  },
+  setColorTheme: (colorTheme) => {
+    localStorage.setItem('colorTheme', colorTheme)
+    applyColorThemeToDOM(colorTheme, get().resolvedTheme === 'dark')
+    set({ colorTheme })
   },
   initTheme: () => {
     const savedTheme = getSavedTheme()
     const resolved = resolveTheme(savedTheme)
+    const savedColor = (localStorage.getItem('colorTheme') as ColorThemeId) || defaultColorTheme
     applyTheme(resolved)
-    set({ theme: savedTheme, resolvedTheme: resolved })
+    applyColorThemeToDOM(savedColor, resolved === 'dark')
+    set({ theme: savedTheme, resolvedTheme: resolved, colorTheme: savedColor })
     
     // 监听系统主题变化
     if (typeof window !== 'undefined' && window.matchMedia) {
@@ -174,6 +186,7 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
         if (currentTheme === 'system') {
           const newResolved = getSystemTheme()
           applyTheme(newResolved)
+          applyColorThemeToDOM(get().colorTheme, newResolved === 'dark')
           set({ resolvedTheme: newResolved })
         }
       }

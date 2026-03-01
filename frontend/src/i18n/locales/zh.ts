@@ -70,6 +70,14 @@ export const zh = {
     // 设置标签页
     tabService: '服务配置',
     tabGeneral: '通用设置',
+    // 配色主题
+    colorTheme: '主题配色',
+    colorThemeDesc: '选择应用的主色调',
+    themeCyan: '青蓝',
+    themeViolet: '紫罗兰',
+    themeRose: '玫瑰',
+    themeGreen: '翡翠',
+    themeAmber: '琥珀',
   },
 
   // 提供商相关

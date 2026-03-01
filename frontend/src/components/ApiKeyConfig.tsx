@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Settings, Eye, EyeOff, Check, X, Key, Download, Upload, AlertCircle, Power, Globe, Cpu, PlayCircle, Loader2, RefreshCw } from 'lucide-react'
+import { Settings, Eye, EyeOff, Check, X, Key, Download, Upload, AlertCircle, Power, Globe, Cpu, PlayCircle, Loader2, RefreshCw, Palette } from 'lucide-react'
 import { useTranscriptStore } from '../stores/transcriptStore'
 import { exportAllData, validateBackupData, importDataOverwrite, importDataMerge } from '../utils/storage'
 import { ProviderSelector } from './ProviderSelector'
 import type { ASRProviderInfo, ProviderConfigData } from '../types'
+import { colorThemes } from '../themes'
 
 interface ApiKeyConfigProps {
   isOpen: boolean
@@ -21,6 +22,8 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
     setLanguage,
     availableProviders,
     updateProviderConfig,
+    colorTheme,
+    setColorTheme,
   } = useTranscriptStore()
   
   const currentVendor = settings.currentVendor || 'soniox'
@@ -651,6 +654,48 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
                   >
                     {t.settings.languageEnglish}
                   </button>
+                </div>
+              </div>
+
+              {/* 配色主题 */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium leading-none flex items-center gap-2">
+                  <Palette className="w-3.5 h-3.5 text-muted-foreground" />
+                  {t.settings?.colorTheme || '主题配色'}
+                </label>
+                <p className="text-[10px] text-muted-foreground">
+                  {t.settings?.colorThemeDesc || '选择应用的主色调'}
+                </p>
+                <div className="flex gap-3 justify-start">
+                  {colorThemes.map((theme) => (
+                    <button
+                      key={theme.id}
+                      onClick={() => setColorTheme(theme.id)}
+                      className={`
+                        group flex flex-col items-center gap-1.5 transition-all
+                      `}
+                      title={t.settings?.[theme.labelKey as keyof typeof t.settings] as string || theme.id}
+                    >
+                      <span
+                        className={`
+                          w-8 h-8 rounded-full transition-all border-2
+                          ${colorTheme === theme.id
+                            ? 'ring-2 ring-offset-2 ring-offset-background scale-110 border-transparent'
+                            : 'border-border hover:scale-105 hover:border-primary/50'
+                          }
+                        `}
+                        style={{
+                          backgroundColor: theme.preview,
+                          ...(colorTheme === theme.id ? { boxShadow: `0 0 0 2px ${theme.preview}` } : {}),
+                        }}
+                      />
+                      <span className={`text-[10px] font-medium ${
+                        colorTheme === theme.id ? 'text-primary' : 'text-muted-foreground'
+                      }`}>
+                        {t.settings?.[theme.labelKey as keyof typeof t.settings] as string || theme.id}
+                      </span>
+                    </button>
+                  ))}
                 </div>
               </div>
 
