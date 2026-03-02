@@ -11,13 +11,16 @@
     "dev:client": "cd frontend && npm run dev",
     "dev:server": "cd server && npm run dev",
     "dev:electron": "wait-on http://localhost:5173 && npm run build:electron && cross-env NODE_ENV=development electron .",
-    "build": "npm run build:client && npm run build:electron",
+    "build": "npm run generate-icons && npm run build:client && npm run build:electron",
     "build:client": "cd frontend && npm run build",
     "build:electron": "tsc -p electron/tsconfig.json",
     "start": "electron .",
     "pack": "npm run build && electron-builder --dir",
     "dist": "npm run build && electron-builder",
     "dist:win": "npm run build && electron-builder --win",
+    "dist:mac": "npm run build && electron-builder --mac",
+    "dist:linux": "npm run build && electron-builder --linux",
+    "dist:all": "npm run build && electron-builder --win --mac --linux",
     "install:all": "npm install && cd frontend && npm install && cd ../server && npm install",
     "generate-icons": "node scripts/generate-icons.mjs"
   },
@@ -56,16 +59,18 @@
     ],
     "extraResources": [
       {
-        "from": "build/icon.ico",
-        "to": "build/icon.ico"
-      },
-      {
         "from": "build/icon.png",
         "to": "build/icon.png"
       }
     ],
     "win": {
       "icon": "build/icon.ico",
+      "extraResources": [
+        {
+          "from": "build/icon.ico",
+          "to": "build/icon.ico"
+        }
+      ],
       "target": [
         {
           "target": "nsis",
@@ -81,6 +86,56 @@
         }
       ],
       "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "mac": {
+      "icon": "build/icon.icns",
+      "extraResources": [
+        {
+          "from": "build/icon.icns",
+          "to": "build/icon.icns"
+        }
+      ],
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "artifactName": "${productName}-${version}-mac-${arch}.${ext}",
+      "category": "public.app-category.utilities",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "DeLive needs microphone access for real-time audio transcription",
+        "NSAudioCaptureUsageDescription": "DeLive needs to capture system audio for real-time transcription"
+      }
+    },
+    "linux": {
+      "icon": "build/icons",
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "${productName}-${version}-linux-${arch}.${ext}",
+      "category": "Utility"
     },
     "nsis": {
       "oneClick": false,

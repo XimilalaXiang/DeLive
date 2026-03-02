@@ -8,7 +8,7 @@ const STORAGE_KEYS = {
 
 const DEFAULT_CAPTION_STYLE: CaptionStyle = {
   fontSize: 24,
-  fontFamily: 'Microsoft YaHei, sans-serif',
+  fontFamily: '-apple-system, BlinkMacSystemFont, "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Hiragino Sans GB", "WenQuanYi Micro Hei", sans-serif',
   textColor: '#ffffff',
   backgroundColor: 'rgba(0, 0, 0, 0.7)',
   textShadow: true,
@@ -136,7 +136,7 @@ export function formatTime(timestamp: number): string {
 export function exportToTxt(session: TranscriptSession, tags?: Tag[]): void {
   const sessionTags = tags?.filter(t => session.tagIds?.includes(t.id)) || []
   const tagNames = sessionTags.map(t => t.name).join(', ')
-  
+
   const content = `标题: ${session.title}
 日期: ${session.date}
 时间: ${session.time}${tagNames ? `\n标签: ${tagNames}` : ''}
@@ -144,7 +144,7 @@ ${'='.repeat(50)}
 
 ${session.transcript}
 `
-  
+
   const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
@@ -175,7 +175,7 @@ export function exportAllData(): void {
     tags: getTags(),
     settings: getSettings(),
   }
-  
+
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' })
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
@@ -210,7 +210,7 @@ export function importDataOverwrite(data: BackupData): { sessions: number; tags:
     ...data.settings,
     apiKey: currentSettings.apiKey || data.settings.apiKey, // 优先保留当前密钥
   })
-  
+
   return {
     sessions: data.sessions.length,
     tags: data.tags.length,
@@ -221,19 +221,19 @@ export function importDataOverwrite(data: BackupData): { sessions: number; tags:
 export function importDataMerge(data: BackupData): { sessions: number; tags: number; newSessions: number; newTags: number } {
   const existingSessions = getSessions()
   const existingTags = getTags()
-  
+
   // 合并会话（按ID去重）
   const existingSessionIds = new Set(existingSessions.map(s => s.id))
   const newSessions = data.sessions.filter(s => !existingSessionIds.has(s.id))
   const mergedSessions = [...existingSessions, ...newSessions]
   saveSessions(mergedSessions)
-  
+
   // 合并标签（按ID去重）
   const existingTagIds = new Set(existingTags.map(t => t.id))
   const newTags = data.tags.filter(t => !existingTagIds.has(t.id))
   const mergedTags = [...existingTags, ...newTags]
   saveTags(mergedTags)
-  
+
   return {
     sessions: mergedSessions.length,
     tags: mergedTags.length,

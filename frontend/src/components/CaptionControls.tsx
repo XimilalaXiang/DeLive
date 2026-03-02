@@ -4,10 +4,10 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import { 
-  Subtitles, 
-  Settings, 
-  RotateCcw, 
+import {
+  Subtitles,
+  Settings,
+  RotateCcw,
   Palette,
   Type,
   Maximize2,
@@ -35,13 +35,13 @@ const presetBackgrounds = [
   { name: '半透明紫', value: 'rgba(75, 0, 130, 0.7)' },
 ]
 
-// 预设字体
+// 预设字体（跨平台）
 const presetFonts = [
-  { name: '微软雅黑', value: 'Microsoft YaHei, sans-serif' },
-  { name: '黑体', value: 'SimHei, sans-serif' },
-  { name: '宋体', value: 'SimSun, serif' },
-  { name: '楷体', value: 'KaiTi, serif' },
-  { name: '等宽', value: 'Consolas, monospace' },
+  { name: '系统默认', value: '-apple-system, BlinkMacSystemFont, "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Hiragino Sans GB", sans-serif' },
+  { name: '黑体', value: '"Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif' },
+  { name: '宋体', value: 'SimSun, "Songti SC", "Noto Serif CJK SC", serif' },
+  { name: '楷体', value: 'KaiTi, "Kaiti SC", serif' },
+  { name: '等宽', value: '"SF Mono", Consolas, "Liberation Mono", monospace' },
 ]
 
 interface CaptionControlsProps {
@@ -54,7 +54,7 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
   const [showSettings, setShowSettings] = useState(false)
   const [style, setStyle] = useState<CaptionStyle>({
     fontSize: 24,
-    fontFamily: 'Microsoft YaHei, sans-serif',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Hiragino Sans GB", "WenQuanYi Micro Hei", sans-serif',
     textColor: '#ffffff',
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
     textShadow: true,
@@ -130,8 +130,8 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
           className={`
             flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm
             transition-all duration-200 active:scale-[0.97]
-            ${isEnabled 
-              ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+            ${isEnabled
+              ? 'bg-primary text-primary-foreground hover:bg-primary/90'
               : 'bg-muted text-muted-foreground hover:bg-accent'
             }
           `}
@@ -158,8 +158,8 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
               onClick={() => setShowSettings(!showSettings)}
               className={`
                 p-2 rounded-lg transition-all duration-200 active:scale-[0.97]
-                ${showSettings 
-                  ? 'bg-primary text-primary-foreground' 
+                ${showSettings
+                  ? 'bg-primary text-primary-foreground'
                   : 'bg-muted text-muted-foreground hover:bg-accent'
                 }
               `}
@@ -173,15 +173,15 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
 
       {/* 设置面板 - 模态框形式 */}
       {showSettings && isEnabled && (
-        <div 
+        <div
           className="fixed inset-0 z-50 flex items-center justify-center"
           onClick={() => setShowSettings(false)}
         >
           {/* 背景遮罩 */}
           <div className="absolute inset-0 bg-black/60 dark:bg-black/70 backdrop-blur-sm" />
-          
+
           {/* 设置面板内容 */}
-          <div 
+          <div
             className="relative w-[420px] max-h-[85vh] flex flex-col rounded-2xl shadow-2xl dark:ring-1 dark:ring-white/[0.08] bg-card border border-border overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
@@ -202,7 +202,7 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
             {/* 内容区域 - 可滚动 */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               {/* 字幕预览 */}
-              <div 
+              <div
                 className="p-4 rounded-xl border border-border"
                 style={{
                   backgroundColor: style.backgroundColor,
@@ -213,8 +213,8 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
                     fontFamily: style.fontFamily,
                     fontSize: `${Math.min(style.fontSize, 32)}px`,
                     color: style.textColor,
-                    textShadow: style.textShadow 
-                      ? '2px 2px 4px rgba(0, 0, 0, 0.8)' 
+                    textShadow: style.textShadow
+                      ? '2px 2px 4px rgba(0, 0, 0, 0.8)'
                       : 'none',
                     textAlign: 'center',
                     lineHeight: 1.5,
@@ -281,8 +281,8 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
                       onClick={() => handleStyleChange({ maxLines: num })}
                       className={`
                         flex-1 py-2 rounded-lg font-medium text-sm transition-all relative border-2
-                        ${style.maxLines === num 
-                          ? 'bg-muted text-foreground border-gray-800 dark:border-white' 
+                        ${style.maxLines === num
+                          ? 'bg-muted text-foreground border-gray-800 dark:border-white'
                           : 'bg-muted hover:bg-accent text-muted-foreground hover:text-foreground border-transparent'
                         }
                       `}
@@ -305,8 +305,8 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
                       onClick={() => handleStyleChange({ fontFamily: font.value })}
                       className={`
                         px-3 py-2 text-xs rounded-lg transition-all whitespace-nowrap border-2
-                        ${style.fontFamily === font.value 
-                          ? 'bg-muted text-foreground border-gray-800 dark:border-white' 
+                        ${style.fontFamily === font.value
+                          ? 'bg-muted text-foreground border-gray-800 dark:border-white'
                           : 'bg-muted hover:bg-accent text-muted-foreground hover:text-foreground border-transparent'
                         }
                       `}
@@ -331,12 +331,12 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
                       onClick={() => handleStyleChange({ textColor: color.value })}
                       className={`
                         w-8 h-8 rounded-full transition-all relative border-2
-                        ${style.textColor === color.value 
-                          ? 'ring-2 ring-primary ring-offset-2 ring-offset-background scale-110' 
+                        ${style.textColor === color.value
+                          ? 'ring-2 ring-primary ring-offset-2 ring-offset-background scale-110'
                           : 'hover:scale-105 border-border hover:border-primary/50'
                         }
                       `}
-                      style={{ 
+                      style={{
                         backgroundColor: color.value,
                       }}
                       title={color.name}
@@ -357,12 +357,12 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
                       onClick={() => handleStyleChange({ backgroundColor: bg.value })}
                       className={`
                         px-3 py-2 text-xs rounded-lg transition-all whitespace-nowrap border
-                        ${style.backgroundColor === bg.value 
-                          ? 'ring-2 ring-primary ring-offset-1 ring-offset-background' 
+                        ${style.backgroundColor === bg.value
+                          ? 'ring-2 ring-primary ring-offset-1 ring-offset-background'
                           : 'opacity-80 hover:opacity-100 border-border'
                         }
                       `}
-                      style={{ 
+                      style={{
                         backgroundColor: bg.value,
                         color: bg.value.includes('0, 0, 0, 0)') ? 'inherit' : '#fff',
                         borderStyle: bg.value.includes('0, 0, 0, 0)') ? 'dashed' : 'solid',
@@ -384,8 +384,8 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
                   onClick={() => handleStyleChange({ textShadow: !style.textShadow })}
                   className={`
                     relative inline-flex h-6 w-11 items-center rounded-full transition-all ring-2
-                    ${style.textShadow 
-                      ? 'bg-green-500 ring-green-500' 
+                    ${style.textShadow
+                      ? 'bg-green-500 ring-green-500'
                       : 'bg-muted-foreground/30 ring-transparent'
                     }
                   `}
@@ -393,8 +393,8 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
                   <span
                     className={`
                       inline-block h-4 w-4 transform rounded-full shadow-sm transition-transform bg-white
-                      ${style.textShadow 
-                        ? 'translate-x-6' 
+                      ${style.textShadow
+                        ? 'translate-x-6'
                         : 'translate-x-1'
                       }
                     `}

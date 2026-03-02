@@ -5,10 +5,14 @@ import { useTranscriptStore } from '../stores/transcriptStore'
 /**
  * 自定义标题栏组件 - 仅在 Electron 环境中显示
  * 提供窗口拖拽和最小化/最大化/关闭按钮
+ * macOS 上不显示窗口控制按钮（使用原生红绿灯）
  */
 export function TitleBar() {
   const [isMaximized, setIsMaximized] = useState(false)
   const { t } = useTranscriptStore()
+
+  // 当前平台
+  const platform = window.electronAPI?.platform
 
   // 检查窗口是否最大化
   useEffect(() => {
@@ -50,48 +54,51 @@ export function TitleBar() {
   return (
     <div className="title-bar fixed top-0 left-0 right-0 h-8 z-50 flex items-center justify-between bg-background/95 backdrop-blur border-b border-border/40">
       {/* 拖拽区域 - 占据大部分空间 */}
-      <div 
-        className="flex-1 h-full app-drag-region"
+      {/* macOS: 左侧留出空间给红绿灯按钮 */}
+      <div
+        className={`flex-1 h-full app-drag-region ${platform === 'darwin' ? 'pl-20' : ''}`}
         style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
       />
-      
 
-      {/* 窗口控制按钮 */}
-      <div 
-        className="flex items-center h-full"
-        style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
-      >
-        {/* 最小化 */}
-        <button
-          onClick={handleMinimize}
-          className="h-8 w-12 flex items-center justify-center hover:bg-muted/80 transition-colors"
-          title={t.titleBar.minimize}
-        >
-          <Minus className="w-4 h-4 text-muted-foreground" />
-        </button>
 
-        {/* 最大化/还原 */}
-        <button
-          onClick={handleMaximize}
-          className="h-8 w-12 flex items-center justify-center hover:bg-muted/80 transition-colors"
-          title={isMaximized ? t.titleBar.restore : t.titleBar.maximize}
+      {/* 窗口控制按钮 - macOS 上不显示（使用原生红绿灯） */}
+      {platform !== 'darwin' && (
+        <div
+          className="flex items-center h-full"
+          style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
         >
-          {isMaximized ? (
-            <Maximize2 className="w-3.5 h-3.5 text-muted-foreground" />
-          ) : (
-            <Square className="w-3 h-3 text-muted-foreground" />
-          )}
-        </button>
+          {/* 最小化 */}
+          <button
+            onClick={handleMinimize}
+            className="h-8 w-12 flex items-center justify-center hover:bg-muted/80 transition-colors"
+            title={t.titleBar.minimize}
+          >
+            <Minus className="w-4 h-4 text-muted-foreground" />
+          </button>
 
-        {/* 关闭 */}
-        <button
-          onClick={handleClose}
-          className="h-8 w-12 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors group"
-          title={t.titleBar.close}
-        >
-          <X className="w-4 h-4 text-muted-foreground group-hover:text-white" />
-        </button>
-      </div>
+          {/* 最大化/还原 */}
+          <button
+            onClick={handleMaximize}
+            className="h-8 w-12 flex items-center justify-center hover:bg-muted/80 transition-colors"
+            title={isMaximized ? t.titleBar.restore : t.titleBar.maximize}
+          >
+            {isMaximized ? (
+              <Maximize2 className="w-3.5 h-3.5 text-muted-foreground" />
+            ) : (
+              <Square className="w-3 h-3 text-muted-foreground" />
+            )}
+          </button>
+
+          {/* 关闭 */}
+          <button
+            onClick={handleClose}
+            className="h-8 w-12 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors group"
+            title={t.titleBar.close}
+          >
+            <X className="w-4 h-4 text-muted-foreground group-hover:text-white" />
+          </button>
+        </div>
+      )}
     </div>
   )
 }

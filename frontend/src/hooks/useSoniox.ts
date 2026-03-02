@@ -10,6 +10,26 @@ interface UseSonioxOptions {
   onFinished?: () => void
 }
 
+function createCompatibleMediaRecorder(stream: MediaStream): MediaRecorder {
+  const preferredMimeTypes = [
+    'audio/webm;codecs=opus',
+    'audio/webm',
+    'audio/mp4',
+  ]
+
+  if (typeof MediaRecorder.isTypeSupported === 'function') {
+    for (const mimeType of preferredMimeTypes) {
+      if (MediaRecorder.isTypeSupported(mimeType)) {
+        console.log(`[Soniox] 使用 MediaRecorder 编码格式: ${mimeType}`)
+        return new MediaRecorder(stream, { mimeType })
+      }
+    }
+  }
+
+  console.log('[Soniox] 未命中预设编码格式，使用浏览器默认 MediaRecorder 配置')
+  return new MediaRecorder(stream)
+}
+
 export function useSoniox(options: UseSonioxOptions = {}) {
   const wsRef = useRef<WebSocket | null>(null)
   const mediaStreamRef = useRef<MediaStream | null>(null)
@@ -84,9 +104,7 @@ export function useSoniox(options: UseSonioxOptions = {}) {
 
         // 开始录制音频
         try {
-          const mediaRecorder = new MediaRecorder(mediaStreamRef.current!, {
-            mimeType: 'audio/webm;codecs=opus',
-          })
+          const mediaRecorder = createCompatibleMediaRecorder(mediaStreamRef.current!)
           mediaRecorderRef.current = mediaRecorder
 
           mediaRecorder.ondataavailable = (event) => {

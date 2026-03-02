@@ -39,7 +39,7 @@ export function UpdateNotification() {
 
   // 设置更新事件监听
   useEffect(() => {
-    if (!window.electronAPI) return
+    if (!window.electronAPI?.supportsAutoUpdate) return
 
     const cleanups: (() => void)[] = []
 
@@ -143,8 +143,8 @@ export function UpdateNotification() {
     return `${(bytes / 1024 / 1024).toFixed(1)} MB`
   }
 
-  // 不在 Electron 环境中时不显示
-  if (!window.electronAPI) return null
+  // 不在 Electron 环境或平台不支持自动更新时不显示
+  if (!window.electronAPI?.supportsAutoUpdate) return null
 
   // 已关闭且不是下载中或已下载状态时不显示
   if (dismissed && status !== 'downloading' && status !== 'downloaded') return null

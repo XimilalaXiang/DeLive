@@ -15,6 +15,26 @@ interface UseASROptions {
   onFinished?: () => void
 }
 
+function createCompatibleMediaRecorder(stream: MediaStream): MediaRecorder {
+  const preferredMimeTypes = [
+    'audio/webm;codecs=opus',
+    'audio/webm',
+    'audio/mp4',
+  ]
+
+  if (typeof MediaRecorder.isTypeSupported === 'function') {
+    for (const mimeType of preferredMimeTypes) {
+      if (MediaRecorder.isTypeSupported(mimeType)) {
+        console.log(`[useASR] 使用 MediaRecorder 编码格式: ${mimeType}`)
+        return new MediaRecorder(stream, { mimeType })
+      }
+    }
+  }
+
+  console.log('[useASR] 未命中预设编码格式，使用浏览器默认 MediaRecorder 配置')
+  return new MediaRecorder(stream)
+}
+
 export function useASR(options: UseASROptions = {}) {
   const providerRef = useRef<ASRProvider | null>(null)
   const mediaStreamRef = useRef<MediaStream | null>(null)
@@ -263,9 +283,7 @@ export function useASR(options: UseASROptions = {}) {
           }
         })
       } else {
-        const mediaRecorder = new MediaRecorder(mediaStreamRef.current, {
-          mimeType: 'audio/webm;codecs=opus',
-        })
+        const mediaRecorder = createCompatibleMediaRecorder(mediaStreamRef.current)
         mediaRecorderRef.current = mediaRecorder
         mediaRecorder.ondataavailable = (event) => {
           if (event.data.size > 0 && providerRef.current) {
@@ -372,9 +390,7 @@ export function useASR(options: UseASROptions = {}) {
         })
       } else {
         console.log('[useASR] 使用 MediaRecorder 处理音频')
-        const mediaRecorder = new MediaRecorder(mediaStreamRef.current, {
-          mimeType: 'audio/webm;codecs=opus',
-        })
+        const mediaRecorder = createCompatibleMediaRecorder(mediaStreamRef.current)
         mediaRecorderRef.current = mediaRecorder
         mediaRecorder.ondataavailable = (event) => {
           if (event.data.size > 0 && providerRef.current) {

@@ -68,6 +68,9 @@ declare interface ElectronAPI {
   cancelSourceSelection: () => Promise<void>
   onShowSourcePicker: (callback: () => void) => () => void
   isElectron: boolean
+  platform: 'win32' | 'darwin' | 'linux'
+  supportsAutoLaunch: boolean
+  supportsAutoUpdate: boolean
   // 自动更新 API
   checkForUpdates: () => Promise<{ success?: boolean; version?: string; error?: string }>
   downloadUpdate: () => Promise<{ success?: boolean; error?: string }>

@@ -38,8 +38,9 @@ function App() {
     
     // 默认启用自动检查更新，除非用户明确禁用
     const autoCheckUpdate = settings.autoCheckUpdate !== false
+    const supportsAutoUpdate = !!window.electronAPI?.supportsAutoUpdate
     
-    if (autoCheckUpdate && window.electronAPI?.checkForUpdates) {
+    if (autoCheckUpdate && supportsAutoUpdate && window.electronAPI?.checkForUpdates) {
       // 延迟 3 秒检查更新，避免影响启动性能
       const timer = setTimeout(() => {
         window.electronAPI?.checkForUpdates().catch((err) => {

@@ -1,22 +1,22 @@
 import { create } from 'zustand'
 import type { TranscriptSession, RecordingState, AppSettings, SonioxToken, Tag, ProviderConfigData, CaptionStyle } from '../types'
-import { 
-  getSessions, 
-  saveSessions, 
-  getSettings, 
+import {
+  getSessions,
+  saveSessions,
+  getSettings,
   saveSettings,
   getTags,
   saveTags,
-  generateId, 
-  formatDate, 
-  formatTime 
+  generateId,
+  formatDate,
+  formatTime
 } from '../utils/storage'
-import { 
-  type Language, 
-  type Translations, 
-  getTranslations, 
-  getSavedLanguage, 
-  saveLanguage 
+import {
+  type Language,
+  type Translations,
+  getTranslations,
+  getSavedLanguage,
+  saveLanguage
 } from '../i18n'
 import { providerRegistry } from '../providers'
 import type { ASRProviderInfo } from '../types/asr'
@@ -28,7 +28,7 @@ type ResolvedTheme = 'light' | 'dark'
 
 const defaultCaptionStyle: CaptionStyle = {
   fontSize: 24,
-  fontFamily: 'Microsoft YaHei, sans-serif',
+  fontFamily: '-apple-system, BlinkMacSystemFont, "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Hiragino Sans GB", "WenQuanYi Micro Hei", sans-serif',
   textColor: '#ffffff',
   backgroundColor: 'rgba(0, 0, 0, 0.7)',
   textShadow: true,
@@ -80,7 +80,7 @@ interface TranscriptState {
   language: Language
   t: Translations
   setLanguage: (lang: Language) => void
-  
+
   // 主题状态
   theme: Theme
   resolvedTheme: ResolvedTheme
@@ -88,58 +88,58 @@ interface TranscriptState {
   setTheme: (theme: Theme) => void
   setColorTheme: (colorTheme: ColorThemeId) => void
   initTheme: () => void
-  
+
   // 录制状态
   recordingState: RecordingState
   setRecordingState: (state: RecordingState) => void
-  
+
   // 当前转录内容
   currentTranscript: string
   finalTranscript: string
   nonFinalTranscript: string
   setTranscript: (final: string, nonFinal: string) => void
   clearTranscript: () => void
-  
+
   // 当前会话
   currentSessionId: string | null
   startNewSession: () => string
   endCurrentSession: () => void
-  
+
   // 历史会话
   sessions: TranscriptSession[]
   loadSessions: () => void
   updateSessionTitle: (id: string, title: string) => void
   deleteSession: (id: string) => void
   updateSessionTags: (sessionId: string, tagIds: string[]) => void
-  
+
   // 标签
   tags: Tag[]
   loadTags: () => void
   addTag: (name: string, color: string) => Tag
   deleteTag: (id: string) => void
   updateTag: (id: string, updates: Partial<Tag>) => void
-  
+
   // 标签筛选
   selectedTagIds: string[]
   setSelectedTagIds: (ids: string[]) => void
   toggleTagFilter: (tagId: string) => void
   clearTagFilter: () => void
-  
+
   // 搜索
   searchQuery: string
   setSearchQuery: (query: string) => void
-  
+
   // 设置
   settings: AppSettings
   loadSettings: () => void
   updateSettings: (settings: Partial<AppSettings>) => void
-  
+
   // 多提供商支持
   availableProviders: ASRProviderInfo[]
   setCurrentVendor: (vendorId: string) => void
   updateProviderConfig: (vendorId: string, config: Partial<ProviderConfigData>) => void
   getProviderConfig: (vendorId: string) => ProviderConfigData | undefined
-  
+
   // Token处理
   processTokens: (tokens: SonioxToken[]) => void
   finalTokens: SonioxToken[]
@@ -153,7 +153,7 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
     saveLanguage(lang)
     set({ language: lang, t: getTranslations(lang) })
   },
-  
+
   // 主题状态
   theme: 'system',
   resolvedTheme: 'light',
@@ -177,7 +177,7 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
     applyTheme(resolved)
     applyColorThemeToDOM(savedColor, resolved === 'dark')
     set({ theme: savedTheme, resolvedTheme: resolved, colorTheme: savedColor })
-    
+
     // 监听系统主题变化
     if (typeof window !== 'undefined' && window.matchMedia) {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
@@ -193,27 +193,27 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
       mediaQuery.addEventListener('change', handleChange)
     }
   },
-  
+
   // 录制状态
   recordingState: 'idle',
   setRecordingState: (state) => set({ recordingState: state }),
-  
+
   // 当前转录内容
   currentTranscript: '',
   finalTranscript: '',
   nonFinalTranscript: '',
-  setTranscript: (final, nonFinal) => set({ 
-    finalTranscript: final, 
+  setTranscript: (final, nonFinal) => set({
+    finalTranscript: final,
     nonFinalTranscript: nonFinal,
-    currentTranscript: final + nonFinal 
+    currentTranscript: final + nonFinal
   }),
-  clearTranscript: () => set({ 
-    currentTranscript: '', 
-    finalTranscript: '', 
+  clearTranscript: () => set({
+    currentTranscript: '',
+    finalTranscript: '',
     nonFinalTranscript: '',
     finalTokens: []
   }),
-  
+
   // 当前会话
   currentSessionId: null,
   startNewSession: () => {
@@ -230,19 +230,19 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
       transcript: '',
       tagIds: [],
     }
-    
+
     const sessions = [session, ...get().sessions]
     saveSessions(sessions)
-    
-    set({ 
-      currentSessionId: id, 
+
+    set({
+      currentSessionId: id,
       sessions,
       finalTranscript: '',
       nonFinalTranscript: '',
       currentTranscript: '',
       finalTokens: []
     })
-    
+
     return id
   },
   endCurrentSession: () => {
@@ -251,8 +251,8 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
     // 对于火山引擎，final 只在会话结束时发送，所以需要保存 currentTranscript
     const transcriptToSave = currentTranscript || finalTranscript || nonFinalTranscript
     if (currentSessionId && transcriptToSave) {
-      const updatedSessions = sessions.map(s => 
-        s.id === currentSessionId 
+      const updatedSessions = sessions.map(s =>
+        s.id === currentSessionId
           ? { ...s, transcript: transcriptToSave, updatedAt: Date.now() }
           : s
       )
@@ -264,7 +264,7 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
     }
     set({ currentSessionId: null })
   },
-  
+
   // 历史会话
   sessions: [],
   loadSessions: () => {
@@ -290,7 +290,7 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
     saveSessions(sessions)
     set({ sessions })
   },
-  
+
   // 标签
   tags: [],
   loadTags: () => {
@@ -312,17 +312,17 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
     // 删除标签
     const tags = get().tags.filter(t => t.id !== id)
     saveTags(tags)
-    
+
     // 从所有会话中移除该标签
     const sessions = get().sessions.map(s => ({
       ...s,
       tagIds: s.tagIds?.filter(tid => tid !== id) || []
     }))
     saveSessions(sessions)
-    
+
     // 从筛选中移除
     const selectedTagIds = get().selectedTagIds.filter(tid => tid !== id)
-    
+
     set({ tags, sessions, selectedTagIds })
   },
   updateTag: (id, updates) => {
@@ -332,7 +332,7 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
     saveTags(tags)
     set({ tags })
   },
-  
+
   // 标签筛选
   selectedTagIds: [],
   setSelectedTagIds: (ids) => set({ selectedTagIds: ids }),
@@ -345,11 +345,11 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
     }
   },
   clearTagFilter: () => set({ selectedTagIds: [] }),
-  
+
   // 搜索
   searchQuery: '',
   setSearchQuery: (query) => set({ searchQuery: query }),
-  
+
   // 设置
   settings: { apiKey: '', languageHints: ['zh', 'en'], currentVendor: 'soniox', providerConfigs: {}, captionStyle: defaultCaptionStyle },
   loadSettings: () => {
@@ -377,7 +377,7 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
     saveSettings(settings)
     set({ settings })
   },
-  
+
   // 多提供商支持
   availableProviders: providerRegistry.getAllProviders(),
   setCurrentVendor: (vendorId) => {
@@ -394,11 +394,11 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
       [vendorId]: { ...currentConfig, ...config },
     }
     // 同时更新顶层 apiKey 以保持兼容
-    const newApiKey = vendorId === settings.currentVendor 
+    const newApiKey = vendorId === settings.currentVendor
       ? (config.apiKey ?? currentConfig.apiKey ?? settings.apiKey)
       : settings.apiKey
-    const newSettings = { 
-      ...settings, 
+    const newSettings = {
+      ...settings,
       providerConfigs: newProviderConfigs,
       apiKey: newApiKey,
     }
@@ -409,14 +409,14 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
     const { settings } = get()
     return settings.providerConfigs?.[vendorId]
   },
-  
+
   // Token处理
   finalTokens: [],
   processTokens: (tokens) => {
     const { finalTokens } = get()
     const newFinalTokens = [...finalTokens]
     let nonFinalText = ''
-    
+
     for (const token of tokens) {
       if (token.text) {
         if (token.is_final) {
@@ -426,16 +426,16 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
         }
       }
     }
-    
+
     const finalText = newFinalTokens.map(t => t.text).join('')
-    
+
     set({
       finalTokens: newFinalTokens,
       finalTranscript: finalText,
       nonFinalTranscript: nonFinalText,
       currentTranscript: finalText + nonFinalText
     })
-    
+
     // 实时保存到当前会话
     const { currentSessionId, sessions } = get()
     if (currentSessionId) {
@@ -448,7 +448,7 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
         language: t.language,
         confidence: t.confidence,
       }))
-      
+
       const updatedSessions = sessions.map(s =>
         s.id === currentSessionId
           ? { ...s, transcript: finalText, tokens: tokenData, updatedAt: Date.now() }

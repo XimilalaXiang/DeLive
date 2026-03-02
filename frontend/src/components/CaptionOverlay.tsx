@@ -31,7 +31,7 @@ interface CaptionStyle {
 // 默认样式
 const defaultStyle: CaptionStyle = {
   fontSize: 24,
-  fontFamily: 'Microsoft YaHei, sans-serif',
+  fontFamily: '-apple-system, BlinkMacSystemFont, "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Hiragino Sans GB", "WenQuanYi Micro Hei", sans-serif',
   textColor: '#ffffff',
   backgroundColor: 'rgba(0, 0, 0, 0.7)',
   textShadow: true,
@@ -158,21 +158,21 @@ export function CaptionOverlay() {
   // 拖拽处理
   // 计算显示行
   const charsPerLine = estimateCharsPerLine(style.fontSize, containerWidth)
-  
+
   const getDisplayLines = useCallback((): string[] => {
     if (!currentText) return []
-    
+
     const lines: string[] = []
     let remaining = currentText
-    
+
     while (remaining.length > 0) {
       lines.push(remaining.slice(0, charsPerLine))
       remaining = remaining.slice(charsPerLine)
     }
-    
+
     return lines.slice(-style.maxLines)
   }, [currentText, charsPerLine, style.maxLines])
-  
+
   const displayLines = getDisplayLines()
   const hasContent = displayLines.length > 0
   const showPlaceholder = !hasContent && !isDraggable
@@ -203,8 +203,8 @@ export function CaptionOverlay() {
               lock-button flex items-center justify-center
               w-7 h-7 rounded-md
               transition-all duration-200
-              ${isDraggable 
-                ? 'bg-blue-500 text-white shadow-lg hover:bg-blue-600' 
+              ${isDraggable
+                ? 'bg-blue-500 text-white shadow-lg hover:bg-blue-600'
                 : 'bg-black/60 text-white/80 hover:bg-black/80 hover:text-white'
               }
             `}
@@ -253,8 +253,8 @@ export function CaptionOverlay() {
           fontFamily: style.fontFamily,
           fontSize: `${style.fontSize}px`,
           color: style.textColor,
-          textShadow: style.textShadow 
-            ? '2px 2px 4px rgba(0, 0, 0, 0.8), -1px -1px 2px rgba(0, 0, 0, 0.5)' 
+          textShadow: style.textShadow
+            ? '2px 2px 4px rgba(0, 0, 0, 0.8), -1px -1px 2px rgba(0, 0, 0, 0.5)'
             : 'none',
           width: '90%',
           maxWidth: '90%',
@@ -276,17 +276,17 @@ export function CaptionOverlay() {
             {line}
             {/* 在最后一行且不是最终结果时显示光标 */}
             {index === displayLines.length - 1 && !isFinalText && (
-              <span 
-                className="inline-block w-0.5 ml-0.5 bg-current animate-pulse" 
-                style={{ 
+              <span
+                className="inline-block w-0.5 ml-0.5 bg-current animate-pulse"
+                style={{
                   height: `${style.fontSize}px`,
-                  verticalAlign: 'middle' 
-                }} 
+                  verticalAlign: 'middle'
+                }}
               />
             )}
           </div>
         ))}
-        
+
         {/* 拖拽模式下的占位文字 */}
         {isDraggable && !hasContent && (
           <div style={{ minHeight: `${style.fontSize * 1.5}px` }}>

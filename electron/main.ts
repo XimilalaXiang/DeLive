@@ -10,6 +10,17 @@ import * as pako from 'pako'
 // 禁用 GPU 加速以避免某些系统上的问题
 // app.disableHardwareAcceleration()
 
+// ============ 跨平台音频捕获支持 ============
+// 启用各平台的系统音频 loopback 支持
+if (process.platform === 'darwin') {
+  // macOS 13+: 启用 ScreenCaptureKit 音频捕获
+  app.commandLine.appendSwitch('enable-features', 'ScreenCaptureKitAudio,ScreenCaptureKitStreamPickerSonoma')
+}
+if (process.platform === 'linux') {
+  // Linux: 启用 PulseAudio loopback 系统音频捕获
+  app.commandLine.appendSwitch('enable-features', 'PulseaudioLoopbackForScreenShare')
+}
+
 // ============ 火山引擎 WebSocket 代理 ============
 // 由于浏览器原生 WebSocket API 不支持设置自定义 HTTP Headers，
 // 而火山引擎需要通过 Headers 传递认证信息，因此需要内置代理服务器
@@ -92,7 +103,7 @@ function buildFullClientRequestJson(config: VolcProxyConfig): string {
     bits: 16,
     channel: 1,
   }
-  
+
   if (config.language) {
     audio.language = config.language
   }
@@ -119,7 +130,7 @@ function buildFullClientRequestJson(config: VolcProxyConfig): string {
 
 function handleVolcConnection(clientWs: NodeWebSocket, req: IncomingMessage): void {
   console.log('[VolcProxy] 新客户端连接')
-  
+
   const url = new URL(req.url || '', `http://${req.headers.host}`)
   const config: VolcProxyConfig = {
     appKey: url.searchParams.get('appKey') || '',
@@ -160,10 +171,10 @@ function handleVolcConnection(clientWs: NodeWebSocket, req: IncomingMessage): vo
 
   volcWs.on('open', () => {
     console.log('[VolcProxy] 火山引擎 WebSocket 已连接')
-    
+
     const fullRequest = buildFullClientRequestJson(config)
     console.log('[VolcProxy] 发送初始配置:', fullRequest)
-    
+
     const payload = gzip(new TextEncoder().encode(fullRequest))
     const frame = buildClientFrame(
       MSG_TYPE_FULL_CLIENT_REQ,
@@ -172,16 +183,16 @@ function handleVolcConnection(clientWs: NodeWebSocket, req: IncomingMessage): vo
       COMPRESS_GZIP,
       payload
     )
-    
+
     volcWs.send(frame)
     volcReady = true
-    
+
     clientWs.send(JSON.stringify({ type: 'ready' }))
   })
 
   volcWs.on('message', (data: Buffer) => {
     if (clientClosed) return
-    
+
     try {
       const arr = new Uint8Array(data)
       if (arr.length < 8) return
@@ -229,7 +240,7 @@ function handleVolcConnection(clientWs: NodeWebSocket, req: IncomingMessage): vo
         const msg = new TextDecoder().decode(arr.slice(start, end))
 
         console.error(`[VolcProxy] 服务器错误: ${code} - ${msg}`)
-        
+
         clientWs.send(JSON.stringify({
           type: 'error',
           code,
@@ -331,19 +342,19 @@ function handleVolcConnection(clientWs: NodeWebSocket, req: IncomingMessage): vo
 function startProxyServer(): void {
   const PORT = 3001
   const server = createServer()
-  
-  const wss = new WebSocketServer({ 
+
+  const wss = new WebSocketServer({
     server,
     path: '/ws/volc'
   })
-  
+
   wss.on('connection', handleVolcConnection)
-  
+
   server.listen(PORT, () => {
     console.log(`🚀 内置代理服务器已启动: http://localhost:${PORT}`)
     console.log(`🔌 火山引擎 WebSocket 代理: ws://localhost:${PORT}/ws/volc`)
   })
-  
+
   server.on('error', (error: NodeJS.ErrnoException) => {
     if (error.code === 'EADDRINUSE') {
       console.log(`[VolcProxy] 端口 ${PORT} 已被占用，代理服务器可能已在运行`)
@@ -357,6 +368,9 @@ let mainWindow: BrowserWindow | null = null
 let captionWindow: BrowserWindow | null = null
 let tray: Tray | null = null
 let isQuitting = false
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let pendingDisplayMediaCallback: ((result: any) => void) | null = null
+let lastSelectedSourceId: string | null = null
 
 // 字幕窗口状态
 let captionEnabled = false
@@ -375,7 +389,7 @@ interface CaptionStyle {
 
 let captionStyle: CaptionStyle = {
   fontSize: 24,
-  fontFamily: 'Microsoft YaHei, sans-serif',
+  fontFamily: '-apple-system, BlinkMacSystemFont, "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Hiragino Sans GB", "WenQuanYi Micro Hei", sans-serif',
   textColor: '#ffffff',
   backgroundColor: 'rgba(0, 0, 0, 0.7)',
   textShadow: true,
@@ -401,8 +415,22 @@ function computeCaptionWidth(style: CaptionStyle, workAreaWidth: number): number
   return Math.min(Math.max(target, minWidth), maxWidth)
 }
 
+// `forward` option for setIgnoreMouseEvents is only supported on Windows and macOS.
+// On Linux the polling-based startMousePositionCheck() handles hover detection instead.
+const SUPPORTS_MOUSE_FORWARD = process.platform !== 'linux'
+
 // 开发模式判断
 const isDev = process.env.NODE_ENV === 'development'
+
+function isAutoUpdateSupported(): boolean {
+  // electron-updater 在 Linux 上仅对 AppImage 具备稳定支持
+  if (process.platform !== 'linux') return true
+  return Boolean(process.env.APPIMAGE)
+}
+
+function isAutoLaunchSupported(): boolean {
+  return process.platform === 'win32' || process.platform === 'darwin'
+}
 
 // ============ 自动更新配置 ============
 // 配置自动更新
@@ -415,23 +443,26 @@ function setupAutoUpdater() {
   autoUpdater.on('error', (error) => {
     console.error('自动更新错误:', error)
     // 如果是 404 错误（没有发布版本），静默处理，不通知用户
-    if (error.message.includes('404') || error.message.includes('latest.yml')) {
+    const isNoReleaseError =
+      error.message.includes('404') ||
+      /latest(?:-[a-z]+)?\.yml/i.test(error.message)
+    if (isNoReleaseError) {
       console.log('未找到发布版本，跳过更新检查')
       return
     }
-    mainWindow?.webContents.send('update-error', error.message)
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('update-error', error.message)
   })
 
   // 检查更新中
   autoUpdater.on('checking-for-update', () => {
     console.log('正在检查更新...')
-    mainWindow?.webContents.send('checking-for-update')
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('checking-for-update')
   })
 
   // 有可用更新
   autoUpdater.on('update-available', (info) => {
     console.log('发现新版本:', info.version)
-    mainWindow?.webContents.send('update-available', {
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('update-available', {
       version: info.version,
       releaseDate: info.releaseDate,
       releaseNotes: info.releaseNotes,
@@ -441,7 +472,7 @@ function setupAutoUpdater() {
   // 没有可用更新
   autoUpdater.on('update-not-available', (info) => {
     console.log('当前已是最新版本:', info.version)
-    mainWindow?.webContents.send('update-not-available', {
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('update-not-available', {
       version: info.version,
     })
   })
@@ -449,7 +480,7 @@ function setupAutoUpdater() {
   // 下载进度
   autoUpdater.on('download-progress', (progress) => {
     console.log(`下载进度: ${progress.percent.toFixed(2)}%`)
-    mainWindow?.webContents.send('download-progress', {
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('download-progress', {
       percent: progress.percent,
       bytesPerSecond: progress.bytesPerSecond,
       transferred: progress.transferred,
@@ -460,20 +491,23 @@ function setupAutoUpdater() {
   // 下载完成
   autoUpdater.on('update-downloaded', (info) => {
     console.log('更新下载完成:', info.version)
-    mainWindow?.webContents.send('update-downloaded', {
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('update-downloaded', {
       version: info.version,
     })
-    
-    // 显示对话框询问用户是否立即安装
-    dialog.showMessageBox(mainWindow!, {
-      type: 'info',
+
+    const msgBoxOptions = {
+      type: 'info' as const,
       title: '更新已就绪',
       message: `新版本 ${info.version} 已下载完成`,
       detail: '点击"立即安装"将关闭应用并安装更新，点击"稍后"将在下次启动时自动安装。',
       buttons: ['立即安装', '稍后'],
       defaultId: 0,
       cancelId: 1,
-    }).then((result) => {
+    }
+    const msgBoxPromise = mainWindow && !mainWindow.isDestroyed()
+      ? dialog.showMessageBox(mainWindow, msgBoxOptions)
+      : dialog.showMessageBox(msgBoxOptions)
+    msgBoxPromise.then((result) => {
       if (result.response === 0) {
         // 用户选择立即安装
         isQuitting = true
@@ -511,33 +545,34 @@ function createCaptionWindow() {
     height: windowHeight,
     x: windowX,
     y: windowY,
-    
-    // 透明和无边框
-    transparent: true,
+
+    // 透明和无边框（Linux 无合成器时透明可能不生效，使用半透明背景 fallback）
+    transparent: process.platform !== 'linux',
+    ...(process.platform === 'linux' ? { backgroundColor: '#000000CC' } : {}),
     frame: false,
-    
+
     // 始终置顶
     alwaysOnTop: true,
-    
+
     // 不在任务栏显示
     skipTaskbar: true,
-    
+
     // 允许调整大小
     resizable: false,
-    
+
     // 最小尺寸
     minWidth: 300,
     minHeight: 60,
-    
+
     // 无标题
     title: 'DeLive Caption',
-    
+
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
     },
-    
+
     // 不显示在任务切换器中
     focusable: false,
   })
@@ -550,24 +585,24 @@ function createCaptionWindow() {
   }
 
   // 默认鼠标穿透
-  captionWindow.setIgnoreMouseEvents(true, { forward: true })
+  captionWindow.setIgnoreMouseEvents(true, SUPPORTS_MOUSE_FORWARD ? { forward: true } : undefined)
 
   // 窗口关闭时清理
   captionWindow.on('closed', () => {
     captionWindow = null
     captionEnabled = false
     // 通知主窗口字幕已关闭
-    mainWindow?.webContents.send('caption-status-changed', false)
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('caption-status-changed', false)
   })
 
   // 发送初始样式
   captionWindow.webContents.on('did-finish-load', () => {
-    captionWindow?.webContents.send('caption-style-update', captionStyle)
+    if (captionWindow && !captionWindow.isDestroyed()) captionWindow.webContents.send('caption-style-update', captionStyle)
   })
 
   captionEnabled = true
   console.log('[Caption] 字幕窗口已创建')
-  
+
   // 启动鼠标位置检测
   startMousePositionCheck()
 }
@@ -585,9 +620,9 @@ function closeCaptionWindow() {
 
 function toggleCaptionDraggable(draggable: boolean) {
   captionDraggable = draggable
-  if (captionWindow) {
+  if (captionWindow && !captionWindow.isDestroyed()) {
     // 切换鼠标穿透状态
-    captionWindow.setIgnoreMouseEvents(!draggable, { forward: true })
+    captionWindow.setIgnoreMouseEvents(!draggable, SUPPORTS_MOUSE_FORWARD ? { forward: true } : undefined)
     // 切换可聚焦状态
     captionWindow.setFocusable(draggable)
     // 确保始终不在任务栏显示
@@ -613,7 +648,7 @@ function setCaptionInteractive(interactive: boolean) {
 
   try {
     currentInteractiveMode = interactive
-    captionWindow.setIgnoreMouseEvents(!interactive, { forward: true })
+    captionWindow.setIgnoreMouseEvents(!interactive, SUPPORTS_MOUSE_FORWARD ? { forward: true } : undefined)
     captionWindow.setFocusable(interactive)
     // 确保始终不在任务栏显示
     captionWindow.setSkipTaskbar(true)
@@ -638,34 +673,34 @@ function startMousePositionCheck() {
     console.log('[Caption] 鼠标检测已在运行')
     return
   }
-  
+
   // 重置状态
   lastMouseInside = false
   currentInteractiveMode = false
-  
+
   console.log('[Caption] 启动鼠标位置检测')
-  
+
   mouseCheckInterval = setInterval(() => {
     if (!captionWindow || captionWindow.isDestroyed()) {
       console.log('[Caption] 字幕窗口不存在，停止检测')
       stopMousePositionCheck()
       return
     }
-    
+
     // 拖拽模式下不检测
     if (captionDraggable) return
-    
+
     try {
       const mousePos = screen.getCursorScreenPoint()
       const bounds = captionWindow.getBounds()
-      
+
       // 检查鼠标是否在字幕窗口区域内
-      const isInside = 
-        mousePos.x >= bounds.x && 
+      const isInside =
+        mousePos.x >= bounds.x &&
         mousePos.x <= bounds.x + bounds.width &&
-        mousePos.y >= bounds.y && 
+        mousePos.y >= bounds.y &&
         mousePos.y <= bounds.y + bounds.height
-      
+
       // 只在状态变化时更新
       if (isInside !== lastMouseInside) {
         console.log(`[Caption] 鼠标状态变化: ${lastMouseInside} -> ${isInside}, 位置: (${mousePos.x}, ${mousePos.y}), 窗口: (${bounds.x}, ${bounds.y}, ${bounds.width}, ${bounds.height})`)
@@ -685,6 +720,10 @@ function stopMousePositionCheck() {
     clearInterval(mouseCheckInterval)
     mouseCheckInterval = null
   }
+}
+
+function isTrayReady(): boolean {
+  return tray !== null && !tray.isDestroyed()
 }
 
 function createWindow() {
@@ -712,16 +751,13 @@ function createWindow() {
     },
     // 无边框窗口 - 自定义标题栏
     frame: false,
-    titleBarStyle: 'hidden',
+    // macOS: 使用 hiddenInset 获得更好的红绿灯位置；其他平台使用 hidden
+    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'hidden',
+    // macOS: 设置红绿灯位置，避免与自定义标题栏重叠
+    ...(process.platform === 'darwin' ? { trafficLightPosition: { x: 12, y: 10 } } : {}),
     backgroundColor: '#0c0a09',
     show: false, // 先隐藏，等加载完成后显示
   })
-
-  // 存储待处理的 displayMedia 请求回调
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let pendingDisplayMediaCallback: ((result: any) => void) | null = null
-  // 记住上次选择的源，用于音频设备切换时自动重新捕获
-  let lastSelectedSourceId: string | null = null
 
   // 设置 displayMediaRequestHandler 以支持 getDisplayMedia
   session.defaultSession.setDisplayMediaRequestHandler(async (_request, callback) => {
@@ -732,6 +768,10 @@ function createWindow() {
         const savedSource = sources.find(s => s.id === lastSelectedSourceId)
         if (savedSource) {
           console.log('[DisplayMedia] 自动复用上次选择的源:', lastSelectedSourceId)
+          // 所有平台都使用 loopback 音频
+          // Windows: 原生支持
+          // macOS 13+: 通过 ScreenCaptureKit (已启用 feature flag)
+          // Linux: 通过 PulseAudio loopback (已启用 feature flag)
           callback({ video: savedSource, audio: 'loopback' as const })
           return
         }
@@ -743,43 +783,7 @@ function createWindow() {
 
     // 首次选择或上次的源不可用，显示选择器
     pendingDisplayMediaCallback = callback
-    mainWindow?.webContents.send('show-source-picker')
-  })
-
-  // 处理用户选择的源
-  ipcMain.handle('select-source', async (_event, sourceId: string) => {
-    if (!pendingDisplayMediaCallback) return false
-    
-    try {
-      const sources = await desktopCapturer.getSources({ types: ['screen', 'window'] })
-      const selectedSource = sources.find(s => s.id === sourceId)
-      
-      if (selectedSource) {
-        // 记住选择的源
-        lastSelectedSourceId = sourceId
-        // 使用正确的类型：'loopback' 是系统音频回环
-        pendingDisplayMediaCallback({ video: selectedSource, audio: 'loopback' as const })
-        pendingDisplayMediaCallback = null
-        return true
-      } else {
-        pendingDisplayMediaCallback({})
-        pendingDisplayMediaCallback = null
-        return false
-      }
-    } catch (error) {
-      console.error('选择源失败:', error)
-      pendingDisplayMediaCallback?.({})
-      pendingDisplayMediaCallback = null
-      return false
-    }
-  })
-
-  // 处理取消选择
-  ipcMain.handle('cancel-source-selection', () => {
-    if (pendingDisplayMediaCallback) {
-      pendingDisplayMediaCallback({})
-      pendingDisplayMediaCallback = null
-    }
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('show-source-picker')
   })
 
   // 加载应用
@@ -806,9 +810,13 @@ function createWindow() {
 
   // 点击关闭按钮时最小化到托盘而不是退出
   mainWindow.on('close', (event) => {
-    if (!isQuitting) {
+    if (!isQuitting && isTrayReady()) {
       event.preventDefault()
       mainWindow?.hide()
+      // macOS: 隐藏窗口时同时隐藏 Dock 图标
+      if (process.platform === 'darwin') {
+        app.dock?.hide()
+      }
     }
   })
 
@@ -816,6 +824,45 @@ function createWindow() {
     mainWindow = null
   })
 }
+
+// 处理用户选择的源（放在 createWindow 外，避免 macOS 重新创建窗口时重复注册 handler）
+ipcMain.removeHandler('select-source')
+ipcMain.handle('select-source', async (_event, sourceId: string) => {
+  if (!pendingDisplayMediaCallback) return false
+
+  try {
+    const sources = await desktopCapturer.getSources({ types: ['screen', 'window'] })
+    const selectedSource = sources.find(s => s.id === sourceId)
+
+    if (selectedSource) {
+      // 记住选择的源
+      lastSelectedSourceId = sourceId
+      // 使用正确的类型：'loopback' 是系统音频回环
+      // 所有平台都使用 loopback 音频
+      pendingDisplayMediaCallback({ video: selectedSource, audio: 'loopback' as const })
+      pendingDisplayMediaCallback = null
+      return true
+    } else {
+      pendingDisplayMediaCallback({})
+      pendingDisplayMediaCallback = null
+      return false
+    }
+  } catch (error) {
+    console.error('选择源失败:', error)
+    pendingDisplayMediaCallback?.({})
+    pendingDisplayMediaCallback = null
+    return false
+  }
+})
+
+// 处理取消选择
+ipcMain.removeHandler('cancel-source-selection')
+ipcMain.handle('cancel-source-selection', () => {
+  if (pendingDisplayMediaCallback) {
+    pendingDisplayMediaCallback({})
+    pendingDisplayMediaCallback = null
+  }
+})
 
 // 内嵌 32x32 PNG 图标（base64），作为最终 fallback
 // 确保在任何安装/更新场景下托盘图标都能正常显示
@@ -827,28 +874,26 @@ function getIconCandidates(): string[] {
   const resourcesPath = process.resourcesPath
   const candidates: string[] = []
 
-  // 1. extraResources 放置的路径
-  candidates.push(
-    path.join(resourcesPath, 'build', 'icon.ico'),
-    path.join(resourcesPath, 'build', 'icon.png'),
-  )
+  // 按平台优先顺序选择图标格式，避免 Linux 误用 ICO、macOS 误用非 ICNS
+  const preferredIconFiles = process.platform === 'darwin'
+    ? ['icon.icns', 'icon.png', 'icon.ico']
+    : process.platform === 'linux'
+      ? ['icon.png', 'icon.ico']
+      : ['icon.ico', 'icon.png']
 
-  // 2. asarUnpack 解压的路径
-  candidates.push(
-    path.join(resourcesPath, 'app.asar.unpacked', 'build', 'icon.ico'),
-    path.join(resourcesPath, 'app.asar.unpacked', 'build', 'icon.png'),
-  )
-
-  // 3. resources 根目录
-  candidates.push(
-    path.join(resourcesPath, 'icon.ico'),
-    path.join(resourcesPath, 'icon.png'),
-  )
+  for (const iconFile of preferredIconFiles) {
+    // 1. extraResources 放置的路径
+    candidates.push(path.join(resourcesPath, 'build', iconFile))
+    // 2. asarUnpack 解压的路径
+    candidates.push(path.join(resourcesPath, 'app.asar.unpacked', 'build', iconFile))
+    // 3. resources 根目录
+    candidates.push(path.join(resourcesPath, iconFile))
+  }
 
   // 4. asar 内部（仅 fs.readFileSync 可读，nativeImage.createFromPath 不可读）
-  candidates.push(
-    path.join(appPath, 'build', 'icon.png'),
-  )
+  for (const iconFile of preferredIconFiles) {
+    candidates.push(path.join(appPath, 'build', iconFile))
+  }
 
   return candidates
 }
@@ -915,77 +960,86 @@ function loadTrayIcon(): NativeImage {
 }
 
 function createTray() {
-  const trayIcon = loadTrayIcon()
+  try {
+    const trayIcon = loadTrayIcon()
 
-  tray = new Tray(trayIcon)
-  tray.setToolTip('DeLive - 桌面音频实时转录')
+    tray = new Tray(trayIcon)
+    tray.setToolTip('DeLive - 桌面音频实时转录')
 
-  const contextMenu = Menu.buildFromTemplate([
-    {
-      label: '显示主窗口',
-      click: () => {
+    const contextMenu = Menu.buildFromTemplate([
+      {
+        label: '显示主窗口',
+        click: () => {
+          if (process.platform === 'darwin') app.dock?.show()
+          mainWindow?.show()
+          mainWindow?.focus()
+        },
+      },
+      {
+        type: 'separator',
+      },
+      {
+        label: '退出',
+        click: () => {
+          isQuitting = true
+          app.quit()
+        },
+      },
+    ])
+
+    tray.setContextMenu(contextMenu)
+
+    // 点击托盘图标显示窗口
+    tray.on('click', () => {
+      if (mainWindow?.isVisible()) {
+        mainWindow.focus()
+      } else {
+        if (process.platform === 'darwin') app.dock?.show()
         mainWindow?.show()
-        mainWindow?.focus()
-      },
-    },
-    {
-      type: 'separator',
-    },
-    {
-      label: '退出',
-      click: () => {
-        isQuitting = true
-        app.quit()
-      },
-    },
-  ])
-
-  tray.setContextMenu(contextMenu)
-
-  // 点击托盘图标显示窗口
-  tray.on('click', () => {
-    if (mainWindow?.isVisible()) {
-      mainWindow.focus()
-    } else {
-      mainWindow?.show()
-    }
-  })
+      }
+    })
+  } catch (error) {
+    tray = null
+    console.warn('[Tray] 初始化失败，当前环境可能不支持系统托盘:', error)
+  }
 }
 
 function registerShortcuts() {
-  // 注册全局快捷键 - 显示/隐藏窗口
   const shortcut = 'CommandOrControl+Shift+D'
-  
+
   const toggleWindow = () => {
     if (mainWindow?.isVisible()) {
       mainWindow.hide()
+      if (process.platform === 'darwin' && isTrayReady()) app.dock?.hide()
     } else {
+      if (process.platform === 'darwin') app.dock?.show()
       mainWindow?.show()
       mainWindow?.focus()
     }
   }
-  
-  // 尝试注册快捷键
-  const registered = globalShortcut.register(shortcut, toggleWindow)
-  
-  if (registered) {
-    console.log(`全局快捷键 ${shortcut} 注册成功`)
-  } else {
-    console.warn(`全局快捷键 ${shortcut} 注册失败，可能被其他程序占用`)
-    
-    // 尝试备用快捷键
-    const backupShortcut = 'CommandOrControl+Alt+D'
-    const backupRegistered = globalShortcut.register(backupShortcut, toggleWindow)
-    
-    if (backupRegistered) {
-      console.log(`备用快捷键 ${backupShortcut} 注册成功`)
+
+  try {
+    const registered = globalShortcut.register(shortcut, toggleWindow)
+
+    if (registered) {
+      console.log(`全局快捷键 ${shortcut} 注册成功`)
     } else {
-      console.warn(`备用快捷键 ${backupShortcut} 也注册失败`)
+      console.warn(`全局快捷键 ${shortcut} 注册失败，可能被其他程序占用`)
+
+      const backupShortcut = 'CommandOrControl+Alt+D'
+      const backupRegistered = globalShortcut.register(backupShortcut, toggleWindow)
+
+      if (backupRegistered) {
+        console.log(`备用快捷键 ${backupShortcut} 注册成功`)
+      } else {
+        console.warn(`备用快捷键 ${backupShortcut} 也注册失败`)
+      }
     }
+
+    console.log(`快捷键 ${shortcut} 已注册: ${globalShortcut.isRegistered(shortcut)}`)
+  } catch (error) {
+    console.warn('[Shortcuts] 全局快捷键注册失败，当前环境可能不支持:', error)
   }
-  
-  // 检查快捷键是否已注册
-  console.log(`快捷键 ${shortcut} 已注册: ${globalShortcut.isRegistered(shortcut)}`)
 }
 
 // 单实例锁定
@@ -998,6 +1052,7 @@ if (!gotTheLock) {
     // 当尝试运行第二个实例时，聚焦到主窗口
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore()
+      if (process.platform === 'darwin') app.dock?.show()
       mainWindow.show()
       mainWindow.focus()
     }
@@ -1007,16 +1062,18 @@ if (!gotTheLock) {
   app.whenReady().then(() => {
     // 启动内置代理服务器（用于火山引擎）
     startProxyServer()
-    
+
     createWindow()
     createTray()
     registerShortcuts()
-    
-    // 设置自动更新（仅在生产模式下）
-    if (!isDev) {
+
+    // 设置自动更新（仅在生产模式 + 支持的平台/安装方式下）
+    if (!isDev && isAutoUpdateSupported()) {
       setupAutoUpdater()
       // 注意：自动检查更新现在由前端控制，根据用户设置决定
       // 应用会在窗口加载完成后通过 IPC 请求检查更新
+    } else if (!isDev && process.platform === 'linux') {
+      console.log('[Updater] 当前 Linux 安装方式不支持自动更新（仅 AppImage 支持）')
     }
 
     app.on('activate', () => {
@@ -1047,7 +1104,16 @@ ipcMain.handle('get-app-version', () => {
 })
 
 ipcMain.handle('minimize-to-tray', () => {
-  mainWindow?.hide()
+  if (isTrayReady()) {
+    mainWindow?.hide()
+    if (process.platform === 'darwin') {
+      app.dock?.hide()
+    }
+    return
+  }
+
+  // 无托盘环境退化为最小化，避免“隐藏后无法找回”
+  mainWindow?.minimize()
 })
 
 // 窗口控制 - 用于自定义标题栏
@@ -1073,14 +1139,21 @@ ipcMain.handle('window-is-maximized', () => {
 
 // 开机自启动相关
 function getAutoLaunchEnabled(): boolean {
-  const settings = app.getLoginItemSettings()
+  if (!isAutoLaunchSupported()) return false
 
-  if (process.platform === 'win32') {
-    const hasEnabledLaunchItem = (settings.launchItems || []).some((item) => item.enabled)
-    return settings.openAtLogin || hasEnabledLaunchItem
+  try {
+    const settings = app.getLoginItemSettings()
+
+    if (process.platform === 'win32') {
+      const hasEnabledLaunchItem = (settings.launchItems || []).some((item) => item.enabled)
+      return settings.openAtLogin || hasEnabledLaunchItem
+    }
+
+    return settings.openAtLogin
+  } catch (error) {
+    console.warn('[AutoLaunch] 读取开机启动状态失败:', error)
+    return false
   }
-
-  return settings.openAtLogin
 }
 
 function clearWindowsAutoLaunchEntries(): void {
@@ -1118,16 +1191,24 @@ ipcMain.handle('get-auto-launch', () => {
 })
 
 ipcMain.handle('set-auto-launch', (_event, enable: boolean) => {
-  if (enable) {
-    app.setLoginItemSettings({
-      openAtLogin: true,
-      openAsHidden: true, // 启动时隐藏窗口（最小化到托盘）
-    })
-  } else {
-    app.setLoginItemSettings({
-      openAtLogin: false,
-    })
-    clearWindowsAutoLaunchEntries()
+  if (!isAutoLaunchSupported()) {
+    return false
+  }
+
+  try {
+    if (enable) {
+      app.setLoginItemSettings({
+        openAtLogin: true,
+        ...(process.platform === 'darwin' ? { openAsHidden: true } : {}),
+      })
+    } else {
+      app.setLoginItemSettings({
+        openAtLogin: false,
+      })
+      clearWindowsAutoLaunchEntries()
+    }
+  } catch (error) {
+    console.error('[AutoLaunch] 设置开机启动失败:', error)
   }
 
   return getAutoLaunchEnabled()
@@ -1136,12 +1217,12 @@ ipcMain.handle('set-auto-launch', (_event, enable: boolean) => {
 // 获取可用的桌面源（屏幕和窗口）
 ipcMain.handle('get-desktop-sources', async () => {
   try {
-    const sources = await desktopCapturer.getSources({ 
+    const sources = await desktopCapturer.getSources({
       types: ['screen', 'window'],
       thumbnailSize: { width: 320, height: 180 },
       fetchWindowIcons: true
     })
-    
+
     return sources.map(source => ({
       id: source.id,
       name: source.name,
@@ -1161,16 +1242,19 @@ ipcMain.handle('check-for-updates', async () => {
   if (isDev) {
     return { error: '开发模式下不支持自动更新' }
   }
+  if (!isAutoUpdateSupported()) {
+    return { error: '当前安装方式不支持自动更新（Linux 仅 AppImage 支持）' }
+  }
   try {
     const result = await autoUpdater.checkForUpdates()
-    return { 
-      success: true, 
-      version: result?.updateInfo.version 
+    return {
+      success: true,
+      version: result?.updateInfo.version
     }
   } catch (error) {
     console.error('检查更新失败:', error)
-    return { 
-      error: error instanceof Error ? error.message : '检查更新失败' 
+    return {
+      error: error instanceof Error ? error.message : '检查更新失败'
     }
   }
 })
@@ -1180,19 +1264,26 @@ ipcMain.handle('download-update', async () => {
   if (isDev) {
     return { error: '开发模式下不支持自动更新' }
   }
+  if (!isAutoUpdateSupported()) {
+    return { error: '当前安装方式不支持自动更新（Linux 仅 AppImage 支持）' }
+  }
   try {
     await autoUpdater.downloadUpdate()
     return { success: true }
   } catch (error) {
     console.error('下载更新失败:', error)
-    return { 
-      error: error instanceof Error ? error.message : '下载更新失败' 
+    return {
+      error: error instanceof Error ? error.message : '下载更新失败'
     }
   }
 })
 
 // 立即安装更新
 ipcMain.handle('install-update', () => {
+  if (!isAutoUpdateSupported()) {
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('update-error', '当前安装方式不支持自动更新（Linux 仅 AppImage 支持）')
+    return
+  }
   isQuitting = true
   autoUpdater.quitAndInstall(false, true)
 })
@@ -1201,13 +1292,13 @@ ipcMain.handle('install-update', () => {
 // 切换字幕窗口显示
 ipcMain.handle('caption-toggle', (_event, enable?: boolean) => {
   const shouldEnable = enable !== undefined ? enable : !captionEnabled
-  
+
   if (shouldEnable) {
     createCaptionWindow()
   } else {
     closeCaptionWindow()
   }
-  
+
   return captionEnabled
 })
 
@@ -1222,7 +1313,7 @@ ipcMain.handle('caption-get-status', () => {
 
 // 更新字幕文字
 ipcMain.handle('caption-update-text', (_event, text: string, isFinal: boolean) => {
-  if (captionWindow && captionEnabled) {
+  if (captionWindow && !captionWindow.isDestroyed() && captionEnabled) {
     captionWindow.webContents.send('caption-text-update', { text, isFinal })
   }
 })
@@ -1230,7 +1321,7 @@ ipcMain.handle('caption-update-text', (_event, text: string, isFinal: boolean) =
 // 更新字幕样式
 ipcMain.handle('caption-update-style', (_event, newStyle: Partial<CaptionStyle>) => {
   captionStyle = { ...captionStyle, ...newStyle }
-  if (captionWindow) {
+  if (captionWindow && !captionWindow.isDestroyed()) {
     captionWindow.webContents.send('caption-style-update', captionStyle)
 
     // 样式变化后调整窗口高度，防止行数/字体过大被裁剪
@@ -1284,7 +1375,7 @@ ipcMain.handle('caption-set-interactive', (_event, interactive: boolean) => {
 
 // 从字幕窗口打开主应用设置
 ipcMain.handle('caption-open-settings', () => {
-  if (mainWindow) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.show()
     mainWindow.focus()
     // 通知主窗口打开字幕设置

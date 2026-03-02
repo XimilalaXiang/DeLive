@@ -11,7 +11,18 @@ permissions:
 
 jobs:
   build:
-    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: win
+          - os: macos-latest
+            platform: mac
+          - os: ubuntu-latest
+            platform: linux
+
+    runs-on: ${{ matrix.os }}
     
     steps:
       - name: Checkout code
@@ -37,14 +48,45 @@ jobs:
         working-directory: ./server
       
       - name: Build and Package
-        # 使用 --publish never 禁用 electron-builder 的自动发布
-        run: npm run build && npx electron-builder --win --publish never
+        run: npm run build && npx electron-builder --${{ matrix.platform }} --publish never
       
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.platform }}
+          path: release/*
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Get version from tag
         id: get_version
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-        shell: bash
-      
+
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-win
+          path: release-win
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-mac
+          path: release-mac
+
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-linux
+          path: release-linux
+
       - name: Generate Release Notes
         id: release_notes
         run: |
@@ -53,10 +95,14 @@ jobs:
           echo "" >> $GITHUB_OUTPUT
           echo "### 📥 下载 / Downloads" >> $GITHUB_OUTPUT
           echo "" >> $GITHUB_OUTPUT
-          echo "| 文件 / File | 说明 / Description |" >> $GITHUB_OUTPUT
-          echo "|-------------|---------------------|" >> $GITHUB_OUTPUT
-          echo "| \`DeLive-${{ steps.get_version.outputs.VERSION }}-x64.exe\` | Windows 安装包 / Windows Installer |" >> $GITHUB_OUTPUT
-          echo "| \`DeLive-${{ steps.get_version.outputs.VERSION }}-portable.exe\` | 便携版（无需安装）/ Portable Version |" >> $GITHUB_OUTPUT
+          echo "| 平台 / Platform | 文件 / File | 说明 / Description |" >> $GITHUB_OUTPUT
+          echo "|-----------------|-------------|---------------------|" >> $GITHUB_OUTPUT
+          echo "| 🪟 Windows | \`DeLive-${{ steps.get_version.outputs.VERSION }}-x64.exe\` | Windows 安装包 / Installer |" >> $GITHUB_OUTPUT
+          echo "| 🪟 Windows | \`DeLive-${{ steps.get_version.outputs.VERSION }}-portable.exe\` | 便携版 / Portable |" >> $GITHUB_OUTPUT
+          echo "| 🍎 macOS | \`DeLive-${{ steps.get_version.outputs.VERSION }}-mac-x64.dmg\` | macOS Intel 安装包 |" >> $GITHUB_OUTPUT
+          echo "| 🍎 macOS | \`DeLive-${{ steps.get_version.outputs.VERSION }}-mac-arm64.dmg\` | macOS Apple Silicon 安装包 |" >> $GITHUB_OUTPUT
+          echo "| 🐧 Linux | \`DeLive-${{ steps.get_version.outputs.VERSION }}-linux-x64.AppImage\` | Linux AppImage |" >> $GITHUB_OUTPUT
+          echo "| 🐧 Linux | \`DeLive-${{ steps.get_version.outputs.VERSION }}-linux-x64.deb\` | Debian/Ubuntu 安装包 |" >> $GITHUB_OUTPUT
           echo "" >> $GITHUB_OUTPUT
           echo "### 🔄 更新内容 / What's Changed" >> $GITHUB_OUTPUT
           echo "" >> $GITHUB_OUTPUT
@@ -64,16 +110,17 @@ jobs:
           echo "" >> $GITHUB_OUTPUT
           echo "### 📖 使用说明 / Usage" >> $GITHUB_OUTPUT
           echo "" >> $GITHUB_OUTPUT
-          echo "1. 下载上方的安装包或便携版" >> $GITHUB_OUTPUT
-          echo "2. 运行安装或直接打开便携版" >> $GITHUB_OUTPUT
+          echo "1. 下载对应平台的安装包" >> $GITHUB_OUTPUT
+          echo "2. 运行安装或直接打开" >> $GITHUB_OUTPUT
           echo "3. 在设置中配置 ASR 服务商的 API 密钥" >> $GITHUB_OUTPUT
           echo "4. 开始录制并享受实时转录！" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "> ⚠️ macOS 用户注意：应用未经 Apple 签名，首次打开需右键选择\"打开\"或在\"系统偏好设置 > 安全性\"中允许运行。" >> $GITHUB_OUTPUT
           echo "" >> $GITHUB_OUTPUT
           echo "---" >> $GITHUB_OUTPUT
           echo "" >> $GITHUB_OUTPUT
           echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/v${{ steps.get_version.outputs.VERSION }}...HEAD" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-        shell: bash
       
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -83,8 +130,14 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            release/*.exe
-            release/*.exe.blockmap
-            release/latest.yml
+            release-win/*.exe
+            release-win/*.exe.blockmap
+            release-win/latest.yml
+            release-mac/*.dmg
+            release-mac/*.zip
+            release-mac/latest-mac.yml
+            release-linux/*.AppImage
+            release-linux/*.deb
+            release-linux/latest-linux.yml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
