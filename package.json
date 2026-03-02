@@ -119,6 +119,7 @@
       }
     },
     "linux": {
+      "maintainer": "XimilalaXiang",
       "icon": "build/icons",
       "target": [
         {
