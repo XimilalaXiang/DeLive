@@ -110,7 +110,9 @@ function App() {
       <TitleBar />
       
       {/* 头部 - 使用玻璃拟态效果 */}
-      <header className={`sticky z-40 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:ring-1 dark:ring-white/[0.06] ${isElectron ? 'top-8 mt-8' : 'top-0'}`}>
+      <header className={`sticky z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:ring-1 dark:ring-white/[0.06] ${isElectron ? 'top-8 mt-8' : 'top-0'}`}>
+        {/* 底部渐变分割线 */}
+        <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
         <div className="container max-w-5xl mx-auto px-4 sm:px-6">
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
@@ -192,12 +194,16 @@ function App() {
       </main>
 
       {/* 页脚 */}
-      <footer className="border-t border-border/40 bg-muted/40 mt-auto dark:ring-1 dark:ring-white/[0.04]">
-        <div className="container max-w-5xl mx-auto px-4 sm:px-6 py-6">
-          <p className="text-center text-xs text-muted-foreground">
-            {t.app.footer} <a href="https://github.com/XimilalaXiang/DeLive" target="_blank" rel="noopener noreferrer" 
-                         className="font-medium underline underline-offset-4 hover:text-primary transition-colors">GitHub</a>
-          </p>
+      <footer className="relative mt-auto">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+        <div className="bg-muted/30 dark:ring-1 dark:ring-white/[0.04]">
+          <div className="container max-w-5xl mx-auto px-4 sm:px-6 py-5">
+            <p className="text-center text-xs text-muted-foreground">
+              {t.app.footer}{' '}
+              <a href="https://github.com/XimilalaXiang/DeLive" target="_blank" rel="noopener noreferrer" 
+                 className="font-medium text-primary/70 hover:text-primary transition-colors">GitHub</a>
+            </p>
+          </div>
         </div>
       </footer>
 

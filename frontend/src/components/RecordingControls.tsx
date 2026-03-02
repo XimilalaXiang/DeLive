@@ -52,8 +52,11 @@ export function RecordingControls({ onError }: RecordingControlsProps) {
       <div className="relative group">
         {/* Glow effect */}
         <div className={`
-          absolute -inset-1 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200
-          ${isRecording ? 'bg-gradient-to-r from-red-500 to-orange-500 opacity-40' : 'bg-primary'}
+          absolute -inset-1 rounded-full blur transition duration-1000 group-hover:duration-200
+          ${isRecording 
+            ? 'bg-gradient-to-r from-red-500 to-orange-500 opacity-40 animate-pulse' 
+            : 'bg-primary opacity-25 group-hover:opacity-50 animate-glow-pulse'
+          }
         `}></div>
         
         <button
