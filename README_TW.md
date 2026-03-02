@@ -10,7 +10,9 @@
 
 [![版本](https://img.shields.io/github/v/release/XimilalaXiang/DeLive?label=版本&color=blue)](https://github.com/XimilalaXiang/DeLive/releases)
 [![授權](https://img.shields.io/github/license/XimilalaXiang/DeLive?label=授權&color=green)](https://github.com/XimilalaXiang/DeLive/blob/main/LICENSE)
-[![平台](https://img.shields.io/badge/平台-Windows-0078D6?logo=windows)](https://github.com/XimilalaXiang/DeLive/releases)
+[![Platform](https://img.shields.io/badge/Windows-0078D6?logo=windows&logoColor=white)](https://github.com/XimilalaXiang/DeLive/releases)
+[![Platform](https://img.shields.io/badge/macOS-000000?logo=apple&logoColor=white)](https://github.com/XimilalaXiang/DeLive/releases)
+[![Platform](https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=black)](https://github.com/XimilalaXiang/DeLive/releases)
 [![下載量](https://img.shields.io/github/downloads/XimilalaXiang/DeLive/total?label=下載量&color=orange)](https://github.com/XimilalaXiang/DeLive/releases)
 [![Stars](https://img.shields.io/github/stars/XimilalaXiang/DeLive?style=social)](https://github.com/XimilalaXiang/DeLive)
 
@@ -171,13 +173,13 @@ npm run dev
 ### 打包建置
 
 ```bash
-|# 打包 Windows 應用程式
-npm run dist:win
+# 為當前平台打包
+npm run dist:win       # Windows: .exe 安裝程式 + 可攜式版本
+npm run dist:mac       # macOS: .dmg + .zip
+npm run dist:linux     # Linux: .AppImage + .deb
 ```
 
-打包後的檔案位於 `release/` 目錄：
-- `DeLive-x.x.x-x64.exe` - 安裝程式
-- `DeLive-x.x.x-portable.exe` - 可攜式版本
+打包後的檔案位於 `release/` 目錄。
 
 ## 📖 使用步驟
 
@@ -251,7 +253,7 @@ DeLive/
 
 || 快捷鍵 | 功能 |
 ||--------|------|
-|| `Ctrl+Shift+D` | 顯示/隱藏主視窗 |
+|| `Ctrl+Shift+D` / `Cmd+Shift+D` | 顯示/隱藏主視窗 |
 
 ## 🔧 新增 ASR 服務商
 
@@ -266,11 +268,15 @@ DeLive 採用可擴充的提供商架構，新增服務商只需：
 
 ## ⚠️ 注意事項
 
-1. **系統需求** - Windows 10/11 64位元
+1. **系統需求** - Windows 10+、macOS 13+（Ventura）、Linux（Ubuntu 20.04+ 或同等版本）
 2. **API 配額** - 注意各服務商的 API 使用配額限制
 3. **火山引擎** - 需要啟動後端伺服器（`cd server && npm run dev`）
 4. **系統匣行為** - 點擊關閉按鈕會最小化到系統匣，右鍵系統匣圖示選擇「結束」完全關閉
 5. **字幕視窗** - 字幕視窗始終置頂，鎖定時滑鼠可穿透
+6. **macOS 音訊** - 系統音訊擷取需要 macOS 13+（ScreenCaptureKit）
+7. **Linux 音訊** - 需要 PulseAudio 進行系統音訊迴環擷取
+8. **開機自啟動** - 僅支援 Windows 和 macOS
+9. **自動更新** - 支援 Windows、macOS 和 Linux AppImage
 
 ### 🛡️ Windows SmartScreen 安全警告
 

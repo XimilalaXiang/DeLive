@@ -9,6 +9,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.0] - 2026-03-02
+
+### Added / 新增
+- 🍎 macOS support - Native traffic light integration, ScreenCaptureKit audio capture, DMG distribution
+- 🍎 macOS 支持 - 原生红绿灯集成、ScreenCaptureKit 音频捕获、DMG 分发
+- 🐧 Linux support - AppImage/DEB packages, PulseAudio loopback, auto-update for AppImage
+- 🐧 Linux 支持 - AppImage/DEB 包、PulseAudio 回环捕获、AppImage 自动更新
+- 🖥️ Cross-platform caption window - Transparent overlay on Win/Mac, composited fallback on Linux
+- 🖥️ 跨平台字幕窗口 - Win/Mac 透明叠加层、Linux 合成器回退
+- 🎨 Multi-color theme system - Cyan/Violet/Rose/Green/Amber theme palette
+- 🎨 多色主题系统 - 青色/紫色/玫瑰/绿色/琥珀色主题
+
+### Fixed / 修复
+- 🔧 `setIgnoreMouseEvents` forward option guard for Linux compatibility
+- 🔧 `setIgnoreMouseEvents` forward 选项 Linux 兼容性守卫
+- 📦 Platform-specific extraResources to avoid packaging unnecessary icons
+- 📦 平台专属 extraResources 避免打包不必要的图标
+- 🖼️ ICNS generation skip on non-macOS platforms
+- 🖼️ 非 macOS 平台跳过 ICNS 生成
+- 🔤 Linux CJK font fallback in caption.html
+- 🔤 caption.html 中 Linux CJK 字体回退
+- ⌨️ globalShortcut.register() try-catch for Linux environments
+- ⌨️ globalShortcut.register() 为 Linux 环境添加 try-catch
+- 💬 dialog.showMessageBox TypeScript type fix when mainWindow is destroyed
+- 💬 dialog.showMessageBox 主窗口销毁时的 TypeScript 类型修复
+
+---
+
 ## [1.0.2] - 2026-01-20
 
 ### Added / 新增

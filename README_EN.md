@@ -2,7 +2,7 @@
 
 **[中文](./README.md) | English**
 
-**Windows Desktop Audio Real-time Transcription** - Multi-ASR Provider Support
+**Cross-Platform Desktop Audio Real-time Transcription** - Multi-ASR Provider Support
 
 Capture any audio playing on your computer (browser videos, online meetings, podcasts, etc.) and transcribe it to text in real-time.
 
@@ -134,13 +134,13 @@ npm run dev
 ### Build
 
 ```bash
-# Build Windows application
-npm run dist:win
+# Build for your current platform
+npm run dist:win       # Windows: .exe installer + portable
+npm run dist:mac       # macOS: .dmg + .zip
+npm run dist:linux     # Linux: .AppImage + .deb
 ```
 
-Built files are located in the `release/` directory:
-- `DeLive-x.x.x-x64.exe` - Installer
-- `DeLive-x.x.x-portable.exe` - Portable version
+Built files are located in the `release/` directory.
 
 ## 📖 Usage
 
@@ -214,7 +214,7 @@ Refer to existing implementations (`SonioxProvider.ts` and `VolcProvider.ts`) fo
 
 ## ⚠️ Notes
 
-1. **System Requirements** - Windows 10/11 64-bit
+1. **System Requirements** - Windows 10+, macOS 13+ (Ventura), Linux (Ubuntu 20.04+ or equivalent)
 2. **API Quota** - Be aware of each provider's API usage limits
 3. **Volcengine** - Requires starting the backend server (`cd server && npm run dev`)
 4. **Tray Behavior** - Clicking close minimizes to tray, right-click tray icon and select "Exit" to fully close

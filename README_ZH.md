@@ -4,13 +4,15 @@
 
 # DeLive
 
-**Windows 桌面音频实时转录系统 | 支持多 ASR 服务提供商**
+**跨平台桌面音频实时转录系统 | 支持多 ASR 服务提供商**
 
 [English](./README.md) | 简体中文 | [繁體中文](./README_TW.md) | [日本語](./README_JA.md)
 
 [![版本](https://img.shields.io/github/v/release/XimilalaXiang/DeLive?label=版本&color=blue)](https://github.com/XimilalaXiang/DeLive/releases)
 [![许可证](https://img.shields.io/github/license/XimilalaXiang/DeLive?label=许可证&color=green)](https://github.com/XimilalaXiang/DeLive/blob/main/LICENSE)
-[![平台](https://img.shields.io/badge/平台-Windows-0078D6?logo=windows)](https://github.com/XimilalaXiang/DeLive/releases)
+[![Platform](https://img.shields.io/badge/Windows-0078D6?logo=windows&logoColor=white)](https://github.com/XimilalaXiang/DeLive/releases)
+[![Platform](https://img.shields.io/badge/macOS-000000?logo=apple&logoColor=white)](https://github.com/XimilalaXiang/DeLive/releases)
+[![Platform](https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=black)](https://github.com/XimilalaXiang/DeLive/releases)
 [![下载量](https://img.shields.io/github/downloads/XimilalaXiang/DeLive/total?label=下载量&color=orange)](https://github.com/XimilalaXiang/DeLive/releases)
 [![Stars](https://img.shields.io/github/stars/XimilalaXiang/DeLive?style=social)](https://github.com/XimilalaXiang/DeLive)
 
@@ -171,13 +173,13 @@ npm run dev
 ### 打包构建
 
 ```bash
-# 打包 Windows 应用
-npm run dist:win
+# 为当前平台打包
+npm run dist:win       # Windows: .exe 安装程序 + 便携版
+npm run dist:mac       # macOS: .dmg + .zip
+npm run dist:linux     # Linux: .AppImage + .deb
 ```
 
-打包后的文件位于 `release/` 目录：
-- `DeLive-x.x.x-x64.exe` - 安装程序
-- `DeLive-x.x.x-portable.exe` - 便携版
+打包后的文件位于 `release/` 目录。
 
 ## 📖 使用步骤
 
@@ -251,7 +253,7 @@ DeLive/
 
 | 快捷键 | 功能 |
 |--------|------|
-| `Ctrl+Shift+D` | 显示/隐藏主窗口 |
+| `Ctrl+Shift+D` / `Cmd+Shift+D` | 显示/隐藏主窗口 |
 
 ## 🔧 添加新的 ASR 服务商
 
@@ -266,11 +268,15 @@ DeLive 采用可扩展的提供商架构，添加新服务商只需：
 
 ## ⚠️ 注意事项
 
-1. **系统要求** - Windows 10/11 64位
+1. **系统要求** - Windows 10+、macOS 13+（Ventura）、Linux（Ubuntu 20.04+ 或同等版本）
 2. **API 配额** - 注意各服务商的 API 使用配额限制
 3. **火山引擎** - 需要启动后端服务器（`cd server && npm run dev`）
 4. **托盘行为** - 点击关闭按钮会最小化到托盘，右键托盘图标选择"退出"完全关闭
 5. **字幕窗口** - 字幕窗口始终置顶，锁定时鼠标可穿透
+6. **macOS 音频** - 系统音频捕获需要 macOS 13+（ScreenCaptureKit）
+7. **Linux 音频** - 需要 PulseAudio 进行系统音频回环捕获
+8. **开机自启动** - 仅支持 Windows 和 macOS
+9. **自动更新** - 支持 Windows、macOS 和 Linux AppImage
 
 ### 🛡️ Windows SmartScreen 安全警告
 

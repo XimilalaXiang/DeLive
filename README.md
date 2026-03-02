@@ -10,7 +10,9 @@ English | [简体中文](./README_ZH.md) | [繁體中文](./README_TW.md) | [日
 
 [![Version](https://img.shields.io/github/v/release/XimilalaXiang/DeLive?label=Version&color=blue)](https://github.com/XimilalaXiang/DeLive/releases)
 [![License](https://img.shields.io/github/license/XimilalaXiang/DeLive?label=License&color=green)](https://github.com/XimilalaXiang/DeLive/blob/main/LICENSE)
-[![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows)](https://github.com/XimilalaXiang/DeLive/releases)
+[![Platform](https://img.shields.io/badge/Windows-0078D6?logo=windows&logoColor=white)](https://github.com/XimilalaXiang/DeLive/releases)
+[![Platform](https://img.shields.io/badge/macOS-000000?logo=apple&logoColor=white)](https://github.com/XimilalaXiang/DeLive/releases)
+[![Platform](https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=black)](https://github.com/XimilalaXiang/DeLive/releases)
 [![Downloads](https://img.shields.io/github/downloads/XimilalaXiang/DeLive/total?label=Downloads&color=orange)](https://github.com/XimilalaXiang/DeLive/releases)
 [![Stars](https://img.shields.io/github/stars/XimilalaXiang/DeLive?style=social)](https://github.com/XimilalaXiang/DeLive)
 
@@ -47,7 +49,7 @@ Need to export subtitles or transcribed content for building knowledge bases, an
 
 - **Dark/Light Theme** - Comfortable viewing in any environment
 - **Modern Interface** - Clean, frameless design with custom title bar
-- **Auto-Start on Login** - Ready to use when your computer boots
+- **Auto-Start on Login** - Ready to use when your computer boots (Windows & macOS)
 - **System Tray Integration** - Runs quietly in the background
 - **Bilingual Interface** - Chinese and English UI language options
 - **Auto Updates** - Automatic detection and download of latest versions
@@ -171,13 +173,13 @@ npm run dev
 ### Build
 
 ```bash
-# Build Windows application
-npm run dist:win
+# Build for your current platform
+npm run dist:win       # Windows: .exe installer + portable
+npm run dist:mac       # macOS: .dmg + .zip
+npm run dist:linux     # Linux: .AppImage + .deb
 ```
 
-Built files are located in the `release/` directory:
-- `DeLive-x.x.x-x64.exe` - Installer
-- `DeLive-x.x.x-portable.exe` - Portable version
+Built files are located in the `release/` directory.
 
 ## 📖 Usage
 
@@ -251,7 +253,7 @@ DeLive/
 
 | Shortcut | Function |
 |----------|----------|
-| `Ctrl+Shift+D` | Show/Hide main window |
+| `Ctrl+Shift+D` / `Cmd+Shift+D` | Show/Hide main window |
 
 ## 🔧 Adding New ASR Providers
 
@@ -266,11 +268,15 @@ Refer to existing implementations (`SonioxProvider.ts` and `VolcProvider.ts`) fo
 
 ## ⚠️ Notes
 
-1. **System Requirements** - Windows 10/11 64-bit
+1. **System Requirements** - Windows 10+, macOS 13+ (Ventura), Linux (Ubuntu 20.04+ or equivalent)
 2. **API Quota** - Be aware of each provider's API usage limits
 3. **Volcengine** - Requires starting the backend server (`cd server && npm run dev`)
 4. **Tray Behavior** - Clicking close minimizes to tray, right-click tray icon and select "Exit" to fully close
 5. **Caption Window** - The caption window is always on top and mouse-transparent when locked
+6. **macOS Audio** - System audio capture requires macOS 13+ (ScreenCaptureKit)
+7. **Linux Audio** - Requires PulseAudio for system audio loopback capture
+8. **Auto-Launch** - Supported on Windows and macOS only
+9. **Auto-Update** - Supported on Windows, macOS, and Linux AppImage
 
 ### 🛡️ Windows SmartScreen Warning
 
