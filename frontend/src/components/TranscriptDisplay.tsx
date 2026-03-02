@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { FileText, Mic, AlertCircle, ArrowDown, Activity } from 'lucide-react'
+import { FileText, Mic, HelpCircle, ArrowDown, Activity, Volume2, Share2, Terminal } from 'lucide-react'
 import { useTranscriptStore } from '../stores/transcriptStore'
 
 export function TranscriptDisplay() {
@@ -129,17 +129,23 @@ export function TranscriptDisplay() {
                   <p className="text-xs mt-1">{t.transcript.resultsWillAppear}</p>
                 </div>
                 
-                <div className="mt-6 p-3 bg-amber-50/50 dark:bg-amber-950/10 rounded-lg border border-amber-100 dark:border-amber-900/30 text-left">
-                  <div className="flex items-start gap-2.5">
-                    <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
-                    <div className="space-y-1">
-                      <p className="text-xs font-medium text-amber-700 dark:text-amber-400">{t.transcript.noContentTitle}</p>
-                      <ul className="text-[10px] text-amber-600/80 dark:text-amber-500/80 list-disc list-inside space-y-0.5 leading-relaxed">
-                        {t.transcript.noContentTips.map((tip, index) => (
-                          <li key={index}>{tip}</li>
-                        ))}
-                      </ul>
-                    </div>
+                <div className="mt-6 w-full max-w-xs mx-auto">
+                  <div className="flex items-center gap-1.5 mb-2.5">
+                    <HelpCircle className="w-3.5 h-3.5 text-muted-foreground" />
+                    <p className="text-xs font-medium text-muted-foreground">{t.transcript.noContentTitle}</p>
+                  </div>
+                  <div className="space-y-1.5">
+                    {[Volume2, Share2, Terminal].map((Icon, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-muted/60 dark:bg-muted/40 border border-border/50 transition-colors hover:bg-muted"
+                      >
+                        <Icon className="w-3.5 h-3.5 text-primary/60 flex-shrink-0" />
+                        <span className="text-[11px] text-muted-foreground leading-tight">
+                          {t.transcript.noContentTips[index]}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
