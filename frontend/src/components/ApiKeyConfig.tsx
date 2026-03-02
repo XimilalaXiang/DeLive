@@ -676,19 +676,25 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
                       `}
                       title={t.settings?.[theme.labelKey as keyof typeof t.settings] as string || theme.id}
                     >
+                      {/* Mini palette preview: dark bg + primary accent */}
                       <span
                         className={`
-                          w-8 h-8 rounded-full transition-all border-2
+                          relative w-10 h-10 rounded-lg overflow-hidden transition-all border-2
                           ${colorTheme === theme.id
                             ? 'ring-2 ring-offset-2 ring-offset-background scale-110 border-transparent'
-                            : 'border-border hover:scale-105 hover:border-primary/50'
+                            : 'border-border hover:scale-105 hover:border-foreground/30'
                           }
                         `}
                         style={{
-                          backgroundColor: theme.preview,
+                          backgroundColor: theme.previewBg,
                           ...(colorTheme === theme.id ? { boxShadow: `0 0 0 2px ${theme.preview}` } : {}),
                         }}
-                      />
+                      >
+                        {/* Primary color bar */}
+                        <span className="absolute bottom-0 left-0 right-0 h-[40%]" style={{ backgroundColor: theme.preview }} />
+                        {/* Tiny accent dot */}
+                        <span className="absolute top-1.5 left-1.5 w-2 h-2 rounded-full" style={{ backgroundColor: theme.preview, opacity: 0.6 }} />
+                      </span>
                       <span className={`text-[10px] font-medium ${
                         colorTheme === theme.id ? 'text-primary' : 'text-muted-foreground'
                       }`}>
