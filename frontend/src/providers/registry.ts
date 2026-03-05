@@ -11,6 +11,7 @@ import type {
 } from '../types/asr'
 import { SonioxProvider } from './implementations/SonioxProvider'
 import { VolcProvider } from './implementations/VolcProvider'
+import { LocalOpenAIProvider } from './implementations/LocalOpenAIProvider'
 
 // Provider 注册表
 class ProviderRegistry {
@@ -73,6 +74,12 @@ function registerDefaultProviders(): void {
   providerRegistry.register({
     info: new VolcProvider().info,
     create: () => new VolcProvider(),
+  })
+
+  // 本地 OpenAI-compatible
+  providerRegistry.register({
+    info: new LocalOpenAIProvider().info,
+    create: () => new LocalOpenAIProvider(),
   })
 }
 

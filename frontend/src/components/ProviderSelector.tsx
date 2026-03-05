@@ -7,6 +7,7 @@ import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranscriptStore } from '../stores/transcriptStore'
 import type { ASRProviderInfo } from '../types/asr'
+import { buildProviderConnectConfig, isProviderConfigured } from '../utils/providerConfig'
 
 interface ProviderSelectorProps {
   onSelect?: (vendorId: string) => void
@@ -49,19 +50,12 @@ export function ProviderSelector({ onSelect }: ProviderSelectorProps) {
 
   const renderProviderItem = (provider: ASRProviderInfo) => {
     const isSelected = provider.id === currentVendor
-    const providerConfig = settings.providerConfigs?.[provider.id]
-    
-    // 根据提供商类型检查配置
-    const hasConfig = (() => {
-      if (!providerConfig) return false
-      if (provider.id === 'volc') {
-        // 火山引擎需要 appKey 和 accessKey
-        const volcConfig = providerConfig as { appKey?: string; accessKey?: string }
-        return !!(volcConfig.appKey && volcConfig.accessKey)
-      }
-      // 其他提供商使用 apiKey
-      return !!providerConfig.apiKey
-    })()
+    const providerConfig = buildProviderConnectConfig(
+      provider,
+      settings.providerConfigs?.[provider.id],
+      settings
+    )
+    const hasConfig = isProviderConfigured(provider, providerConfig)
 
     return (
       <button

@@ -25,6 +25,11 @@ export class VolcProvider extends BaseASRProvider {
     description: '字节跳动旗下语音识别服务，支持中文优化',
     type: 'cloud',
     supportsStreaming: true,
+    capabilities: {
+      audioInputMode: 'pcm16',
+      supportsConfigTest: true,
+    },
+    requiredConfigKeys: ['appKey', 'accessKey'],
     supportedLanguages: ['zh', 'en', 'ja', 'ko'],
     website: 'https://www.volcengine.com/product/speech',
     docsUrl: 'https://www.volcengine.com/docs/6561/80818',

@@ -7,10 +7,24 @@
 export enum ASRVendor {
   Soniox = 'soniox',
   Volc = 'volc',
+  LocalOpenAI = 'local_openai',
 }
 
 // 提供商类型：云端或本地
 export type ProviderType = 'cloud' | 'local'
+
+// 音频输入模式
+export type AudioInputMode = 'media-recorder' | 'pcm16'
+
+// 提供商能力定义
+export interface ASRProviderCapabilities {
+  // 需要的音频输入格式
+  audioInputMode: AudioInputMode
+  // 是否主要通过 onTokens 产出中间结果
+  prefersTokenEvents?: boolean
+  // 是否支持在设置页进行连通性测试
+  supportsConfigTest?: boolean
+}
 
 // 提供商信息
 export interface ASRProviderInfo {
@@ -19,6 +33,9 @@ export interface ASRProviderInfo {
   description: string
   type: ProviderType
   supportsStreaming: boolean
+  capabilities: ASRProviderCapabilities
+  // 必填配置字段（对应 configFields.key）
+  requiredConfigKeys: string[]
   supportedLanguages: string[]
   website: string
   docsUrl?: string
@@ -66,7 +83,7 @@ export interface ASRError {
 
 // 提供商配置（通用基础）
 export interface BaseProviderConfig {
-  apiKey: string
+  apiKey?: string
   languageHints?: string[]
 }
 

@@ -19,7 +19,7 @@ import {
   saveLanguage
 } from '../i18n'
 import { providerRegistry } from '../providers'
-import type { ASRProviderInfo } from '../types/asr'
+import type { ASRProviderInfo, ASRVendor } from '../types/asr'
 import { type ColorThemeId, defaultColorTheme, applyColorThemeToDOM } from '../themes'
 
 // 主题类型定义
@@ -354,6 +354,8 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
   settings: { apiKey: '', languageHints: ['zh', 'en'], currentVendor: 'soniox', providerConfigs: {}, captionStyle: defaultCaptionStyle },
   loadSettings: () => {
     const settings = getSettings()
+    const registeredVendors = providerRegistry.getAllProviders().map(provider => provider.id)
+
     // 兼容旧版配置：如果有 apiKey 但没有 providerConfigs，则迁移到 soniox 配置
     if (settings.apiKey && (!settings.providerConfigs || !settings.providerConfigs['soniox'])) {
       settings.currentVendor = 'soniox'
@@ -365,6 +367,11 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
         },
       }
     }
+
+    if (!settings.currentVendor || !registeredVendors.includes(settings.currentVendor as ASRVendor)) {
+      settings.currentVendor = registeredVendors[0] || 'soniox'
+    }
+
     set({
       settings: {
         ...settings,
@@ -389,12 +396,14 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
   updateProviderConfig: (vendorId, config) => {
     const { settings } = get()
     const currentConfig = settings.providerConfigs?.[vendorId] || { apiKey: '' }
+    const providerInfo = providerRegistry.getInfo(vendorId as ASRVendor)
+    const shouldSyncLegacyApiKey = !!providerInfo?.requiredConfigKeys.includes('apiKey')
     const newProviderConfigs = {
       ...settings.providerConfigs,
       [vendorId]: { ...currentConfig, ...config },
     }
     // 同时更新顶层 apiKey 以保持兼容
-    const newApiKey = vendorId === settings.currentVendor
+    const newApiKey = vendorId === settings.currentVendor && shouldSyncLegacyApiKey
       ? (config.apiKey ?? currentConfig.apiKey ?? settings.apiKey)
       : settings.apiKey
     const newSettings = {

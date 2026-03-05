@@ -27,6 +27,12 @@ export class SonioxProvider extends BaseASRProvider {
     description: '高精度实时语音识别，支持 60+ 种语言',
     type: 'cloud',
     supportsStreaming: true,
+    capabilities: {
+      audioInputMode: 'media-recorder',
+      prefersTokenEvents: true,
+      supportsConfigTest: true,
+    },
+    requiredConfigKeys: ['apiKey'],
     supportedLanguages: ['zh', 'en', 'ja', 'ko', 'es', 'fr', 'de', 'it', 'pt', 'ru'],
     website: 'https://soniox.com',
     docsUrl: 'https://soniox.com/docs',
@@ -67,6 +73,7 @@ export class SonioxProvider extends BaseASRProvider {
       this.emitError(this.createError('MISSING_API_KEY', '请提供 Soniox API Key'))
       return
     }
+    const apiKey = config.apiKey
 
     this._config = config
     this.setState('connecting')
@@ -82,10 +89,10 @@ export class SonioxProvider extends BaseASRProvider {
           
           // 发送配置
           const sonioxConfig: SonioxConfig = {
-            api_key: config.apiKey,
+            api_key: apiKey,
             model: (config.model as string) || SONIOX_DEFAULT_MODEL,
             audio_format: 'auto',
-            language_hints: config.languageHints as string[] || ['zh', 'en'],
+            language_hints: (config.languageHints as string[]) || ['zh', 'en'],
             enable_language_identification: true,
             enable_endpoint_detection: true,
           }

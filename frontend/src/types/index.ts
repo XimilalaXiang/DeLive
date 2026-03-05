@@ -63,7 +63,7 @@ export type RecordingState = 'idle' | 'starting' | 'recording' | 'stopping'
 
 // 提供商配置类型
 export interface ProviderConfigData {
-  apiKey: string
+  apiKey?: string
   languageHints?: string[]
   [key: string]: unknown
 }

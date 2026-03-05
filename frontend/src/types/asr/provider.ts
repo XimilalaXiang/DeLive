@@ -12,7 +12,7 @@ import type {
 
 // Provider 配置接口
 export interface ProviderConfig {
-  apiKey: string
+  apiKey?: string
   languageHints?: string[]
   model?: string
   // 允许提供商特定的额外配置

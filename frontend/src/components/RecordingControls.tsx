@@ -1,13 +1,14 @@
 import { Mic, Square, Loader2 } from 'lucide-react'
 import { useTranscriptStore } from '../stores/transcriptStore'
 import { useASR } from '../hooks/useASR'
+import { buildProviderConnectConfig, isProviderConfigured } from '../utils/providerConfig'
 
 interface RecordingControlsProps {
   onError: (message: string) => void
 }
 
 export function RecordingControls({ onError }: RecordingControlsProps) {
-  const { recordingState, settings, currentTranscript, t } = useTranscriptStore()
+  const { recordingState, settings, currentTranscript, t, availableProviders } = useTranscriptStore()
   const { startRecording, stopRecording } = useASR({
     onError,
     onStarted: () => console.log('[UI] Recording started'),
@@ -16,18 +17,10 @@ export function RecordingControls({ onError }: RecordingControlsProps) {
   
   // 获取当前提供商的配置
   const currentVendor = settings.currentVendor || 'soniox'
+  const currentProvider = availableProviders.find(p => p.id === currentVendor)
   const currentConfig = settings.providerConfigs?.[currentVendor]
-  
-  // 根据提供商类型检查配置
-  const hasApiKey = (() => {
-    if (currentVendor === 'volc') {
-      // 火山引擎需要 appKey 和 accessKey
-      const volcConfig = currentConfig as { appKey?: string; accessKey?: string } | undefined
-      return !!(volcConfig?.appKey && volcConfig?.accessKey)
-    }
-    // 其他提供商使用 apiKey
-    return !!(currentConfig?.apiKey || settings.apiKey)
-  })()
+  const normalizedConfig = buildProviderConnectConfig(currentProvider, currentConfig, settings)
+  const hasApiKey = isProviderConfigured(currentProvider, normalizedConfig)
 
   const isIdle = recordingState === 'idle'
   const isRecording = recordingState === 'recording'

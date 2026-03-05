@@ -3,7 +3,16 @@ import { Settings, Eye, EyeOff, Check, X, Key, Download, Upload, AlertCircle, Po
 import { useTranscriptStore } from '../stores/transcriptStore'
 import { exportAllData, validateBackupData, importDataOverwrite, importDataMerge } from '../utils/storage'
 import { ProviderSelector } from './ProviderSelector'
+import { LocalModelSetupGuide } from './LocalModelSetupGuide'
 import type { ASRProviderInfo, ProviderConfigData } from '../types'
+import {
+  buildProviderConnectConfig,
+  getMissingRequiredConfigLabels,
+} from '../utils/providerConfig'
+import {
+  LOCAL_OPENAI_DEFAULT_BASE_URL,
+  LOCAL_OPENAI_DEFAULT_MODEL,
+} from '../types/asr/vendors/localOpenAI'
 import { colorThemes } from '../themes'
 
 interface ApiKeyConfigProps {
@@ -28,18 +37,24 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
   
   const currentVendor = settings.currentVendor || 'soniox'
   const currentProvider = availableProviders.find(p => p.id === currentVendor)
-  const currentConfig: ProviderConfigData = settings.providerConfigs?.[currentVendor] || { apiKey: '' }
+  const currentConfig = buildProviderConnectConfig(
+    currentProvider,
+    settings.providerConfigs?.[currentVendor],
+    settings
+  ) as ProviderConfigData
   
   // 通用字段
-  const [apiKey, setApiKey] = useState(currentConfig.apiKey || settings.apiKey || '')
+  const [apiKey, setApiKey] = useState(currentConfig.apiKey || '')
   const [showApiKey, setShowApiKey] = useState(false)
   const [languageHints, setLanguageHints] = useState(
     (currentConfig.languageHints || settings.languageHints || ['zh', 'en']).join(', ')
   )
   
-  // 火山引擎特有字段
-  const [appKey, setAppKey] = useState((currentConfig as ProviderConfigData).appKey as string || '')
-  const [accessKey, setAccessKey] = useState((currentConfig as ProviderConfigData).accessKey as string || '')
+  // 提供商特有字段
+  const [appKey, setAppKey] = useState((currentConfig.appKey as string) || '')
+  const [accessKey, setAccessKey] = useState((currentConfig.accessKey as string) || '')
+  const [baseUrl, setBaseUrl] = useState((currentConfig.baseUrl as string) || LOCAL_OPENAI_DEFAULT_BASE_URL)
+  const [model, setModel] = useState((currentConfig.model as string) || LOCAL_OPENAI_DEFAULT_MODEL)
   const [showAppKey, setShowAppKey] = useState(false)
   const [showAccessKey, setShowAccessKey] = useState(false)
   
@@ -56,16 +71,18 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
   
   // 当提供商改变时更新表单
   useEffect(() => {
-    const config: ProviderConfigData = settings.providerConfigs?.[currentVendor] || { apiKey: '' }
+    const config = buildProviderConnectConfig(
+      currentProvider,
+      settings.providerConfigs?.[currentVendor],
+      settings
+    ) as ProviderConfigData
     setApiKey(config.apiKey || '')
     setLanguageHints(((config.languageHints as string[]) || settings.languageHints || ['zh', 'en']).join(', '))
-    
-    // 火山引擎特有字段
-    if (currentVendor === 'volc') {
-      setAppKey((config as ProviderConfigData).appKey as string || '')
-      setAccessKey((config as ProviderConfigData).accessKey as string || '')
-    }
-  }, [currentVendor, settings])
+    setAppKey((config.appKey as string) || '')
+    setAccessKey((config.accessKey as string) || '')
+    setBaseUrl((config.baseUrl as string) || LOCAL_OPENAI_DEFAULT_BASE_URL)
+    setModel((config.model as string) || LOCAL_OPENAI_DEFAULT_MODEL)
+  }, [currentVendor, currentProvider, settings])
 
   // 加载开机自启动状态和应用版本（仅 Electron 环境）
   useEffect(() => {
@@ -115,6 +132,10 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
 
   // 测试 API 配置
   const handleTestConfig = async () => {
+    if (!currentProvider?.capabilities.supportsConfigTest) {
+      return
+    }
+
     setTestStatus('testing')
     setTestMessage('')
 
@@ -123,6 +144,8 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
         await testSonioxConfig()
       } else if (currentVendor === 'volc') {
         await testVolcConfig()
+      } else if (currentVendor === 'local_openai') {
+        await testLocalOpenAIConfig()
       } else {
         throw new Error('不支持的提供商')
       }
@@ -277,34 +300,80 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
     })
   }
 
+  // 测试本地 OpenAI-compatible 配置
+  const testLocalOpenAIConfig = async () => {
+    const normalizedBaseUrl = baseUrl.trim().replace(/\/+$/, '')
+    if (!normalizedBaseUrl) {
+      throw new Error('请输入 Base URL')
+    }
+    if (!model.trim()) {
+      throw new Error('请输入模型名称')
+    }
+
+    let url: URL
+    try {
+      url = new URL(normalizedBaseUrl)
+    } catch {
+      throw new Error('Base URL 格式不正确')
+    }
+
+    const headers: HeadersInit = {}
+    if (apiKey.trim()) {
+      headers.Authorization = `Bearer ${apiKey.trim()}`
+    }
+
+    const response = await fetch(`${url.toString().replace(/\/+$/, '')}/v1/models`, {
+      method: 'GET',
+      headers,
+    })
+
+    if (!response.ok) {
+      const details = await response.text().catch(() => '')
+      throw new Error(details || `服务返回错误: ${response.status}`)
+    }
+  }
+
   const handleSave = () => {
     const hints = languageHints
       .split(',')
       .map((s: string) => s.trim())
       .filter((s: string) => s.length > 0)
     
-    // 根据提供商构建配置
+    const normalizedHints = hints.length > 0 ? hints : ['zh', 'en']
     let providerConfig: ProviderConfigData = {
       apiKey: apiKey.trim(),
-      languageHints: hints.length > 0 ? hints : ['zh', 'en'],
+      languageHints: normalizedHints,
     }
     
-    // 火山引擎特有配置
     if (currentVendor === 'volc') {
       providerConfig = {
         ...providerConfig,
         appKey: appKey.trim(),
         accessKey: accessKey.trim(),
       }
+    } else if (currentVendor === 'local_openai') {
+      providerConfig = {
+        ...providerConfig,
+        baseUrl: baseUrl.trim() || LOCAL_OPENAI_DEFAULT_BASE_URL,
+        model: model.trim() || LOCAL_OPENAI_DEFAULT_MODEL,
+      }
+    }
+
+    const missingLabels = getMissingRequiredConfigLabels(currentProvider, providerConfig)
+    if (missingLabels.length > 0) {
+      setTestStatus('error')
+      setTestMessage(`请先填写: ${missingLabels.join('、')}`)
+      return
     }
     
     // 更新当前提供商的配置
     updateProviderConfig(currentVendor, providerConfig)
     
     // 同时更新全局设置以保持兼容
+    const shouldSyncLegacyApiKey = currentProvider?.requiredConfigKeys.includes('apiKey')
     updateSettings({
-      apiKey: apiKey.trim(),
-      languageHints: hints.length > 0 ? hints : ['zh', 'en'],
+      apiKey: shouldSyncLegacyApiKey ? apiKey.trim() : settings.apiKey,
+      languageHints: normalizedHints,
     })
     onClose()
   }
@@ -316,6 +385,8 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
         return 'https://console.soniox.com'
       case 'volc':
         return 'https://console.volcengine.com/speech/app'
+      case 'local_openai':
+        return 'https://platform.openai.com/docs/api-reference/audio'
       default:
         return provider?.website || '#'
     }
@@ -440,6 +511,79 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
         </>
       )
     }
+
+    // 本地 OpenAI-compatible 配置
+    if (currentVendor === 'local_openai') {
+      return (
+        <>
+          <div className="space-y-3">
+            <label className="text-sm font-medium leading-none flex items-center gap-2">
+              <Key className="w-3.5 h-3.5 text-muted-foreground" />
+              Base URL
+            </label>
+            <input
+              type="text"
+              value={baseUrl}
+              onChange={(e) => setBaseUrl(e.target.value)}
+              placeholder={LOCAL_OPENAI_DEFAULT_BASE_URL}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono"
+            />
+            <p className="text-[10px] text-muted-foreground">
+              例如：`http://127.0.0.1:11434`（需实现 `/v1/audio/transcriptions`）
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-sm font-medium leading-none flex items-center gap-2">
+              <Cpu className="w-3.5 h-3.5 text-muted-foreground" />
+              模型名称
+            </label>
+            <input
+              type="text"
+              value={model}
+              onChange={(e) => setModel(e.target.value)}
+              placeholder={LOCAL_OPENAI_DEFAULT_MODEL}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono"
+            />
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-sm font-medium leading-none flex items-center gap-2">
+              <Key className="w-3.5 h-3.5 text-muted-foreground" />
+              API Key（可选）
+            </label>
+            <div className="relative group">
+              <input
+                type={showApiKey ? 'text' : 'password'}
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                placeholder="本地服务无需可留空"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pr-10 font-mono"
+              />
+              <button
+                type="button"
+                onClick={() => setShowApiKey(!showApiKey)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            <p className="text-[10px] text-muted-foreground">
+              若本地服务启用了鉴权，请填写 API Key。
+            </p>
+          </div>
+
+          <LocalModelSetupGuide
+            baseUrl={baseUrl}
+            model={model}
+            apiKey={apiKey}
+            onModelChange={setModel}
+          />
+
+          {renderTestButton()}
+        </>
+      )
+    }
     
     // 其他提供商使用单一 API Key
     return (
@@ -479,6 +623,10 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
 
   // 渲染测试按钮
   const renderTestButton = () => {
+    if (!currentProvider?.capabilities.supportsConfigTest) {
+      return null
+    }
+
     return (
       <div className="space-y-3">
         <button

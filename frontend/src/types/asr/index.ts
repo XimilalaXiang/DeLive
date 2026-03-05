@@ -9,3 +9,4 @@ export * from './provider'
 // 各提供商特定类型（仅流式提供商）
 export * from './vendors/soniox'
 export * from './vendors/volc'
+export * from './vendors/localOpenAI'

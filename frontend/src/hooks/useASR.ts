@@ -5,9 +5,21 @@
 
 import { useCallback, useRef, useEffect } from 'react'
 import { useTranscriptStore } from '../stores/transcriptStore'
-import { createProvider } from '../providers'
+import { createProvider, providerRegistry } from '../providers'
 import { AudioProcessor } from '../utils/audioProcessor'
-import type { ASRProvider, ASRVendor, TranscriptToken, ASRError } from '../types/asr'
+import {
+  buildProviderConnectConfig,
+  getMissingRequiredConfigLabels,
+} from '../utils/providerConfig'
+import type {
+  ASRProvider,
+  ASRVendor,
+  TranscriptToken,
+  ASRError,
+  ASRProviderInfo,
+  ProviderConfig,
+} from '../types/asr'
+import type { ProviderConfigData } from '../types'
 
 interface UseASROptions {
   onError?: (message: string) => void
@@ -48,7 +60,7 @@ export function useASR(options: UseASROptions = {}) {
   const lastRestartTimeRef = useRef(0)
   const selectedVendorRef = useRef<ASRVendor | null>(null)
   const deviceChangeCleanupRef = useRef<(() => void) | null>(null)
-  const stopRecordingRef = useRef<() => void>(() => {})
+  const stopRecordingRef = useRef<() => Promise<void>>(async () => {})
 
   const {
     settings,
@@ -58,56 +70,102 @@ export function useASR(options: UseASROptions = {}) {
     endCurrentSession,
   } = useTranscriptStore()
 
+  const getProviderSetup = useCallback((vendorId: ASRVendor): {
+    providerInfo: ASRProviderInfo
+    connectConfig: ProviderConfig
+  } => {
+    const providerInfo = providerRegistry.getInfo(vendorId)
+    if (!providerInfo) {
+      throw new Error(`未找到提供商: ${vendorId}`)
+    }
+
+    const providerConfig = settings.providerConfigs?.[vendorId]
+    const connectConfig = buildProviderConnectConfig(providerInfo, providerConfig, settings)
+    return { providerInfo, connectConfig }
+  }, [settings])
+
+  const disconnectProvider = useCallback(async () => {
+    const provider = providerRef.current
+    if (!provider) return
+
+    providerRef.current = null
+    try {
+      await provider.disconnect()
+    } catch (error) {
+      console.warn('[useASR] Provider 断开连接失败:', error)
+    } finally {
+      provider.removeAllListeners()
+    }
+  }, [])
+
+  const startAudioPipeline = useCallback(async (provider: ASRProvider, stream: MediaStream) => {
+    if (provider.info.capabilities.audioInputMode === 'pcm16') {
+      console.log('[useASR] 使用 AudioProcessor 处理音频')
+      const audioProcessor = new AudioProcessor({ sampleRate: 16000, channels: 1 })
+      audioProcessorRef.current = audioProcessor
+      await audioProcessor.start(stream, (pcmData) => {
+        if (providerRef.current) {
+          providerRef.current.sendAudio(pcmData)
+        }
+      })
+      return
+    }
+
+    console.log('[useASR] 使用 MediaRecorder 处理音频')
+    const mediaRecorder = createCompatibleMediaRecorder(stream)
+    mediaRecorderRef.current = mediaRecorder
+    mediaRecorder.ondataavailable = (event) => {
+      if (event.data.size > 0 && providerRef.current) {
+        providerRef.current.sendAudio(event.data)
+      }
+    }
+    mediaRecorder.onerror = (event) => {
+      console.error('[useASR] MediaRecorder 错误:', event)
+    }
+    mediaRecorder.start(100)
+    console.log('[useASR] MediaRecorder 已启动')
+  }, [])
+
   // 清理函数
-  const cleanup = useCallback(() => {
-    // 清理设备变化监听
+  const cleanup = useCallback(async () => {
     if (deviceChangeCleanupRef.current) {
       deviceChangeCleanupRef.current()
       deviceChangeCleanupRef.current = null
     }
     selectedVendorRef.current = null
 
-    // 停止音频处理器
     if (audioProcessorRef.current) {
       audioProcessorRef.current.stop()
       audioProcessorRef.current = null
     }
 
-    // 停止 MediaRecorder
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop()
     }
     mediaRecorderRef.current = null
 
-    // 停止媒体流
     if (mediaStreamRef.current) {
       mediaStreamRef.current.getTracks().forEach(track => track.stop())
       mediaStreamRef.current = null
     }
 
-    // 断开 Provider
-    if (providerRef.current) {
-      providerRef.current.disconnect()
-      providerRef.current.removeAllListeners()
-      providerRef.current = null
-    }
-  }, [])
+    await disconnectProvider()
+  }, [disconnectProvider])
 
   // 组件卸载时清理
   useEffect(() => {
     return () => {
-      cleanup()
+      void cleanup()
     }
   }, [cleanup])
 
   // 停止录制
-  const stopRecording = useCallback(() => {
+  const stopRecording = useCallback(async () => {
     console.log('[useASR] 停止录制...')
     setRecordingState('stopping')
 
-    cleanup()
+    await cleanup()
 
-    // 结束当前会话
     endCurrentSession()
     setRecordingState('idle')
     console.log('[useASR] 录制已停止')
@@ -117,7 +175,7 @@ export function useASR(options: UseASROptions = {}) {
   stopRecordingRef.current = stopRecording
 
   // 设置 provider 事件监听的辅助函数
-  const setupProviderListeners = useCallback((provider: ASRProvider, vendorId: ASRVendor) => {
+  const setupProviderListeners = useCallback((provider: ASRProvider) => {
     provider.on('onTokens', (tokens: TranscriptToken[]) => {
       console.log('[useASR] 收到 tokens:', tokens.length)
       const legacyTokens = tokens.map(t => ({
@@ -143,13 +201,12 @@ export function useASR(options: UseASROptions = {}) {
       }
     })
 
-    if (vendorId !== 'soniox') {
+    if (!provider.info.capabilities.prefersTokenEvents) {
       provider.on('onPartial', (text: string) => {
         console.log('[useASR] 收到 partial:', text.substring(0, 50))
         const state = useTranscriptStore.getState()
         const { finalTranscript, setTranscript } = state
         const fullText = finalTranscript + text
-        console.log('[useASR] onPartial - finalTranscript:', finalTranscript.substring(0, 50), 'partial:', text.substring(0, 50))
         setTranscript(finalTranscript, text)
         if (
           fullText !== lastCaptionRef.current.text ||
@@ -163,8 +220,6 @@ export function useASR(options: UseASROptions = {}) {
 
     provider.on('onFinal', (text: string) => {
       console.log('[useASR] 收到 final:', text.substring(0, 50))
-      const beforeState = useTranscriptStore.getState()
-      console.log('[useASR] onFinal 前 - finalTranscript:', beforeState.finalTranscript.substring(0, 50), 'finalTokens 数量:', beforeState.finalTokens.length)
       processTokens([{
         text,
         is_final: true,
@@ -172,7 +227,6 @@ export function useASR(options: UseASROptions = {}) {
         end_ms: 0,
       }])
       const afterState = useTranscriptStore.getState()
-      console.log('[useASR] onFinal 后 - finalTranscript:', afterState.finalTranscript.substring(0, 50), 'finalTokens 数量:', afterState.finalTokens.length)
       if (
         afterState.finalTranscript !== lastCaptionRef.current.text ||
         lastCaptionRef.current.isFinal !== true
@@ -185,7 +239,7 @@ export function useASR(options: UseASROptions = {}) {
     provider.on('onError', (error: ASRError) => {
       console.error('[useASR] Provider 错误:', error)
       options.onError?.(`${error.code}: ${error.message}`)
-      stopRecordingRef.current()
+      void stopRecordingRef.current()
     })
 
     provider.on('onFinished', () => {
@@ -215,7 +269,8 @@ export function useASR(options: UseASROptions = {}) {
     lastRestartTimeRef.current = now
 
     try {
-      // 1. 停止旧的音频流和处理器
+      const { providerInfo, connectConfig } = getProviderSetup(vendorId)
+
       if (audioProcessorRef.current) {
         audioProcessorRef.current.stop()
         audioProcessorRef.current = null
@@ -229,17 +284,13 @@ export function useASR(options: UseASROptions = {}) {
         mediaStreamRef.current = null
       }
 
-      // 2. 对于 MediaRecorder 提供商（如 Soniox），需要重连 provider
-      if (vendorId !== 'volc' && providerRef.current) {
-        providerRef.current.disconnect()
-        providerRef.current.removeAllListeners()
-        providerRef.current = null
+      const requiresReconnect = providerInfo.capabilities.audioInputMode !== 'pcm16'
+      if (requiresReconnect) {
+        await disconnectProvider()
       }
 
-      // 等待系统音频设备稳定
       await new Promise(resolve => setTimeout(resolve, 1000))
 
-      // 3. 重新获取音频流
       console.log('[useASR] 重新请求屏幕共享...')
       const displayStream = await navigator.mediaDevices.getDisplayMedia({
         video: true,
@@ -259,96 +310,72 @@ export function useASR(options: UseASROptions = {}) {
       displayStream.getVideoTracks().forEach(track => track.stop())
       mediaStreamRef.current = new MediaStream(audioTracks)
 
-      // 4. 重新连接 provider（如果需要）
-      if (vendorId !== 'volc') {
-        const providerConfig = settings.providerConfigs?.[vendorId]
+      if (requiresReconnect || !providerRef.current) {
         const provider = createProvider(vendorId)
         if (!provider) throw new Error(`未找到提供商: ${vendorId}`)
         providerRef.current = provider
-        setupProviderListeners(provider, vendorId)
-        await provider.connect({
-          apiKey: providerConfig?.apiKey || '',
-          languageHints: (providerConfig?.languageHints as string[]) || ['zh', 'en'],
-          ...(providerConfig || {}),
-        })
+        setupProviderListeners(provider)
+        await provider.connect(connectConfig)
       }
 
-      // 5. 重新启动音频处理
-      if (vendorId === 'volc') {
-        const audioProcessor = new AudioProcessor({ sampleRate: 16000, channels: 1 })
-        audioProcessorRef.current = audioProcessor
-        await audioProcessor.start(mediaStreamRef.current, (pcmData) => {
-          if (providerRef.current) {
-            providerRef.current.sendAudio(pcmData)
-          }
-        })
-      } else {
-        const mediaRecorder = createCompatibleMediaRecorder(mediaStreamRef.current)
-        mediaRecorderRef.current = mediaRecorder
-        mediaRecorder.ondataavailable = (event) => {
-          if (event.data.size > 0 && providerRef.current) {
-            providerRef.current.sendAudio(event.data)
-          }
-        }
-        mediaRecorder.onerror = (event) => {
-          console.error('[useASR] MediaRecorder 错误:', event)
-        }
-        mediaRecorder.start(100)
+      if (!providerRef.current) {
+        throw new Error('Provider 未初始化')
       }
+      await startAudioPipeline(providerRef.current, mediaStreamRef.current)
 
-      // 6. 重新监听音频轨道结束
       audioTracks[0].onended = () => {
         console.log('[useASR] 音频轨道结束（用户停止共享）')
-        stopRecordingRef.current()
+        void stopRecordingRef.current()
       }
 
       console.log('[useASR] 音频重新捕获成功')
     } catch (error) {
       console.error('[useASR] 音频重新捕获失败:', error)
-      cleanup()
+      await cleanup()
       endCurrentSession()
       setRecordingState('idle')
       options.onError?.('音频设备切换后重新捕获失败，录制已停止')
     } finally {
       isRestartingRef.current = false
     }
-  }, [settings, processTokens, options, cleanup, endCurrentSession, setRecordingState, setupProviderListeners])
+  }, [
+    getProviderSetup,
+    setupProviderListeners,
+    startAudioPipeline,
+    cleanup,
+    endCurrentSession,
+    setRecordingState,
+    options,
+    disconnectProvider,
+  ])
 
   // 开始录制
   const startRecording = useCallback(async () => {
     lastCaptionRef.current = { text: '', isFinal: false }
 
     const vendorId = (settings.currentVendor || 'soniox') as ASRVendor
-    const providerConfig = settings.providerConfigs?.[vendorId]
+    const { providerInfo, connectConfig } = getProviderSetup(vendorId)
+    const missingLabels = getMissingRequiredConfigLabels(
+      providerInfo,
+      connectConfig as ProviderConfigData
+    )
 
-    if (vendorId === 'volc') {
-      const volcConfig = providerConfig as { appKey?: string; accessKey?: string } | undefined
-      if (!volcConfig?.appKey || !volcConfig?.accessKey) {
-        options.onError?.('请先配置火山引擎的 App Key 和 Access Key')
-        return
-      }
-    } else {
-      if (!providerConfig?.apiKey) {
-        options.onError?.('请先配置 API 密钥')
-        return
-      }
+    if (missingLabels.length > 0) {
+      options.onError?.(`请先配置: ${missingLabels.join('、')}`)
+      return
     }
 
     setRecordingState('starting')
     console.log(`[useASR] 开始录制流程，使用提供商: ${vendorId}`)
 
     try {
-      // 1. 创建 Provider 实例
       const provider = createProvider(vendorId)
       if (!provider) {
         throw new Error(`未找到提供商: ${vendorId}`)
       }
       providerRef.current = provider
+      setupProviderListeners(provider)
 
-      // 2. 设置事件监听
-      setupProviderListeners(provider, vendorId)
-
-      // 3. 请求屏幕共享
       console.log('[useASR] 请求屏幕共享...')
       const displayStream = await navigator.mediaDevices.getDisplayMedia({
         video: true,
@@ -370,50 +397,18 @@ export function useASR(options: UseASROptions = {}) {
       displayStream.getVideoTracks().forEach(track => track.stop())
       mediaStreamRef.current = new MediaStream(audioTracks)
 
-      // 4. 连接 Provider
       console.log('[useASR] 连接 Provider...')
-      await provider.connect({
-        apiKey: providerConfig?.apiKey || '',
-        languageHints: (providerConfig?.languageHints as string[]) || ['zh', 'en'],
-        ...(providerConfig || {}),
-      })
+      await provider.connect(connectConfig)
 
-      // 5. 根据提供商类型选择音频处理方式
-      if (vendorId === 'volc') {
-        console.log('[useASR] 使用 AudioProcessor 处理音频（火山引擎）')
-        const audioProcessor = new AudioProcessor({ sampleRate: 16000, channels: 1 })
-        audioProcessorRef.current = audioProcessor
-        await audioProcessor.start(mediaStreamRef.current, (pcmData) => {
-          if (providerRef.current) {
-            providerRef.current.sendAudio(pcmData)
-          }
-        })
-      } else {
-        console.log('[useASR] 使用 MediaRecorder 处理音频')
-        const mediaRecorder = createCompatibleMediaRecorder(mediaStreamRef.current)
-        mediaRecorderRef.current = mediaRecorder
-        mediaRecorder.ondataavailable = (event) => {
-          if (event.data.size > 0 && providerRef.current) {
-            providerRef.current.sendAudio(event.data)
-          }
-        }
-        mediaRecorder.onerror = (event) => {
-          console.error('[useASR] MediaRecorder 错误:', event)
-        }
-        mediaRecorder.start(100)
-        console.log('[useASR] MediaRecorder 已启动')
-      }
+      await startAudioPipeline(provider, mediaStreamRef.current)
 
-      // 开始新会话
       startNewSession()
       setRecordingState('recording')
       options.onStarted?.()
       console.log('[useASR] 录制已开始')
 
-      // 保存当前 vendorId 供 restartCapture 使用
       selectedVendorRef.current = vendorId
 
-      // 设置音频设备变化监听
       let deviceChangeTimer: ReturnType<typeof setTimeout> | null = null
       const handleDeviceChange = () => {
         console.log('[useASR] 检测到音频设备变化')
@@ -421,7 +416,7 @@ export function useASR(options: UseASROptions = {}) {
         deviceChangeTimer = setTimeout(() => {
           const currentState = useTranscriptStore.getState().recordingState
           if (currentState === 'recording') {
-            restartCapture('devicechange')
+            void restartCapture('devicechange')
           }
         }, 1500)
       }
@@ -432,15 +427,13 @@ export function useASR(options: UseASROptions = {}) {
         if (deviceChangeTimer) clearTimeout(deviceChangeTimer)
       }
 
-      // 监听音频轨道结束
       audioTracks[0].onended = () => {
         console.log('[useASR] 音频轨道结束（用户停止共享）')
-        stopRecordingRef.current()
+        void stopRecordingRef.current()
       }
-
     } catch (error) {
       console.error('[useASR] 启动失败:', error)
-      cleanup()
+      await cleanup()
       setRecordingState('idle')
 
       if (error instanceof Error) {
@@ -453,7 +446,7 @@ export function useASR(options: UseASROptions = {}) {
         options.onError?.('启动录制失败')
       }
     }
-  }, [settings, processTokens, setRecordingState, startNewSession, options, cleanup, setupProviderListeners, restartCapture])
+  }, [settings, getProviderSetup, setRecordingState, startNewSession, options, cleanup, setupProviderListeners, startAudioPipeline, restartCapture])
 
   return {
     startRecording,

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Settings, Waves } from 'lucide-react'
 import { useTranscriptStore } from './stores/transcriptStore'
+import { buildProviderConnectConfig, isProviderConfigured } from './utils/providerConfig'
 import { 
   ApiKeyConfig, 
   TranscriptDisplay, 
@@ -20,7 +21,7 @@ function App() {
   const [showSourcePicker, setShowSourcePicker] = useState(false)
   const [toasts, setToasts] = useState<ToastMessage[]>([])
   const [isInitialized, setIsInitialized] = useState(false)
-  const { loadSessions, loadSettings, loadTags, settings, initTheme, t } = useTranscriptStore()
+  const { loadSessions, loadSettings, loadTags, settings, initTheme, t, availableProviders } = useTranscriptStore()
   const hasCheckedApiKey = useRef(false)
 
   // 初始化加载
@@ -64,18 +65,10 @@ function App() {
 
   // 检查当前提供商是否已配置
   const currentVendor = settings.currentVendor || 'soniox'
+  const currentProvider = availableProviders.find(p => p.id === currentVendor)
   const currentConfig = settings.providerConfigs?.[currentVendor]
-  
-  // 根据提供商类型检查配置
-  const hasApiKey = (() => {
-    if (currentVendor === 'volc') {
-      // 火山引擎需要 appKey 和 accessKey
-      const volcConfig = currentConfig as { appKey?: string; accessKey?: string } | undefined
-      return !!(volcConfig?.appKey && volcConfig?.accessKey)
-    }
-    // 其他提供商使用 apiKey
-    return !!(currentConfig?.apiKey || settings.apiKey)
-  })()
+  const normalizedConfig = buildProviderConnectConfig(currentProvider, currentConfig, settings)
+  const hasApiKey = isProviderConfigured(currentProvider, normalizedConfig)
 
   // 只在初始化完成后检查一次是否需要弹出设置窗口
   useEffect(() => {
