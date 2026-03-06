@@ -1,25 +1,29 @@
-Expected bundled binary names for `local_whisper_cpp`:
+`whisper.cpp` support in DeLive has two asset locations:
+
+1. **Build-time bundled asset**
+   - Repository path: `local-runtimes/whisper_cpp/whisper-server(.exe)`
+   - If present during packaging, it is copied into the final app resources.
+
+2. **Runtime-managed assets**
+   - Stored under Electron `userData/local-runtimes/whisper_cpp/`
+   - DeLive can import or download binaries and models here from the setup UI.
+   - Managed model files are stored under `models/`.
+
+Expected canonical binary names:
 
 - Windows: `whisper-server.exe`
 - macOS / Linux: `whisper-server`
 
-If these files are present under this directory during packaging, DeLive will include them as extra resources and try to resolve them automatically at runtime.
-
-Build-time staging helper:
+Build helpers:
 
 ```bash
+npm run fetch:whisper-runtime -- --target win32
 npm run stage:whisper-runtime -- --binary /path/to/whisper-server --target linux
 npm run stage:whisper-runtime -- --binary C:\path\to\whisper-server.exe --target win32
 ```
 
-Fetch latest official release asset (currently built-in auto selection is implemented for Windows x64):
+Runtime notes:
 
-```bash
-npm run fetch:whisper-runtime -- --target win32
-```
-
-For unsupported targets, pass an explicit asset URL:
-
-```bash
-npm run fetch:whisper-runtime -- --target linux --asset-url https://example.com/whisper-server-linux.zip
-```
+- The provider launches `whisper-server` through Electron IPC.
+- Model files can be `.bin` or `.gguf`.
+- If no bundled binary is available, users can still import an existing binary or download one from the in-app setup guide.
