@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.3] - 2026-03-07
+
+### Fixed / 修复
+- 🖥️ Caption window no longer closes unexpectedly when clicking caption text, lock button, main-window close, or minimize
+- 🖥️ 修复字幕文字、锁按钮、主窗口关闭与最小化时字幕意外消失的问题
+- 🖱️ Prevented click-through from the caption overlay into the main-window caption toggle
+- 🖱️ 阻止字幕窗口点击穿透到主界面的字幕开关按钮
+- 📌 Reinforced caption overlay topmost behavior during main window hide, minimize, restore, and show transitions
+- 📌 增强主窗口隐藏、最小化、恢复、显示过程中的字幕置顶稳定性
+- 🎙️ SiliconFlow Qwen Omni models now route to the correct multimodal endpoint instead of the ASR-only endpoint
+- 🎙️ 修复硅基流动 Qwen Omni 模型错误调用 ASR 接口的问题，改为走正确的多模态接口
+- 📝 Groq and SiliconFlow transcript updates now stabilize incremental text instead of rewriting the whole sentence on each poll
+- 📝 修复 Groq 与 SiliconFlow 轮询转写整段回滚的问题，改为稳定增量文本输出
+
+### Changed / 变更
+- 🏷️ SiliconFlow model labels now distinguish `[ASR]` and `[Multimodal]` routes in settings
+- 🏷️ 硅基流动模型在设置中新增 `[ASR]` 与 `[多模态]` 路由标识
+- 🧭 Groq and SiliconFlow are no longer marked as true streaming providers in the UI
+- 🧭 Groq 与硅基流动在界面中不再标记为真正流式提供商
+
+---
+
 ## [1.3.2] - 2026-03-06
 
 ### Added / 新增
