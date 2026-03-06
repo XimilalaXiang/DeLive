@@ -1,64 +1,58 @@
-/**
- * 本地 OpenAI-compatible ASR Provider
- * 基于 /v1/audio/transcriptions 接口实现渐进式转录
- */
-
 import { BaseASRProvider } from '../base'
 import type { ASRProviderInfo, ProviderConfig, ASRVendor } from '../../types/asr'
-import type { OpenAITranscriptionResponse } from '../../types/asr/vendors/localOpenAI'
-import {
-  LOCAL_OPENAI_DEFAULT_BASE_URL,
-  LOCAL_OPENAI_DEFAULT_MODEL,
-} from '../../types/asr/vendors/localOpenAI'
+import { createBundledRuntimeManager } from '../../utils/localRuntimeManager'
 
-export class LocalOpenAIProvider extends BaseASRProvider {
-  readonly id: ASRVendor = 'local_openai' as ASRVendor
+const WHISPER_CPP_RUNTIME_ID = 'whisper_cpp'
+const WHISPER_CPP_DEFAULT_PORT = 8177
+
+export class WhisperCppRuntimeProvider extends BaseASRProvider {
+  readonly id: ASRVendor = 'local_whisper_cpp' as ASRVendor
 
   readonly info: ASRProviderInfo = {
-    id: 'local_openai' as ASRVendor,
-    name: '本地 OpenAI 兼容',
-    description: '连接本地 OpenAI-compatible ASR 服务（如 Ollama/Whisper 兼容接口）',
+    id: 'local_whisper_cpp' as ASRVendor,
+    name: '本地 whisper.cpp',
+    description: '通过 Electron 启动本地 whisper.cpp server，直接使用本地模型进行转录',
     type: 'local',
     supportsStreaming: true,
     capabilities: {
       audioInputMode: 'media-recorder',
       supportsConfigTest: true,
       local: {
-        connectionMode: 'service',
-        supportsServiceDiscovery: true,
+        connectionMode: 'runtime',
+        runtimeId: WHISPER_CPP_RUNTIME_ID,
         supportsModelDiscovery: true,
-        supportsModelInstall: true,
+        supportsManualModelImport: true,
       },
     },
-    requiredConfigKeys: ['baseUrl', 'model'],
+    requiredConfigKeys: ['modelPath'],
     supportedLanguages: ['zh', 'en', 'ja', 'ko', 'es', 'fr', 'de', 'it', 'pt', 'ru'],
-    website: 'https://platform.openai.com/docs/api-reference/audio',
-    docsUrl: 'https://platform.openai.com/docs/api-reference/audio/createTranscription',
+    website: 'https://github.com/ggml-org/whisper.cpp',
+    docsUrl: 'https://github.com/ggml-org/whisper.cpp/tree/master/examples/server',
     configFields: [
       {
-        key: 'baseUrl',
-        label: 'Base URL',
+        key: 'binaryPath',
+        label: 'Runtime Binary Path',
         type: 'text',
-        required: true,
-        placeholder: 'http://127.0.0.1:11434',
-        defaultValue: LOCAL_OPENAI_DEFAULT_BASE_URL,
-        description: '本地 OpenAI-compatible 服务地址',
-      },
-      {
-        key: 'model',
-        label: '模型',
-        type: 'text',
-        required: true,
-        placeholder: 'whisper',
-        defaultValue: LOCAL_OPENAI_DEFAULT_MODEL,
-        description: '用于转录的模型名称',
-      },
-      {
-        key: 'apiKey',
-        label: 'API Key (可选)',
-        type: 'password',
         required: false,
-        placeholder: '本地服务无需可留空',
+        placeholder: '可选：whisper-server 可执行文件路径',
+        description: '如未打包内置 binary，可手动填写 whisper-server 可执行文件路径。',
+      },
+      {
+        key: 'modelPath',
+        label: '模型文件路径',
+        type: 'text',
+        required: true,
+        placeholder: '例如：C:\\models\\ggml-base.bin',
+        description: 'whisper.cpp 使用的本地模型文件绝对路径。',
+      },
+      {
+        key: 'port',
+        label: 'Runtime Port',
+        type: 'number',
+        required: false,
+        placeholder: String(WHISPER_CPP_DEFAULT_PORT),
+        defaultValue: WHISPER_CPP_DEFAULT_PORT,
+        description: '本地 runtime 服务端口，默认 8177。',
       },
       {
         key: 'languageHints',
@@ -66,7 +60,7 @@ export class LocalOpenAIProvider extends BaseASRProvider {
         type: 'text',
         required: false,
         placeholder: 'zh, en',
-        description: '可选，使用逗号分隔',
+        description: '可选，使用逗号分隔。',
       },
     ],
   }
@@ -78,29 +72,31 @@ export class LocalOpenAIProvider extends BaseASRProvider {
   private lastTranscript = ''
 
   async connect(config: ProviderConfig): Promise<void> {
-    const baseUrl = this.normalizeBaseUrl(config.baseUrl)
-    const model = this.normalizeModel(config.model)
+    if (!window.electronAPI?.localRuntimeStart) {
+      this.emitError(this.createError('RUNTIME_UNAVAILABLE', '当前不在 Electron 环境中，无法启动本地 whisper.cpp runtime'))
+      return
+    }
 
-    if (!baseUrl || !model) {
-      this.emitError(this.createError('MISSING_CONFIG', '请提供 Base URL 和模型名称'))
+    const modelPath = this.normalizeOptional(config.modelPath)
+    if (!modelPath) {
+      this.emitError(this.createError('MISSING_MODEL_PATH', '请提供 whisper.cpp 模型文件路径'))
       return
     }
 
     try {
-      new URL(baseUrl)
-    } catch {
-      this.emitError(this.createError('INVALID_BASE_URL', 'Base URL 格式不正确'))
-      return
+      const runtimeManager = createBundledRuntimeManager(WHISPER_CPP_RUNTIME_ID)
+      const snapshot = await runtimeManager.start(config as ProviderConfig)
+      this._config = {
+        ...config,
+        baseUrl: snapshot.baseUrl.replace(/\/+$/, ''),
+        modelPath,
+      }
+      this.resetSession()
+      this.setState('connected')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '本地 whisper.cpp runtime 启动失败'
+      this.emitError(this.createError('RUNTIME_START_FAILED', message))
     }
-
-    this._config = {
-      ...config,
-      baseUrl,
-      model,
-      apiKey: this.normalizeOptional(config.apiKey),
-    }
-    this.resetSession()
-    this.setState('connected')
   }
 
   async disconnect(): Promise<void> {
@@ -117,7 +113,7 @@ export class LocalOpenAIProvider extends BaseASRProvider {
 
   sendAudio(data: Blob | ArrayBuffer): void {
     if (!this._config) {
-      console.warn('[LocalOpenAIProvider] 未连接，忽略音频数据')
+      console.warn('[WhisperCppRuntimeProvider] 未连接，忽略音频数据')
       return
     }
 
@@ -153,29 +149,24 @@ export class LocalOpenAIProvider extends BaseASRProvider {
 
     this.inFlight = true
     try {
-      const baseUrl = this.normalizeBaseUrl(this._config.baseUrl)
-      const model = this.normalizeModel(this._config.model)
-      const apiKey = this.normalizeOptional(this._config.apiKey)
+      const baseUrl = typeof this._config.baseUrl === 'string' ? this._config.baseUrl.replace(/\/+$/, '') : ''
+      if (!baseUrl) {
+        throw new Error('本地 whisper.cpp runtime 地址无效')
+      }
 
-      const endpoint = `${baseUrl}/v1/audio/transcriptions`
+      const endpoint = `${baseUrl}/inference`
       const formData = new FormData()
       const fileBlob = this.buildAudioBlob()
       formData.append('file', fileBlob, this.getAudioFileName(fileBlob))
-      formData.append('model', model)
+      formData.append('response_format', 'json')
 
       const language = this.getLanguageHint()
       if (language) {
         formData.append('language', language)
       }
 
-      const headers: HeadersInit = {}
-      if (apiKey) {
-        headers.Authorization = `Bearer ${apiKey}`
-      }
-
       const response = await fetch(endpoint, {
         method: 'POST',
-        headers,
         body: formData,
       })
 
@@ -184,7 +175,7 @@ export class LocalOpenAIProvider extends BaseASRProvider {
         throw new Error(errorText || `HTTP ${response.status}`)
       }
 
-      const result = await response.json() as OpenAITranscriptionResponse
+      const result = await response.json() as { text?: string }
       const transcriptText = typeof result.text === 'string' ? result.text : ''
 
       if (transcriptText && transcriptText !== this.lastTranscript) {
@@ -197,8 +188,8 @@ export class LocalOpenAIProvider extends BaseASRProvider {
         this.emitFinished()
       }
     } catch (error) {
-      console.error('[LocalOpenAIProvider] 转录失败:', error)
-      const message = error instanceof Error ? error.message : '本地转录失败'
+      console.error('[WhisperCppRuntimeProvider] 转录失败:', error)
+      const message = error instanceof Error ? error.message : '本地 whisper.cpp 转录失败'
       if (isFinal) {
         this.emitError(this.createError('TRANSCRIPTION_ERROR', message))
       }
@@ -237,17 +228,6 @@ export class LocalOpenAIProvider extends BaseASRProvider {
     }
 
     return undefined
-  }
-
-  private normalizeBaseUrl(value: unknown): string {
-    if (typeof value !== 'string') return LOCAL_OPENAI_DEFAULT_BASE_URL
-    const trimmed = value.trim() || LOCAL_OPENAI_DEFAULT_BASE_URL
-    return trimmed.replace(/\/+$/, '')
-  }
-
-  private normalizeModel(value: unknown): string {
-    if (typeof value !== 'string') return LOCAL_OPENAI_DEFAULT_MODEL
-    return value.trim() || LOCAL_OPENAI_DEFAULT_MODEL
   }
 
   private normalizeOptional(value: unknown): string | undefined {

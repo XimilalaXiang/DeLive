@@ -12,6 +12,7 @@ import type {
 import { SonioxProvider } from './implementations/SonioxProvider'
 import { VolcProvider } from './implementations/VolcProvider'
 import { LocalOpenAIProvider } from './implementations/LocalOpenAIProvider'
+import { WhisperCppRuntimeProvider } from './implementations/WhisperCppRuntimeProvider'
 
 // Provider 注册表
 class ProviderRegistry {
@@ -80,6 +81,12 @@ function registerDefaultProviders(): void {
   providerRegistry.register({
     info: new LocalOpenAIProvider().info,
     create: () => new LocalOpenAIProvider(),
+  })
+
+  // 本地 whisper.cpp runtime
+  providerRegistry.register({
+    info: new WhisperCppRuntimeProvider().info,
+    create: () => new WhisperCppRuntimeProvider(),
   })
 }
 

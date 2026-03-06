@@ -23,6 +23,25 @@ interface DownloadProgress {
   total: number
 }
 
+type LocalRuntimeStatus = 'stopped' | 'starting' | 'running' | 'error'
+
+interface LocalRuntimeLaunchOptions {
+  binaryPath?: string
+  modelPath?: string
+  port?: number
+}
+
+interface LocalRuntimeSnapshot {
+  runtimeId: string
+  displayName: string
+  status: LocalRuntimeStatus
+  available: boolean
+  modelsPath: string
+  binaryPath: string | null
+  baseUrl: string
+  message?: string
+}
+
 // 字幕样式类型
 interface CaptionStyle {
   fontSize: number
@@ -66,6 +85,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // 开机自启动
   getAutoLaunch: () => ipcRenderer.invoke('get-auto-launch') as Promise<boolean>,
   setAutoLaunch: (enable: boolean) => ipcRenderer.invoke('set-auto-launch', enable) as Promise<boolean>,
+  pickFilePath: (options?: { title?: string; filters?: Array<{ name: string; extensions: string[] }> }) => ipcRenderer.invoke('pick-file-path', options) as Promise<string | null>,
+
+  // 本地 runtime 脚手架 API
+  localRuntimeGetStatus: (runtimeId: string, options?: LocalRuntimeLaunchOptions) => ipcRenderer.invoke('local-runtime-get-status', runtimeId, options) as Promise<LocalRuntimeSnapshot>,
+  localRuntimeOpenModelsPath: (runtimeId: string) => ipcRenderer.invoke('local-runtime-open-models-path', runtimeId) as Promise<{ success: boolean; path: string; error?: string }>,
+  localRuntimeListModels: (runtimeId: string) => ipcRenderer.invoke('local-runtime-list-models', runtimeId) as Promise<string[]>,
+  localRuntimeImportModel: (runtimeId: string, sourcePath: string) => ipcRenderer.invoke('local-runtime-import-model', runtimeId, sourcePath) as Promise<{ success: boolean; path: string; error?: string }>,
+  localRuntimeImportBinary: (runtimeId: string, sourcePath: string) => ipcRenderer.invoke('local-runtime-import-binary', runtimeId, sourcePath) as Promise<{ success: boolean; path: string; error?: string }>,
+  localRuntimeDownloadModel: (runtimeId: string, urlString: string) => ipcRenderer.invoke('local-runtime-download-model', runtimeId, urlString) as Promise<{ success: boolean; path: string; error?: string }>,
+  localRuntimeDownloadBinary: (runtimeId: string, urlString: string) => ipcRenderer.invoke('local-runtime-download-binary', runtimeId, urlString) as Promise<{ success: boolean; path: string; error?: string }>,
+  localRuntimeStart: (runtimeId: string, options?: LocalRuntimeLaunchOptions) => ipcRenderer.invoke('local-runtime-start', runtimeId, options) as Promise<{ success: boolean; status: LocalRuntimeSnapshot; error?: string }>,
+  localRuntimeStop: (runtimeId: string, options?: LocalRuntimeLaunchOptions) => ipcRenderer.invoke('local-runtime-stop', runtimeId, options) as Promise<{ success: boolean; status: LocalRuntimeSnapshot; error?: string }>,
 
   // 获取桌面源列表（屏幕和窗口）
   getDesktopSources: () => ipcRenderer.invoke('get-desktop-sources') as Promise<DesktopSource[]>,
@@ -237,6 +268,25 @@ declare global {
     total: number
   }
 
+  type LocalRuntimeStatus = 'stopped' | 'starting' | 'running' | 'error'
+
+  interface LocalRuntimeLaunchOptions {
+    binaryPath?: string
+    modelPath?: string
+    port?: number
+  }
+
+  interface LocalRuntimeSnapshot {
+    runtimeId: string
+    displayName: string
+    status: LocalRuntimeStatus
+    available: boolean
+    modelsPath: string
+    binaryPath: string | null
+    baseUrl: string
+    message?: string
+  }
+
   interface CaptionStyle {
     fontSize: number
     fontFamily: string
@@ -270,6 +320,16 @@ declare global {
       windowIsMaximized: () => Promise<boolean>
       getAutoLaunch: () => Promise<boolean>
       setAutoLaunch: (enable: boolean) => Promise<boolean>
+      pickFilePath: (options?: { title?: string; filters?: Array<{ name: string; extensions: string[] }> }) => Promise<string | null>
+      localRuntimeGetStatus: (runtimeId: string, options?: LocalRuntimeLaunchOptions) => Promise<LocalRuntimeSnapshot>
+      localRuntimeOpenModelsPath: (runtimeId: string) => Promise<{ success: boolean; path: string; error?: string }>
+      localRuntimeListModels: (runtimeId: string) => Promise<string[]>
+      localRuntimeImportModel: (runtimeId: string, sourcePath: string) => Promise<{ success: boolean; path: string; error?: string }>
+      localRuntimeImportBinary: (runtimeId: string, sourcePath: string) => Promise<{ success: boolean; path: string; error?: string }>
+      localRuntimeDownloadModel: (runtimeId: string, urlString: string) => Promise<{ success: boolean; path: string; error?: string }>
+      localRuntimeDownloadBinary: (runtimeId: string, urlString: string) => Promise<{ success: boolean; path: string; error?: string }>
+      localRuntimeStart: (runtimeId: string, options?: LocalRuntimeLaunchOptions) => Promise<{ success: boolean; status: LocalRuntimeSnapshot; error?: string }>
+      localRuntimeStop: (runtimeId: string, options?: LocalRuntimeLaunchOptions) => Promise<{ success: boolean; status: LocalRuntimeSnapshot; error?: string }>
       getDesktopSources: () => Promise<DesktopSource[]>
       selectSource: (sourceId: string) => Promise<boolean>
       cancelSourceSelection: () => Promise<void>

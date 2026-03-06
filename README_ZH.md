@@ -138,6 +138,8 @@ graph TB
 |--------|------|------|
 | **Soniox** | ✅ 支持 | 高精度、多语言、直连 WebSocket |
 | **火山引擎** | ✅ 支持 | 中文优化、通过代理连接 |
+| **本地 OpenAI-compatible** | ✅ 支持 | 连接 Ollama / 本地 OpenAI 兼容 ASR 服务 |
+| **本地 whisper.cpp** | ✅ 支持（实验性） | 通过本地 runtime 直接加载本地模型 |
 | *更多服务商* | 🔜 计划中 | 可扩展架构，易于添加新提供商 |
 
 ## 🚀 快速开始
@@ -148,6 +150,9 @@ graph TB
 - ASR 服务 API 密钥（任选一个）:
   - [Soniox API 密钥](https://console.soniox.com)
   - [火山引擎 APP ID 和 Access Token](https://console.volcengine.com/speech/app)
+- 本地模型路径（二选一）:
+  - 已运行的本地 OpenAI-compatible ASR 服务（如 Ollama / 本地网关）
+  - `whisper.cpp` server 可执行文件 + 本地模型文件
 
 ### 安装
 
@@ -185,12 +190,18 @@ npm run dist:linux     # Linux: .AppImage + .deb
 
 ### 基本转录
 1. **选择服务商** - 点击设置，选择你的 ASR 服务提供商
-2. **配置 API 密钥** - 输入对应服务商的 API 密钥
+2. **配置服务** - 云端服务填写 API 密钥；本地服务填写本地地址或导入本地 runtime / 模型
 3. **测试配置** - 点击"测试配置"验证设置是否正确
 4. **开始录制** - 点击"开始录制"按钮
 5. **选择音频源** - 在弹出的窗口中选择要共享的屏幕/窗口（需勾选"共享音频"）
 6. **实时转录** - 系统将自动捕获音频并显示转录结果
 7. **停止录制** - 点击"停止录制"按钮，转录内容将自动保存到历史记录
+
+### 本地模型（实验性）
+1. **本地 OpenAI-compatible** - 在设置中选择该服务，填写 `Base URL` 和模型名；如是 Ollama，可直接检测服务并拉取模型
+2. **本地 whisper.cpp** - 在设置中选择该服务，填写或导入 `whisper-server` binary，并导入 / 选择本地模型文件
+3. **官方预设** - 可直接使用内置的官方模型预设 URL，或打开官方 Releases / Server 文档快速定位 binary 来源
+4. **验证 runtime** - 使用“测试配置”或 runtime 面板确认本地服务 / 本地 runtime 可以正常启动
 
 ### 实时屏幕字幕（新功能）
 1. **启用字幕** - 点击设置中的"显示字幕"按钮

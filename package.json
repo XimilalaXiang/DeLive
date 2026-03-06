@@ -14,6 +14,8 @@
     "build": "npm run generate-icons && npm run build:client && npm run build:electron",
     "build:client": "cd frontend && npm run build",
     "build:electron": "tsc -p electron/tsconfig.json",
+    "fetch:whisper-runtime": "node scripts/fetch-whisper-runtime.mjs",
+    "stage:whisper-runtime": "node scripts/stage-whisper-runtime.mjs",
     "start": "electron .",
     "pack": "npm run build && electron-builder --dir",
     "dist": "npm run build && electron-builder",
@@ -25,6 +27,7 @@
     "generate-icons": "node scripts/generate-icons.mjs"
   },
   "devDependencies": {
+    "@types/adm-zip": "^0.5.7",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/pako": "^2.0.4",
@@ -50,14 +53,20 @@
       "dist-electron/**/*",
       "frontend/dist/**/*",
       "frontend/public/**/*",
+      "local-runtimes/**/*",
       "build/icon.ico",
       "build/icon.png"
     ],
     "asarUnpack": [
+      "local-runtimes/**/*",
       "build/icon.ico",
       "build/icon.png"
     ],
     "extraResources": [
+      {
+        "from": "local-runtimes",
+        "to": "local-runtimes"
+      },
       {
         "from": "build/icon.png",
         "to": "build/icon.png"
@@ -159,6 +168,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
+    "adm-zip": "^0.5.16",
     "cors": "^2.8.5",
     "electron-updater": "^6.7.3",
     "express": "^4.21.2",

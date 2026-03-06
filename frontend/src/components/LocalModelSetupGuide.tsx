@@ -1,20 +1,19 @@
 import { useMemo, useState } from 'react'
 import { CheckCircle2, Loader2, DownloadCloud, AlertCircle, Search, Server } from 'lucide-react'
+import type { ProviderConfigData } from '../types'
+import type { ASRProviderInfo } from '../types/asr'
 import {
-  type LocalServiceKind,
-  isModelInstalled,
-  probeLocalService,
-  pullOllamaModel,
-} from '../utils/localModelSetup'
+  getLocalRuntimeManager,
+  getLocalServiceKindLabel,
+} from '../utils/localRuntimeManager'
 
 type DetectStatus = 'idle' | 'checking' | 'ready' | 'error'
 type ModelStatus = 'idle' | 'checking' | 'installed' | 'missing' | 'error'
 type PullStatus = 'idle' | 'pulling' | 'success' | 'error'
 
 interface LocalModelSetupGuideProps {
-  baseUrl: string
-  model: string
-  apiKey?: string
+  provider: ASRProviderInfo
+  config: ProviderConfigData
   onModelChange: (value: string) => void
 }
 
@@ -25,37 +24,39 @@ function formatPullProgress(completed?: number, total?: number): string {
 }
 
 export function LocalModelSetupGuide({
-  baseUrl,
-  model,
-  apiKey,
+  provider,
+  config,
   onModelChange,
 }: LocalModelSetupGuideProps) {
   const [detectStatus, setDetectStatus] = useState<DetectStatus>('idle')
   const [modelStatus, setModelStatus] = useState<ModelStatus>('idle')
   const [pullStatus, setPullStatus] = useState<PullStatus>('idle')
-  const [serviceKind, setServiceKind] = useState<LocalServiceKind | null>(null)
+  const [serviceKindLabel, setServiceKindLabel] = useState<string | null>(null)
   const [installedModels, setInstalledModels] = useState<string[]>([])
   const [message, setMessage] = useState('')
   const [pullMessage, setPullMessage] = useState('')
   const [pullPercent, setPullPercent] = useState<string>('')
 
-  const modelName = model.trim()
-  const canPullWithOneClick = serviceKind === 'ollama'
+  const manager = getLocalRuntimeManager(provider.id)
+  const serviceManager = manager?.kind === 'service' ? manager : undefined
+  const modelName = typeof config.model === 'string' ? config.model.trim() : ''
+  const canPullWithOneClick = Boolean(serviceManager?.installModel && serviceKindLabel === 'Ollama')
 
   const modelCheckResult = useMemo(() => {
     if (!modelName) return 'empty'
-    return isModelInstalled(installedModels, modelName) ? 'installed' : 'missing'
+    return installedModels.some((item) => item === modelName || item.startsWith(`${modelName}:`))
+      ? 'installed'
+      : 'missing'
   }, [installedModels, modelName])
 
-  const syncModelStatus = (models: string[]) => {
-    if (!modelName) {
-      setModelStatus('idle')
+  const handleDetect = async () => {
+    if (!serviceManager) {
+      setDetectStatus('error')
+      setModelStatus('error')
+      setMessage('当前提供商尚未接入本地运行时管理器')
       return
     }
-    setModelStatus(isModelInstalled(models, modelName) ? 'installed' : 'missing')
-  }
 
-  const handleDetect = async () => {
     setDetectStatus('checking')
     setModelStatus('checking')
     setPullStatus('idle')
@@ -64,41 +65,61 @@ export function LocalModelSetupGuide({
     setMessage('')
 
     try {
-      const result = await probeLocalService(baseUrl, apiKey)
-      setServiceKind(result.kind)
-      setInstalledModels(result.installedModels)
+      const result = await serviceManager.probe(config)
+      const nextInstalledModels = result.installedModels
+      setServiceKindLabel(getLocalServiceKindLabel(result.kind))
+      setInstalledModels(nextInstalledModels)
       setDetectStatus('ready')
 
-      if (!modelName && result.installedModels.length > 0) {
-        onModelChange(result.installedModels[0])
+      if (!modelName && nextInstalledModels.length > 0) {
+        onModelChange(nextInstalledModels[0])
       }
 
-      syncModelStatus(result.installedModels)
-      setMessage(
-        result.kind === 'ollama'
-          ? `已检测到 Ollama，发现 ${result.installedModels.length} 个模型`
-          : `已检测到 OpenAI-compatible 服务，发现 ${result.installedModels.length} 个模型`
-      )
+      if (!modelName) {
+        setModelStatus('idle')
+      } else {
+        setModelStatus(
+          nextInstalledModels.some((item) => item === modelName || item.startsWith(`${modelName}:`))
+            ? 'installed'
+            : 'missing'
+        )
+      }
+
+      setMessage(`已检测到 ${getLocalServiceKindLabel(result.kind)}，发现 ${nextInstalledModels.length} 个模型`)
     } catch (error) {
       setDetectStatus('error')
       setModelStatus('error')
-      setServiceKind(null)
+      setServiceKindLabel(null)
       setInstalledModels([])
       setMessage(error instanceof Error ? error.message : '检测失败')
     }
   }
 
-  const handleCheckModel = () => {
-    if (detectStatus !== 'ready') {
-      void handleDetect()
+  const handleCheckModel = async () => {
+    if (!serviceManager) {
+      setModelStatus('error')
+      setMessage('当前提供商尚未接入本地运行时管理器')
       return
     }
+
     setModelStatus('checking')
-    syncModelStatus(installedModels)
+
+    try {
+      const result = await serviceManager.checkModel(config)
+      setInstalledModels(result.installedModels)
+      if (!modelName) {
+        setModelStatus('idle')
+      } else {
+        setModelStatus(result.installed ? 'installed' : 'missing')
+      }
+    } catch (error) {
+      setModelStatus('error')
+      setMessage(error instanceof Error ? error.message : '模型检测失败')
+    }
   }
 
   const handlePullModel = async () => {
-    if (!canPullWithOneClick) {
+    if (!serviceManager?.installModel) {
       setPullStatus('error')
       setPullMessage('当前服务暂不支持一键拉取，请在服务侧先下载模型')
       return
@@ -114,7 +135,7 @@ export function LocalModelSetupGuide({
     setPullPercent('')
 
     try {
-      await pullOllamaModel(baseUrl, modelName, (progress) => {
+      await serviceManager.installModel(config, (progress) => {
         const percent = formatPullProgress(progress.completed, progress.total)
         setPullPercent(percent)
         setPullMessage(progress.status || '正在拉取模型...')
@@ -132,7 +153,7 @@ export function LocalModelSetupGuide({
     <div className="space-y-3 rounded-lg border border-border/70 bg-muted/20 p-3">
       <div className="text-xs font-medium text-foreground">本地模型引导</div>
       <p className="text-[11px] text-muted-foreground">
-        按顺序执行：检测服务、检测模型；若是 Ollama 可直接一键拉取并回填模型。
+        当前路径属于本地服务型 Provider。按顺序执行：检测服务、检测模型；若服务支持安装，则可直接一键拉取。
       </p>
 
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">

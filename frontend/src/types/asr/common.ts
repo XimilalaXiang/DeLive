@@ -8,6 +8,7 @@ export enum ASRVendor {
   Soniox = 'soniox',
   Volc = 'volc',
   LocalOpenAI = 'local_openai',
+  LocalWhisperCpp = 'local_whisper_cpp',
 }
 
 // 提供商类型：云端或本地
@@ -15,6 +16,27 @@ export type ProviderType = 'cloud' | 'local'
 
 // 音频输入模式
 export type AudioInputMode = 'media-recorder' | 'pcm16'
+
+// 本地 Provider 连接模式
+export type LocalProviderConnectionMode = 'service' | 'runtime'
+
+// 本地 Provider 管理能力
+export interface LocalProviderCapabilities {
+  // 连接到已有本地服务，或连接到随应用打包的本地运行时
+  connectionMode: LocalProviderConnectionMode
+  // 是否支持探测本地服务
+  supportsServiceDiscovery?: boolean
+  // 是否支持发现已安装模型
+  supportsModelDiscovery?: boolean
+  // 是否支持通过服务侧安装/拉取模型
+  supportsModelInstall?: boolean
+  // 是否支持手动导入模型
+  supportsManualModelImport?: boolean
+  // 是否支持预加载本地模型
+  supportsPreload?: boolean
+  // bundled runtime 场景可选的 runtime 标识
+  runtimeId?: string
+}
 
 // 提供商能力定义
 export interface ASRProviderCapabilities {
@@ -24,6 +46,8 @@ export interface ASRProviderCapabilities {
   prefersTokenEvents?: boolean
   // 是否支持在设置页进行连通性测试
   supportsConfigTest?: boolean
+  // 本地 Provider 的运行时/模型管理能力
+  local?: LocalProviderCapabilities
 }
 
 // 提供商信息

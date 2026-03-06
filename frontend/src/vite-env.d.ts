@@ -28,6 +28,25 @@ declare interface DownloadProgress {
   total: number
 }
 
+declare type LocalRuntimeStatus = 'stopped' | 'starting' | 'running' | 'error'
+
+declare interface LocalRuntimeLaunchOptions {
+  binaryPath?: string
+  modelPath?: string
+  port?: number
+}
+
+declare interface LocalRuntimeSnapshot {
+  runtimeId: string
+  displayName: string
+  status: LocalRuntimeStatus
+  available: boolean
+  modelsPath: string
+  binaryPath: string | null
+  baseUrl: string
+  message?: string
+}
+
 // 字幕样式类型
 declare interface CaptionStyle {
   fontSize: number
@@ -63,6 +82,16 @@ declare interface ElectronAPI {
   windowIsMaximized: () => Promise<boolean>
   getAutoLaunch: () => Promise<boolean>
   setAutoLaunch: (enable: boolean) => Promise<boolean>
+  pickFilePath: (options?: { title?: string; filters?: Array<{ name: string; extensions: string[] }> }) => Promise<string | null>
+  localRuntimeGetStatus: (runtimeId: string, options?: LocalRuntimeLaunchOptions) => Promise<LocalRuntimeSnapshot>
+  localRuntimeOpenModelsPath: (runtimeId: string) => Promise<{ success: boolean; path: string; error?: string }>
+  localRuntimeListModels: (runtimeId: string) => Promise<string[]>
+  localRuntimeImportModel: (runtimeId: string, sourcePath: string) => Promise<{ success: boolean; path: string; error?: string }>
+  localRuntimeImportBinary: (runtimeId: string, sourcePath: string) => Promise<{ success: boolean; path: string; error?: string }>
+  localRuntimeDownloadModel: (runtimeId: string, urlString: string) => Promise<{ success: boolean; path: string; error?: string }>
+  localRuntimeDownloadBinary: (runtimeId: string, urlString: string) => Promise<{ success: boolean; path: string; error?: string }>
+  localRuntimeStart: (runtimeId: string, options?: LocalRuntimeLaunchOptions) => Promise<{ success: boolean; status: LocalRuntimeSnapshot; error?: string }>
+  localRuntimeStop: (runtimeId: string, options?: LocalRuntimeLaunchOptions) => Promise<{ success: boolean; status: LocalRuntimeSnapshot; error?: string }>
   getDesktopSources: () => Promise<DesktopSource[]>
   selectSource: (sourceId: string) => Promise<boolean>
   cancelSourceSelection: () => Promise<void>

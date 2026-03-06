@@ -4,15 +4,17 @@ import { useTranscriptStore } from '../stores/transcriptStore'
 import { exportAllData, validateBackupData, importDataOverwrite, importDataMerge } from '../utils/storage'
 import { ProviderSelector } from './ProviderSelector'
 import { LocalModelSetupGuide } from './LocalModelSetupGuide'
+import { BundledRuntimeSetupGuide } from './BundledRuntimeSetupGuide'
 import type { ASRProviderInfo, ProviderConfigData } from '../types'
+import type { ProviderConfigField } from '../types/asr'
+import { getMissingRequiredConfigLabels } from '../utils/providerConfig'
 import {
-  buildProviderConnectConfig,
-  getMissingRequiredConfigLabels,
-} from '../utils/providerConfig'
-import {
-  LOCAL_OPENAI_DEFAULT_BASE_URL,
-  LOCAL_OPENAI_DEFAULT_MODEL,
-} from '../types/asr/vendors/localOpenAI'
+  buildProviderConfigFromFormState,
+  buildProviderFormState,
+  formatStringArrayValue,
+  type ProviderFormState,
+} from '../utils/providerConfigForm'
+import { testProviderConfig } from '../utils/providerConfigTest'
 import { colorThemes } from '../themes'
 
 interface ApiKeyConfigProps {
@@ -37,26 +39,15 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
   
   const currentVendor = settings.currentVendor || 'soniox'
   const currentProvider = availableProviders.find(p => p.id === currentVendor)
-  const currentConfig = buildProviderConnectConfig(
-    currentProvider,
-    settings.providerConfigs?.[currentVendor],
-    settings
-  ) as ProviderConfigData
-  
-  // 通用字段
-  const [apiKey, setApiKey] = useState(currentConfig.apiKey || '')
-  const [showApiKey, setShowApiKey] = useState(false)
-  const [languageHints, setLanguageHints] = useState(
-    (currentConfig.languageHints || settings.languageHints || ['zh', 'en']).join(', ')
-  )
-  
-  // 提供商特有字段
-  const [appKey, setAppKey] = useState((currentConfig.appKey as string) || '')
-  const [accessKey, setAccessKey] = useState((currentConfig.accessKey as string) || '')
-  const [baseUrl, setBaseUrl] = useState((currentConfig.baseUrl as string) || LOCAL_OPENAI_DEFAULT_BASE_URL)
-  const [model, setModel] = useState((currentConfig.model as string) || LOCAL_OPENAI_DEFAULT_MODEL)
-  const [showAppKey, setShowAppKey] = useState(false)
-  const [showAccessKey, setShowAccessKey] = useState(false)
+  const currentStoredConfig = settings.providerConfigs?.[currentVendor]
+
+  const [formState, setFormState] = useState<ProviderFormState>(() => (
+    buildProviderFormState(currentProvider, currentStoredConfig, settings)
+  ))
+  const [revealedFields, setRevealedFields] = useState<Record<string, boolean>>({})
+  const [languageHints, setLanguageHints] = useState(() => (
+    formatStringArrayValue(currentStoredConfig?.languageHints, settings.languageHints || ['zh', 'en'])
+  ))
   
   const [importMessage, setImportMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [autoLaunch, setAutoLaunch] = useState(false)
@@ -71,18 +62,12 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
   
   // 当提供商改变时更新表单
   useEffect(() => {
-    const config = buildProviderConnectConfig(
-      currentProvider,
-      settings.providerConfigs?.[currentVendor],
-      settings
-    ) as ProviderConfigData
-    setApiKey(config.apiKey || '')
-    setLanguageHints(((config.languageHints as string[]) || settings.languageHints || ['zh', 'en']).join(', '))
-    setAppKey((config.appKey as string) || '')
-    setAccessKey((config.accessKey as string) || '')
-    setBaseUrl((config.baseUrl as string) || LOCAL_OPENAI_DEFAULT_BASE_URL)
-    setModel((config.model as string) || LOCAL_OPENAI_DEFAULT_MODEL)
-  }, [currentVendor, currentProvider, settings])
+    setFormState(buildProviderFormState(currentProvider, currentStoredConfig, settings))
+    setLanguageHints(formatStringArrayValue(currentStoredConfig?.languageHints, settings.languageHints || ['zh', 'en']))
+    setRevealedFields({})
+    setTestStatus('idle')
+    setTestMessage('')
+  }, [currentProvider, currentStoredConfig, settings.apiKey, settings.languageHints, currentVendor])
 
   // 加载开机自启动状态和应用版本（仅 Electron 环境）
   useEffect(() => {
@@ -130,6 +115,49 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
     }
   }, [updateStatus])
 
+  const updateFormField = (fieldKey: string, value: string | boolean) => {
+    setFormState(prev => ({
+      ...prev,
+      [fieldKey]: value,
+    }))
+    if (testStatus !== 'idle' || testMessage) {
+      setTestStatus('idle')
+      setTestMessage('')
+    }
+  }
+
+  const toggleFieldVisibility = (fieldKey: string) => {
+    setRevealedFields(prev => ({
+      ...prev,
+      [fieldKey]: !prev[fieldKey],
+    }))
+  }
+
+  const getStringFieldValue = (fieldKey: string): string => {
+    const value = formState[fieldKey]
+    return typeof value === 'string' ? value : ''
+  }
+
+  const getBooleanFieldValue = (fieldKey: string): boolean => {
+    return Boolean(formState[fieldKey])
+  }
+
+  const buildEditableProviderConfig = (): ProviderConfigData => (
+    buildProviderConfigFromFormState(currentProvider, formState, languageHints)
+  )
+
+  const getFieldIcon = (field: ProviderConfigField) => {
+    if (field.key.toLowerCase().includes('model')) {
+      return <Cpu className="w-3.5 h-3.5 text-muted-foreground" />
+    }
+    return <Key className="w-3.5 h-3.5 text-muted-foreground" />
+  }
+
+  const isMonospaceField = (field: ProviderConfigField): boolean => {
+    const key = field.key.toLowerCase()
+    return field.type === 'password' || key.includes('key') || key.includes('url') || key.includes('model')
+  }
+  
   // 测试 API 配置
   const handleTestConfig = async () => {
     if (!currentProvider?.capabilities.supportsConfigTest) {
@@ -140,16 +168,15 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
     setTestMessage('')
 
     try {
-      if (currentVendor === 'soniox') {
-        await testSonioxConfig()
-      } else if (currentVendor === 'volc') {
-        await testVolcConfig()
-      } else if (currentVendor === 'local_openai') {
-        await testLocalOpenAIConfig()
-      } else {
-        throw new Error('不支持的提供商')
+      const providerConfig = buildEditableProviderConfig()
+      const missingLabels = getMissingRequiredConfigLabels(currentProvider, providerConfig)
+
+      if (missingLabels.length > 0) {
+        throw new Error(`请先填写: ${missingLabels.join('、')}`)
       }
-      
+
+      await testProviderConfig(currentProvider, providerConfig)
+
       setTestStatus('success')
       setTestMessage(t.settings?.testSuccess || '配置验证成功！')
       setTimeout(() => {
@@ -162,202 +189,13 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
     }
   }
 
-  // 测试 Soniox 配置
-  const testSonioxConfig = async () => {
-    if (!apiKey.trim()) {
-      throw new Error('请输入 API Key')
-    }
-
-    // 尝试建立 WebSocket 连接并验证 API Key
-    return new Promise<void>((resolve, reject) => {
-      const ws = new WebSocket('wss://stt-rt.soniox.com/transcribe-websocket')
-      const timeout = setTimeout(() => {
-        ws.close()
-        reject(new Error('连接超时，请检查网络'))
-      }, 10000)
-
-      ws.onopen = () => {
-        // 发送配置消息
-        ws.send(JSON.stringify({
-          api_key: apiKey.trim(),
-          model: 'stt-rt-v4',
-          audio_format: 'auto',
-          language_hints: ['zh', 'en'],
-        }))
-      }
-
-      ws.onmessage = (event) => {
-        clearTimeout(timeout)
-        try {
-          const response = JSON.parse(event.data)
-          if (response.error_code) {
-            ws.close()
-            reject(new Error(response.error_message || `错误代码: ${response.error_code}`))
-          } else {
-            // 配置有效，关闭连接
-            ws.close()
-            resolve()
-          }
-        } catch {
-          ws.close()
-          reject(new Error('解析响应失败'))
-        }
-      }
-
-      ws.onerror = () => {
-        clearTimeout(timeout)
-        reject(new Error('WebSocket 连接失败'))
-      }
-
-      ws.onclose = (event) => {
-        clearTimeout(timeout)
-        if (event.code !== 1000 && event.code !== 1005) {
-          reject(new Error(`连接关闭: ${event.reason || '未知原因'}`))
-        }
-      }
-    })
-  }
-
-  // 测试火山引擎配置（通过本地代理服务器）
-  const testVolcConfig = async () => {
-    if (!appKey.trim()) {
-      throw new Error('请输入 APP ID')
-    }
-    if (!accessKey.trim()) {
-      throw new Error('请输入 Access Token')
-    }
-
-    // 通过本地代理服务器测试火山引擎连接
-    return new Promise<void>((resolve, reject) => {
-      // 构建代理 WebSocket URL
-      const params = new URLSearchParams({
-        appKey: appKey.trim(),
-        accessKey: accessKey.trim(),
-        modelV2: 'true',
-        bidiStreaming: 'true',
-        enableDdc: 'true',
-      })
-      const proxyUrl = `ws://localhost:3001/ws/volc?${params.toString()}`
-      
-      let ws: WebSocket | null = null
-      
-      const timeout = setTimeout(() => {
-        if (ws) ws.close()
-        reject(new Error('连接超时，请检查网络或确保服务器已启动'))
-      }, 15000)
-
-      try {
-        ws = new WebSocket(proxyUrl)
-      } catch (error) {
-        clearTimeout(timeout)
-        reject(new Error('无法连接到代理服务器，请确保服务器已启动 (npm run dev:server)'))
-        return
-      }
-
-      ws.onmessage = (event) => {
-        try {
-          const msg = JSON.parse(event.data)
-          
-          if (msg.type === 'ready') {
-            // 代理已就绪，火山引擎连接成功
-            clearTimeout(timeout)
-            // 发送音频结束标记以正常关闭连接
-            ws?.send(JSON.stringify({ type: 'audio_end' }))
-            // 等待一小段时间让服务器处理
-            setTimeout(() => {
-              ws?.close(1000, 'test complete')
-              resolve()
-            }, 500)
-          } else if (msg.type === 'error') {
-            clearTimeout(timeout)
-            ws?.close()
-            reject(new Error(msg.message || '火山引擎连接失败'))
-          } else if (msg.type === 'final') {
-            // 收到最终结果也表示连接成功
-            clearTimeout(timeout)
-            ws?.close(1000, 'test complete')
-            resolve()
-          }
-        } catch {
-          // 忽略解析错误
-        }
-      }
-
-      ws.onerror = () => {
-        clearTimeout(timeout)
-        reject(new Error('无法连接到代理服务器，请确保后端服务已启动 (cd server && npm run dev)'))
-      }
-
-      ws.onclose = (event) => {
-        clearTimeout(timeout)
-        if (event.code === 4001) {
-          reject(new Error('缺少 APP ID 或 Access Token'))
-        } else if (event.code === 4002) {
-          reject(new Error('火山引擎连接失败，请检查 APP ID 和 Access Token 是否正确'))
-        }
-        // 正常关闭不需要处理
-      }
-    })
-  }
-
-  // 测试本地 OpenAI-compatible 配置
-  const testLocalOpenAIConfig = async () => {
-    const normalizedBaseUrl = baseUrl.trim().replace(/\/+$/, '')
-    if (!normalizedBaseUrl) {
-      throw new Error('请输入 Base URL')
-    }
-    if (!model.trim()) {
-      throw new Error('请输入模型名称')
-    }
-
-    let url: URL
-    try {
-      url = new URL(normalizedBaseUrl)
-    } catch {
-      throw new Error('Base URL 格式不正确')
-    }
-
-    const headers: HeadersInit = {}
-    if (apiKey.trim()) {
-      headers.Authorization = `Bearer ${apiKey.trim()}`
-    }
-
-    const response = await fetch(`${url.toString().replace(/\/+$/, '')}/v1/models`, {
-      method: 'GET',
-      headers,
-    })
-
-    if (!response.ok) {
-      const details = await response.text().catch(() => '')
-      throw new Error(details || `服务返回错误: ${response.status}`)
-    }
-  }
-
   const handleSave = () => {
-    const hints = languageHints
-      .split(',')
-      .map((s: string) => s.trim())
-      .filter((s: string) => s.length > 0)
-    
-    const normalizedHints = hints.length > 0 ? hints : ['zh', 'en']
-    let providerConfig: ProviderConfigData = {
-      apiKey: apiKey.trim(),
-      languageHints: normalizedHints,
-    }
-    
-    if (currentVendor === 'volc') {
-      providerConfig = {
-        ...providerConfig,
-        appKey: appKey.trim(),
-        accessKey: accessKey.trim(),
-      }
-    } else if (currentVendor === 'local_openai') {
-      providerConfig = {
-        ...providerConfig,
-        baseUrl: baseUrl.trim() || LOCAL_OPENAI_DEFAULT_BASE_URL,
-        model: model.trim() || LOCAL_OPENAI_DEFAULT_MODEL,
-      }
-    }
+    const providerConfig = buildEditableProviderConfig()
+    const normalizedHints = Array.isArray(providerConfig.languageHints) && providerConfig.languageHints.length > 0
+      ? providerConfig.languageHints
+          .map((item) => String(item).trim())
+          .filter(Boolean)
+      : ['zh', 'en']
 
     const missingLabels = getMissingRequiredConfigLabels(currentProvider, providerConfig)
     if (missingLabels.length > 0) {
@@ -372,7 +210,9 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
     // 同时更新全局设置以保持兼容
     const shouldSyncLegacyApiKey = currentProvider?.requiredConfigKeys.includes('apiKey')
     updateSettings({
-      apiKey: shouldSyncLegacyApiKey ? apiKey.trim() : settings.apiKey,
+      apiKey: shouldSyncLegacyApiKey && typeof providerConfig.apiKey === 'string'
+        ? providerConfig.apiKey.trim()
+        : settings.apiKey,
       languageHints: normalizedHints,
     })
     onClose()
@@ -447,175 +287,178 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
     // 清空文件输入，允许再次选择同一文件
     e.target.value = ''
   }
-  
-  // 渲染提供商特定的配置字段
-  const renderProviderFields = () => {
-    // 火山引擎需要特殊处理（APP ID + Access Token）
-    if (currentVendor === 'volc') {
-      return (
-        <>
-          {/* APP ID */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium leading-none flex items-center gap-2">
-              <Key className="w-3.5 h-3.5 text-muted-foreground" />
-              APP ID
-            </label>
-            <div className="relative group">
-              <input
-                type={showAppKey ? 'text' : 'password'}
-                value={appKey}
-                onChange={(e) => setAppKey(e.target.value)}
-                placeholder="输入火山引擎 APP ID"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pr-10 font-mono"
-              />
-              <button
-                type="button"
-                onClick={() => setShowAppKey(!showAppKey)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {showAppKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
-          
-          {/* Access Token */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium leading-none flex items-center gap-2">
-              <Key className="w-3.5 h-3.5 text-muted-foreground" />
-              Access Token
-            </label>
-            <div className="relative group">
-              <input
-                type={showAccessKey ? 'text' : 'password'}
-                value={accessKey}
-                onChange={(e) => setAccessKey(e.target.value)}
-                placeholder="输入火山引擎 Access Token"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pr-10 font-mono"
-              />
-              <button
-                type="button"
-                onClick={() => setShowAccessKey(!showAccessKey)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {showAccessKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-            <p className="text-[10px] text-muted-foreground">
-              从 <a href="https://console.volcengine.com/speech/app" target="_blank" rel="noopener noreferrer" 
-                   className="text-primary font-medium hover:underline underline-offset-2">火山引擎控制台</a> 获取 APP ID 和 Access Token
-            </p>
-          </div>
-          
-          {/* 测试按钮 */}
-          {renderTestButton()}
-        </>
-      )
+
+  const renderFieldDescription = (field: ProviderConfigField) => {
+    const description = field.description?.trim()
+    const docsUrl = getProviderConsoleUrl(currentProvider)
+    const shouldShowDocsLink = docsUrl !== '#' && (field.key === 'apiKey' || field.key === 'appKey')
+
+    if (!description && !shouldShowDocsLink) {
+      return null
     }
 
-    // 本地 OpenAI-compatible 配置
-    if (currentVendor === 'local_openai') {
-      return (
-        <>
-          <div className="space-y-3">
-            <label className="text-sm font-medium leading-none flex items-center gap-2">
-              <Key className="w-3.5 h-3.5 text-muted-foreground" />
-              Base URL
-            </label>
-            <input
-              type="text"
-              value={baseUrl}
-              onChange={(e) => setBaseUrl(e.target.value)}
-              placeholder={LOCAL_OPENAI_DEFAULT_BASE_URL}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono"
-            />
-            <p className="text-[10px] text-muted-foreground">
-              例如：`http://127.0.0.1:11434`（需实现 `/v1/audio/transcriptions`）
-            </p>
-          </div>
-
-          <div className="space-y-3">
-            <label className="text-sm font-medium leading-none flex items-center gap-2">
-              <Cpu className="w-3.5 h-3.5 text-muted-foreground" />
-              模型名称
-            </label>
-            <input
-              type="text"
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              placeholder={LOCAL_OPENAI_DEFAULT_MODEL}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono"
-            />
-          </div>
-
-          <div className="space-y-3">
-            <label className="text-sm font-medium leading-none flex items-center gap-2">
-              <Key className="w-3.5 h-3.5 text-muted-foreground" />
-              API Key（可选）
-            </label>
-            <div className="relative group">
-              <input
-                type={showApiKey ? 'text' : 'password'}
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder="本地服务无需可留空"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pr-10 font-mono"
-              />
-              <button
-                type="button"
-                onClick={() => setShowApiKey(!showApiKey)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-            <p className="text-[10px] text-muted-foreground">
-              若本地服务启用了鉴权，请填写 API Key。
-            </p>
-          </div>
-
-          <LocalModelSetupGuide
-            baseUrl={baseUrl}
-            model={model}
-            apiKey={apiKey}
-            onModelChange={setModel}
-          />
-
-          {renderTestButton()}
-        </>
-      )
-    }
-    
-    // 其他提供商使用单一 API Key
     return (
-      <>
-        <div className="space-y-3">
-          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2">
-            <Key className="w-3.5 h-3.5 text-muted-foreground" />
-            {currentProvider?.name || 'Soniox'} API Key
-          </label>
-          <div className="relative group">
-            <input
-              type={showApiKey ? 'text' : 'password'}
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder={t.settings.apiKeyPlaceholder}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pr-10 font-mono"
-            />
+      <p className="text-[10px] text-muted-foreground">
+        {description}
+        {description && shouldShowDocsLink ? ' ' : ''}
+        {shouldShowDocsLink && (
+          <a
+            href={docsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary font-medium hover:underline underline-offset-2"
+          >
+            {field.key === 'apiKey' ? '查看文档' : '打开控制台'}
+          </a>
+        )}
+      </p>
+    )
+  }
+
+  const renderProviderField = (field: ProviderConfigField) => {
+    const commonInputClassName = `flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${isMonospaceField(field) ? 'font-mono' : ''}`
+
+    if (field.type === 'boolean') {
+      return (
+        <div key={field.key} className="space-y-3">
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-border/70 bg-muted/20 px-3 py-3">
+            <div className="space-y-1">
+              <label className="text-sm font-medium leading-none flex items-center gap-2">
+                {getFieldIcon(field)}
+                {field.label}
+              </label>
+              {field.description && (
+                <p className="text-[10px] text-muted-foreground">{field.description}</p>
+              )}
+            </div>
             <button
               type="button"
-              onClick={() => setShowApiKey(!showApiKey)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => updateFormField(field.key, !getBooleanFieldValue(field.key))}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                getBooleanFieldValue(field.key) ? 'bg-green-500' : 'bg-gray-400 dark:bg-gray-600'
+              }`}
             >
-              {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${
+                  getBooleanFieldValue(field.key) ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
             </button>
           </div>
-          <p className="text-[10px] text-muted-foreground">
-            {t.settings.apiKeyHint} <a href={getProviderConsoleUrl(currentProvider)} target="_blank" rel="noopener noreferrer" 
-                 className="text-primary font-medium hover:underline underline-offset-2">{currentProvider?.website || 'console.soniox.com'}</a>
-          </p>
         </div>
-        
-        {/* 测试按钮 */}
+      )
+    }
+
+    if (field.type === 'select') {
+      return (
+        <div key={field.key} className="space-y-3">
+          <label className="text-sm font-medium leading-none flex items-center gap-2">
+            {getFieldIcon(field)}
+            {field.label}
+          </label>
+          <select
+            value={getStringFieldValue(field.key)}
+            onChange={(e) => updateFormField(field.key, e.target.value)}
+            className={commonInputClassName}
+          >
+            <option value="">{field.placeholder || `请选择${field.label}`}</option>
+            {field.options?.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          {renderFieldDescription(field)}
+        </div>
+      )
+    }
+
+    const isPasswordField = field.type === 'password'
+    const isRevealed = Boolean(revealedFields[field.key])
+    const inputType = field.type === 'number'
+      ? 'number'
+      : isPasswordField && !isRevealed
+      ? 'password'
+      : 'text'
+    const value = getStringFieldValue(field.key)
+    const placeholder = field.placeholder || ''
+
+    return (
+      <div key={field.key} className="space-y-3">
+        <label className="text-sm font-medium leading-none flex items-center gap-2">
+          {getFieldIcon(field)}
+          {field.label}
+        </label>
+        <div className="relative group">
+          <input
+            type={inputType}
+            value={value}
+            onChange={(e) => updateFormField(field.key, e.target.value)}
+            placeholder={placeholder}
+            className={`${commonInputClassName} ${isPasswordField ? 'pr-10' : ''}`}
+          />
+          {isPasswordField && (
+            <button
+              type="button"
+              onClick={() => toggleFieldVisibility(field.key)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {isRevealed ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          )}
+        </div>
+        {renderFieldDescription(field)}
+      </div>
+    )
+  }
+
+  // 渲染提供商特定的配置字段
+  const renderProviderFields = () => {
+    const providerFields = (currentProvider?.configFields || []).filter(field => field.key !== 'languageHints')
+    const localCapabilities = currentProvider?.capabilities.local
+    const shouldShowLocalSetupGuide = Boolean(
+      currentProvider &&
+      currentProvider.type === 'local' &&
+      localCapabilities?.connectionMode === 'service' &&
+      localCapabilities.supportsServiceDiscovery
+    )
+    const shouldShowBundledRuntimeGuide = Boolean(
+      currentProvider &&
+      currentProvider.type === 'local' &&
+      localCapabilities?.connectionMode === 'runtime' &&
+      localCapabilities.runtimeId
+    )
+
+    return (
+      <>
+        {providerFields.map(renderProviderField)}
+
+        {shouldShowLocalSetupGuide && currentProvider && (
+          <LocalModelSetupGuide
+            provider={currentProvider}
+            config={buildEditableProviderConfig()}
+            onModelChange={(value) => updateFormField('model', value)}
+          />
+        )}
+
+        {shouldShowBundledRuntimeGuide && currentProvider && (
+          <BundledRuntimeSetupGuide
+            provider={currentProvider}
+            config={buildEditableProviderConfig()}
+            onConfigPatch={(patch) => {
+              for (const [key, value] of Object.entries(patch)) {
+                if (typeof value === 'boolean') {
+                  updateFormField(key, value)
+                } else if (typeof value === 'number') {
+                  updateFormField(key, String(value))
+                } else if (typeof value === 'string') {
+                  updateFormField(key, value)
+                }
+              }
+            }}
+          />
+        )}
+
         {renderTestButton()}
       </>
     )
@@ -770,7 +613,13 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
                 <input
                   type="text"
                   value={languageHints}
-                  onChange={(e) => setLanguageHints(e.target.value)}
+                  onChange={(e) => {
+                    setLanguageHints(e.target.value)
+                    if (testStatus !== 'idle' || testMessage) {
+                      setTestStatus('idle')
+                      setTestMessage('')
+                    }
+                  }}
                   placeholder={t.settings.languageHintsPlaceholder}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
