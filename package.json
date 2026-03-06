@@ -5,7 +5,7 @@
   "private": true,
   "main": "dist-electron/main.js",
   "author": "XimilalaXiang",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "scripts": {
     "dev": "concurrently \"npm run dev:client\" \"npm run dev:electron\"",
     "dev:client": "cd frontend && npm run dev",

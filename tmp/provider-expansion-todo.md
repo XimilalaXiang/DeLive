@@ -170,6 +170,15 @@ Acceptance:
 - [ ] Most providers work from metadata only.
 - [ ] Exceptional providers can extend UI/behavior without editing the core settings component.
 
+## Stage 7. Cloud Provider Expansion
+
+Status: In progress
+
+- [x] Add first new cloud provider after Soniox / Volc: `Groq`
+- [x] Register Groq in the provider registry
+- [x] Add Groq config test path using the actual transcription endpoint
+- [ ] Validate Groq with a known-good production key
+
 ## Verification
 
 - [x] Frontend build passes: `cd frontend && npm run build`
