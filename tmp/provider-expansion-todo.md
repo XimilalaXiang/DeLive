@@ -79,6 +79,7 @@ Status: In progress
   - official model presets + release/docs quick links
   - official latest release binary asset discovery
   - build-time official runtime fetch script
+  - stronger step-based first-run guidance and recommended defaults
 - [ ] Local service providers:
   - Ollama
   - OpenAI-compatible local HTTP servers

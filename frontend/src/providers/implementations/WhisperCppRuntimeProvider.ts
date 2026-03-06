@@ -4,6 +4,10 @@ import { createBundledRuntimeManager } from '../../utils/localRuntimeManager'
 
 const WHISPER_CPP_RUNTIME_ID = 'whisper_cpp'
 const WHISPER_CPP_DEFAULT_PORT = 8177
+const WHISPER_CPP_SAMPLE_RATE = 16000
+const WHISPER_CPP_CHANNELS = 1
+const WHISPER_CPP_BITS_PER_SAMPLE = 16
+const WHISPER_CPP_TRANSCRIBE_INTERVAL_MS = 1500
 
 export class WhisperCppRuntimeProvider extends BaseASRProvider {
   readonly id: ASRVendor = 'local_whisper_cpp' as ASRVendor
@@ -15,7 +19,7 @@ export class WhisperCppRuntimeProvider extends BaseASRProvider {
     type: 'local',
     supportsStreaming: true,
     capabilities: {
-      audioInputMode: 'media-recorder',
+      audioInputMode: 'pcm16',
       supportsConfigTest: true,
       local: {
         connectionMode: 'runtime',
@@ -65,10 +69,11 @@ export class WhisperCppRuntimeProvider extends BaseASRProvider {
     ],
   }
 
-  private chunks: Blob[] = []
-  private transcribeTimer: ReturnType<typeof setTimeout> | null = null
+  private chunks: ArrayBuffer[] = []
+  private transcribeLoop: ReturnType<typeof setInterval> | null = null
   private inFlight = false
   private pendingFinal = false
+  private hasPendingAudio = false
   private lastTranscript = ''
 
   async connect(config: ProviderConfig): Promise<void> {
@@ -100,7 +105,7 @@ export class WhisperCppRuntimeProvider extends BaseASRProvider {
   }
 
   async disconnect(): Promise<void> {
-    this.clearTimer()
+    this.clearLoop()
 
     if (this.chunks.length > 0) {
       this.pendingFinal = true
@@ -118,22 +123,39 @@ export class WhisperCppRuntimeProvider extends BaseASRProvider {
     }
 
     this.setState('recording')
-    const blob = data instanceof Blob ? data : new Blob([data], { type: 'audio/webm' })
-    this.chunks.push(blob)
-    this.scheduleTranscribe()
+    if (data instanceof Blob) {
+      void data.arrayBuffer().then((buffer) => {
+        this.chunks.push(buffer)
+        this.hasPendingAudio = true
+        this.ensureTranscribeLoop()
+      }).catch((error) => {
+        console.error('[WhisperCppRuntimeProvider] 读取 Blob 音频失败:', error)
+      })
+      return
+    }
+
+    this.chunks.push(data)
+    this.hasPendingAudio = true
+    this.ensureTranscribeLoop()
   }
 
-  private scheduleTranscribe(): void {
-    this.clearTimer()
-    this.transcribeTimer = setTimeout(() => {
+  private ensureTranscribeLoop(): void {
+    if (this.transcribeLoop) {
+      return
+    }
+
+    this.transcribeLoop = setInterval(() => {
+      if (this.inFlight || !this.hasPendingAudio || this.pendingFinal) {
+        return
+      }
       void this.transcribe(false)
-    }, 1200)
+    }, WHISPER_CPP_TRANSCRIBE_INTERVAL_MS)
   }
 
-  private clearTimer(): void {
-    if (this.transcribeTimer) {
-      clearTimeout(this.transcribeTimer)
-      this.transcribeTimer = null
+  private clearLoop(): void {
+    if (this.transcribeLoop) {
+      clearInterval(this.transcribeLoop)
+      this.transcribeLoop = null
     }
   }
 
@@ -148,6 +170,7 @@ export class WhisperCppRuntimeProvider extends BaseASRProvider {
     }
 
     this.inFlight = true
+    this.hasPendingAudio = false
     try {
       const baseUrl = typeof this._config.baseUrl === 'string' ? this._config.baseUrl.replace(/\/+$/, '') : ''
       if (!baseUrl) {
@@ -156,7 +179,7 @@ export class WhisperCppRuntimeProvider extends BaseASRProvider {
 
       const endpoint = `${baseUrl}/inference`
       const formData = new FormData()
-      const fileBlob = this.buildAudioBlob()
+      const fileBlob = this.buildWavBlob()
       formData.append('file', fileBlob, this.getAudioFileName(fileBlob))
       formData.append('response_format', 'json')
 
@@ -192,6 +215,8 @@ export class WhisperCppRuntimeProvider extends BaseASRProvider {
       const message = error instanceof Error ? error.message : '本地 whisper.cpp 转录失败'
       if (isFinal) {
         this.emitError(this.createError('TRANSCRIPTION_ERROR', message))
+      } else {
+        this.hasPendingAudio = true
       }
     } finally {
       this.inFlight = false
@@ -208,9 +233,29 @@ export class WhisperCppRuntimeProvider extends BaseASRProvider {
     }
   }
 
-  private buildAudioBlob(): Blob {
-    const mimeType = this.chunks.find(chunk => !!chunk.type)?.type || 'audio/webm'
-    return new Blob(this.chunks, { type: mimeType })
+  private buildWavBlob(): Blob {
+    const pcmSize = this.chunks.reduce((total, chunk) => total + chunk.byteLength, 0)
+    const wavHeader = new ArrayBuffer(44)
+    const view = new DataView(wavHeader)
+
+    const byteRate = WHISPER_CPP_SAMPLE_RATE * WHISPER_CPP_CHANNELS * (WHISPER_CPP_BITS_PER_SAMPLE / 8)
+    const blockAlign = WHISPER_CPP_CHANNELS * (WHISPER_CPP_BITS_PER_SAMPLE / 8)
+
+    this.writeAscii(view, 0, 'RIFF')
+    view.setUint32(4, 36 + pcmSize, true)
+    this.writeAscii(view, 8, 'WAVE')
+    this.writeAscii(view, 12, 'fmt ')
+    view.setUint32(16, 16, true)
+    view.setUint16(20, 1, true)
+    view.setUint16(22, WHISPER_CPP_CHANNELS, true)
+    view.setUint32(24, WHISPER_CPP_SAMPLE_RATE, true)
+    view.setUint32(28, byteRate, true)
+    view.setUint16(32, blockAlign, true)
+    view.setUint16(34, WHISPER_CPP_BITS_PER_SAMPLE, true)
+    this.writeAscii(view, 36, 'data')
+    view.setUint32(40, pcmSize, true)
+
+    return new Blob([wavHeader, ...this.chunks], { type: 'audio/wav' })
   }
 
   private getAudioFileName(blob: Blob): string {
@@ -236,11 +281,18 @@ export class WhisperCppRuntimeProvider extends BaseASRProvider {
     return trimmed.length > 0 ? trimmed : undefined
   }
 
+  private writeAscii(view: DataView, offset: number, text: string): void {
+    for (let i = 0; i < text.length; i += 1) {
+      view.setUint8(offset + i, text.charCodeAt(i))
+    }
+  }
+
   private resetSession(): void {
-    this.clearTimer()
+    this.clearLoop()
     this.chunks = []
     this.inFlight = false
     this.pendingFinal = false
+    this.hasPendingAudio = false
     this.lastTranscript = ''
   }
 }

@@ -2,11 +2,11 @@ import { app, BrowserWindow, shell, ipcMain, Tray, Menu, nativeImage, NativeImag
 import fs from 'fs'
 import path from 'path'
 import { spawn, type ChildProcess } from 'child_process'
-import { pipeline } from 'stream/promises'
-import { Readable } from 'stream'
 import AdmZip from 'adm-zip'
 import { autoUpdater } from 'electron-updater'
+import * as httpModule from 'http'
 import { createServer, IncomingMessage } from 'http'
+import * as httpsModule from 'https'
 import { WebSocket as NodeWebSocket, WebSocketServer } from 'ws'
 import { URL } from 'url'
 import * as pako from 'pako'
@@ -538,6 +538,42 @@ function getLocalRuntimeBinariesPath(runtimeId: string): string {
   return binariesPath
 }
 
+function getLocalRuntimeBinaryFiles(runtimeId: string): string[] {
+  const binariesPath = getLocalRuntimeBinariesPath(runtimeId)
+
+  try {
+    const entries = fs.readdirSync(binariesPath, { withFileTypes: true })
+    return entries
+      .filter((entry) => entry.isFile())
+      .map((entry) => path.join(binariesPath, entry.name))
+      .sort((a, b) => a.localeCompare(b))
+  } catch (error) {
+    console.warn('[LocalRuntime] 读取 binary 目录失败:', binariesPath, error)
+    return []
+  }
+}
+
+function isLikelyIncompleteManagedWhisperCppBinary(runtimeId: string, binaryPath: string | null): boolean {
+  if (runtimeId !== 'whisper_cpp' || !binaryPath) {
+    return false
+  }
+
+  const managedPath = getLocalRuntimeBinariesPath(runtimeId)
+  const normalizedBinaryPath = path.resolve(binaryPath)
+  const normalizedManagedPath = path.resolve(managedPath)
+
+  if (!normalizedBinaryPath.startsWith(normalizedManagedPath)) {
+    return false
+  }
+
+  const files = getLocalRuntimeBinaryFiles(runtimeId)
+  if (process.platform === 'win32' && files.length <= 1) {
+    return true
+  }
+
+  return false
+}
+
 function getLocalRuntimeModelFiles(runtimeId: string): string[] {
   const modelsPath = getLocalRuntimeModelsPath(runtimeId)
 
@@ -581,17 +617,173 @@ function getFileNameFromUrl(urlString: string, fallback: string): string {
   }
 }
 
-async function downloadFileToPath(urlString: string, targetPath: string): Promise<void> {
-  const response = await fetch(urlString)
-  if (!response.ok || !response.body) {
-    const details = await response.text().catch(() => '')
-    throw new Error(details || `下载失败: HTTP ${response.status}`)
+async function requestRemoteResource(
+  urlString: string,
+  targetPath: string,
+  redirectDepth = 5
+): Promise<void> {
+  const parsed = new URL(urlString)
+  const client = parsed.protocol === 'https:' ? httpsModule : httpModule
+
+  await new Promise<void>((resolve, reject) => {
+    const request = client.request(urlString, {
+      method: 'GET',
+      headers: {
+        'User-Agent': 'DeLive-Downloader',
+        Accept: '*/*',
+      },
+    }, (response) => {
+      const statusCode = response.statusCode || 0
+
+      if (statusCode >= 300 && statusCode < 400 && response.headers.location) {
+        if (redirectDepth <= 0) {
+          response.resume()
+          reject(new Error('下载失败：重定向次数过多'))
+          return
+        }
+
+        const nextUrl = new URL(response.headers.location, parsed).toString()
+        response.resume()
+        void requestRemoteResource(nextUrl, targetPath, redirectDepth - 1)
+          .then(resolve)
+          .catch(reject)
+        return
+      }
+
+      if (statusCode < 200 || statusCode >= 300) {
+        const chunks: Buffer[] = []
+        response.on('data', (chunk: Buffer) => chunks.push(chunk))
+        response.on('end', () => {
+          const details = Buffer.concat(chunks).toString('utf8').trim()
+          reject(new Error(details || `下载失败：HTTP ${statusCode}`))
+        })
+        return
+      }
+
+      const fileStream = fs.createWriteStream(targetPath)
+      response.pipe(fileStream)
+      fileStream.on('finish', () => {
+        fileStream.close()
+        resolve()
+      })
+      fileStream.on('error', (error) => {
+        response.resume()
+        reject(error)
+      })
+      response.on('error', reject)
+    })
+
+    request.setTimeout(120000, () => {
+      request.destroy(new Error('下载超时，请检查网络或稍后重试'))
+    })
+    request.on('error', reject)
+    request.end()
+  })
+}
+
+function shouldUseWindowsDownloadFallback(error: unknown): boolean {
+  if (process.platform !== 'win32') {
+    return false
   }
 
-  await pipeline(
-    Readable.fromWeb(response.body as any),
-    fs.createWriteStream(targetPath)
+  if (!(error instanceof Error)) {
+    return false
+  }
+
+  const message = error.message.toLowerCase()
+  return (
+    message.includes('econnreset') ||
+    message.includes('timed out') ||
+    message.includes('timeout') ||
+    message.includes('etimedout') ||
+    message.includes('econnaborted') ||
+    message.includes('enotfound') ||
+    message.includes('eai_again') ||
+    message.includes('socket hang up') ||
+    message.includes('client network socket disconnected') ||
+    message.includes('tls') ||
+    message.includes('fetch failed')
   )
+}
+
+async function downloadFileToPathWithPowerShell(urlString: string, targetPath: string): Promise<void> {
+  const powershellPath = path.join(
+    process.env.SystemRoot || 'C:\\Windows',
+    'System32',
+    'WindowsPowerShell',
+    'v1.0',
+    'powershell.exe'
+  )
+
+  const script = [
+    '$ProgressPreference = "SilentlyContinue"',
+    '$ErrorActionPreference = "Stop"',
+    `[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12`,
+    `$url = '${urlString.replace(/'/g, "''")}'`,
+    `$out = '${targetPath.replace(/'/g, "''")}'`,
+    'Invoke-WebRequest -Uri $url -OutFile $out -UseBasicParsing',
+  ].join('; ')
+
+  const encoded = Buffer.from(script, 'utf16le').toString('base64')
+
+  await new Promise<void>((resolve, reject) => {
+    const child = spawn(powershellPath, [
+      '-NoProfile',
+      '-NonInteractive',
+      '-ExecutionPolicy', 'Bypass',
+      '-EncodedCommand', encoded,
+    ], {
+      windowsHide: true,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    })
+
+    let stderr = ''
+    child.stderr.on('data', (chunk) => {
+      stderr += chunk.toString()
+    })
+    child.on('error', reject)
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve()
+        return
+      }
+      reject(new Error(stderr.trim() || `PowerShell 下载失败 (exit code ${code ?? 'unknown'})`))
+    })
+  })
+}
+
+async function downloadFileToPath(urlString: string, targetPath: string): Promise<void> {
+  try {
+    await requestRemoteResource(urlString, targetPath)
+  } catch (error) {
+    if (shouldUseWindowsDownloadFallback(error)) {
+      try {
+        await downloadFileToPathWithPowerShell(urlString, targetPath)
+        return
+      } catch (fallbackError) {
+        if (fileExists(targetPath)) {
+          try {
+            fs.unlinkSync(targetPath)
+          } catch {
+            // ignore cleanup failure
+          }
+        }
+
+        const primaryMessage = error instanceof Error ? error.message : String(error)
+        const fallbackMessage = fallbackError instanceof Error ? fallbackError.message : String(fallbackError)
+        throw new Error(`下载失败：主下载通道错误：${primaryMessage}；Windows 回退下载也失败：${fallbackMessage}`)
+      }
+    }
+
+    if (fileExists(targetPath)) {
+      try {
+        fs.unlinkSync(targetPath)
+      } catch {
+        // ignore cleanup failure
+      }
+    }
+    throw error
+  }
 }
 
 function installRuntimeBinaryFile(runtimeId: string, sourcePath: string): string {
@@ -615,10 +807,30 @@ function installRuntimeBinaryFile(runtimeId: string, sourcePath: string): string
     })
 
     if (!binaryEntry) {
-      throw new Error(`压缩包中未找到 ${canonicalBinaryName}`)
+      throw new Error('压缩包中未找到 ' + canonicalBinaryName)
     }
 
-    fs.writeFileSync(targetPath, binaryEntry.getData())
+    fs.rmSync(binariesPath, { recursive: true, force: true })
+    fs.mkdirSync(binariesPath, { recursive: true })
+
+    for (const entry of entries) {
+      if (entry.isDirectory) continue
+      const relativeName = entry.entryName.replace(/\\/g, '/')
+      const fileName = relativeName.split('/').pop()
+      if (!fileName) continue
+      const outputPath = path.join(binariesPath, fileName)
+      fs.writeFileSync(outputPath, entry.getData())
+    }
+
+    if (!fileExists(targetPath)) {
+      const fallbackBinary = fs.readdirSync(binariesPath)
+        .map((fileName) => path.join(binariesPath, fileName))
+        .find((filePath) => definition.binaryFileNames.includes(path.basename(filePath)))
+
+      if (!fallbackBinary) {
+        throw new Error('解压完成，但未找到 ' + canonicalBinaryName)
+      }
+    }
   } else {
     fs.copyFileSync(sourcePath, targetPath)
   }
@@ -722,8 +934,10 @@ function getLocalRuntimeSnapshot(
   const state = localRuntimeStates.get(runtimeId) || { status: 'stopped' as LocalRuntimeStatus }
   const resolved = normalizeLocalRuntimeLaunchOptions(runtimeId, options)
   const binaryPath = state.binaryPath || resolved.binaryPath
-  const available = Boolean(binaryPath)
+  const incompleteManagedBinary = isLikelyIncompleteManagedWhisperCppBinary(runtimeId, binaryPath)
+  const available = Boolean(binaryPath) && !incompleteManagedBinary
   const modelsPath = getLocalRuntimeModelsPath(runtimeId)
+  const binaryFiles = getLocalRuntimeBinaryFiles(runtimeId)
 
   return {
     runtimeId,
@@ -733,7 +947,9 @@ function getLocalRuntimeSnapshot(
     modelsPath,
     binaryPath,
     baseUrl: state.baseUrl || resolved.baseUrl,
-    message: getLocalRuntimeMessage(runtimeId, state, available),
+    message: incompleteManagedBinary
+      ? `检测到旧版不完整 binary 安装（当前目录仅有 ${binaryFiles.map(file => path.basename(file)).join(', ')}）。请重新下载 / 导入官方 zip 包。`
+      : getLocalRuntimeMessage(runtimeId, state, available),
   }
 }
 
@@ -745,6 +961,16 @@ function appendRuntimeLog(runtimeId: string, line: string): void {
     lastLogs,
   })
 }
+
+function formatRuntimeExitError(code: number | null, signal: NodeJS.Signals | null, latestLog?: string): string {
+  if (code === -1073741515 || code === 3221225781) {
+    return '本地 runtime 启动失败：缺少 DLL 或依赖文件。当前更像是 binary 没有完整解压，请重新下载 / 导入官方 zip 包，而不是只放一个 exe。'
+  }
+
+  const base = 'runtime 进程已退出 (code=' + (code ?? 'null') + ', signal=' + (signal ?? 'null') + ')'
+  return latestLog ? base + '；最近日志: ' + latestLog : base
+}
+
 
 async function waitForRuntimeReady(baseUrl: string, timeoutMs = 20000): Promise<void> {
   const startedAt = Date.now()
@@ -918,10 +1144,9 @@ async function startLocalRuntimeProcess(
       process: undefined,
       lastError: code === 0 && previousState.status === 'stopped'
         ? undefined
-        : `runtime 进程已退出 (code=${code ?? 'null'}, signal=${signal ?? 'null'})${latestLog ? `；最近日志: ${latestLog}` : ''}`,
+        : formatRuntimeExitError(code, signal, latestLog),
     })
   })
-
   localRuntimeStates.set(runtimeId, {
     status: 'starting',
     process: child,
@@ -953,7 +1178,7 @@ async function startLocalRuntimeProcess(
       launchConfigHash: configHash,
       binaryPath: resolved.binaryPath,
       baseUrl: resolved.baseUrl,
-      lastError: error instanceof Error ? error.message : 'runtime 启动失败',
+      lastError: currentState.lastError || (error instanceof Error ? error.message : 'runtime 启动失败'),
     })
   }
 
@@ -1923,6 +2148,18 @@ ipcMain.handle('pick-file-path', async (_event, options?: {
   }
 
   return result.filePaths[0]
+})
+
+ipcMain.handle('path-exists', (_event, targetPath: string) => {
+  if (!targetPath || !targetPath.trim()) {
+    return false
+  }
+
+  try {
+    return fs.existsSync(targetPath)
+  } catch {
+    return false
+  }
 })
 
 ipcMain.handle('local-runtime-start', async (_event, runtimeId: string, options?: LocalRuntimeLaunchOptions) => {

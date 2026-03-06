@@ -83,6 +83,7 @@ declare interface ElectronAPI {
   getAutoLaunch: () => Promise<boolean>
   setAutoLaunch: (enable: boolean) => Promise<boolean>
   pickFilePath: (options?: { title?: string; filters?: Array<{ name: string; extensions: string[] }> }) => Promise<string | null>
+  pathExists: (targetPath: string) => Promise<boolean>
   localRuntimeGetStatus: (runtimeId: string, options?: LocalRuntimeLaunchOptions) => Promise<LocalRuntimeSnapshot>
   localRuntimeOpenModelsPath: (runtimeId: string) => Promise<{ success: boolean; path: string; error?: string }>
   localRuntimeListModels: (runtimeId: string) => Promise<string[]>

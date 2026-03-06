@@ -4,6 +4,35 @@ import { createBundledRuntimeManager } from './localRuntimeManager'
 
 type ProviderConfigTester = (config: ProviderConfigData) => Promise<void>
 
+function createSilentWavBlob(durationMs = 500, sampleRate = 16000): Blob {
+  const sampleCount = Math.max(1, Math.floor(sampleRate * durationMs / 1000))
+  const pcmSize = sampleCount * 2
+  const buffer = new ArrayBuffer(44 + pcmSize)
+  const view = new DataView(buffer)
+
+  const writeAscii = (offset: number, text: string) => {
+    for (let i = 0; i < text.length; i += 1) {
+      view.setUint8(offset + i, text.charCodeAt(i))
+    }
+  }
+
+  writeAscii(0, 'RIFF')
+  view.setUint32(4, 36 + pcmSize, true)
+  writeAscii(8, 'WAVE')
+  writeAscii(12, 'fmt ')
+  view.setUint32(16, 16, true)
+  view.setUint16(20, 1, true)
+  view.setUint16(22, 1, true)
+  view.setUint32(24, sampleRate, true)
+  view.setUint32(28, sampleRate * 2, true)
+  view.setUint16(32, 2, true)
+  view.setUint16(34, 16, true)
+  writeAscii(36, 'data')
+  view.setUint32(40, pcmSize, true)
+
+  return new Blob([buffer], { type: 'audio/wav' })
+}
+
 const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = {
   soniox: async (config) => {
     const apiKey = typeof config.apiKey === 'string' ? config.apiKey.trim() : ''
@@ -188,6 +217,20 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
       const snapshot = await manager.start(config)
       if (snapshot.status !== 'running') {
         throw new Error(snapshot.message || '本地 whisper.cpp runtime 未成功启动')
+      }
+
+      const formData = new FormData()
+      formData.append('file', createSilentWavBlob(), 'test.wav')
+      formData.append('response_format', 'json')
+
+      const response = await fetch(`${snapshot.baseUrl.replace(/\/+$/, '')}/inference`, {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const details = await response.text().catch(() => '')
+        throw new Error(details || `whisper.cpp /inference 返回错误: HTTP ${response.status}`)
       }
     } finally {
       if (shouldStopAfterTest) {

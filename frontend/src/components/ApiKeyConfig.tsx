@@ -414,7 +414,6 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
 
   // 渲染提供商特定的配置字段
   const renderProviderFields = () => {
-    const providerFields = (currentProvider?.configFields || []).filter(field => field.key !== 'languageHints')
     const localCapabilities = currentProvider?.capabilities.local
     const shouldShowLocalSetupGuide = Boolean(
       currentProvider &&
@@ -427,6 +426,12 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
       currentProvider.type === 'local' &&
       localCapabilities?.connectionMode === 'runtime' &&
       localCapabilities.runtimeId
+    )
+    const guideManagedFieldKeys = shouldShowBundledRuntimeGuide
+      ? new Set(['binaryPath', 'modelPath'])
+      : new Set<string>()
+    const providerFields = (currentProvider?.configFields || []).filter(
+      field => field.key !== 'languageHints' && !guideManagedFieldKeys.has(field.key)
     )
 
     return (
@@ -445,6 +450,9 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
           <BundledRuntimeSetupGuide
             provider={currentProvider}
             config={buildEditableProviderConfig()}
+            onRunConfigTest={handleTestConfig}
+            testStatus={testStatus}
+            testMessage={testMessage}
             onConfigPatch={(patch) => {
               for (const [key, value] of Object.entries(patch)) {
                 if (typeof value === 'boolean') {

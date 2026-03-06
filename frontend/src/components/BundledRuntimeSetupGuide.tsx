@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Activity, FolderOpen, Loader2, Play, RefreshCw, Square, AlertCircle, CheckCircle2, FileSearch, Download } from 'lucide-react'
+import { Activity, FolderOpen, Loader2, Play, RefreshCw, Square, AlertCircle, CheckCircle2, FileSearch, Download, Wand2, ChevronDown, ChevronUp } from 'lucide-react'
 import type { ProviderConfigData } from '../types'
 import type { ASRProviderInfo } from '../types/asr'
 import { createBundledRuntimeManager, type BundledRuntimeSnapshot } from '../utils/localRuntimeManager'
@@ -18,10 +18,43 @@ type ActionState = 'idle' | 'loading' | 'error'
 interface BundledRuntimeSetupGuideProps {
   provider: ASRProviderInfo
   config: ProviderConfigData
+  onRunConfigTest: () => Promise<void> | void
+  testStatus: 'idle' | 'testing' | 'success' | 'error'
+  testMessage: string
   onConfigPatch: (patch: Partial<ProviderConfigData>) => void
 }
 
-export function BundledRuntimeSetupGuide({ provider, config, onConfigPatch }: BundledRuntimeSetupGuideProps) {
+function normalizeModelPathCandidate(filePath: string): string {
+  const normalized = filePath.replace(/\\/g, '/')
+  const parts = normalized.split('/')
+  const fileName = parts.pop() || ''
+  const cleanedFileName = fileName.replace(/ \(\d+\)(\.[^.]+)$/u, '$1')
+  return [...parts, cleanedFileName].join('/').toLowerCase()
+}
+
+function StepBadge({ done, label }: { done: boolean; label: string }) {
+  return (
+    <div
+      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] ${
+        done
+          ? 'border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-400'
+          : 'border-border bg-background text-muted-foreground'
+      }`}
+    >
+      {done ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Activity className="h-3.5 w-3.5" />}
+      <span>{label}</span>
+    </div>
+  )
+}
+
+export function BundledRuntimeSetupGuide({
+  provider,
+  config,
+  onRunConfigTest,
+  testStatus,
+  testMessage,
+  onConfigPatch,
+}: BundledRuntimeSetupGuideProps) {
   const runtimeId = provider.capabilities.local?.runtimeId
   const manager = useMemo(() => (
     runtimeId ? createBundledRuntimeManager(runtimeId) : null
@@ -30,10 +63,39 @@ export function BundledRuntimeSetupGuide({ provider, config, onConfigPatch }: Bu
   const [statusState, setStatusState] = useState<ActionState>('idle')
   const [actionMessage, setActionMessage] = useState('')
   const [modelFiles, setModelFiles] = useState<string[]>([])
+  const [modelPathExists, setModelPathExists] = useState(false)
   const [binaryDownloadUrl, setBinaryDownloadUrl] = useState('')
   const [modelDownloadUrl, setModelDownloadUrl] = useState('')
   const [releaseTag, setReleaseTag] = useState('')
   const [releaseAssets, setReleaseAssets] = useState<WhisperCppReleaseAsset[]>([])
+  const [showAdvanced, setShowAdvanced] = useState(false)
+  const [releaseLoadedOnce, setReleaseLoadedOnce] = useState(false)
+  const currentModelPath = typeof config.modelPath === 'string' ? config.modelPath.trim() : ''
+  const currentBinaryPath = typeof config.binaryPath === 'string' ? config.binaryPath.trim() : ''
+  const binaryReady = Boolean(snapshot?.binaryPath || currentBinaryPath)
+  const modelReady = Boolean(currentModelPath) && modelPathExists
+  const runtimeRunning = snapshot?.status === 'running'
+  const recommendedModelPreset = whisperCppModelPresets[0]
+  const recommendedBinaryAsset = releaseAssets[0]
+  const nextStep = !binaryReady
+    ? {
+        title: '第 1 步：准备 runtime binary',
+        description: '先准备 binary。推荐直接加载官方 release 预设，然后下载推荐资产到应用目录。',
+      }
+    : !modelReady
+    ? {
+        title: '第 2 步：准备模型文件',
+        description: '推荐先下载官方 Base 模型；也可以导入已有的本地模型文件。',
+      }
+    : !runtimeRunning
+    ? {
+        title: '第 3 步：启动并验证 runtime',
+        description: 'binary 和模型都准备好了，接下来直接启动 runtime 或点击“测试配置”。',
+      }
+    : {
+        title: '已完成初始准备',
+        description: '现在可以点“测试配置”或直接开始录制。',
+      }
 
   const refreshStatus = async () => {
     if (!manager) {
@@ -71,6 +133,122 @@ export function BundledRuntimeSetupGuide({ provider, config, onConfigPatch }: Bu
   useEffect(() => {
     void refreshModels()
   }, [manager])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const checkModelPath = async () => {
+      if (!currentModelPath || !window.electronAPI?.pathExists) {
+        if (!cancelled) {
+          setModelPathExists(false)
+        }
+        return
+      }
+
+      try {
+        const exists = await window.electronAPI.pathExists(currentModelPath)
+        if (!cancelled) {
+          setModelPathExists(exists)
+        }
+      } catch {
+        if (!cancelled) {
+          setModelPathExists(false)
+        }
+      }
+    }
+
+    void checkModelPath()
+    return () => {
+      cancelled = true
+    }
+  }, [currentModelPath])
+
+  useEffect(() => {
+    if (!currentModelPath || modelPathExists || modelFiles.length === 0) {
+      return
+    }
+
+    const normalizedCurrent = normalizeModelPathCandidate(currentModelPath)
+    const matchedPath = modelFiles.find((filePath) => (
+      normalizeModelPathCandidate(filePath) === normalizedCurrent
+    ))
+
+    if (matchedPath && matchedPath !== currentModelPath) {
+      onConfigPatch({ modelPath: matchedPath })
+      setActionMessage(`已自动修正模型路径为: ${matchedPath}`)
+    }
+  }, [currentModelPath, modelFiles, modelPathExists, onConfigPatch])
+
+  useEffect(() => {
+    if (!modelDownloadUrl) {
+      setModelDownloadUrl(recommendedModelPreset.url)
+    }
+  }, [modelDownloadUrl, recommendedModelPreset.url])
+
+  useEffect(() => {
+    if (releaseLoadedOnce) return
+    setReleaseLoadedOnce(true)
+    void handleLoadOfficialBinaryPresets()
+  }, [releaseLoadedOnce])
+
+  const handlePrepareRecommendedFlow = async () => {
+    onConfigPatch({ port: 8177 })
+    setModelDownloadUrl(recommendedModelPreset.url)
+
+    if (releaseAssets.length === 0) {
+      setStatusState('loading')
+      try {
+        const releaseInfo = await fetchLatestWhisperCppReleaseInfo(window.electronAPI?.platform)
+        const nextAssets = releaseInfo.assets.slice(0, 8)
+        setReleaseTag(releaseInfo.tag)
+        setReleaseAssets(nextAssets)
+        if (nextAssets.length > 0) {
+          setBinaryDownloadUrl(nextAssets[0].url)
+        }
+        setStatusState('idle')
+        setActionMessage('已填入推荐流程：官方 binary + Base 模型 + 默认端口 8177')
+      } catch (error) {
+        setStatusState('error')
+        setActionMessage(error instanceof Error ? error.message : '加载推荐流程失败')
+      }
+      return
+    }
+
+    if (releaseAssets[0]) {
+      setBinaryDownloadUrl(releaseAssets[0].url)
+    }
+    setActionMessage('已填入推荐流程：官方 binary + Base 模型 + 默认端口 8177')
+  }
+
+  const handleRunValidation = async () => {
+    setStatusState('loading')
+    try {
+      await onRunConfigTest()
+      setStatusState('idle')
+      setActionMessage('已触发配置测试，请查看下方测试结果。')
+    } catch (error) {
+      setStatusState('error')
+      setActionMessage(error instanceof Error ? error.message : '触发配置测试失败')
+    }
+  }
+
+  const handlePrimaryAction = async () => {
+    if (!binaryReady) {
+      if (!recommendedBinaryAsset) {
+        await handlePrepareRecommendedFlow()
+        return
+      }
+      await handleDownloadBinary(recommendedBinaryAsset.url)
+      return
+    }
+
+    if (!modelReady) {
+      await handleDownloadModel()
+      return
+    }
+
+    await handleRunValidation()
+  }
 
   const handleStart = async () => {
     if (!manager) return
@@ -222,9 +400,10 @@ export function BundledRuntimeSetupGuide({ provider, config, onConfigPatch }: Bu
     }
   }
 
-  const handleDownloadBinary = async () => {
+  const handleDownloadBinary = async (preferredUrl?: string) => {
     if (!manager) return
-    if (!binaryDownloadUrl.trim()) {
+    const effectiveUrl = (preferredUrl || binaryDownloadUrl).trim()
+    if (!effectiveUrl) {
       setStatusState('error')
       setActionMessage('请先填写 runtime binary 下载 URL')
       return
@@ -232,7 +411,10 @@ export function BundledRuntimeSetupGuide({ provider, config, onConfigPatch }: Bu
 
     setStatusState('loading')
     try {
-      const downloadedPath = await manager.downloadBinary(binaryDownloadUrl.trim())
+      const downloadedPath = await manager.downloadBinary(effectiveUrl)
+      if (!binaryDownloadUrl.trim()) {
+        setBinaryDownloadUrl(effectiveUrl)
+      }
       onConfigPatch({ binaryPath: downloadedPath })
       await refreshStatus()
       setStatusState('idle')
@@ -268,8 +450,12 @@ export function BundledRuntimeSetupGuide({ provider, config, onConfigPatch }: Bu
     setStatusState('loading')
     try {
       const releaseInfo = await fetchLatestWhisperCppReleaseInfo(window.electronAPI?.platform)
+      const nextAssets = releaseInfo.assets.slice(0, 8)
       setReleaseTag(releaseInfo.tag)
-      setReleaseAssets(releaseInfo.assets.slice(0, 8))
+      setReleaseAssets(nextAssets)
+      if (!binaryDownloadUrl.trim() && nextAssets[0]?.url) {
+        setBinaryDownloadUrl(nextAssets[0].url)
+      }
       setStatusState('idle')
       setActionMessage(`已加载 whisper.cpp ${releaseInfo.tag} 官方 release 资产`)
     } catch (error) {
@@ -288,9 +474,50 @@ export function BundledRuntimeSetupGuide({ provider, config, onConfigPatch }: Bu
     <div className="space-y-3 rounded-lg border border-border/70 bg-muted/20 p-3">
       <div className="text-xs font-medium text-foreground">Bundled Runtime 引导</div>
       <p className="text-[11px] text-muted-foreground">
-        当前 provider 走随应用打包的本地 runtime 路径。这里负责 runtime 状态、模型目录和后续启动入口。
+        当前 provider 走随应用打包的本地 runtime 路径。推荐顺序是：准备 binary、准备模型、启动 runtime、再测试配置或开始录制。
       </p>
 
+      <div className="space-y-2 rounded-md border border-border/60 bg-background/50 p-3">
+        <div className="flex flex-wrap gap-2">
+          <StepBadge done={binaryReady} label="1. Binary" />
+          <StepBadge done={modelReady} label="2. 模型" />
+          <StepBadge done={runtimeRunning} label="3. Runtime" />
+        </div>
+        <div className="space-y-1">
+          <div className="text-[12px] font-medium text-foreground">{nextStep.title}</div>
+          <p className="text-[11px] text-muted-foreground">{nextStep.description}</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => void handlePrimaryAction()}
+          disabled={statusState === 'loading'}
+          className="inline-flex items-center justify-center gap-2 rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-medium text-primary hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          <Wand2 className="h-3.5 w-3.5" />
+          {!binaryReady
+            ? recommendedBinaryAsset
+              ? '下载推荐 binary'
+              : '准备推荐流程'
+            : !modelReady
+            ? '下载推荐 Base 模型'
+            : '测试本地配置'}
+        </button>
+        <p className="text-[10px] text-muted-foreground">
+          推荐默认值：官方 CPU 版 binary、Base 模型、端口 8177。高级手动操作已折叠到下方。
+        </p>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => setShowAdvanced(prev => !prev)}
+        className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-xs font-medium hover:bg-accent"
+      >
+        {showAdvanced ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+        {showAdvanced ? '收起高级操作' : '展开高级操作'}
+      </button>
+
+      {showAdvanced && (
+        <div className="space-y-3">
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
         <button
           onClick={() => void refreshStatus()}
@@ -350,7 +577,7 @@ export function BundledRuntimeSetupGuide({ provider, config, onConfigPatch }: Bu
       </button>
 
       <div className="space-y-2 rounded-md border border-border/60 bg-background/50 p-3">
-        <div className="text-[11px] font-medium text-foreground">官方入口</div>
+        <div className="text-[11px] font-medium text-foreground">第 1 步：获取 runtime binary</div>
         <div className="flex flex-wrap gap-2">
           <a
             href={WHISPER_CPP_RELEASES_URL}
@@ -429,7 +656,7 @@ export function BundledRuntimeSetupGuide({ provider, config, onConfigPatch }: Bu
       </button>
 
       <div className="space-y-2 rounded-md border border-border/60 bg-background/50 p-3">
-        <div className="text-[11px] font-medium text-foreground">官方模型预设</div>
+        <div className="text-[11px] font-medium text-foreground">第 2 步：获取模型文件</div>
         <div className="flex flex-wrap gap-2">
           {whisperCppModelPresets.map((preset) => (
             <button
@@ -470,10 +697,19 @@ export function BundledRuntimeSetupGuide({ provider, config, onConfigPatch }: Bu
         onClick={() => void handleOpenModelsPath()}
         disabled={statusState === 'loading'}
         className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-medium text-primary hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-70"
-      >
-        <FolderOpen className="h-3.5 w-3.5" />
-        打开模型目录
-      </button>
+        >
+          <FolderOpen className="h-3.5 w-3.5" />
+          打开模型目录
+        </button>
+        </div>
+      )}
+
+      <div className="space-y-2 rounded-md border border-border/60 bg-background/50 p-3">
+        <div className="text-[11px] font-medium text-foreground">第 3 步：启动并验证 runtime</div>
+        <p className="text-[10px] text-muted-foreground">
+          当 binary 和模型都准备好之后，启动 runtime；运行成功后即可点击“测试配置”或直接开始录制。
+        </p>
+      </div>
 
       <div className={`flex items-center gap-2 rounded-md px-2.5 py-2 text-[11px] ${statusTone}`}>
         {snapshot?.status === 'running'
@@ -483,6 +719,25 @@ export function BundledRuntimeSetupGuide({ provider, config, onConfigPatch }: Bu
           : <Activity className="h-3.5 w-3.5 flex-shrink-0" />}
         <span className="break-all">{actionMessage || snapshot?.message || '等待获取 runtime 状态'}</span>
       </div>
+
+      {testMessage && (
+        <div
+          className={`flex items-center gap-2 rounded-md px-2.5 py-2 text-[11px] ${
+            testStatus === 'success'
+              ? 'bg-green-500/10 text-green-700 dark:text-green-400'
+              : testStatus === 'error'
+              ? 'bg-red-500/10 text-red-600 dark:text-red-400'
+              : 'bg-blue-500/10 text-blue-700 dark:text-blue-400'
+          }`}
+        >
+          {testStatus === 'success'
+            ? <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" />
+            : testStatus === 'error'
+            ? <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+            : <Loader2 className="h-3.5 w-3.5 flex-shrink-0 animate-spin" />}
+          <span className="break-all">{testMessage}</span>
+        </div>
+      )}
 
       {snapshot && (
         <div className="space-y-1 text-[11px] text-muted-foreground">

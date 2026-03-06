@@ -86,6 +86,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getAutoLaunch: () => ipcRenderer.invoke('get-auto-launch') as Promise<boolean>,
   setAutoLaunch: (enable: boolean) => ipcRenderer.invoke('set-auto-launch', enable) as Promise<boolean>,
   pickFilePath: (options?: { title?: string; filters?: Array<{ name: string; extensions: string[] }> }) => ipcRenderer.invoke('pick-file-path', options) as Promise<string | null>,
+  pathExists: (targetPath: string) => ipcRenderer.invoke('path-exists', targetPath) as Promise<boolean>,
 
   // 本地 runtime 脚手架 API
   localRuntimeGetStatus: (runtimeId: string, options?: LocalRuntimeLaunchOptions) => ipcRenderer.invoke('local-runtime-get-status', runtimeId, options) as Promise<LocalRuntimeSnapshot>,
@@ -321,6 +322,7 @@ declare global {
       getAutoLaunch: () => Promise<boolean>
       setAutoLaunch: (enable: boolean) => Promise<boolean>
       pickFilePath: (options?: { title?: string; filters?: Array<{ name: string; extensions: string[] }> }) => Promise<string | null>
+      pathExists: (targetPath: string) => Promise<boolean>
       localRuntimeGetStatus: (runtimeId: string, options?: LocalRuntimeLaunchOptions) => Promise<LocalRuntimeSnapshot>
       localRuntimeOpenModelsPath: (runtimeId: string) => Promise<{ success: boolean; path: string; error?: string }>
       localRuntimeListModels: (runtimeId: string) => Promise<string[]>
