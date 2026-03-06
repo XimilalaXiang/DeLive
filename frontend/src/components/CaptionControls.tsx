@@ -99,7 +99,7 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
   // 切换字幕显示
   const handleToggle = useCallback(async () => {
     if (!window.electronAPI?.captionToggle) return
-    const newState = await window.electronAPI.captionToggle()
+    const newState = await window.electronAPI.captionToggle(undefined, 'main-caption-controls-toggle')
     setIsEnabled(newState)
   }, [])
 

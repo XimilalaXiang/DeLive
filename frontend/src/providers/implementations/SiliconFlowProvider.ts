@@ -6,6 +6,7 @@ import {
   SILICONFLOW_TRANSCRIPTION_MODELS,
 } from '../../types/asr/vendors/siliconflow'
 import { transcribeSiliconFlowAudio } from '../../utils/siliconflow'
+import { TranscriptStabilizer } from '../../utils/transcriptStabilizer'
 
 const SILICONFLOW_SAMPLE_RATE = 16000
 const SILICONFLOW_CHANNELS = 1
@@ -18,9 +19,9 @@ export class SiliconFlowProvider extends BaseASRProvider {
   readonly info: ASRProviderInfo = {
     id: 'siliconflow' as ASRVendor,
     name: '硅基流动',
-    description: '硅基流动云端语音转录，支持 SenseVoice / TeleSpeech / Qwen Omni 等模型',
+    description: '硅基流动云端语音转录；SenseVoice / TeleSpeech 为专用 ASR，Qwen Omni 为多模态转写',
     type: 'cloud',
-    supportsStreaming: true,
+    supportsStreaming: false,
     capabilities: {
       audioInputMode: 'pcm16',
       supportsConfigTest: true,
@@ -48,7 +49,7 @@ export class SiliconFlowProvider extends BaseASRProvider {
           value: item.value,
           label: item.label,
         })),
-        description: '选择用于语音转录的模型。',
+        description: 'Qwen Omni 走多模态 chat/completions，SenseVoice / TeleSpeech 走专用 ASR 接口。',
       },
       {
         key: 'languageHints',
@@ -66,7 +67,8 @@ export class SiliconFlowProvider extends BaseASRProvider {
   private inFlight = false
   private pendingFinal = false
   private hasPendingAudio = false
-  private lastTranscript = ''
+  private stabilizer = new TranscriptStabilizer()
+  private lastPartialText = ''
 
   async connect(config: ProviderConfig): Promise<void> {
     const apiKey = this.normalizeOptional(config.apiKey)
@@ -167,13 +169,23 @@ export class SiliconFlowProvider extends BaseASRProvider {
         language: this.getLanguageHint(),
       })
 
-      if (transcriptText && transcriptText !== this.lastTranscript) {
-        this.lastTranscript = transcriptText
-        this.emitPartial(transcriptText)
+      const update = isFinal
+        ? this.stabilizer.flush(transcriptText)
+        : this.stabilizer.process(transcriptText)
+
+      if (update.finalizedText) {
+        this.emitFinal(update.finalizedText)
+      }
+
+      if (update.partialText !== this.lastPartialText) {
+        this.lastPartialText = update.partialText
+        if (update.partialText) {
+          this.emitPartial(update.partialText)
+        }
       }
 
       if (isFinal) {
-        this.emitFinal(this.lastTranscript || transcriptText)
+        this.lastPartialText = ''
         this.emitFinished()
       }
     } catch (error) {
@@ -254,6 +266,7 @@ export class SiliconFlowProvider extends BaseASRProvider {
     this.inFlight = false
     this.pendingFinal = false
     this.hasPendingAudio = false
-    this.lastTranscript = ''
+    this.stabilizer.reset()
+    this.lastPartialText = ''
   }
 }

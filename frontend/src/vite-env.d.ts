@@ -78,7 +78,7 @@ declare interface CaptionBounds {
 declare interface ElectronAPI {
   getAppVersion: () => Promise<string>
   minimizeToTray: () => Promise<void>
-  windowMinimize: () => Promise<void>
+  windowMinimize: (source?: string) => Promise<void>
   windowMaximize: () => Promise<void>
   windowClose: () => Promise<void>
   windowIsMaximized: () => Promise<boolean>
@@ -114,7 +114,7 @@ declare interface ElectronAPI {
   onUpdateDownloaded: (callback: (info: { version: string }) => void) => () => void
   onUpdateError: (callback: (error: string) => void) => () => void
   // 字幕窗口 API
-  captionToggle: (enable?: boolean) => Promise<boolean>
+  captionToggle: (enable?: boolean, source?: string) => Promise<boolean>
   captionGetStatus: () => Promise<CaptionStatus>
   captionUpdateText: (text: string, isFinal: boolean) => Promise<void>
   captionUpdateStyle: (style: Partial<CaptionStyle>) => Promise<CaptionStyle>

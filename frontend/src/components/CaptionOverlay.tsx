@@ -154,11 +154,15 @@ export function CaptionOverlay() {
   // 本地悬停：用于控制按钮显隐（交互开关由主进程命中检测决定）
   const handleMouseEnter = useCallback(() => {
     setIsHoverLocal(true)
+    void window.electronAPI?.captionSetInteractive?.(true)
   }, [])
 
   const handleMouseLeave = useCallback(() => {
     setIsHoverLocal(false)
-  }, [])
+    if (!isDraggable) {
+      void window.electronAPI?.captionSetInteractive?.(false)
+    }
+  }, [isDraggable])
 
   // 切换锁定状态
   const handleToggleLock = useCallback(async (e: React.MouseEvent) => {
@@ -171,7 +175,7 @@ export function CaptionOverlay() {
   const handleClose = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation()
     if (!window.electronAPI?.captionToggle) return
-    await window.electronAPI.captionToggle(false)
+    await window.electronAPI.captionToggle(false, 'caption-overlay-close-button')
   }, [])
 
   // 拖拽处理

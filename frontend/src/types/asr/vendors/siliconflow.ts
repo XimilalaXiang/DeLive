@@ -27,22 +27,22 @@ export const SILICONFLOW_DEFAULT_MODEL = 'FunAudioLLM/SenseVoiceSmall'
 export const SILICONFLOW_CHAT_COMPLETION_MODELS = [
   {
     value: 'Qwen/Qwen3-Omni-30B-A3B-Instruct',
-    label: 'Qwen/Qwen3-Omni-30B-A3B-Instruct',
+    label: 'Qwen/Qwen3-Omni-30B-A3B-Instruct [多模态]',
   },
   {
     value: 'Qwen/Qwen3-Omni-30B-A3B-Thinking',
-    label: 'Qwen/Qwen3-Omni-30B-A3B-Thinking',
+    label: 'Qwen/Qwen3-Omni-30B-A3B-Thinking [多模态]',
   },
 ] as const
 
 export const SILICONFLOW_AUDIO_TRANSCRIPTION_MODELS = [
   {
     value: 'TeleAI/TeleSpeechASR',
-    label: 'TeleAI/TeleSpeechASR',
+    label: 'TeleAI/TeleSpeechASR [ASR]',
   },
   {
     value: 'FunAudioLLM/SenseVoiceSmall',
-    label: 'FunAudioLLM/SenseVoiceSmall',
+    label: 'FunAudioLLM/SenseVoiceSmall [ASR]',
   },
 ] as const
 

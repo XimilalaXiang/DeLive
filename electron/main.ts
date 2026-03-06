@@ -381,6 +381,9 @@ let captionEnabled = false
 let captionDraggable = false
 let captionText = ''
 let captionTextIsFinal = false
+let mouseCheckInterval: NodeJS.Timeout | null = null
+let lastMouseInside = false
+let currentInteractiveMode = false
 
 // 字幕样式配置
 interface CaptionStyle {
@@ -403,6 +406,77 @@ let captionStyle: CaptionStyle = {
   width: 800,
 }
 
+function getCaptionDebugLogPath(): string {
+  const logDir = path.join(app.getPath('userData'), 'logs')
+  fs.mkdirSync(logDir, { recursive: true })
+  return path.join(logDir, 'caption-debug.log')
+}
+
+function getWindowDebugSnapshot(window: BrowserWindow | null): Record<string, unknown> {
+  if (!window) {
+    return { exists: false }
+  }
+
+  if (window.isDestroyed()) {
+    return { exists: false, destroyed: true }
+  }
+
+  let bounds: Electron.Rectangle | null = null
+  try {
+    bounds = window.getBounds()
+  } catch {
+    bounds = null
+  }
+
+  return {
+    exists: true,
+    destroyed: false,
+    visible: window.isVisible(),
+    focused: window.isFocused(),
+    minimized: window.isMinimized(),
+    bounds,
+  }
+}
+
+function isCursorInsideCaptionWindow(): boolean {
+  if (!captionWindow || captionWindow.isDestroyed()) {
+    return false
+  }
+
+  const cursor = screen.getCursorScreenPoint()
+  const bounds = captionWindow.getBounds()
+  return (
+    cursor.x >= bounds.x &&
+    cursor.x <= bounds.x + bounds.width &&
+    cursor.y >= bounds.y &&
+    cursor.y <= bounds.y + bounds.height
+  )
+}
+
+function writeCaptionDebug(message: string, extra: Record<string, unknown> = {}): void {
+  const payload = {
+    isQuitting,
+    trayReady: tray !== null && !tray.isDestroyed(),
+    captionEnabled,
+    captionDraggable,
+    currentInteractiveMode,
+    mainWindow: getWindowDebugSnapshot(mainWindow),
+    captionWindow: getWindowDebugSnapshot(captionWindow),
+    ...extra,
+  }
+
+  console.log(`[CaptionDebug] ${message}`, payload)
+
+  try {
+    fs.appendFileSync(
+      getCaptionDebugLogPath(),
+      `${new Date().toISOString()} ${message} ${JSON.stringify(payload)}\n`
+    )
+  } catch (error) {
+    console.warn('[CaptionDebug] 写入日志文件失败:', error)
+  }
+}
+
 function syncCaptionWindowState(): void {
   if (!captionWindow || captionWindow.isDestroyed()) return
 
@@ -421,7 +495,22 @@ function getPreferredCaptionDisplay(): Electron.Display {
   return screen.getPrimaryDisplay()
 }
 
-function showCaptionWindow(window: BrowserWindow): void {
+function reinforceCaptionWindowTopmost(window: BrowserWindow, reason: string): void {
+  if (window.isDestroyed()) return
+
+  try {
+    window.setAlwaysOnTop(true, 'screen-saver')
+    window.moveTop()
+    writeCaptionDebug('reinforceCaptionWindowTopmost', { reason })
+  } catch (error) {
+    writeCaptionDebug('reinforceCaptionWindowTopmost.error', {
+      reason,
+      error: error instanceof Error ? error.message : String(error),
+    })
+  }
+}
+
+function showCaptionWindow(window: BrowserWindow, reason = 'unspecified'): void {
   if (window.isDestroyed()) return
 
   if (process.platform === 'linux') {
@@ -430,15 +519,55 @@ function showCaptionWindow(window: BrowserWindow): void {
     window.showInactive()
   }
 
-  window.moveTop()
+  reinforceCaptionWindowTopmost(window, reason)
+  writeCaptionDebug('showCaptionWindow', { reason })
+}
+
+function isMainWindowVisibleForCaption(): boolean {
+  return Boolean(mainWindow && !mainWindow.isDestroyed() && mainWindow.isVisible())
+}
+
+function syncCaptionWindowInputMode(reason: string): void {
+  if (!captionWindow || captionWindow.isDestroyed()) return
+
+  const mainWindowVisible = isMainWindowVisibleForCaption()
+  const interactive = captionDraggable || currentInteractiveMode
+  // 当主窗口可见时，字幕窗口不再透传鼠标给主窗口，避免误点到主页面字幕开关。
+  const ignoreMouseEvents = !interactive && !mainWindowVisible
+  const focusable = interactive
+
+  captionWindow.setIgnoreMouseEvents(
+    ignoreMouseEvents,
+    ignoreMouseEvents && SUPPORTS_MOUSE_FORWARD ? { forward: true } : undefined
+  )
+  captionWindow.setFocusable(focusable)
+  captionWindow.setSkipTaskbar(true)
+  writeCaptionDebug('syncCaptionWindowInputMode', {
+    reason,
+    mainWindowVisible,
+    interactive,
+    ignoreMouseEvents,
+    focusable,
+  })
 }
 
 function applyCaptionPassiveWindowState(): void {
-  if (!captionWindow || captionWindow.isDestroyed()) return
+  currentInteractiveMode = false
+  syncCaptionWindowInputMode('applyCaptionPassiveWindowState')
+}
 
-  captionWindow.setIgnoreMouseEvents(true, SUPPORTS_MOUSE_FORWARD ? { forward: true } : undefined)
-  captionWindow.setFocusable(false)
-  captionWindow.setSkipTaskbar(true)
+function refreshCaptionWindowForMainWindowState(reason: string): void {
+  if (!captionWindow || captionWindow.isDestroyed() || !captionEnabled) return
+
+  showCaptionWindow(captionWindow, reason)
+  syncCaptionWindowInputMode(reason)
+
+  setTimeout(() => {
+    if (!captionWindow || captionWindow.isDestroyed() || !captionEnabled) return
+
+    showCaptionWindow(captionWindow, `${reason}.deferred`)
+    syncCaptionWindowInputMode(`${reason}.deferred`)
+  }, 80)
 }
 
 // 根据样式计算窗口高度，确保足够容纳指定行数
@@ -1313,7 +1442,8 @@ function setupAutoUpdater() {
 // ============ 字幕窗口 ============
 function createCaptionWindow() {
   if (captionWindow) {
-    showCaptionWindow(captionWindow)
+    writeCaptionDebug('createCaptionWindow.reuse-existing')
+    showCaptionWindow(captionWindow, 'createCaptionWindow.reuse-existing')
     return
   }
 
@@ -1372,8 +1502,30 @@ function createCaptionWindow() {
     show: false,
   })
 
+  writeCaptionDebug('createCaptionWindow.created', {
+    targetDisplay: targetDisplay.id,
+    initialBounds: { x: windowX, y: windowY, width: windowWidth, height: windowHeight },
+  })
+
+  captionWindow.on('show', () => {
+    writeCaptionDebug('captionWindow.show')
+  })
+
+  captionWindow.on('hide', () => {
+    writeCaptionDebug('captionWindow.hide')
+  })
+
+  captionWindow.on('focus', () => {
+    writeCaptionDebug('captionWindow.focus')
+  })
+
+  captionWindow.on('blur', () => {
+    writeCaptionDebug('captionWindow.blur')
+  })
+
   // 窗口关闭时清理
   captionWindow.on('closed', () => {
+    writeCaptionDebug('captionWindow.closed')
     captionWindow = null
     captionEnabled = false
     // 通知主窗口字幕已关闭
@@ -1382,11 +1534,13 @@ function createCaptionWindow() {
 
   // 发送初始样式
   captionWindow.webContents.on('did-finish-load', () => {
+    writeCaptionDebug('captionWindow.did-finish-load')
     syncCaptionWindowState()
   })
 
   captionWindow.once('ready-to-show', () => {
-    showCaptionWindow(captionWindow!)
+    writeCaptionDebug('captionWindow.ready-to-show')
+    showCaptionWindow(captionWindow!, 'captionWindow.ready-to-show')
     applyCaptionPassiveWindowState()
     syncCaptionWindowState()
   })
@@ -1408,6 +1562,7 @@ function createCaptionWindow() {
 
 function closeCaptionWindow() {
   if (captionWindow) {
+    writeCaptionDebug('closeCaptionWindow.invoke')
     stopMousePositionCheck()
     captionWindow.close()
     captionWindow = null
@@ -1420,18 +1575,14 @@ function closeCaptionWindow() {
 function toggleCaptionDraggable(draggable: boolean) {
   captionDraggable = draggable
   if (captionWindow && !captionWindow.isDestroyed()) {
-    // 切换鼠标穿透状态
-    captionWindow.setIgnoreMouseEvents(!draggable, SUPPORTS_MOUSE_FORWARD ? { forward: true } : undefined)
-    // 切换可聚焦状态
-    captionWindow.setFocusable(draggable)
-    // 确保始终不在任务栏显示
-    captionWindow.setSkipTaskbar(true)
     // 同步交互状态缓存并通知渲染层（上锁时交互应为 false，解锁时为 true）
     currentInteractiveMode = draggable
+    syncCaptionWindowInputMode('toggleCaptionDraggable')
     captionWindow.webContents.send('caption-interactive-changed', draggable)
     // 通知字幕窗口更新拖拽状态
     captionWindow.webContents.send('caption-draggable-changed', draggable)
     console.log(`[Caption] 拖拽模式: ${draggable ? '开启' : '关闭'}`)
+    writeCaptionDebug('toggleCaptionDraggable', { draggable })
   }
 }
 
@@ -1440,31 +1591,29 @@ function setCaptionInteractive(interactive: boolean) {
   if (!captionWindow || captionWindow.isDestroyed()) return
 
   // 如果处于拖拽模式，保持可交互
-  if (captionDraggable) return
+  if (captionDraggable) {
+    writeCaptionDebug('setCaptionInteractive.skipped-dragging', { interactive })
+    return
+  }
 
   // 状态未变化时直接返回，避免重复切换导致抖动
   if (interactive === currentInteractiveMode) return
 
   try {
     currentInteractiveMode = interactive
-    captionWindow.setIgnoreMouseEvents(!interactive, SUPPORTS_MOUSE_FORWARD ? { forward: true } : undefined)
-    captionWindow.setFocusable(interactive)
-    // 确保始终不在任务栏显示
-    captionWindow.setSkipTaskbar(true)
+    syncCaptionWindowInputMode('setCaptionInteractive')
     // 通知字幕窗口交互状态变化
     captionWindow.webContents.send('caption-interactive-changed', interactive)
     console.log(`[Caption] 交互模式已设置: ${interactive ? '开启' : '关闭'}`)
+    writeCaptionDebug('setCaptionInteractive', { interactive })
   } catch (error) {
     console.error('[Caption] 设置交互模式失败:', error)
+    writeCaptionDebug('setCaptionInteractive.error', {
+      interactive,
+      error: error instanceof Error ? error.message : String(error),
+    })
   }
 }
-
-// 鼠标位置检测定时器
-let mouseCheckInterval: NodeJS.Timeout | null = null
-// 上一次的鼠标是否在区域内的状态
-let lastMouseInside = false
-// 当前是否处于交互模式（用于避免重复设置）
-let currentInteractiveMode = false
 
 // 启动鼠标位置检测
 function startMousePositionCheck() {
@@ -1558,6 +1707,36 @@ function createWindow() {
     show: false, // 先隐藏，等加载完成后显示
   })
 
+  writeCaptionDebug('mainWindow.created')
+
+  mainWindow.on('show', () => {
+    writeCaptionDebug('mainWindow.show')
+    refreshCaptionWindowForMainWindowState('mainWindow.show')
+  })
+
+  mainWindow.on('hide', () => {
+    writeCaptionDebug('mainWindow.hide')
+    refreshCaptionWindowForMainWindowState('mainWindow.hide')
+  })
+
+  mainWindow.on('minimize', () => {
+    writeCaptionDebug('mainWindow.minimize')
+    refreshCaptionWindowForMainWindowState('mainWindow.minimize')
+  })
+
+  mainWindow.on('restore', () => {
+    writeCaptionDebug('mainWindow.restore')
+    refreshCaptionWindowForMainWindowState('mainWindow.restore')
+  })
+
+  mainWindow.on('focus', () => {
+    writeCaptionDebug('mainWindow.focus')
+  })
+
+  mainWindow.on('blur', () => {
+    writeCaptionDebug('mainWindow.blur')
+  })
+
   // 设置 displayMediaRequestHandler 以支持 getDisplayMedia
   session.defaultSession.setDisplayMediaRequestHandler(async (_request, callback) => {
     // 如果有上次选择的源，尝试自动复用（音频设备切换时的自动重连）
@@ -1609,6 +1788,9 @@ function createWindow() {
 
   // 点击关闭按钮时最小化到托盘而不是退出
   mainWindow.on('close', (event) => {
+    writeCaptionDebug('mainWindow.close', {
+      willHideToTray: !isQuitting && isTrayReady(),
+    })
     if (!isQuitting && isTrayReady()) {
       event.preventDefault()
       mainWindow?.hide()
@@ -1620,6 +1802,7 @@ function createWindow() {
   })
 
   mainWindow.on('closed', () => {
+    writeCaptionDebug('mainWindow.closed')
     mainWindow = null
   })
 }
@@ -1763,6 +1946,7 @@ function createTray() {
     const trayIcon = loadTrayIcon()
 
     tray = new Tray(trayIcon)
+    writeCaptionDebug('createTray.success')
     tray.setToolTip('DeLive - 桌面音频实时转录')
 
     const contextMenu = Menu.buildFromTemplate([
@@ -1800,6 +1984,9 @@ function createTray() {
   } catch (error) {
     tray = null
     console.warn('[Tray] 初始化失败，当前环境可能不支持系统托盘:', error)
+    writeCaptionDebug('createTray.failed', {
+      error: error instanceof Error ? error.message : String(error),
+    })
   }
 }
 
@@ -1886,6 +2073,7 @@ if (!gotTheLock) {
 
 // 所有窗口关闭时的处理
 app.on('window-all-closed', () => {
+  writeCaptionDebug('app.window-all-closed')
   if (process.platform !== 'darwin') {
     app.quit()
   }
@@ -1893,6 +2081,7 @@ app.on('window-all-closed', () => {
 
 // 退出前清理
 app.on('before-quit', () => {
+  writeCaptionDebug('app.before-quit')
   isQuitting = true
   globalShortcut.unregisterAll()
   for (const runtimeId of localRuntimeStates.keys()) {
@@ -1919,7 +2108,8 @@ ipcMain.handle('minimize-to-tray', () => {
 })
 
 // 窗口控制 - 用于自定义标题栏
-ipcMain.handle('window-minimize', () => {
+ipcMain.handle('window-minimize', (_event, source?: string) => {
+  writeCaptionDebug('ipc.window-minimize', { source: source || 'unknown' })
   mainWindow?.minimize()
 })
 
@@ -1932,6 +2122,7 @@ ipcMain.handle('window-maximize', () => {
 })
 
 ipcMain.handle('window-close', () => {
+  writeCaptionDebug('ipc.window-close')
   mainWindow?.close()
 })
 
@@ -2326,8 +2517,28 @@ ipcMain.handle('install-update', () => {
 
 // ============ 字幕窗口 IPC 处理 ============
 // 切换字幕窗口显示
-ipcMain.handle('caption-toggle', (_event, enable?: boolean) => {
+ipcMain.handle('caption-toggle', (_event, enable?: boolean, source?: string) => {
   const shouldEnable = enable !== undefined ? enable : !captionEnabled
+  const normalizedSource = source || 'unknown'
+
+  if (
+    normalizedSource === 'main-caption-controls-toggle' &&
+    captionEnabled &&
+    isCursorInsideCaptionWindow()
+  ) {
+    writeCaptionDebug('ipc.caption-toggle.ignored-clickthrough', {
+      enable,
+      shouldEnable,
+      source: normalizedSource,
+    })
+    return captionEnabled
+  }
+
+  writeCaptionDebug('ipc.caption-toggle', {
+    enable,
+    shouldEnable,
+    source: normalizedSource,
+  })
 
   if (shouldEnable) {
     createCaptionWindow()
@@ -2355,8 +2566,19 @@ ipcMain.handle('caption-update-text', (_event, text: string, isFinal: boolean) =
   captionTextIsFinal = isFinal
 
   if (captionWindow && !captionWindow.isDestroyed() && captionEnabled) {
-    showCaptionWindow(captionWindow)
+    if (!captionWindow.isVisible()) {
+      writeCaptionDebug('caption-update-text.window-not-visible', {
+        textLength: text.length,
+        isFinal,
+      })
+    }
+    showCaptionWindow(captionWindow, 'caption-update-text')
     captionWindow.webContents.send('caption-text-update', { text, isFinal })
+  } else {
+    writeCaptionDebug('caption-update-text.no-window', {
+      textLength: text.length,
+      isFinal,
+    })
   }
 })
 
@@ -2417,6 +2639,7 @@ ipcMain.handle('caption-set-interactive', (_event, interactive: boolean) => {
 
 // 从字幕窗口打开主应用设置
 ipcMain.handle('caption-open-settings', () => {
+  writeCaptionDebug('ipc.caption-open-settings')
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.show()
     mainWindow.focus()

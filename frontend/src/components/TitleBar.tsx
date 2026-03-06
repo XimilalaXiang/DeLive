@@ -38,7 +38,7 @@ export function TitleBar() {
   }
 
   const handleMinimize = () => {
-    window.electronAPI?.windowMinimize()
+    window.electronAPI?.windowMinimize('titlebar-minimize-button')
   }
 
   const handleMaximize = async () => {

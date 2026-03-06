@@ -6,6 +6,7 @@ import {
   GROQ_DEFAULT_MODEL,
   GROQ_TRANSCRIPTION_MODELS,
 } from '../../types/asr/vendors/groq'
+import { TranscriptStabilizer } from '../../utils/transcriptStabilizer'
 
 const GROQ_SAMPLE_RATE = 16000
 const GROQ_CHANNELS = 1
@@ -18,9 +19,9 @@ export class GroqProvider extends BaseASRProvider {
   readonly info: ASRProviderInfo = {
     id: 'groq' as ASRVendor,
     name: 'Groq',
-    description: 'Groq 云端语音转录，使用 Whisper 模型进行低延迟识别',
+    description: 'Groq 云端语音转录，当前在应用内以分段重转写方式实现准实时字幕',
     type: 'cloud',
-    supportsStreaming: true,
+    supportsStreaming: false,
     capabilities: {
       audioInputMode: 'pcm16',
       supportsConfigTest: true,
@@ -63,7 +64,8 @@ export class GroqProvider extends BaseASRProvider {
   private inFlight = false
   private pendingFinal = false
   private hasPendingAudio = false
-  private lastTranscript = ''
+  private stabilizer = new TranscriptStabilizer()
+  private lastPartialText = ''
 
   async connect(config: ProviderConfig): Promise<void> {
     const apiKey = this.normalizeOptional(config.apiKey)
@@ -181,14 +183,23 @@ export class GroqProvider extends BaseASRProvider {
 
       const result = await response.json() as GroqTranscriptionResponse
       const transcriptText = typeof result.text === 'string' ? result.text : ''
+      const update = isFinal
+        ? this.stabilizer.flush(transcriptText)
+        : this.stabilizer.process(transcriptText)
 
-      if (transcriptText && transcriptText !== this.lastTranscript) {
-        this.lastTranscript = transcriptText
-        this.emitPartial(transcriptText)
+      if (update.finalizedText) {
+        this.emitFinal(update.finalizedText)
+      }
+
+      if (update.partialText !== this.lastPartialText) {
+        this.lastPartialText = update.partialText
+        if (update.partialText) {
+          this.emitPartial(update.partialText)
+        }
       }
 
       if (isFinal) {
-        this.emitFinal(this.lastTranscript || transcriptText)
+        this.lastPartialText = ''
         this.emitFinished()
       }
     } catch (error) {
@@ -269,6 +280,7 @@ export class GroqProvider extends BaseASRProvider {
     this.inFlight = false
     this.pendingFinal = false
     this.hasPendingAudio = false
-    this.lastTranscript = ''
+    this.stabilizer.reset()
+    this.lastPartialText = ''
   }
 }

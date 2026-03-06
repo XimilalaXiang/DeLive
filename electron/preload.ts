@@ -79,7 +79,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   minimizeToTray: () => ipcRenderer.invoke('minimize-to-tray'),
 
   // 窗口控制 - 用于自定义标题栏
-  windowMinimize: () => ipcRenderer.invoke('window-minimize'),
+  windowMinimize: (source?: string) => ipcRenderer.invoke('window-minimize', source),
   windowMaximize: () => ipcRenderer.invoke('window-maximize'),
   windowClose: () => ipcRenderer.invoke('window-close'),
   windowIsMaximized: () => ipcRenderer.invoke('window-is-maximized') as Promise<boolean>,
@@ -166,7 +166,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // ============ 字幕窗口 API ============
   // 切换字幕窗口
-  captionToggle: (enable?: boolean) => ipcRenderer.invoke('caption-toggle', enable) as Promise<boolean>,
+  captionToggle: (enable?: boolean, source?: string) => ipcRenderer.invoke('caption-toggle', enable, source) as Promise<boolean>,
 
   // 获取字幕状态
   captionGetStatus: () => ipcRenderer.invoke('caption-get-status') as Promise<CaptionStatus>,
@@ -319,7 +319,7 @@ declare global {
     electronAPI?: {
       getAppVersion: () => Promise<string>
       minimizeToTray: () => Promise<void>
-      windowMinimize: () => Promise<void>
+      windowMinimize: (source?: string) => Promise<void>
       windowMaximize: () => Promise<void>
       windowClose: () => Promise<void>
       windowIsMaximized: () => Promise<boolean>
@@ -351,7 +351,7 @@ declare global {
       onUpdateDownloaded: (callback: (info: { version: string }) => void) => () => void
       onUpdateError: (callback: (error: string) => void) => () => void
       // 字幕窗口 API
-      captionToggle: (enable?: boolean) => Promise<boolean>
+      captionToggle: (enable?: boolean, source?: string) => Promise<boolean>
       captionGetStatus: () => Promise<CaptionStatus>
       captionUpdateText: (text: string, isFinal: boolean) => Promise<void>
       captionUpdateStyle: (style: Partial<CaptionStyle>) => Promise<CaptionStyle>
