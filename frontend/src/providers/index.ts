@@ -11,5 +11,7 @@ export { providerRegistry, createProvider, getDefaultVendor } from './registry'
 // 提供商实现（仅流式提供商）
 export { SonioxProvider } from './implementations/SonioxProvider'
 export { VolcProvider } from './implementations/VolcProvider'
+export { GroqProvider } from './implementations/GroqProvider'
+export { SiliconFlowProvider } from './implementations/SiliconFlowProvider'
 export { LocalOpenAIProvider } from './implementations/LocalOpenAIProvider'
 export { WhisperCppRuntimeProvider } from './implementations/WhisperCppRuntimeProvider'

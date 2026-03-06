@@ -1,6 +1,9 @@
 import type { ProviderConfigData } from '../types'
 import type { ASRProviderInfo, ASRVendor } from '../types/asr'
 import { createBundledRuntimeManager } from './localRuntimeManager'
+import { GROQ_DEFAULT_BASE_URL, GROQ_DEFAULT_MODEL } from '../types/asr/vendors/groq'
+import { SILICONFLOW_DEFAULT_MODEL } from '../types/asr/vendors/siliconflow'
+import { transcribeSiliconFlowAudio } from './siliconflow'
 
 type ProviderConfigTester = (config: ProviderConfigData) => Promise<void>
 
@@ -203,6 +206,54 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
       const details = await response.text().catch(() => '')
       throw new Error(details || `服务返回错误: ${response.status}`)
     }
+  },
+  groq: async (config) => {
+    const apiKey = typeof config.apiKey === 'string' ? config.apiKey.trim() : ''
+    const model = typeof config.model === 'string' && config.model.trim()
+      ? config.model.trim()
+      : GROQ_DEFAULT_MODEL
+
+    if (!apiKey) {
+      throw new Error('请输入 Groq API Key')
+    }
+
+    const formData = new FormData()
+    formData.append('file', createSilentWavBlob(), 'test.wav')
+    formData.append('model', model)
+
+    const response = await fetch(`${GROQ_DEFAULT_BASE_URL}/audio/transcriptions`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const details = await response.text().catch(() => '')
+      throw new Error(details || `Groq 服务返回错误: ${response.status}`)
+    }
+  },
+  siliconflow: async (config) => {
+    const apiKey = typeof config.apiKey === 'string' ? config.apiKey.trim() : ''
+    const model = typeof config.model === 'string' && config.model.trim()
+      ? config.model.trim()
+      : SILICONFLOW_DEFAULT_MODEL
+
+    if (!apiKey) {
+      throw new Error('请输入硅基流动 API Key')
+    }
+
+    const language = Array.isArray(config.languageHints)
+      ? config.languageHints.find((item) => typeof item === 'string' && item.trim().length > 0)?.trim()
+      : undefined
+
+    await transcribeSiliconFlowAudio({
+      apiKey,
+      model,
+      wavBlob: createSilentWavBlob(),
+      language,
+    })
   },
   local_whisper_cpp: async (config) => {
     if (!window.electronAPI?.isElectron) {

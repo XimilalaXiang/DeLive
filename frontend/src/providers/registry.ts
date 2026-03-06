@@ -11,6 +11,8 @@ import type {
 } from '../types/asr'
 import { SonioxProvider } from './implementations/SonioxProvider'
 import { VolcProvider } from './implementations/VolcProvider'
+import { GroqProvider } from './implementations/GroqProvider'
+import { SiliconFlowProvider } from './implementations/SiliconFlowProvider'
 import { LocalOpenAIProvider } from './implementations/LocalOpenAIProvider'
 import { WhisperCppRuntimeProvider } from './implementations/WhisperCppRuntimeProvider'
 
@@ -75,6 +77,18 @@ function registerDefaultProviders(): void {
   providerRegistry.register({
     info: new VolcProvider().info,
     create: () => new VolcProvider(),
+  })
+
+  // Groq - 云端语音转录
+  providerRegistry.register({
+    info: new GroqProvider().info,
+    create: () => new GroqProvider(),
+  })
+
+  // 硅基流动 - 云端语音转录
+  providerRegistry.register({
+    info: new SiliconFlowProvider().info,
+    create: () => new SiliconFlowProvider(),
   })
 
   // 本地 OpenAI-compatible
