@@ -4,7 +4,7 @@
 
 # DeLive
 
-**System-Level Audio Capture | Your Final Backup for Untranscribed Content**
+**System-Level Audio Capture | Cloud and Local ASR in One Desktop App**
 
 English | [简体中文](./README_ZH.md) | [繁體中文](./README_TW.md) | [日本語](./README_JA.md)
 
@@ -16,224 +16,243 @@ English | [简体中文](./README_ZH.md) | [繁體中文](./README_TW.md) | [日
 [![Downloads](https://img.shields.io/github/downloads/XimilalaXiang/DeLive/total?label=Downloads&color=orange)](https://github.com/XimilalaXiang/DeLive/releases)
 [![Stars](https://img.shields.io/github/stars/XimilalaXiang/DeLive?style=social)](https://github.com/XimilalaXiang/DeLive)
 
-[Why DeLive](#-when-to-use-delive) • [Quick Start](#-quick-start) • [Architecture](#️-system-architecture)
+[Core Features](#-core-features) • [Quick Start](#-quick-start) • [Architecture](#-system-architecture) • [Providers](#-supported-asr-providers)
 
 </div>
 
-Directly capture system audio output. No matter how platforms protect their content, how DRMs encrypt their videos, or how live streams broadcast in real-time — as long as your computer can output sound, DeLive can transcribe it to text.
+DeLive captures system audio output directly. If your computer can play the sound, DeLive can capture it, feed it into the ASR backend you choose, and keep the resulting transcript on your machine for review, export, and reuse.
 
 <div align="center">
 <img width="800" alt="DeLive Screenshot" src="https://github.com/user-attachments/assets/f0d26fe3-ae9c-4d24-8b5d-b12f2095acb7" />
 </div>
 
-## 💡 When to Use DeLive
+## 🎯 Core Features
 
-**Your last resort when all other paths are blocked.**
-
-When subtitle export plugins fail, when platforms prevent downloads, when live streams have no captions, and when content is protected by DRM — system-level audio capture is your ultimate backup solution.
-
-Need to export subtitles or transcribed content for building knowledge bases, analysis, research, or any other purpose, but the platform restricts access? DeLive captures system audio and delivers clean, exportable text you own.
-
-### 🎯 Core Features
-
-- **🎧 System-Level Audio Capture** - Directly capture system audio output, bypassing platform restrictions
-- **🛡️ Bypass Protection Barriers** - Works on platforms with download restrictions, DRM protection, or no subtitle export
-- **📺 Universal Scene Coverage** - Live streams, recorded videos, meetings, private courses, paid content... any audio scenario
-- **⚡ Real-Time Transcription** - Convert speech to text instantly with minimal latency
-- **📢 Live Caption Overlay** - Floating subtitle window, customizable font, color, size, and position
-- **📤 Export to TXT/SRT** - Simple text files or timestamped subtitle files for any player
-- **🌐 60+ Language Support** - Chinese, English, Japanese, and many more
-- **🔄 Multiple ASR Providers** - Switch between providers for different accuracy and pricing needs
-
-### 🎨 User Experience
-
-- **Dark/Light Theme** - Comfortable viewing in any environment
-- **Modern Interface** - Clean, frameless design with custom title bar
-- **Auto-Start on Login** - Ready to use when your computer boots (Windows & macOS)
-- **System Tray Integration** - Runs quietly in the background
-- **Bilingual Interface** - Chinese and English UI language options
-- **Auto Updates** - Automatic detection and download of latest versions
+- **System-level audio capture** for browser video, live streams, meetings, courses, and any other playback source that exposes shareable system audio.
+- **Cloud and local ASR backends** in one app: Soniox, Volcengine, OpenAI-compatible local services, and experimental `whisper.cpp`.
+- **Provider-aware audio pipeline** that switches between `MediaRecorder` and PCM16 processing based on backend requirements.
+- **Local model workflows** including service detection, installed-model discovery, optional Ollama one-click pull, and `whisper.cpp` binary/model import or download.
+- **Floating caption overlay** with always-on-top transparent window, draggable mode, and style customization.
+- **History, tags, search, and export** with TXT and SRT output.
+- **Desktop integration** with tray behavior, global shortcut, auto-launch, update checks, and bilingual UI.
 
 ## 🏗️ System Architecture
 
 ```mermaid
 graph TB
-    subgraph "User Interface Layer"
-        UI[React Frontend]
-        EC[Electron Container]
-        CW[Caption Window<br/>Floating Overlay]
+    subgraph "Desktop Shell"
+        EM[Electron Main Process]
+        CAP[Caption Window<br/>Transparent Overlay]
+        DESK[Tray / Shortcut / Auto Launch / Updater]
     end
-    
-    subgraph "Audio Processing Layer"
-        AC[Audio Capture<br/>getDisplayMedia]
-        AP[Audio Processor<br/>AudioProcessor]
-        MR[MediaRecorder]
+
+    subgraph "Frontend"
+        UI[React App + Zustand]
+        CFG[Provider Config UI]
+        HIS[History / Export / Backup]
     end
-    
-    subgraph "ASR Abstraction Layer"
-        PR[Provider Registry]
-        BP[BaseASRProvider]
-        
-        subgraph "Service Providers"
-            SP[Soniox Provider]
-            VP[Volc Provider]
-            MP[More Providers...]
-        end
+
+    subgraph "Capture Pipeline"
+        SRC[Source Picker]
+        GDM[getDisplayMedia]
+        MR[MediaRecorder<br/>WebM / Opus]
+        AP[AudioProcessor<br/>PCM16 16kHz]
     end
-    
-    subgraph "Backend Service Layer"
-        PS[Proxy Server<br/>Express + WS]
-        VC[Volcengine Proxy<br/>volcProxy]
+
+    subgraph "Provider Layer"
+        REG[Provider Registry]
+        SON[Soniox Provider]
+        VOL[Volc Provider]
+        LOA[Local OpenAI-compatible Provider]
+        WCP[whisper.cpp Runtime Provider]
     end
-    
-    subgraph "External ASR Services"
-        SONIOX[Soniox API<br/>WebSocket]
-        VOLC[Volcengine API<br/>WebSocket]
+
+    subgraph "Electron Services"
+        PROXY[Embedded Volc Proxy<br/>Express + WebSocket]
+        RTM[Local Runtime Manager<br/>IPC + Process Control]
     end
-    
-    UI --> EC
-    EC --> AC
-    EC --> CW
-    AC --> AP
-    AC --> MR
-    
-    AP -->|PCM 16kHz| VP
-    MR -->|WebM/Opus| SP
-    
-    PR --> BP
-    BP --> SP
-    BP --> VP
-    BP --> MP
-    
-    SP -->|Direct| SONIOX
-    VP --> PS
-    PS --> VC
-    VC -->|With Headers| VOLC
-    
-    BP -->|Transcription| CW
-    
+
+    subgraph "ASR Backends"
+        SONIOX[Soniox Realtime API]
+        VOLC[Volcengine API]
+        OPENAI[Ollama / OpenAI-compatible ASR]
+        WHISPER[whisper.cpp server]
+    end
+
+    subgraph "Persistence"
+        STORE[Local Storage<br/>settings / sessions / tags]
+    end
+
+    UI --> CFG
+    UI --> HIS
+    UI --> SRC
+    SRC --> GDM
+    GDM --> MR
+    GDM --> AP
+
+    UI --> REG
+    REG --> SON
+    REG --> VOL
+    REG --> LOA
+    REG --> WCP
+
+    MR --> SON
+    MR --> LOA
+    AP --> VOL
+    AP --> WCP
+
+    SON --> SONIOX
+    VOL --> PROXY
+    PROXY --> VOLC
+    LOA --> OPENAI
+    WCP --> RTM
+    RTM --> WHISPER
+
+    UI --> STORE
+    HIS --> STORE
+    UI --> EM
+    EM --> CAP
+    EM --> PROXY
+    EM --> RTM
+    EM --> DESK
+
     style UI fill:#61dafb,color:#000
-    style EC fill:#47848f,color:#fff
-    style CW fill:#f472b6,color:#000
-    style PR fill:#f59e0b,color:#000
-    style PS fill:#10b981,color:#fff
-    style SONIOX fill:#6366f1,color:#fff
-    style VOLC fill:#ef4444,color:#fff
+    style EM fill:#334155,color:#fff
+    style CAP fill:#f472b6,color:#000
+    style REG fill:#f59e0b,color:#000
+    style PROXY fill:#10b981,color:#fff
+    style RTM fill:#0f766e,color:#fff
+    style OPENAI fill:#8b5cf6,color:#fff
+    style WHISPER fill:#ef4444,color:#fff
 ```
 
 ### Architecture Overview
 
-| Layer | Component | Description |
-|-------|-----------|-------------|
-| **User Interface** | React + Electron | Modern desktop application interface |
-| **Caption Window** | Transparent BrowserWindow | Floating subtitle overlay with customizable style |
-| **Audio Processing** | AudioProcessor / MediaRecorder | Process audio format based on ASR service requirements |
-| **ASR Abstraction** | Provider Registry | Unified ASR service interface, supports dynamic provider switching |
-| **Backend Service** | Express + WebSocket | Proxy for services requiring custom Headers |
-| **External Services** | Soniox / Volcengine | Actual speech recognition cloud services |
+| Layer | Main Components | Notes |
+|-------|-----------------|-------|
+| Desktop shell | Electron main process, tray, updater, caption window | Owns native desktop behavior and IPC |
+| Frontend | React, Zustand, provider config UI, history/export UI | Manages recording flow, settings, session state |
+| Capture pipeline | `getDisplayMedia`, `MediaRecorder`, `AudioProcessor` | Picks encoding path based on provider capability |
+| Provider layer | Registry + 4 provider implementations | Normalizes cloud and local ASR usage behind one interface |
+| Electron services | Embedded Volc proxy, bundled runtime manager | Handles custom-header WebSocket proxying and local process lifecycle |
+| Persistence | Browser local storage | Stores settings, transcript sessions, and tags locally |
 
-## 🔌 Supported ASR Services
+## 🔌 Supported ASR Providers
 
-| Provider | Status | Features |
-|----------|--------|----------|
-| **Soniox** | ✅ Supported | High accuracy, multi-language, direct WebSocket |
-| **Volcengine** | ✅ Supported | Chinese optimized, proxy connection |
-| *More providers* | 🔜 Planned | Extensible architecture, easy to add new providers |
+| Provider | Type | Audio Path | Highlights |
+|----------|------|------------|------------|
+| **Soniox V4** | Cloud | `MediaRecorder` -> WebSocket | Token-level realtime transcription, multi-language |
+| **Volcengine** | Cloud | PCM16 -> embedded proxy -> WebSocket | Chinese-optimized flow, proxy handles required headers |
+| **Local OpenAI-compatible** | Local service | `MediaRecorder` -> `/v1/audio/transcriptions` | Works with Ollama or compatible gateways, model discovery and optional Ollama pull |
+| **Local whisper.cpp** | Local runtime | PCM16 -> local `/inference` | Experimental; can import/download `whisper-server` binaries and local `.bin` / `.gguf` models |
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
 - Node.js 18+
-- ASR Service API Key (choose one):
-  - [Soniox API Key](https://console.soniox.com)
-  - [Volcengine APP ID and Access Token](https://console.volcengine.com/speech/app)
+- Choose one backend path:
+  - Soniox API key
+  - Volcengine APP ID and Access Token
+  - A local OpenAI-compatible ASR service that exposes `/v1/models` and `/v1/audio/transcriptions`
+  - A `whisper.cpp` server binary plus a local model file, or let DeLive download/import them from the setup guide
 
 ### Installation
 
 ```bash
-# Clone the project
 git clone https://github.com/XimilalaXiang/DeLive.git
 cd DeLive
-
-# Install all dependencies
 npm run install:all
 ```
 
-### Development Mode
+### Development
 
 ```bash
-# Start backend server (required for Volcengine)
-cd server && npm run dev
-
-# In another terminal, start frontend + Electron
 npm run dev
+```
+
+`npm run dev` starts Vite and Electron together. The Volcengine proxy used by the desktop app is already embedded in `electron/main.ts`.
+
+If you need the standalone proxy for debugging or non-Electron experiments, run:
+
+```bash
+npm run dev:server
 ```
 
 ### Build
 
 ```bash
-# Build for your current platform
-npm run dist:win       # Windows: .exe installer + portable
-npm run dist:mac       # macOS: .dmg + .zip
-npm run dist:linux     # Linux: .AppImage + .deb
+npm run dist:win
+npm run dist:mac
+npm run dist:linux
 ```
 
-Built files are located in the `release/` directory.
+Artifacts are written to `release/`.
+
+### Optional: Stage `whisper.cpp` Into Packaged Builds
+
+```bash
+# Fetch an official release asset and stage it into local-runtimes/whisper_cpp/
+npm run fetch:whisper-runtime -- --target win32
+
+# Or stage your own binary explicitly
+npm run stage:whisper-runtime -- --binary /path/to/whisper-server --target linux
+```
+
+If `local-runtimes/whisper_cpp/whisper-server(.exe)` exists at build time, `electron-builder` packages it as an extra resource. End users can still import or download binaries and models later from the UI.
 
 ## 📖 Usage
 
-### Basic Transcription
-1. **Select Provider** - Click settings and choose your ASR service provider
-2. **Configure API Key** - Enter the corresponding API key for your provider
-3. **Test Configuration** - Click "Test Config" to verify settings
-4. **Start Recording** - Click the "Start Recording" button
-5. **Select Audio Source** - Choose the screen/window to share (check "Share audio")
-6. **Real-time Transcription** - The system will automatically capture audio and display results
-7. **Stop Recording** - Click "Stop Recording", transcription will be saved to history
+### Cloud Providers
 
-### Real-time Screen Captions (New)
-1. **Enable Captions** - Click "Show Caption" button in settings
-2. **Customize Style** - Click the settings icon to adjust font, color, background, etc.
-3. **Move Caption** - Hover over the caption window, click the lock icon to unlock, then drag to reposition
-4. **Lock Position** - Click the lock icon again to lock the caption in place
-5. **Reset Position** - Click "Reset Position" button to restore default location
+1. Open settings and pick `Soniox V4` or `Volcengine`.
+2. Enter the required credentials and run `Test Config`.
+3. Click `Start Recording`.
+4. Choose a screen or window and make sure audio sharing is enabled.
+5. Watch partial and final transcripts update in the main window or caption overlay.
 
-### Export Options
-- **Export to TXT** - Click export button and select TXT format
-- **Export to SRT** - Click export button and select SRT format for subtitle files
+### Local OpenAI-compatible Services
+
+1. Select `Local OpenAI-compatible`.
+2. Fill in `Base URL` and `Model`.
+3. Use the local setup guide to detect the service and list installed models.
+4. If the detected service is Ollama, you can pull the selected model directly from the app.
+
+### Local `whisper.cpp` Runtime
+
+1. Select `Local whisper.cpp`.
+2. Prepare a runtime binary by importing an existing `whisper-server` file or downloading a recommended official asset.
+3. Prepare a model by selecting, importing, or downloading a local `.bin` or `.gguf` file.
+4. Start the runtime or run `Test Config`.
+5. Record normally; DeLive will launch and talk to the local runtime through Electron IPC.
+
+### Captions, History, and Export
+
+- Toggle the floating caption window and adjust font, colors, size, width, shadow, and position.
+- Review saved sessions in the history panel, rename them, and organize them with tags.
+- Export transcripts as TXT or SRT.
+- Import or export all local data from the settings panel for backup or migration.
 
 ## 📁 Project Structure
 
-```
+```text
 DeLive/
-├── electron/              # Electron main process
-│   ├── main.ts               # Main process entry
-│   └── preload.ts            # Preload script
-├── frontend/              # React frontend
+├── electron/                       # Electron main process and IPC bridge
+│   ├── main.ts                     # Embedded proxy, runtime manager, tray, updater
+│   └── preload.ts                  # Renderer-safe Electron API surface
+├── frontend/
+│   ├── caption.html                # Separate entry for the caption overlay window
 │   ├── src/
-│   │   ├── components/       # UI components
-│   │   │   ├── CaptionOverlay.tsx  # Caption window component
-│   │   │   ├── CaptionControls.tsx # Caption settings controls
-│   │   │   └── ...
-│   │   ├── hooks/            # Custom Hooks
-│   │   ├── providers/        # ASR provider implementations
-│   │   │   ├── base.ts           # Base class
-│   │   │   ├── registry.ts       # Provider registry
-│   │   │   └── implementations/  # Provider implementations
-│   │   ├── stores/           # Zustand state management
-│   │   ├── types/            # TypeScript types
-│   │   │   └── asr/              # ASR related type definitions
-│   │   ├── utils/            # Utility functions
-│   │   │   └── audioProcessor.ts # Audio processor
-│   │   └── i18n/             # Internationalization
-│   └── ...
-├── server/                # Backend proxy service
-│   └── src/
-│       ├── index.ts          # Express server
-│       └── volcProxy.ts      # Volcengine WebSocket proxy
-├── build/                 # App icon resources
-├── scripts/               # Build scripts
+│   │   ├── components/             # UI panels and setup guides
+│   │   ├── hooks/                  # Recording and ASR orchestration
+│   │   ├── providers/              # Registry + provider implementations
+│   │   ├── stores/                 # Zustand transcript/settings store
+│   │   ├── utils/                  # Audio, storage, provider, local-runtime helpers
+│   │   └── i18n/                   # UI translations
+├── local-runtimes/
+│   └── whisper_cpp/                # Optional packaged whisper.cpp runtime assets
+├── scripts/                        # Runtime staging/fetching and asset scripts
+├── server/                         # Standalone proxy server for debugging / experiments
 └── package.json
 ```
 
@@ -241,76 +260,59 @@ DeLive/
 
 | Layer | Technology |
 |-------|------------|
-| Desktop Framework | Electron 40 |
+| Desktop app | Electron 40 |
 | Frontend | React 18 + TypeScript + Vite |
 | Styling | Tailwind CSS |
-| State Management | Zustand |
-| Backend | Express + ws |
-| ASR Engine | Soniox V4 / Volcengine |
-| Bundler | electron-builder |
+| State | Zustand |
+| Desktop services | Express + ws inside Electron |
+| ASR backends | Soniox V4, Volcengine, OpenAI-compatible local ASR, `whisper.cpp` |
+| Packaging | electron-builder |
 
-## ⌨️ Keyboard Shortcuts
+## ⌨️ Keyboard Shortcut
 
 | Shortcut | Function |
 |----------|----------|
-| `Ctrl+Shift+D` / `Cmd+Shift+D` | Show/Hide main window |
+| `Ctrl+Shift+D` / `Cmd+Shift+D` | Show or hide the main window |
 
-## 🔧 Adding New ASR Providers
+## 🔧 Extending Providers
 
-DeLive uses an extensible provider architecture. To add a new provider:
-
-1. Create a new Provider class in `frontend/src/providers/implementations/`
-2. Extend `BaseASRProvider` and implement required methods
-3. Register the new provider in `registry.ts`
-4. If the service requires custom Headers, add a proxy in `server/src/`
-
-Refer to existing implementations (`SonioxProvider.ts` and `VolcProvider.ts`) for detailed guidance.
+1. Add a provider implementation under `frontend/src/providers/implementations/`.
+2. Define accurate `ASRProviderInfo` metadata, required fields, and capability flags.
+3. Register the provider in `frontend/src/providers/registry.ts`.
+4. Add config-test logic in `frontend/src/utils/providerConfigTest.ts` if the provider supports validation.
+5. For local-service or local-runtime flows, wire model/runtime helpers in `frontend/src/utils/localModelSetup.ts` or `frontend/src/utils/localRuntimeManager.ts`.
+6. If the provider needs custom headers or native process control, extend `electron/main.ts`. Mirror that behavior in `server/` only if you still need a standalone proxy path.
 
 ## ⚠️ Notes
 
-1. **System Requirements** - Windows 10+, macOS 13+ (Ventura), Linux (Ubuntu 20.04+ or equivalent)
-2. **API Quota** - Be aware of each provider's API usage limits
-3. **Volcengine** - Requires starting the backend server (`cd server && npm run dev`)
-4. **Tray Behavior** - Clicking close minimizes to tray, right-click tray icon and select "Exit" to fully close
-5. **Caption Window** - The caption window is always on top and mouse-transparent when locked
-6. **macOS Audio** - System audio capture requires macOS 13+ (ScreenCaptureKit)
-7. **Linux Audio** - Requires PulseAudio for system audio loopback capture
-8. **Auto-Launch** - Supported on Windows and macOS only
-9. **Auto-Update** - Supported on Windows, macOS, and Linux AppImage
+1. **System requirements**: Windows 10+, macOS 13+, or Linux with PulseAudio loopback support.
+2. **Volcengine proxy**: normal desktop usage does not require a separate backend process; Electron starts the proxy internally.
+3. **Local OpenAI-compatible mode**: discovery expects both `/v1/models` and `/v1/audio/transcriptions`.
+4. **`whisper.cpp` mode**: packaged binaries are optional; users can also import or download binaries and models at runtime.
+5. **Tray behavior**: closing the main window minimizes to tray; use the tray menu to exit fully.
+6. **Auto-launch**: currently supported on Windows and macOS.
+7. **Auto-update**: supported on Windows, macOS, and Linux AppImage builds.
 
 ### 🛡️ Windows SmartScreen Warning
 
-When you first run DeLive, Windows may display a SmartScreen warning saying "Windows protected your PC". This is **normal behavior** for new applications that haven't yet established reputation with Microsoft.
+Windows may show a SmartScreen warning the first time you launch DeLive. That is expected for unsigned or newly distributed apps.
 
-**Why does this happen?**
-- DeLive is an open-source project without a paid code signing certificate
-- New applications without widespread usage will trigger this warning
-- This does NOT mean the software is harmful
+1. Click **More info**.
+2. Click **Run anyway**.
 
-**How to proceed:**
-1. Click **"More info"** on the warning dialog
-2. Click **"Run anyway"** to start DeLive
-
-**Verify Safety:**
-- [VirusTotal Scan Results](https://www.virustotal.com/gui/file/cdc1680fd693ac7b1c08980e8af5b04edf42289a051f9e7ecd4d915db9bce24b/detection) - You can verify the application is safe
-- The source code is fully open and auditable on GitHub
+You can also inspect the source code directly and verify released binaries independently.
 
 ## 📄 License
 
 Apache License 2.0
 
-```
-Apache 2.0 License - Free to use, modify, and distribute with attribution
-```
-
 ## 🙏 Acknowledgments
 
-- [Soniox](https://soniox.com) - Powerful speech recognition API
-- [Volcengine](https://www.volcengine.com) - Chinese-optimized speech recognition service
-- [BiBi-Keyboard](https://github.com/BryceWG/BiBi-Keyboard) - Multi-provider architecture reference
-- [Electron](https://www.electronjs.org/) - Cross-platform desktop application framework
-- [React](https://react.dev/) - User interface library
-- [Tailwind CSS](https://tailwindcss.com/) - CSS framework
+- [Soniox](https://soniox.com) for realtime speech recognition APIs
+- [Volcengine](https://www.volcengine.com) for Chinese-focused speech recognition
+- [Ollama](https://ollama.com) for local model workflows
+- [`whisper.cpp`](https://github.com/ggml-org/whisper.cpp) for local open-source runtime support
+- [BiBi-Keyboard](https://github.com/BryceWG/BiBi-Keyboard) for multi-provider architecture inspiration
 
 ---
 
@@ -318,6 +320,6 @@ Apache 2.0 License - Free to use, modify, and distribute with attribution
 
 [![Star History Chart](https://api.star-history.com/svg?repos=XimilalaXiang/DeLive&type=date&legend=top-left)](https://www.star-history.com/#XimilalaXiang/DeLive&type=date&legend=top-left)
 
-**Made with ❤️ by [XimilalaXiang](https://github.com/XimilalaXiang)**
+**Made by [XimilalaXiang](https://github.com/XimilalaXiang)**
 
 </div>

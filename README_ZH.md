@@ -4,7 +4,7 @@
 
 # DeLive
 
-**跨平台桌面音频实时转录系统 | 支持多 ASR 服务提供商**
+**系统级音频捕获 | 云端与本地 ASR 一体化桌面应用**
 
 [English](./README.md) | 简体中文 | [繁體中文](./README_TW.md) | [日本語](./README_JA.md)
 
@@ -16,235 +16,243 @@
 [![下载量](https://img.shields.io/github/downloads/XimilalaXiang/DeLive/total?label=下载量&color=orange)](https://github.com/XimilalaXiang/DeLive/releases)
 [![Stars](https://img.shields.io/github/stars/XimilalaXiang/DeLive?style=social)](https://github.com/XimilalaXiang/DeLive)
 
-[为何选择 DeLive](#-何时使用-delive) • [快速开始](#-快速开始) • [系统架构](#️-系统架构)
+[核心功能](#-核心功能) • [快速开始](#-快速开始) • [系统架构](#-系统架构) • [支持的-asr-服务](#-支持的-asr-服务)
 
 </div>
 
-直接捕获系统音频输出。无论平台如何保护内容、DRM 如何加密视频、直播如何实时播放——只要你的电脑能发出声音，DeLive 就能将其转录为文字。
+只要电脑能播放出声音，DeLive 就能把这段系统音频捕获下来，送到你选定的 ASR 后端，并把转录结果保存在本地，供继续整理、检索和导出。
 
 <div align="center">
 <img width="800" alt="DeLive 截图" src="https://github.com/user-attachments/assets/f0d26fe3-ae9c-4d24-8b5d-b12f2095acb7" />
 </div>
 
-## 💡 何时使用 DeLive
+## 🎯 核心功能
 
-**当所有其他路都被堵死时的最终选择。**
-
-当字幕导出插件失效、平台禁止下载、直播没有字幕、内容受到 DRM 保护时——系统级音频捕获是你的终极保障。
-
-需要导出字幕或转录内容用于构建知识库、分析、调研等用途，但平台受限？DeLive 捕获系统音频，交付干净、可导出的文本，你拥有完全的所有权。
-
-### 🎯 核心功能
-
-- **🎧 系统级音频捕获** - 直接捕获系统音频输出，绕过平台限制
-- **🛡️ 突破防护限制** - 适用于禁止下载、有 DRM 保护、无法导出字幕的平台
-- **📺 全场景覆盖** - 直播、录播、会议、私密课程、付费内容...任何有声音的场景
-- **⚡ 实时转录** - 边播放边转文字，低延迟响应
-- **📢 实时字幕** - 悬浮字幕窗口，支持自定义字体、颜色、大小和位置
-- **📤 导出 TXT/SRT** - 简单文本文件或带时间戳的字幕文件
-- **🌐 60+ 语言支持** - 中文、英文、日语等 60 多种语言
-- **🔄 多 ASR 提供商** - 灵活切换，满足不同精度和价格需求
-
-### 🎨 用户体验
-
-- **深色/浅色主题** - 任意环境都能舒适观看
-- **现代化界面** - 简洁无边框设计，自定义标题栏
-- **开机自启动** - 电脑启动后即可使用
-- **系统托盘集成** - 后台静默运行
-- **双语界面** - 中文和英文界面任意切换
-- **自动更新** - 自动检测和下载最新版本
+- **系统级音频捕获**：适用于网页视频、直播、会议、课程和任何能共享系统音频的播放场景。
+- **云端与本地 ASR 共存**：内置 Soniox、火山引擎、本地 OpenAI-compatible、本地 `whisper.cpp` 四条路径。
+- **按 Provider 自动切换音频管线**：根据后端要求，在 `MediaRecorder` 与 PCM16 `AudioProcessor` 之间自动切换。
+- **本地模型工作流**：支持探测本地服务、列出已安装模型、Ollama 一键拉取，以及 `whisper.cpp` binary / 模型导入与下载。
+- **悬浮字幕窗口**：独立透明窗口、始终置顶，可拖动、锁定，并自定义样式。
+- **历史记录与导出**：支持标签、搜索、TXT / SRT 导出。
+- **桌面级集成**：系统托盘、全局快捷键、开机自启动、更新检查、中英文界面。
 
 ## 🏗️ 系统架构
 
 ```mermaid
 graph TB
-    subgraph "用户界面层"
-        UI[React 前端]
-        EC[Electron 容器]
-        CW[字幕窗口<br/>悬浮叠加层]
+    subgraph "桌面壳层"
+        EM[Electron 主进程]
+        CAP[字幕窗口<br/>透明叠加层]
+        DESK[托盘 / 快捷键 / 自启动 / 更新]
     end
-    
-    subgraph "音频处理层"
-        AC[音频捕获<br/>getDisplayMedia]
-        AP[音频处理器<br/>AudioProcessor]
-        MR[MediaRecorder]
+
+    subgraph "前端层"
+        UI[React App + Zustand]
+        CFG[Provider 配置界面]
+        HIS[历史 / 导出 / 备份]
     end
-    
-    subgraph "ASR 抽象层"
-        PR[Provider Registry]
-        BP[BaseASRProvider]
-        
-        subgraph "服务提供商"
-            SP[Soniox Provider]
-            VP[Volc Provider]
-            MP[更多提供商...]
-        end
+
+    subgraph "采集与处理层"
+        SRC[音源选择器]
+        GDM[getDisplayMedia]
+        MR[MediaRecorder<br/>WebM / Opus]
+        AP[AudioProcessor<br/>PCM16 16kHz]
     end
-    
-    subgraph "后端服务层"
-        PS[代理服务器<br/>Express + WS]
-        VC[火山引擎代理<br/>volcProxy]
+
+    subgraph "Provider 抽象层"
+        REG[Provider Registry]
+        SON[Soniox Provider]
+        VOL[Volc Provider]
+        LOA[本地 OpenAI-compatible]
+        WCP[whisper.cpp Runtime Provider]
     end
-    
-    subgraph "外部 ASR 服务"
-        SONIOX[Soniox API<br/>WebSocket]
-        VOLC[火山引擎 API<br/>WebSocket]
+
+    subgraph "Electron 服务层"
+        PROXY[内置火山代理<br/>Express + WebSocket]
+        RTM[本地 Runtime 管理器<br/>IPC + 进程控制]
     end
-    
-    UI --> EC
-    EC --> AC
-    EC --> CW
-    AC --> AP
-    AC --> MR
-    
-    AP -->|PCM 16kHz| VP
-    MR -->|WebM/Opus| SP
-    
-    PR --> BP
-    BP --> SP
-    BP --> VP
-    BP --> MP
-    
-    SP -->|直连| SONIOX
-    VP --> PS
-    PS --> VC
-    VC -->|带 Headers| VOLC
-    
-    BP -->|转录内容| CW
-    
+
+    subgraph "ASR 后端"
+        SONIOX[Soniox Realtime API]
+        VOLC[火山引擎 API]
+        OPENAI[Ollama / OpenAI-compatible ASR]
+        WHISPER[whisper.cpp server]
+    end
+
+    subgraph "本地持久化"
+        STORE[Local Storage<br/>settings / sessions / tags]
+    end
+
+    UI --> CFG
+    UI --> HIS
+    UI --> SRC
+    SRC --> GDM
+    GDM --> MR
+    GDM --> AP
+
+    UI --> REG
+    REG --> SON
+    REG --> VOL
+    REG --> LOA
+    REG --> WCP
+
+    MR --> SON
+    MR --> LOA
+    AP --> VOL
+    AP --> WCP
+
+    SON --> SONIOX
+    VOL --> PROXY
+    PROXY --> VOLC
+    LOA --> OPENAI
+    WCP --> RTM
+    RTM --> WHISPER
+
+    UI --> STORE
+    HIS --> STORE
+    UI --> EM
+    EM --> CAP
+    EM --> PROXY
+    EM --> RTM
+    EM --> DESK
+
     style UI fill:#61dafb,color:#000
-    style EC fill:#47848f,color:#fff
-    style CW fill:#f472b6,color:#000
-    style PR fill:#f59e0b,color:#000
-    style PS fill:#10b981,color:#fff
-    style SONIOX fill:#6366f1,color:#fff
-    style VOLC fill:#ef4444,color:#fff
+    style EM fill:#334155,color:#fff
+    style CAP fill:#f472b6,color:#000
+    style REG fill:#f59e0b,color:#000
+    style PROXY fill:#10b981,color:#fff
+    style RTM fill:#0f766e,color:#fff
+    style OPENAI fill:#8b5cf6,color:#fff
+    style WHISPER fill:#ef4444,color:#fff
 ```
 
 ### 架构说明
 
-| 层级 | 组件 | 说明 |
-|------|------|------|
-| **用户界面层** | React + Electron | 提供现代化的桌面应用界面 |
-| **字幕窗口** | 透明 BrowserWindow | 可自定义样式的悬浮字幕叠加层 |
-| **音频处理层** | AudioProcessor / MediaRecorder | 根据 ASR 服务要求处理音频格式 |
-| **ASR 抽象层** | Provider Registry | 统一的 ASR 服务接口，支持动态切换提供商 |
-| **后端服务层** | Express + WebSocket | 为需要自定义 Headers 的服务提供代理 |
-| **外部服务** | Soniox / 火山引擎 | 实际的语音识别云服务 |
+| 层级 | 主要组件 | 说明 |
+|------|----------|------|
+| 桌面壳层 | Electron 主进程、托盘、更新器、字幕窗 | 负责原生桌面能力和 IPC |
+| 前端层 | React、Zustand、配置页、历史面板 | 管理录制流程、设置与会话状态 |
+| 采集与处理层 | `getDisplayMedia`、`MediaRecorder`、`AudioProcessor` | 按 Provider 能力切换音频编码路径 |
+| Provider 抽象层 | 注册表 + 4 个 Provider 实现 | 统一云端与本地转录接口 |
+| Electron 服务层 | 内置火山代理、本地 runtime 管理器 | 处理自定义 Header 代理与本地进程生命周期 |
+| 本地持久化 | 浏览器本地存储 | 保存设置、会话、标签等数据 |
 
 ## 🔌 支持的 ASR 服务
 
-| 服务商 | 状态 | 特点 |
-|--------|------|------|
-| **Soniox** | ✅ 支持 | 高精度、多语言、直连 WebSocket |
-| **火山引擎** | ✅ 支持 | 中文优化、通过代理连接 |
-| **本地 OpenAI-compatible** | ✅ 支持 | 连接 Ollama / 本地 OpenAI 兼容 ASR 服务 |
-| **本地 whisper.cpp** | ✅ 支持（实验性） | 通过本地 runtime 直接加载本地模型 |
-| *更多服务商* | 🔜 计划中 | 可扩展架构，易于添加新提供商 |
+| 服务 | 类型 | 音频路径 | 说明 |
+|------|------|----------|------|
+| **Soniox V4** | 云端 | `MediaRecorder` -> WebSocket | Token 级实时转录，多语言 |
+| **火山引擎** | 云端 | PCM16 -> 内置代理 -> WebSocket | 中文优化，代理负责补齐 Header |
+| **本地 OpenAI-compatible** | 本地服务 | `MediaRecorder` -> `/v1/audio/transcriptions` | 适配 Ollama 或其他兼容网关，支持模型探测和可选一键拉取 |
+| **本地 whisper.cpp** | 本地 runtime | PCM16 -> 本地 `/inference` | 实验性；支持 `whisper-server` binary 与 `.bin` / `.gguf` 模型导入或下载 |
 
 ## 🚀 快速开始
 
 ### 前置要求
 
 - Node.js 18+
-- ASR 服务 API 密钥（任选一个）:
-  - [Soniox API 密钥](https://console.soniox.com)
-  - [火山引擎 APP ID 和 Access Token](https://console.volcengine.com/speech/app)
-- 本地模型路径（二选一）:
-  - 已运行的本地 OpenAI-compatible ASR 服务（如 Ollama / 本地网关）
-  - `whisper.cpp` server 可执行文件 + 本地模型文件
+- 任选一种后端路径：
+  - Soniox API Key
+  - 火山引擎 APP ID + Access Token
+  - 提供 `/v1/models` 与 `/v1/audio/transcriptions` 的本地 OpenAI-compatible ASR 服务
+  - `whisper.cpp` server binary 与本地模型文件，或者直接在 DeLive 里下载 / 导入
 
 ### 安装
 
 ```bash
-# 克隆项目
 git clone https://github.com/XimilalaXiang/DeLive.git
 cd DeLive
-
-# 安装所有依赖
 npm run install:all
 ```
 
 ### 开发模式
 
 ```bash
-# 启动后端服务器（火山引擎需要）
-cd server && npm run dev
-
-# 在另一个终端启动前端 + Electron
 npm run dev
+```
+
+`npm run dev` 会同时启动 Vite 和 Electron。桌面端正常开发时，火山引擎代理已经内置在 `electron/main.ts` 中，不需要额外再起一个后端服务。
+
+如果你要单独调试代理或做非 Electron 实验，再使用：
+
+```bash
+npm run dev:server
 ```
 
 ### 打包构建
 
 ```bash
-# 为当前平台打包
-npm run dist:win       # Windows: .exe 安装程序 + 便携版
-npm run dist:mac       # macOS: .dmg + .zip
-npm run dist:linux     # Linux: .AppImage + .deb
+npm run dist:win
+npm run dist:mac
+npm run dist:linux
 ```
 
-打包后的文件位于 `release/` 目录。
+产物位于 `release/`。
 
-## 📖 使用步骤
+### 可选：打包时预置 `whisper.cpp`
 
-### 基本转录
-1. **选择服务商** - 点击设置，选择你的 ASR 服务提供商
-2. **配置服务** - 云端服务填写 API 密钥；本地服务填写本地地址或导入本地 runtime / 模型
-3. **测试配置** - 点击"测试配置"验证设置是否正确
-4. **开始录制** - 点击"开始录制"按钮
-5. **选择音频源** - 在弹出的窗口中选择要共享的屏幕/窗口（需勾选"共享音频"）
-6. **实时转录** - 系统将自动捕获音频并显示转录结果
-7. **停止录制** - 点击"停止录制"按钮，转录内容将自动保存到历史记录
+```bash
+# 拉取官方 release 资产到 local-runtimes/whisper_cpp/
+npm run fetch:whisper-runtime -- --target win32
 
-### 本地模型（实验性）
-1. **本地 OpenAI-compatible** - 在设置中选择该服务，填写 `Base URL` 和模型名；如是 Ollama，可直接检测服务并拉取模型
-2. **本地 whisper.cpp** - 在设置中选择该服务，填写或导入 `whisper-server` binary，并导入 / 选择本地模型文件
-3. **官方预设** - 可直接使用内置的官方模型预设 URL，或打开官方 Releases / Server 文档快速定位 binary 来源
-4. **验证 runtime** - 使用“测试配置”或 runtime 面板确认本地服务 / 本地 runtime 可以正常启动
+# 或者手动放入你自己的 whisper-server
+npm run stage:whisper-runtime -- --binary /path/to/whisper-server --target linux
+```
 
-### 实时屏幕字幕（新功能）
-1. **启用字幕** - 点击设置中的"显示字幕"按钮
-2. **自定义样式** - 点击设置图标，调整字体、颜色、背景等
-3. **移动字幕** - 鼠标悬停在字幕上，点击锁定图标解锁，然后拖拽调整位置
-4. **锁定位置** - 再次点击锁定图标，固定字幕位置
-5. **重置位置** - 点击"重置位置"按钮，恢复默认位置
+如果构建时 `local-runtimes/whisper_cpp/whisper-server(.exe)` 已存在，`electron-builder` 会把它一起打进安装包。即便没有预置，终端用户也仍然可以在应用内导入或下载 binary / 模型。
 
-### 导出选项
-- **导出为 TXT** - 点击导出按钮，选择 TXT 格式
-- **导出为 SRT** - 点击导出按钮，选择 SRT 格式导出字幕文件
+## 📖 使用说明
+
+### 云端 Provider
+
+1. 打开设置，选择 `Soniox V4` 或 `火山引擎`。
+2. 填写凭据并点击 `测试配置`。
+3. 点击 `开始录制`。
+4. 选择要共享的屏幕或窗口，并确保勾选共享音频。
+5. 实时结果会显示在主窗口，也可以同步到悬浮字幕窗口。
+
+### 本地 OpenAI-compatible
+
+1. 选择 `本地 OpenAI-compatible`。
+2. 填写 `Base URL` 和 `Model`。
+3. 使用本地模型引导先探测服务，再检测已安装模型。
+4. 如果探测结果是 Ollama，可以直接在应用里一键拉取模型。
+
+### 本地 `whisper.cpp` Runtime
+
+1. 选择 `本地 whisper.cpp`。
+2. 准备 runtime binary：导入已有 `whisper-server`，或者加载推荐官方 release 资产并下载。
+3. 准备模型：选择、导入或下载本地 `.bin` / `.gguf` 模型文件。
+4. 启动 runtime 或执行 `测试配置`。
+5. 之后的录制流程与其他 Provider 一致，DeLive 会通过 Electron IPC 管理本地 runtime。
+
+### 字幕、历史与导出
+
+- 开启悬浮字幕窗口，自定义字体、颜色、字号、宽度、阴影和位置。
+- 在历史面板中重命名会话、打标签、搜索记录。
+- 导出 TXT 或 SRT。
+- 在设置面板中导入 / 导出全部本地数据，用于备份和迁移。
 
 ## 📁 项目结构
 
-```
+```text
 DeLive/
-├── electron/              # Electron 主进程
-│   ├── main.ts               # 主进程入口
-│   └── preload.ts            # 预加载脚本
-├── frontend/              # React 前端
+├── electron/                       # Electron 主进程与 IPC 桥
+│   ├── main.ts                     # 内置代理、runtime 管理、托盘、更新
+│   └── preload.ts                  # Renderer 可安全访问的 Electron API
+├── frontend/
+│   ├── caption.html                # 悬浮字幕窗口入口
 │   ├── src/
-│   │   ├── components/       # UI 组件
-│   │   │   ├── CaptionOverlay.tsx  # 字幕窗口组件
-│   │   │   ├── CaptionControls.tsx # 字幕设置控件
-│   │   │   └── ...
-│   │   ├── hooks/            # 自定义 Hooks
-│   │   ├── providers/        # ASR 服务提供商实现
-│   │   │   ├── base.ts           # 基类
-│   │   │   ├── registry.ts       # 提供商注册表
-│   │   │   └── implementations/  # 各服务商实现
-│   │   ├── stores/           # Zustand 状态管理
-│   │   ├── types/            # TypeScript 类型
-│   │   │   └── asr/              # ASR 相关类型定义
-│   │   ├── utils/            # 工具函数
-│   │   │   └── audioProcessor.ts # 音频处理器
-│   │   └── i18n/             # 国际化
-│   └── ...
-├── server/                # 后端代理服务
-│   └── src/
-│       ├── index.ts          # Express 服务器
-│       └── volcProxy.ts      # 火山引擎 WebSocket 代理
-├── build/                 # 应用图标资源
-├── scripts/               # 构建脚本
+│   │   ├── components/             # UI 面板与引导组件
+│   │   ├── hooks/                  # 录制和 ASR 编排
+│   │   ├── providers/              # 注册表与各 Provider 实现
+│   │   ├── stores/                 # Zustand 状态管理
+│   │   ├── utils/                  # 音频、存储、provider、本地 runtime 工具
+│   │   └── i18n/                   # UI 语言资源
+├── local-runtimes/
+│   └── whisper_cpp/                # 可选的预置 whisper.cpp runtime 资源
+├── scripts/                        # runtime 拉取 / 预置等脚本
+├── server/                         # 独立代理服务，供调试 / 实验使用
 └── package.json
 ```
 
@@ -252,76 +260,59 @@ DeLive/
 
 | 层级 | 技术 |
 |------|------|
-| 桌面框架 | Electron 40 |
+| 桌面应用 | Electron 40 |
 | 前端 | React 18 + TypeScript + Vite |
 | 样式 | Tailwind CSS |
 | 状态管理 | Zustand |
-| 后端 | Express + ws |
-| ASR 引擎 | Soniox V4 / 火山引擎 |
-| 打包工具 | electron-builder |
+| 桌面服务 | Electron 内置 Express + ws |
+| ASR 后端 | Soniox V4、火山引擎、OpenAI-compatible 本地 ASR、`whisper.cpp` |
+| 打包 | electron-builder |
 
 ## ⌨️ 快捷键
 
 | 快捷键 | 功能 |
 |--------|------|
-| `Ctrl+Shift+D` / `Cmd+Shift+D` | 显示/隐藏主窗口 |
+| `Ctrl+Shift+D` / `Cmd+Shift+D` | 显示或隐藏主窗口 |
 
-## 🔧 添加新的 ASR 服务商
+## 🔧 扩展 Provider
 
-DeLive 采用可扩展的提供商架构，添加新服务商只需：
-
-1. 在 `frontend/src/providers/implementations/` 创建新的 Provider 类
-2. 继承 `BaseASRProvider` 并实现必要方法
-3. 在 `registry.ts` 中注册新提供商
-4. 如果服务需要自定义 Headers，在 `server/src/` 添加相应代理
-
-详细指南请参考现有实现（如 `SonioxProvider.ts` 和 `VolcProvider.ts`）。
+1. 在 `frontend/src/providers/implementations/` 新增 Provider 实现。
+2. 正确声明 `ASRProviderInfo`、必填字段和能力标记。
+3. 在 `frontend/src/providers/registry.ts` 注册。
+4. 如果支持配置验证，在 `frontend/src/utils/providerConfigTest.ts` 增加测试逻辑。
+5. 如果是本地服务或本地 runtime 路径，在 `frontend/src/utils/localModelSetup.ts` 或 `frontend/src/utils/localRuntimeManager.ts` 补齐管理逻辑。
+6. 如果涉及自定义 Header 或本地进程控制，扩展 `electron/main.ts`；只有在还需要独立代理时，再同步到 `server/`。
 
 ## ⚠️ 注意事项
 
-1. **系统要求** - Windows 10+、macOS 13+（Ventura）、Linux（Ubuntu 20.04+ 或同等版本）
-2. **API 配额** - 注意各服务商的 API 使用配额限制
-3. **火山引擎** - 需要启动后端服务器（`cd server && npm run dev`）
-4. **托盘行为** - 点击关闭按钮会最小化到托盘，右键托盘图标选择"退出"完全关闭
-5. **字幕窗口** - 字幕窗口始终置顶，锁定时鼠标可穿透
-6. **macOS 音频** - 系统音频捕获需要 macOS 13+（ScreenCaptureKit）
-7. **Linux 音频** - 需要 PulseAudio 进行系统音频回环捕获
-8. **开机自启动** - 仅支持 Windows 和 macOS
-9. **自动更新** - 支持 Windows、macOS 和 Linux AppImage
+1. **系统要求**：Windows 10+、macOS 13+、或具备 PulseAudio loopback 的 Linux。
+2. **火山引擎代理**：桌面端正常使用时不需要单独启动后端，Electron 会自动拉起内置代理。
+3. **本地 OpenAI-compatible**：模型探测依赖 `/v1/models`，转录依赖 `/v1/audio/transcriptions`。
+4. **`whisper.cpp` 模式**：预置 binary 只是可选项，用户也可以在运行时自行导入或下载。
+5. **托盘行为**：关闭主窗口会最小化到托盘，需在托盘菜单中彻底退出。
+6. **开机自启动**：当前支持 Windows 和 macOS。
+7. **自动更新**：支持 Windows、macOS 和 Linux AppImage。
 
-### 🛡️ Windows SmartScreen 安全警告
+### 🛡️ Windows SmartScreen 提示
 
-首次运行 DeLive 时，Windows 可能会显示 SmartScreen 警告，提示"Windows 已保护你的电脑"。这是**正常现象**，因为新应用程序尚未在微软建立信誉。
+首次运行 DeLive 时，Windows 可能弹出 SmartScreen 警告。这对未签名或新发布的桌面应用是正常现象。
 
-**为什么会出现这个警告？**
-- DeLive 是开源项目，没有购买付费的代码签名证书
-- 新发布且下载量较少的应用会触发此警告
-- 这并**不代表**软件有害
+1. 点击 **更多信息**。
+2. 点击 **仍要运行**。
 
-**如何继续运行：**
-1. 点击警告对话框中的 **"更多信息"**
-2. 点击 **"仍要运行"** 即可启动 DeLive
-
-**验证安全性：**
-- [VirusTotal 扫描结果](https://www.virustotal.com/gui/file/cdc1680fd693ac7b1c08980e8af5b04edf42289a051f9e7ecd4d915db9bce24b/detection) - 可验证应用程序是安全的
-- 源代码完全开源，可在 GitHub 上审查
+你也可以直接审查源代码，或自行校验发布产物。
 
 ## 📄 许可证
 
 Apache License 2.0
 
-```
-Apache 2.0 许可证 - 可自由使用、修改和分发，需保留版权声明
-```
-
 ## 🙏 致谢
 
-- [Soniox](https://soniox.com) - 提供强大的语音识别 API
-- [火山引擎](https://www.volcengine.com) - 提供中文优化的语音识别服务
-- [BiBi-Keyboard](https://github.com/BryceWG/BiBi-Keyboard) - 多服务商架构参考
-- [Electron](https://www.electronjs.org/) - 跨平台桌面应用框架
-- [React](https://react.dev/) - 用户界面库
-- [Tailwind CSS](https://tailwindcss.com/) - CSS 框架
+- [Soniox](https://soniox.com)
+- [火山引擎](https://www.volcengine.com)
+- [Ollama](https://ollama.com)
+- [`whisper.cpp`](https://github.com/ggml-org/whisper.cpp)
+- [BiBi-Keyboard](https://github.com/BryceWG/BiBi-Keyboard)
 
 ---
 
@@ -329,6 +320,6 @@ Apache 2.0 许可证 - 可自由使用、修改和分发，需保留版权声明
 
 [![Star History Chart](https://api.star-history.com/svg?repos=XimilalaXiang/DeLive&type=date&legend=top-left)](https://www.star-history.com/#XimilalaXiang/DeLive&type=date&legend=top-left)
 
-**Made with ❤️ by [XimilalaXiang](https://github.com/XimilalaXiang)**
+**Made by [XimilalaXiang](https://github.com/XimilalaXiang)**
 
 </div>
