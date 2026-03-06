@@ -9,6 +9,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.2] - 2026-03-06
+
+### Added / 新增
+- 🔌 Groq cloud ASR provider - Whisper large-v3-turbo / large-v3 via Groq API
+- 🔌 Groq 云端 ASR 服务商 - 通过 Groq API 使用 Whisper large-v3-turbo / large-v3
+- 🔌 SiliconFlow cloud ASR provider - SenseVoice, TeleSpeech, Qwen Omni models
+- 🔌 硅基流动云端 ASR 服务商 - 支持 SenseVoice、TeleSpeech、Qwen Omni 模型
+- 📜 Node.js-based release notes generator reading from CHANGELOG.md
+- 📜 基于 Node.js 的发布说明生成器，从 CHANGELOG.md 读取内容
+
+### Fixed / 修复
+- 🖥️ Caption window white-flash on Windows eliminated via ready-to-show pattern
+- 🖥️ 通过 ready-to-show 模式消除 Windows 上字幕窗口的白色闪烁
+- 🖥️ Caption text now properly cleared between recording sessions
+- 🖥️ 录制会话之间字幕文本现在正确清除
+- 🖥️ Caption window follows main window display on multi-monitor setups
+- 🖥️ 多显示器环境下字幕窗口跟随主窗口所在显示器
+- 🖥️ Caption state (text, style, draggable) synced on window recreation
+- 🖥️ 字幕窗口重建时同步状态（文本、样式、拖拽）
+- 🎨 Caption style settings now properly merge with defaults for new fields
+- 🎨 字幕样式设置现在正确合并默认值以支持新字段
+
+### Changed / 变更
+- 📄 License changed from MIT to Apache-2.0
+- 📄 许可证从 MIT 更改为 Apache-2.0
+- 📝 All README translations refreshed for v1.3.2
+- 📝 所有 README 翻译已为 v1.3.2 更新
+- 📝 Local-runtimes documentation clarified (build-time vs runtime assets)
+- 📝 本地运行时文档已澄清（构建时资产与运行时资产）
+
+---
+
 ## [1.3.0] - 2026-03-02
 
 ### Added / 新增
