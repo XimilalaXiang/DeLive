@@ -375,7 +375,10 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
     set({
       settings: {
         ...settings,
-        captionStyle: settings.captionStyle || defaultCaptionStyle,
+        captionStyle: {
+          ...defaultCaptionStyle,
+          ...(settings.captionStyle || {}),
+        },
       }
     })
   },

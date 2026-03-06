@@ -63,6 +63,8 @@ declare interface CaptionStatus {
   enabled: boolean
   draggable: boolean
   style: CaptionStyle
+  text: string
+  isFinal: boolean
 }
 
 // 字幕窗口边界类型

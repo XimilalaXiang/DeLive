@@ -57,6 +57,27 @@ export function CaptionOverlay() {
   const contentRef = useRef<HTMLDivElement>(null)
   const [containerWidth, setContainerWidth] = useState(720)
 
+  useEffect(() => {
+    let cancelled = false
+
+    if (!window.electronAPI?.captionGetStatus) return
+
+    window.electronAPI.captionGetStatus().then((status) => {
+      if (cancelled) return
+
+      setStyle(status.style)
+      setIsDraggable(status.draggable)
+      setCurrentText(status.text)
+      setIsFinalText(status.isFinal)
+    }).catch(() => {
+      // 忽略初始化同步失败，后续实时事件仍会更新字幕状态
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   // 监听容器宽度变化
   useEffect(() => {
     const updateWidth = () => {
@@ -87,10 +108,8 @@ export function CaptionOverlay() {
 
     const cleanup = window.electronAPI.onCaptionTextUpdate((data) => {
       const { text, isFinal } = data
-      if (text) {
-        setCurrentText(text)
-        setIsFinalText(isFinal)
-      }
+      setCurrentText(text)
+      setIsFinalText(isFinal)
     })
 
     return cleanup

@@ -165,6 +165,8 @@ export function useASR(options: UseASROptions = {}) {
     setRecordingState('stopping')
 
     await cleanup()
+    await window.electronAPI?.captionUpdateText('', false)
+    lastCaptionRef.current = { text: '', isFinal: false }
 
     endCurrentSession()
     setRecordingState('idle')
@@ -366,6 +368,7 @@ export function useASR(options: UseASROptions = {}) {
     }
 
     setRecordingState('starting')
+    await window.electronAPI?.captionUpdateText('', false)
     console.log(`[useASR] 开始录制流程，使用提供商: ${vendorId}`)
 
     try {

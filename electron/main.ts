@@ -379,6 +379,8 @@ let lastSelectedSourceId: string | null = null
 // 字幕窗口状态
 let captionEnabled = false
 let captionDraggable = false
+let captionText = ''
+let captionTextIsFinal = false
 
 // 字幕样式配置
 interface CaptionStyle {
@@ -399,6 +401,44 @@ let captionStyle: CaptionStyle = {
   textShadow: true,
   maxLines: 2,
   width: 800,
+}
+
+function syncCaptionWindowState(): void {
+  if (!captionWindow || captionWindow.isDestroyed()) return
+
+  captionWindow.webContents.send('caption-style-update', captionStyle)
+  captionWindow.webContents.send('caption-draggable-changed', captionDraggable)
+  captionWindow.webContents.send('caption-text-update', {
+    text: captionText,
+    isFinal: captionTextIsFinal,
+  })
+}
+
+function getPreferredCaptionDisplay(): Electron.Display {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    return screen.getDisplayMatching(mainWindow.getBounds())
+  }
+  return screen.getPrimaryDisplay()
+}
+
+function showCaptionWindow(window: BrowserWindow): void {
+  if (window.isDestroyed()) return
+
+  if (process.platform === 'linux') {
+    window.show()
+  } else {
+    window.showInactive()
+  }
+
+  window.moveTop()
+}
+
+function applyCaptionPassiveWindowState(): void {
+  if (!captionWindow || captionWindow.isDestroyed()) return
+
+  captionWindow.setIgnoreMouseEvents(true, SUPPORTS_MOUSE_FORWARD ? { forward: true } : undefined)
+  captionWindow.setFocusable(false)
+  captionWindow.setSkipTaskbar(true)
 }
 
 // 根据样式计算窗口高度，确保足够容纳指定行数
@@ -1273,21 +1313,18 @@ function setupAutoUpdater() {
 // ============ 字幕窗口 ============
 function createCaptionWindow() {
   if (captionWindow) {
-    captionWindow.show()
+    showCaptionWindow(captionWindow)
     return
   }
 
   // 每次创建窗口时重置拖拽状态，避免上一轮解锁状态残留导致新窗口一直不可点
   captionDraggable = false
 
-  // 获取主显示器信息
-  const primaryDisplay = screen.getPrimaryDisplay()
-  const { x: workX, y: workY, width: screenWidth, height: screenHeight } = primaryDisplay.workArea
+  // 优先跟随主窗口所在显示器，避免字幕出现在用户看不到的另一块屏幕上
+  const targetDisplay = getPreferredCaptionDisplay()
+  const { x: workX, y: workY, width: screenWidth, height: screenHeight } = targetDisplay.workArea
 
   // 字幕窗口默认位置：屏幕底部中央
-  // 根据 maxLines=2 和默认字体大小 24px 计算高度
-  // 高度 = (字体大小 * 行高 * 行数) + padding
-  // 高度 = (24 * 1.5 * 2) + 20 + 24 = 72 + 44 ≈ 120
   const windowWidth = computeCaptionWidth(captionStyle, screenWidth)
   const windowHeight = computeCaptionHeight(captionStyle)
   const windowX = Math.round(workX + (screenWidth - windowWidth) / 2)
@@ -1301,7 +1338,11 @@ function createCaptionWindow() {
 
     // 透明和无边框（Linux 无合成器时透明可能不生效，使用半透明背景 fallback）
     transparent: process.platform !== 'linux',
-    ...(process.platform === 'linux' ? { backgroundColor: '#000000CC' } : {}),
+    ...(process.platform === 'linux'
+      ? { backgroundColor: '#000000CC' }
+      : process.platform === 'win32'
+        ? { backgroundColor: '#01000001' }
+        : {}),
     frame: false,
 
     // 始终置顶
@@ -1326,19 +1367,10 @@ function createCaptionWindow() {
       nodeIntegration: false,
     },
 
-    // 不显示在任务切换器中
-    focusable: false,
+    // 先允许窗口正常创建并完成首帧绘制，ready-to-show 后再切换到鼠标穿透/不可聚焦
+    focusable: true,
+    show: false,
   })
-
-  // 加载字幕页面
-  if (isDev) {
-    captionWindow.loadURL('http://localhost:5173/caption.html')
-  } else {
-    captionWindow.loadFile(path.join(__dirname, '../frontend/dist/caption.html'))
-  }
-
-  // 默认鼠标穿透
-  captionWindow.setIgnoreMouseEvents(true, SUPPORTS_MOUSE_FORWARD ? { forward: true } : undefined)
 
   // 窗口关闭时清理
   captionWindow.on('closed', () => {
@@ -1350,10 +1382,24 @@ function createCaptionWindow() {
 
   // 发送初始样式
   captionWindow.webContents.on('did-finish-load', () => {
-    if (captionWindow && !captionWindow.isDestroyed()) captionWindow.webContents.send('caption-style-update', captionStyle)
+    syncCaptionWindowState()
   })
 
+  captionWindow.once('ready-to-show', () => {
+    showCaptionWindow(captionWindow!)
+    applyCaptionPassiveWindowState()
+    syncCaptionWindowState()
+  })
+
+  // 加载字幕页面
+  if (isDev) {
+    captionWindow.loadURL('http://localhost:5173/caption.html')
+  } else {
+    captionWindow.loadFile(path.join(__dirname, '../frontend/dist/caption.html'))
+  }
+
   captionEnabled = true
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('caption-status-changed', true)
   console.log('[Caption] 字幕窗口已创建')
 
   // 启动鼠标位置检测
@@ -2298,12 +2344,18 @@ ipcMain.handle('caption-get-status', () => {
     enabled: captionEnabled,
     draggable: captionDraggable,
     style: captionStyle,
+    text: captionText,
+    isFinal: captionTextIsFinal,
   }
 })
 
 // 更新字幕文字
 ipcMain.handle('caption-update-text', (_event, text: string, isFinal: boolean) => {
+  captionText = text
+  captionTextIsFinal = isFinal
+
   if (captionWindow && !captionWindow.isDestroyed() && captionEnabled) {
+    showCaptionWindow(captionWindow)
     captionWindow.webContents.send('caption-text-update', { text, isFinal })
   }
 })
