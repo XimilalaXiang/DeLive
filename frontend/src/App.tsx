@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { AlertTriangle, Settings, Waves } from 'lucide-react'
-import { useTranscriptStore } from './stores/transcriptStore'
+import { useUIStore } from './stores/uiStore'
+import { useSettingsStore } from './stores/settingsStore'
+import { useSessionStore } from './stores/sessionStore'
+import { useTagStore } from './stores/tagStore'
 import { buildProviderConnectConfig, isProviderConfigured } from './utils/providerConfig'
 import { 
   ApiKeyConfig, 
@@ -21,19 +24,10 @@ function App() {
   const [showSourcePicker, setShowSourcePicker] = useState(false)
   const [toasts, setToasts] = useState<ToastMessage[]>([])
   const [isInitialized, setIsInitialized] = useState(false)
-  const {
-    loadSessions,
-    loadSettings,
-    loadTags,
-    settings,
-    initTheme,
-    t,
-    availableProviders,
-    recoverySession,
-    restoreRecoverySession,
-    dismissRecoverySession,
-    recordingState,
-  } = useTranscriptStore()
+  const { initTheme, t } = useUIStore()
+  const { loadSettings, settings, availableProviders } = useSettingsStore()
+  const { loadSessions, recoverySession, restoreRecoverySession, dismissRecoverySession, recordingState } = useSessionStore()
+  const { loadTags } = useTagStore()
   const hasCheckedApiKey = useRef(false)
 
   // 初始化加载

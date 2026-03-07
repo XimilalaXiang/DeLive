@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Settings, Eye, EyeOff, Check, X, Key, Download, Upload, AlertCircle, Power, Globe, Cpu, PlayCircle, Loader2, RefreshCw, Palette } from 'lucide-react'
-import { useTranscriptStore } from '../stores/transcriptStore'
+import { useUIStore } from '../stores/uiStore'
+import { useSettingsStore } from '../stores/settingsStore'
+import { useSessionStore } from '../stores/sessionStore'
+import { useTagStore } from '../stores/tagStore'
 import { exportAllData, validateBackupData, importDataOverwrite, importDataMerge } from '../utils/storage'
 import { ProviderSelector } from './ProviderSelector'
 import { LocalModelSetupGuide } from './LocalModelSetupGuide'
@@ -23,19 +26,10 @@ interface ApiKeyConfigProps {
 }
 
 export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
-  const { 
-    settings, 
-    updateSettings, 
-    loadSessions, 
-    loadTags, 
-    t, 
-    language, 
-    setLanguage,
-    availableProviders,
-    updateProviderConfig,
-    colorTheme,
-    setColorTheme,
-  } = useTranscriptStore()
+  const { t, language, setLanguage, colorTheme, setColorTheme } = useUIStore()
+  const { settings, updateSettings, availableProviders, updateProviderConfig } = useSettingsStore()
+  const { loadSessions } = useSessionStore()
+  const { loadTags } = useTagStore()
   
   const currentVendor = settings.currentVendor || 'soniox'
   const currentProvider = availableProviders.find(p => p.id === currentVendor)

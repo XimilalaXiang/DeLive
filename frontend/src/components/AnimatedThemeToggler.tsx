@@ -1,7 +1,7 @@
 import { useCallback, useRef } from 'react'
 import { Moon, Sun } from 'lucide-react'
 import { flushSync } from 'react-dom'
-import { useTranscriptStore } from '../stores/transcriptStore'
+import { useUIStore } from '../stores/uiStore'
 
 interface AnimatedThemeTogglerProps {
   className?: string
@@ -12,7 +12,7 @@ export const AnimatedThemeToggler = ({
   className = '',
   duration = 400,
 }: AnimatedThemeTogglerProps) => {
-  const { resolvedTheme, setTheme } = useTranscriptStore()
+  const { resolvedTheme, setTheme } = useUIStore()
   const buttonRef = useRef<HTMLButtonElement>(null)
 
   const toggleTheme = useCallback(async () => {

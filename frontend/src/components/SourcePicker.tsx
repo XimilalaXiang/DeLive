@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Monitor, AppWindow, X, Loader2, RefreshCw } from 'lucide-react'
-import { useTranscriptStore } from '../stores/transcriptStore'
+import { useUIStore } from '../stores/uiStore'
 
 // 使用全局定义的 DesktopSource 类型
 
@@ -11,7 +11,7 @@ interface SourcePickerProps {
 }
 
 export function SourcePicker({ isOpen, onSelect, onCancel }: SourcePickerProps) {
-  const { t } = useTranscriptStore()
+  const { t } = useUIStore()
   const [sources, setSources] = useState<DesktopSource[]>([])
   const [loading, setLoading] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)

@@ -1,5 +1,7 @@
 import { Mic, Square, Loader2 } from 'lucide-react'
-import { useTranscriptStore } from '../stores/transcriptStore'
+import { useUIStore } from '../stores/uiStore'
+import { useSettingsStore } from '../stores/settingsStore'
+import { useSessionStore } from '../stores/sessionStore'
 import { useASR } from '../hooks/useASR'
 import { buildProviderConnectConfig, isProviderConfigured } from '../utils/providerConfig'
 
@@ -8,7 +10,9 @@ interface RecordingControlsProps {
 }
 
 export function RecordingControls({ onError }: RecordingControlsProps) {
-  const { recordingState, settings, currentTranscript, t, availableProviders } = useTranscriptStore()
+  const { t } = useUIStore()
+  const { settings, availableProviders } = useSettingsStore()
+  const { recordingState, currentTranscript } = useSessionStore()
   const { startRecording, stopRecording } = useASR({
     onError,
     onStarted: () => console.log('[UI] Recording started'),

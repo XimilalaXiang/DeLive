@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react'
 import { Tag as TagIcon, Plus, X, Check, Trash2, Settings } from 'lucide-react'
-import { useTranscriptStore } from '../stores/transcriptStore'
+import { useUIStore } from '../stores/uiStore'
+import { useTagStore } from '../stores/tagStore'
+import { useSessionStore } from '../stores/sessionStore'
 import { TAG_COLORS } from '../types'
 import type { Tag } from '../types'
 
@@ -11,7 +13,9 @@ interface TagSelectorProps {
 }
 
 export function TagSelector({ sessionId, sessionTagIds, compact = false }: TagSelectorProps) {
-  const { tags, addTag, deleteTag, updateSessionTags, t } = useTranscriptStore()
+  const { t } = useUIStore()
+  const { tags, addTag, deleteTag } = useTagStore()
+  const { updateSessionTags } = useSessionStore()
   const [isOpen, setIsOpen] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const [isManaging, setIsManaging] = useState(false)
@@ -249,7 +253,8 @@ export function TagSelector({ sessionId, sessionTagIds, compact = false }: TagSe
 
 // 标签筛选栏组件
 export function TagFilter() {
-  const { tags, selectedTagIds, toggleTagFilter, clearTagFilter, t } = useTranscriptStore()
+  const { t } = useUIStore()
+  const { tags, selectedTagIds, toggleTagFilter, clearTagFilter } = useTagStore()
 
   if (tags.length === 0) return null
 
@@ -292,7 +297,8 @@ export function TagFilter() {
 
 // 标签管理组件（用于设置页面）
 export function TagManager() {
-  const { tags, deleteTag, updateTag, t } = useTranscriptStore()
+  const { t } = useUIStore()
+  const { tags, deleteTag, updateTag } = useTagStore()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingName, setEditingName] = useState('')
 

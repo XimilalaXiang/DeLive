@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Minus, Square, X, Maximize2 } from 'lucide-react'
-import { useTranscriptStore } from '../stores/transcriptStore'
+import { useUIStore } from '../stores/uiStore'
 
 /**
  * 自定义标题栏组件 - 仅在 Electron 环境中显示
@@ -9,7 +9,7 @@ import { useTranscriptStore } from '../stores/transcriptStore'
  */
 export function TitleBar() {
   const [isMaximized, setIsMaximized] = useState(false)
-  const { t } = useTranscriptStore()
+  const { t } = useUIStore()
 
   // 当前平台
   const platform = window.electronAPI?.platform

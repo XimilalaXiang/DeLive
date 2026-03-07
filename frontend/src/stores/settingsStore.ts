@@ -1,0 +1,106 @@
+import { create } from 'zustand'
+import type {
+  AppSettings,
+  ProviderConfigData,
+  CaptionStyle,
+} from '../types'
+import { getSettings, saveSettings } from '../utils/storage'
+import { providerRegistry } from '../providers'
+import type { ASRProviderInfo, ASRVendor } from '../types/asr'
+
+const defaultCaptionStyle: CaptionStyle = {
+  fontSize: 24,
+  fontFamily: '-apple-system, BlinkMacSystemFont, "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Hiragino Sans GB", "WenQuanYi Micro Hei", sans-serif',
+  textColor: '#ffffff',
+  backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  textShadow: true,
+  maxLines: 2,
+  width: 800,
+}
+
+export interface SettingsState {
+  settings: AppSettings
+  loadSettings: () => void
+  updateSettings: (settings: Partial<AppSettings>) => void
+
+  availableProviders: ASRProviderInfo[]
+  setCurrentVendor: (vendorId: string) => void
+  updateProviderConfig: (vendorId: string, config: Partial<ProviderConfigData>) => void
+  getProviderConfig: (vendorId: string) => ProviderConfigData | undefined
+}
+
+export const useSettingsStore = create<SettingsState>((set, get) => ({
+  settings: {
+    apiKey: '',
+    languageHints: ['zh', 'en'],
+    currentVendor: 'soniox',
+    providerConfigs: {},
+    captionStyle: defaultCaptionStyle,
+  },
+  loadSettings: () => {
+    const settings = getSettings()
+    const registeredVendors = providerRegistry.getAllProviders().map(p => p.id)
+
+    if (settings.apiKey && (!settings.providerConfigs || !settings.providerConfigs['soniox'])) {
+      settings.currentVendor = 'soniox'
+      settings.providerConfigs = {
+        ...settings.providerConfigs,
+        soniox: {
+          apiKey: settings.apiKey,
+          languageHints: settings.languageHints,
+        },
+      }
+    }
+
+    if (!settings.currentVendor || !registeredVendors.includes(settings.currentVendor as ASRVendor)) {
+      settings.currentVendor = registeredVendors[0] || 'soniox'
+    }
+
+    set({
+      settings: {
+        ...settings,
+        captionStyle: {
+          ...defaultCaptionStyle,
+          ...(settings.captionStyle || {}),
+        },
+      },
+    })
+  },
+  updateSettings: (newSettings) => {
+    const settings = { ...get().settings, ...newSettings }
+    saveSettings(settings)
+    set({ settings })
+  },
+
+  availableProviders: providerRegistry.getAllProviders(),
+  setCurrentVendor: (vendorId) => {
+    const { settings } = get()
+    const newSettings = { ...settings, currentVendor: vendorId }
+    saveSettings(newSettings)
+    set({ settings: newSettings })
+  },
+  updateProviderConfig: (vendorId, config) => {
+    const { settings } = get()
+    const currentConfig = settings.providerConfigs?.[vendorId] || { apiKey: '' }
+    const providerInfo = providerRegistry.getInfo(vendorId as ASRVendor)
+    const shouldSyncLegacyApiKey = !!providerInfo?.requiredConfigKeys.includes('apiKey')
+    const newProviderConfigs = {
+      ...settings.providerConfigs,
+      [vendorId]: { ...currentConfig, ...config },
+    }
+    const newApiKey = vendorId === settings.currentVendor && shouldSyncLegacyApiKey
+      ? (config.apiKey ?? currentConfig.apiKey ?? settings.apiKey)
+      : settings.apiKey
+    const newSettings = {
+      ...settings,
+      providerConfigs: newProviderConfigs,
+      apiKey: newApiKey,
+    }
+    saveSettings(newSettings)
+    set({ settings: newSettings })
+  },
+  getProviderConfig: (vendorId) => {
+    const { settings } = get()
+    return settings.providerConfigs?.[vendorId]
+  },
+}))

@@ -5,7 +5,8 @@
 import { Check, Cloud, HardDrive, ChevronDown, X } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { useTranscriptStore } from '../stores/transcriptStore'
+import { useUIStore } from '../stores/uiStore'
+import { useSettingsStore } from '../stores/settingsStore'
 import type { ASRProviderInfo } from '../types/asr'
 import { buildProviderConnectConfig, isProviderConfigured } from '../utils/providerConfig'
 
@@ -17,12 +18,8 @@ export function ProviderSelector({ onSelect }: ProviderSelectorProps) {
   const [isOpen, setIsOpen] = useState(false)
   const buttonRef = useRef<HTMLButtonElement>(null)
   
-  const { 
-    settings, 
-    availableProviders, 
-    setCurrentVendor,
-    t 
-  } = useTranscriptStore()
+  const { t } = useUIStore()
+  const { settings, availableProviders, setCurrentVendor } = useSettingsStore()
 
   const currentVendor = settings.currentVendor || 'soniox'
   const currentProvider = availableProviders.find(p => p.id === currentVendor)

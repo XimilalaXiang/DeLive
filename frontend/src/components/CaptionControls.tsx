@@ -15,7 +15,8 @@ import {
   X,
   Sun
 } from 'lucide-react'
-import { useTranscriptStore } from '../stores/transcriptStore'
+import { useUIStore } from '../stores/uiStore'
+import { useSettingsStore } from '../stores/settingsStore'
 import type { CaptionStyle } from '../types'
 
 // 预设颜色
@@ -50,7 +51,8 @@ interface CaptionControlsProps {
 }
 
 export function CaptionControls({ className = '' }: CaptionControlsProps) {
-  const { t, settings, updateSettings } = useTranscriptStore()
+  const { t } = useUIStore()
+  const { settings, updateSettings } = useSettingsStore()
   const [isEnabled, setIsEnabled] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [style, setStyle] = useState<CaptionStyle>({

@@ -4,7 +4,8 @@
  */
 
 import { useCallback, useRef, useEffect } from 'react'
-import { useTranscriptStore } from '../stores/transcriptStore'
+import { useSettingsStore } from '../stores/settingsStore'
+import { useSessionStore } from '../stores/sessionStore'
 import { createProvider, providerRegistry } from '../providers'
 import { AudioProcessor } from '../utils/audioProcessor'
 import {
@@ -63,13 +64,13 @@ export function useASR(options: UseASROptions = {}) {
   const deviceChangeCleanupRef = useRef<(() => void) | null>(null)
   const stopRecordingRef = useRef<() => Promise<void>>(async () => {})
 
+  const { settings } = useSettingsStore()
   const {
-    settings,
     processTokens,
     setRecordingState,
     startNewSession,
     endCurrentSession,
-  } = useTranscriptStore()
+  } = useSessionStore()
 
   const getProviderSetup = useCallback((vendorId: ASRVendor): {
     providerInfo: ASRProviderInfo
@@ -192,9 +193,9 @@ export function useASR(options: UseASROptions = {}) {
       }))
       processTokens(legacyTokens)
 
-      const state = useTranscriptStore.getState()
-      const fullText = state.finalTranscript + state.nonFinalTranscript
-      const isFinalText = state.nonFinalTranscript.length === 0 && fullText.length > 0
+      const sessionState = useSessionStore.getState()
+      const fullText = sessionState.finalTranscript + sessionState.nonFinalTranscript
+      const isFinalText = sessionState.nonFinalTranscript.length === 0 && fullText.length > 0
       if (
         fullText !== lastCaptionRef.current.text ||
         isFinalText !== lastCaptionRef.current.isFinal
@@ -207,8 +208,8 @@ export function useASR(options: UseASROptions = {}) {
     if (!provider.info.capabilities.prefersTokenEvents) {
       provider.on('onPartial', (text: string) => {
         console.log('[useASR] 收到 partial:', text.substring(0, 50))
-        const state = useTranscriptStore.getState()
-        const { finalTranscript, setTranscript } = state
+        const sessionState = useSessionStore.getState()
+        const { finalTranscript, setTranscript } = sessionState
         const fullText = finalTranscript + text
         setTranscript(finalTranscript, text)
         if (
@@ -229,7 +230,7 @@ export function useASR(options: UseASROptions = {}) {
         start_ms: 0,
         end_ms: 0,
       }])
-      const afterState = useTranscriptStore.getState()
+      const afterState = useSessionStore.getState()
       if (
         afterState.finalTranscript !== lastCaptionRef.current.text ||
         lastCaptionRef.current.isFinal !== true
@@ -420,7 +421,7 @@ export function useASR(options: UseASROptions = {}) {
         console.log('[useASR] 检测到音频设备变化')
         if (deviceChangeTimer) clearTimeout(deviceChangeTimer)
         deviceChangeTimer = setTimeout(() => {
-          const currentState = useTranscriptStore.getState().recordingState
+          const currentState = useSessionStore.getState().recordingState
           if (currentState === 'recording') {
             void restartCapture('devicechange')
           }

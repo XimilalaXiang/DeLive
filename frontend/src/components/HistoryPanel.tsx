@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react'
 import { History, Calendar, Pencil, Trash2, Check, X, ChevronDown, ChevronRight, Search, FileText, Subtitles } from 'lucide-react'
-import { useTranscriptStore } from '../stores/transcriptStore'
+import { useUIStore } from '../stores/uiStore'
+import { useSessionStore } from '../stores/sessionStore'
+import { useTagStore } from '../stores/tagStore'
 import { exportToTxt } from '../utils/storage'
 import { downloadSubtitle } from '../utils/subtitleExport'
 import { PreviewModal } from './PreviewModal'
@@ -8,7 +10,9 @@ import { TagSelector, TagFilter } from './TagSelector'
 import type { TranscriptSession } from '../types'
 
 export function HistoryPanel() {
-  const { sessions, tags, updateSessionTitle, deleteSession, selectedTagIds, searchQuery, setSearchQuery, t } = useTranscriptStore()
+  const { t } = useUIStore()
+  const { sessions, updateSessionTitle, deleteSession } = useSessionStore()
+  const { tags, selectedTagIds, searchQuery, setSearchQuery } = useTagStore()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingTitle, setEditingTitle] = useState('')
   const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set())

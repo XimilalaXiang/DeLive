@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Download, RefreshCw, CheckCircle, AlertCircle, X, Loader2 } from 'lucide-react'
-import { useTranscriptStore } from '../stores/transcriptStore'
+import { useUIStore } from '../stores/uiStore'
 
 interface UpdateInfo {
   version: string
@@ -30,7 +30,7 @@ type UpdateStatus =
   | 'error'
 
 export function UpdateNotification() {
-  const { t } = useTranscriptStore()
+  const { t } = useUIStore()
   const [status, setStatus] = useState<UpdateStatus>('idle')
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null)
   const [progress, setProgress] = useState<DownloadProgress | null>(null)

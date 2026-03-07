@@ -1,5 +1,6 @@
 import { useCallback, useRef } from 'react'
-import { useTranscriptStore } from '../stores/transcriptStore'
+import { useSettingsStore } from '../stores/settingsStore'
+import { useSessionStore } from '../stores/sessionStore'
 import type { SonioxConfig, SonioxResponse } from '../types'
 
 const SONIOX_WEBSOCKET_URL = 'wss://stt-rt.soniox.com/transcribe-websocket'
@@ -35,13 +36,13 @@ export function useSoniox(options: UseSonioxOptions = {}) {
   const mediaStreamRef = useRef<MediaStream | null>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   
+  const { settings } = useSettingsStore()
   const { 
-    settings, 
     processTokens, 
     setRecordingState,
     startNewSession,
     endCurrentSession 
-  } = useTranscriptStore()
+  } = useSessionStore()
 
   // 开始录制
   const startRecording = useCallback(async () => {

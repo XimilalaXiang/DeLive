@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { FileText, Mic, HelpCircle, ArrowDown, Activity, Volume2, Share2, Terminal } from 'lucide-react'
-import { useTranscriptStore } from '../stores/transcriptStore'
+import { useUIStore } from '../stores/uiStore'
+import { useSettingsStore } from '../stores/settingsStore'
+import { useSessionStore } from '../stores/sessionStore'
 
 export function TranscriptDisplay() {
-  const { finalTranscript, nonFinalTranscript, recordingState, currentSessionId, t, settings, availableProviders } = useTranscriptStore()
+  const { t } = useUIStore()
+  const { settings, availableProviders } = useSettingsStore()
+  const { finalTranscript, nonFinalTranscript, recordingState, currentSessionId } = useSessionStore()
   
   // 获取当前提供商名称
   const currentVendor = settings.currentVendor || 'soniox'

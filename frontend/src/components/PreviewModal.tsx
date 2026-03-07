@@ -2,7 +2,7 @@ import { X, Download, Calendar, Clock, FileText, Subtitles } from 'lucide-react'
 import type { TranscriptSession } from '../types'
 import { exportToTxt } from '../utils/storage'
 import { downloadSubtitle } from '../utils/subtitleExport'
-import { useTranscriptStore } from '../stores/transcriptStore'
+import { useUIStore } from '../stores/uiStore'
 
 interface PreviewModalProps {
   session: TranscriptSession | null
@@ -10,7 +10,7 @@ interface PreviewModalProps {
 }
 
 export function PreviewModal({ session, onClose }: PreviewModalProps) {
-  const { t } = useTranscriptStore()
+  const { t } = useUIStore()
   
   if (!session) return null
 
