@@ -8,7 +8,7 @@ export { BaseASRProvider } from './base'
 // 注册表
 export { providerRegistry, createProvider, getDefaultVendor } from './registry'
 
-// 提供商实现（仅流式提供商）
+// 提供商实现
 export { SonioxProvider } from './implementations/SonioxProvider'
 export { VolcProvider } from './implementations/VolcProvider'
 export { GroqProvider } from './implementations/GroqProvider'

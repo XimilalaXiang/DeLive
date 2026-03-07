@@ -83,6 +83,10 @@ export const zh = {
   // 提供商相关
   provider: {
     streaming: '流式',
+    transportRealtime: '实时',
+    transportChunkedUpload: '分段上传',
+    transportRetranscription: '整段重转写',
+    transportLocalRuntime: '本地 Runtime',
     needConfig: '需配置',
     cloudProviders: '云端服务',
     localProviders: '本地模型',
@@ -196,6 +200,12 @@ export const zh = {
   // 会话默认标题
   session: {
     defaultTitle: (time: string) => `转录 ${time}`,
+    recoveryTitle: '检测到未正常结束的会话',
+    recoveryDesc: (title: string) => `上次退出前的会话“${title}”已自动保存，可恢复到当前转录区继续查看。`,
+    restoreInterrupted: '恢复内容',
+    dismissInterrupted: '稍后处理',
+    recoveredToast: '已恢复未完成会话',
+    dismissedToast: '已忽略恢复提示，会话仍保留在历史记录中',
   },
 
   // 自动更新

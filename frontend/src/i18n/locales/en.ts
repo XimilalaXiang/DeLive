@@ -85,6 +85,10 @@ export const en: Translations = {
   // Provider related
   provider: {
     streaming: 'Streaming',
+    transportRealtime: 'Realtime',
+    transportChunkedUpload: 'Chunked Upload',
+    transportRetranscription: 'Session Replay',
+    transportLocalRuntime: 'Local Runtime',
     needConfig: 'Config needed',
     cloudProviders: 'Cloud Services',
     localProviders: 'Local Models',
@@ -198,6 +202,12 @@ export const en: Translations = {
   // Session default title
   session: {
     defaultTitle: (time: string) => `Transcript ${time}`,
+    recoveryTitle: 'Interrupted session detected',
+    recoveryDesc: (title: string) => `The previous session "${title}" was autosaved before the app closed. You can restore it into the transcript view.`,
+    restoreInterrupted: 'Restore',
+    dismissInterrupted: 'Later',
+    recoveredToast: 'Interrupted session restored',
+    dismissedToast: 'Recovery prompt dismissed. The session remains in history.',
   },
 
   // Auto update

@@ -3,7 +3,7 @@
  * 定义了所有 ASR 提供商共享的基础类型
  */
 
-// ASR 提供商枚举（仅流式提供商）
+// ASR 提供商枚举
 export enum ASRVendor {
   Soniox = 'soniox',
   Volc = 'volc',
@@ -18,6 +18,22 @@ export type ProviderType = 'cloud' | 'local'
 
 // 音频输入模式
 export type AudioInputMode = 'media-recorder' | 'pcm16'
+
+// 传输层类型
+export type ASRTransportType =
+  | 'realtime'
+  | 'chunked-upload'
+  | 'full-session-retranscription'
+  | 'local-runtime'
+
+// 采集重启时的会话策略
+export type CaptureRestartStrategy = 'reuse-session' | 'reconnect-session'
+
+// 传输能力定义
+export interface ASRTransportCapabilities {
+  type: ASRTransportType
+  captureRestartStrategy?: CaptureRestartStrategy
+}
 
 // 本地 Provider 连接模式
 export type LocalProviderConnectionMode = 'service' | 'runtime'
@@ -44,6 +60,8 @@ export interface LocalProviderCapabilities {
 export interface ASRProviderCapabilities {
   // 需要的音频输入格式
   audioInputMode: AudioInputMode
+  // Provider 在网络/进程层面的传输模型
+  transport: ASRTransportCapabilities
   // 是否主要通过 onTokens 产出中间结果
   prefersTokenEvents?: boolean
   // 是否支持在设置页进行连通性测试
@@ -58,6 +76,7 @@ export interface ASRProviderInfo {
   name: string
   description: string
   type: ProviderType
+  // 兼容旧 UI / 旧逻辑的粗粒度字段；新代码优先读 capabilities.transport
   supportsStreaming: boolean
   capabilities: ASRProviderCapabilities
   // 必填配置字段（对应 configFields.key）
@@ -125,4 +144,13 @@ export interface ASREventCallbacks {
   onError?: (error: ASRError) => void
   onStateChange?: (state: ProviderState) => void
   onFinished?: () => void
+}
+
+export function getCaptureRestartStrategy(capabilities: ASRProviderCapabilities): CaptureRestartStrategy {
+  return capabilities.transport.captureRestartStrategy ?? 'reuse-session'
+}
+
+export function isRealtimeTransport(transport: ASRTransportCapabilities | ASRTransportType): boolean {
+  const transportType = typeof transport === 'string' ? transport : transport.type
+  return transportType === 'realtime'
 }

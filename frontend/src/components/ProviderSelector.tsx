@@ -48,6 +48,33 @@ export function ProviderSelector({ onSelect }: ProviderSelectorProps) {
   const cloudProviders = availableProviders.filter(p => p.type === 'cloud')
   const localProviders = availableProviders.filter(p => p.type === 'local')
 
+  const getTransportBadge = (provider: ASRProviderInfo): { label: string; className: string } | null => {
+    switch (provider.capabilities.transport.type) {
+      case 'realtime':
+        return {
+          label: t.provider?.transportRealtime || t.provider?.streaming || 'Realtime',
+          className: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400',
+        }
+      case 'chunked-upload':
+        return {
+          label: t.provider?.transportChunkedUpload || 'Chunked Upload',
+          className: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400',
+        }
+      case 'full-session-retranscription':
+        return {
+          label: t.provider?.transportRetranscription || 'Session Replay',
+          className: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400',
+        }
+      case 'local-runtime':
+        return {
+          label: t.provider?.transportLocalRuntime || 'Local Runtime',
+          className: 'bg-cyan-100 dark:bg-cyan-900/40 text-cyan-700 dark:text-cyan-400',
+        }
+      default:
+        return null
+    }
+  }
+
   const renderProviderItem = (provider: ASRProviderInfo) => {
     const isSelected = provider.id === currentVendor
     const providerConfig = buildProviderConnectConfig(
@@ -56,6 +83,7 @@ export function ProviderSelector({ onSelect }: ProviderSelectorProps) {
       settings
     )
     const hasConfig = isProviderConfigured(provider, providerConfig)
+    const transportBadge = getTransportBadge(provider)
 
     return (
       <button
@@ -86,9 +114,9 @@ export function ProviderSelector({ onSelect }: ProviderSelectorProps) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="font-semibold text-sm">{provider.name}</span>
-            {provider.supportsStreaming && (
-              <span className="px-1.5 py-0.5 text-[10px] font-medium rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400">
-                {t.provider?.streaming || '流式'}
+            {transportBadge && (
+              <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded-full ${transportBadge.className}`}>
+                {transportBadge.label}
               </span>
             )}
           </div>

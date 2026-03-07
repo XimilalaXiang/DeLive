@@ -233,10 +233,14 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
   }
 
   // 导出数据
-  const handleExport = () => {
-    exportAllData()
-    setImportMessage({ type: 'success', text: t.settings.dataExported })
-    setTimeout(() => setImportMessage(null), 3000)
+  const handleExport = async () => {
+    try {
+      await exportAllData()
+      setImportMessage({ type: 'success', text: t.settings.dataExported })
+      setTimeout(() => setImportMessage(null), 3000)
+    } catch {
+      setImportMessage({ type: 'error', text: t.settings.importFailed })
+    }
   }
 
   // 触发文件选择
@@ -263,14 +267,14 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
 
       if (mode) {
         // 覆盖模式
-        const result = importDataOverwrite(data)
+        const result = await importDataOverwrite(data)
         setImportMessage({ 
           type: 'success', 
           text: t.settings.importedOverwrite(result.sessions, result.tags)
         })
       } else {
         // 合并模式
-        const result = importDataMerge(data)
+        const result = await importDataMerge(data)
         setImportMessage({ 
           type: 'success', 
           text: t.settings.importedMerge(result.newSessions, result.newTags)
@@ -278,7 +282,7 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
       }
 
       // 刷新store中的数据
-      loadSessions()
+      await loadSessions()
       loadTags()
     } catch {
       setImportMessage({ type: 'error', text: t.settings.importFailed })

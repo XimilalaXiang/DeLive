@@ -29,6 +29,10 @@ export class SonioxProvider extends BaseASRProvider {
     supportsStreaming: true,
     capabilities: {
       audioInputMode: 'media-recorder',
+      transport: {
+        type: 'realtime',
+        captureRestartStrategy: 'reconnect-session',
+      },
       prefersTokenEvents: true,
       supportsConfigTest: true,
     },

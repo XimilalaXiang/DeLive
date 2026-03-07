@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.4] - 2026-03-07
+
+### Added / 新增
+- 💾 Recording autosave and interrupted-session recovery prompt
+- 💾 新增长录制自动保存与中断会话恢复提示
+
+### Changed / 变更
+- 🗄️ Transcript session persistence now uses IndexedDB as the primary store with legacy localStorage migration
+- 🗄️ 转录会话持久化改为以 IndexedDB 为主存，并自动迁移旧 localStorage 数据
+- 🧭 Provider transport metadata now distinguishes realtime, session-replay, and local-runtime paths in shared ASR logic and provider selection UI
+- 🧭 Provider 传输元数据现在在共享 ASR 逻辑与服务商选择界面中区分实时、整段重转写与本地运行时路径
+
+### Fixed / 修复
+- ♻️ Capture restart now follows explicit provider restart policy instead of guessing from audio input mode
+- ♻️ 采集重启流程现在遵循明确的 provider restart 策略，不再根据音频输入模式误判
+- 🎙️ Local OpenAI-compatible sessions no longer reconnect unnecessarily during capture restart
+- 🎙️ 修复本地 OpenAI-compatible 会话在采集重启时不必要重连的问题
+
+---
+
 ## [1.3.3] - 2026-03-07
 
 ### Fixed / 修复

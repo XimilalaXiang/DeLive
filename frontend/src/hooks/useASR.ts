@@ -19,6 +19,7 @@ import type {
   ASRProviderInfo,
   ProviderConfig,
 } from '../types/asr'
+import { getCaptureRestartStrategy } from '../types/asr'
 import type { ProviderConfigData } from '../types'
 
 interface UseASROptions {
@@ -286,7 +287,7 @@ export function useASR(options: UseASROptions = {}) {
         mediaStreamRef.current = null
       }
 
-      const requiresReconnect = providerInfo.capabilities.audioInputMode !== 'pcm16'
+      const requiresReconnect = getCaptureRestartStrategy(providerInfo.capabilities) === 'reconnect-session'
       if (requiresReconnect) {
         await disconnectProvider()
       }
@@ -369,7 +370,9 @@ export function useASR(options: UseASROptions = {}) {
 
     setRecordingState('starting')
     await window.electronAPI?.captionUpdateText('', false)
-    console.log(`[useASR] 开始录制流程，使用提供商: ${vendorId}`)
+    console.log(
+      `[useASR] 开始录制流程，使用提供商: ${vendorId}, transport=${providerInfo.capabilities.transport.type}`
+    )
 
     try {
       const provider = createProvider(vendorId)

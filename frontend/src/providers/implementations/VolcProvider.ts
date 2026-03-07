@@ -27,6 +27,10 @@ export class VolcProvider extends BaseASRProvider {
     supportsStreaming: true,
     capabilities: {
       audioInputMode: 'pcm16',
+      transport: {
+        type: 'realtime',
+        captureRestartStrategy: 'reuse-session',
+      },
       supportsConfigTest: true,
     },
     requiredConfigKeys: ['appKey', 'accessKey'],

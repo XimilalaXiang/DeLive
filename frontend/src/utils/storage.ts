@@ -6,6 +6,12 @@ const STORAGE_KEYS = {
   TAGS: 'desktoplive_tags',
 } as const
 
+const DB_NAME = 'delive-app'
+const DB_VERSION = 1
+const SESSION_STORE = 'sessions'
+const META_STORE = 'meta'
+const META_KEY_SESSIONS_MIGRATED = 'sessions_migrated'
+
 const DEFAULT_CAPTION_STYLE: CaptionStyle = {
   fontSize: 24,
   fontFamily: '-apple-system, BlinkMacSystemFont, "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Hiragino Sans GB", "WenQuanYi Micro Hei", sans-serif',
@@ -18,8 +24,7 @@ const DEFAULT_CAPTION_STYLE: CaptionStyle = {
 
 // ==================== 会话相关 ====================
 
-// 获取所有转录会话
-export function getSessions(): TranscriptSession[] {
+function getLegacySessionsFromLocalStorage(): TranscriptSession[] {
   try {
     const data = localStorage.getItem(STORAGE_KEYS.SESSIONS)
     return data ? JSON.parse(data) : []
@@ -29,8 +34,7 @@ export function getSessions(): TranscriptSession[] {
   }
 }
 
-// 保存所有转录会话
-export function saveSessions(sessions: TranscriptSession[]): void {
+function saveLegacySessionsToLocalStorage(sessions: TranscriptSession[]): void {
   try {
     localStorage.setItem(STORAGE_KEYS.SESSIONS, JSON.stringify(sessions))
   } catch (error) {
@@ -38,28 +42,198 @@ export function saveSessions(sessions: TranscriptSession[]): void {
   }
 }
 
+function clearLegacySessionsFromLocalStorage(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.SESSIONS)
+  } catch (error) {
+    console.error('Failed to clear sessions from localStorage:', error)
+  }
+}
+
+function supportsIndexedDb(): boolean {
+  return typeof indexedDB !== 'undefined'
+}
+
+let dbPromise: Promise<IDBDatabase> | null = null
+
+function openAppDatabase(): Promise<IDBDatabase> {
+  if (!supportsIndexedDb()) {
+    return Promise.reject(new Error('IndexedDB is not supported in the current environment'))
+  }
+
+  if (!dbPromise) {
+    dbPromise = new Promise((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME, DB_VERSION)
+
+      request.onerror = () => reject(request.error ?? new Error('Failed to open IndexedDB'))
+      request.onsuccess = () => resolve(request.result)
+      request.onupgradeneeded = () => {
+        const db = request.result
+
+        if (!db.objectStoreNames.contains(SESSION_STORE)) {
+          db.createObjectStore(SESSION_STORE, { keyPath: 'id' })
+        }
+
+        if (!db.objectStoreNames.contains(META_STORE)) {
+          db.createObjectStore(META_STORE, { keyPath: 'key' })
+        }
+      }
+    })
+  }
+
+  return dbPromise
+}
+
+function createTransaction<T>(
+  db: IDBDatabase,
+  storeName: string,
+  mode: IDBTransactionMode,
+  executor: (store: IDBObjectStore, resolve: (value: T) => void, reject: (reason?: unknown) => void) => void
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(storeName, mode)
+    const store = transaction.objectStore(storeName)
+
+    transaction.onerror = () => reject(transaction.error ?? new Error(`IndexedDB transaction failed for ${storeName}`))
+    executor(store, resolve, reject)
+  })
+}
+
+async function getMetaValue<T>(key: string): Promise<T | undefined> {
+  const db = await openAppDatabase()
+  return createTransaction<T | undefined>(db, META_STORE, 'readonly', (store, resolve, reject) => {
+    const request = store.get(key)
+    request.onerror = () => reject(request.error ?? new Error(`Failed to read meta key ${key}`))
+    request.onsuccess = () => {
+      const result = request.result as { key: string; value: T } | undefined
+      resolve(result?.value)
+    }
+  })
+}
+
+async function setMetaValue<T>(key: string, value: T): Promise<void> {
+  const db = await openAppDatabase()
+  await createTransaction<void>(db, META_STORE, 'readwrite', (store, resolve, reject) => {
+    const request = store.put({ key, value })
+    request.onerror = () => reject(request.error ?? new Error(`Failed to write meta key ${key}`))
+    request.onsuccess = () => resolve()
+  })
+}
+
+function sortSessions(sessions: TranscriptSession[]): TranscriptSession[] {
+  return [...sessions].sort((a, b) => {
+    const left = Math.max(a.createdAt || 0, a.updatedAt || 0)
+    const right = Math.max(b.createdAt || 0, b.updatedAt || 0)
+    return right - left
+  })
+}
+
+async function readSessionsFromIndexedDb(): Promise<TranscriptSession[]> {
+  const db = await openAppDatabase()
+  const sessions = await createTransaction<TranscriptSession[]>(db, SESSION_STORE, 'readonly', (store, resolve, reject) => {
+    const request = store.getAll()
+    request.onerror = () => reject(request.error ?? new Error('Failed to read sessions from IndexedDB'))
+    request.onsuccess = () => resolve((request.result as TranscriptSession[]) || [])
+  })
+
+  return sortSessions(sessions)
+}
+
+async function replaceSessionsInIndexedDb(sessions: TranscriptSession[]): Promise<void> {
+  const db = await openAppDatabase()
+  const sortedSessions = sortSessions(sessions)
+
+  await new Promise<void>((resolve, reject) => {
+    const transaction = db.transaction(SESSION_STORE, 'readwrite')
+    const store = transaction.objectStore(SESSION_STORE)
+    const clearRequest = store.clear()
+
+    clearRequest.onerror = () => reject(clearRequest.error ?? new Error('Failed to clear IndexedDB sessions'))
+    clearRequest.onsuccess = () => {
+      for (const session of sortedSessions) {
+        store.put(session)
+      }
+    }
+
+    transaction.onerror = () => reject(transaction.error ?? new Error('Failed to replace IndexedDB sessions'))
+    transaction.oncomplete = () => resolve()
+  })
+}
+
+async function ensureSessionMigration(): Promise<void> {
+  if (!supportsIndexedDb()) {
+    return
+  }
+
+  const migrated = await getMetaValue<boolean>(META_KEY_SESSIONS_MIGRATED)
+  if (migrated) {
+    return
+  }
+
+  const legacySessions = getLegacySessionsFromLocalStorage()
+  if (legacySessions.length > 0) {
+    await replaceSessionsInIndexedDb(legacySessions)
+    clearLegacySessionsFromLocalStorage()
+  }
+
+  await setMetaValue(META_KEY_SESSIONS_MIGRATED, true)
+}
+
+// 获取所有转录会话
+export async function getSessions(): Promise<TranscriptSession[]> {
+  if (!supportsIndexedDb()) {
+    return getLegacySessionsFromLocalStorage()
+  }
+
+  try {
+    await ensureSessionMigration()
+    return await readSessionsFromIndexedDb()
+  } catch (error) {
+    console.error('Failed to load sessions from IndexedDB, falling back to localStorage:', error)
+    return getLegacySessionsFromLocalStorage()
+  }
+}
+
+// 保存所有转录会话
+export async function saveSessions(sessions: TranscriptSession[]): Promise<void> {
+  const sortedSessions = sortSessions(sessions)
+
+  if (!supportsIndexedDb()) {
+    saveLegacySessionsToLocalStorage(sortedSessions)
+    return
+  }
+
+  try {
+    await ensureSessionMigration()
+    await replaceSessionsInIndexedDb(sortedSessions)
+  } catch (error) {
+    console.error('Failed to save sessions to IndexedDB, falling back to localStorage:', error)
+    saveLegacySessionsToLocalStorage(sortedSessions)
+  }
+}
+
 // 添加新会话
-export function addSession(session: TranscriptSession): void {
-  const sessions = getSessions()
+export async function addSession(session: TranscriptSession): Promise<void> {
+  const sessions = await getSessions()
   sessions.unshift(session) // 新会话放在最前面
-  saveSessions(sessions)
+  await saveSessions(sessions)
 }
 
 // 更新会话
-export function updateSession(id: string, updates: Partial<TranscriptSession>): void {
-  const sessions = getSessions()
+export async function updateSession(id: string, updates: Partial<TranscriptSession>): Promise<void> {
+  const sessions = await getSessions()
   const index = sessions.findIndex(s => s.id === id)
   if (index !== -1) {
     sessions[index] = { ...sessions[index], ...updates, updatedAt: Date.now() }
-    saveSessions(sessions)
+    await saveSessions(sessions)
   }
 }
 
 // 删除会话
-export function deleteSession(id: string): void {
-  const sessions = getSessions()
+export async function deleteSession(id: string): Promise<void> {
+  const sessions = await getSessions()
   const filtered = sessions.filter(s => s.id !== id)
-  saveSessions(filtered)
+  await saveSessions(filtered)
 }
 
 // ==================== 标签相关 ====================
@@ -167,11 +341,11 @@ export interface BackupData {
 }
 
 // 导出所有数据为JSON
-export function exportAllData(): void {
+export async function exportAllData(): Promise<void> {
   const data: BackupData = {
     version: '1.0',
     exportedAt: new Date().toISOString(),
-    sessions: getSessions(),
+    sessions: await getSessions(),
     tags: getTags(),
     settings: getSettings(),
   }
@@ -201,8 +375,8 @@ export function validateBackupData(data: unknown): data is BackupData {
 }
 
 // 导入数据（覆盖模式）
-export function importDataOverwrite(data: BackupData): { sessions: number; tags: number } {
-  saveSessions(data.sessions)
+export async function importDataOverwrite(data: BackupData): Promise<{ sessions: number; tags: number }> {
+  await saveSessions(data.sessions)
   saveTags(data.tags)
   // 保留当前API密钥，只更新语言设置
   const currentSettings = getSettings()
@@ -218,15 +392,15 @@ export function importDataOverwrite(data: BackupData): { sessions: number; tags:
 }
 
 // 导入数据（合并模式）
-export function importDataMerge(data: BackupData): { sessions: number; tags: number; newSessions: number; newTags: number } {
-  const existingSessions = getSessions()
+export async function importDataMerge(data: BackupData): Promise<{ sessions: number; tags: number; newSessions: number; newTags: number }> {
+  const existingSessions = await getSessions()
   const existingTags = getTags()
 
   // 合并会话（按ID去重）
   const existingSessionIds = new Set(existingSessions.map(s => s.id))
   const newSessions = data.sessions.filter(s => !existingSessionIds.has(s.id))
   const mergedSessions = [...existingSessions, ...newSessions]
-  saveSessions(mergedSessions)
+  await saveSessions(mergedSessions)
 
   // 合并标签（按ID去重）
   const existingTagIds = new Set(existingTags.map(t => t.id))

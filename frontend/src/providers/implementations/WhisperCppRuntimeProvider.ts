@@ -17,9 +17,13 @@ export class WhisperCppRuntimeProvider extends BaseASRProvider {
     name: '本地 whisper.cpp',
     description: '通过 Electron 启动本地 whisper.cpp server，直接使用本地模型进行转录',
     type: 'local',
-    supportsStreaming: true,
+    supportsStreaming: false,
     capabilities: {
       audioInputMode: 'pcm16',
+      transport: {
+        type: 'local-runtime',
+        captureRestartStrategy: 'reuse-session',
+      },
       supportsConfigTest: true,
       local: {
         connectionMode: 'runtime',

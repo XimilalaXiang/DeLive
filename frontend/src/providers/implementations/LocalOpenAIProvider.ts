@@ -19,9 +19,13 @@ export class LocalOpenAIProvider extends BaseASRProvider {
     name: '本地 OpenAI 兼容',
     description: '连接本地 OpenAI-compatible ASR 服务（如 Ollama/Whisper 兼容接口）',
     type: 'local',
-    supportsStreaming: true,
+    supportsStreaming: false,
     capabilities: {
       audioInputMode: 'media-recorder',
+      transport: {
+        type: 'full-session-retranscription',
+        captureRestartStrategy: 'reuse-session',
+      },
       supportsConfigTest: true,
       local: {
         connectionMode: 'service',

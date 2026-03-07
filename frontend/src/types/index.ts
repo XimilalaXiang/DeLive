@@ -33,6 +33,8 @@ export interface TranscriptTokenData {
   confidence?: number
 }
 
+export type TranscriptSessionStatus = 'recording' | 'interrupted' | 'completed'
+
 // 字幕样式
 export interface CaptionStyle {
   fontSize: number
@@ -56,6 +58,10 @@ export interface TranscriptSession {
   duration?: number // 毫秒
   tagIds?: string[] // 关联的标签ID列表
   tokens?: TranscriptTokenData[] // 带时间戳的 tokens（用于 SRT 导出）
+  providerId?: string
+  status?: TranscriptSessionStatus
+  lastPersistedAt?: number
+  wasInterrupted?: boolean
 }
 
 // 应用状态类型

@@ -24,6 +24,10 @@ export class GroqProvider extends BaseASRProvider {
     supportsStreaming: false,
     capabilities: {
       audioInputMode: 'pcm16',
+      transport: {
+        type: 'full-session-retranscription',
+        captureRestartStrategy: 'reuse-session',
+      },
       supportsConfigTest: true,
     },
     requiredConfigKeys: ['apiKey'],

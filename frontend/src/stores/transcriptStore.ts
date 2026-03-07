@@ -1,8 +1,15 @@
 import { create } from 'zustand'
-import type { TranscriptSession, RecordingState, AppSettings, SonioxToken, Tag, ProviderConfigData, CaptionStyle } from '../types'
+import type {
+  TranscriptSession,
+  RecordingState,
+  AppSettings,
+  SonioxToken,
+  Tag,
+  ProviderConfigData,
+  CaptionStyle,
+  TranscriptTokenData,
+} from '../types'
 import {
-  getSessions,
-  saveSessions,
   getSettings,
   saveSettings,
   getTags,
@@ -11,6 +18,7 @@ import {
   formatDate,
   formatTime
 } from '../utils/storage'
+import { sessionRepository } from '../utils/sessionRepository'
 import {
   type Language,
   type Translations,
@@ -25,6 +33,9 @@ import { type ColorThemeId, defaultColorTheme, applyColorThemeToDOM } from '../t
 // 主题类型定义
 type Theme = 'light' | 'dark' | 'system'
 type ResolvedTheme = 'light' | 'dark'
+
+const SESSION_AUTOSAVE_DELAY_MS = 1200
+let sessionAutosaveTimer: ReturnType<typeof setTimeout> | null = null
 
 const defaultCaptionStyle: CaptionStyle = {
   fontSize: 24,
@@ -75,6 +86,45 @@ const applyTheme = (resolvedTheme: ResolvedTheme) => {
   }
 }
 
+function clearSessionAutosaveTimer(): void {
+  if (sessionAutosaveTimer) {
+    clearTimeout(sessionAutosaveTimer)
+    sessionAutosaveTimer = null
+  }
+}
+
+function mapTokensForStorage(tokens: SonioxToken[]): TranscriptTokenData[] {
+  return tokens.map((token) => ({
+    text: token.text,
+    startMs: token.start_ms,
+    endMs: token.end_ms,
+    speaker: token.speaker,
+    language: token.language,
+    confidence: token.confidence,
+  }))
+}
+
+function buildTranscriptFromState(finalTranscript: string, nonFinalTranscript: string, currentTranscript: string): string {
+  return currentTranscript || finalTranscript || nonFinalTranscript
+}
+
+function updateSessionInCollection(
+  sessions: TranscriptSession[],
+  sessionId: string | null,
+  updates: Partial<TranscriptSession>
+): TranscriptSession[] {
+  if (!sessionId) {
+    return sessions
+  }
+
+  const now = Date.now()
+  return sessions.map((session) => (
+    session.id === sessionId
+      ? { ...session, ...updates, updatedAt: now }
+      : session
+  ))
+}
+
 interface TranscriptState {
   // 语言状态
   language: Language
@@ -102,12 +152,15 @@ interface TranscriptState {
 
   // 当前会话
   currentSessionId: string | null
+  recoverySession: TranscriptSession | null
   startNewSession: () => string
   endCurrentSession: () => void
+  restoreRecoverySession: () => void
+  dismissRecoverySession: () => void
 
   // 历史会话
   sessions: TranscriptSession[]
-  loadSessions: () => void
+  loadSessions: () => Promise<void>
   updateSessionTitle: (id: string, title: string) => void
   deleteSession: (id: string) => void
   updateSessionTags: (sessionId: string, tagIds: string[]) => void
@@ -145,7 +198,72 @@ interface TranscriptState {
   finalTokens: SonioxToken[]
 }
 
-export const useTranscriptStore = create<TranscriptState>((set, get) => ({
+export const useTranscriptStore = create<TranscriptState>((set, get) => {
+  const buildStoredTokens = (tokens: SonioxToken[]): TranscriptTokenData[] | undefined => (
+    tokens.length > 0 ? mapTokensForStorage(tokens) : undefined
+  )
+
+  const buildCurrentSessionSnapshot = (overrides?: {
+    finalTokens?: SonioxToken[]
+    finalTranscript?: string
+    nonFinalTranscript?: string
+    currentTranscript?: string
+  }) => {
+    const state = get()
+    const finalTokens = overrides?.finalTokens ?? state.finalTokens
+    const finalTranscript = overrides?.finalTranscript ?? state.finalTranscript
+    const nonFinalTranscript = overrides?.nonFinalTranscript ?? state.nonFinalTranscript
+    const currentTranscript = overrides?.currentTranscript ?? state.currentTranscript
+    const transcript = buildTranscriptFromState(finalTranscript, nonFinalTranscript, currentTranscript)
+    const tokens = buildStoredTokens(finalTokens)
+
+    return {
+      transcript,
+      tokens,
+      providerId: state.settings.currentVendor,
+    }
+  }
+
+  const syncCurrentSessionInMemory = (overrides?: {
+    finalTokens?: SonioxToken[]
+    finalTranscript?: string
+    nonFinalTranscript?: string
+    currentTranscript?: string
+  }) => {
+    const state = get()
+    if (!state.currentSessionId) {
+      return state.sessions
+    }
+
+    const snapshot = buildCurrentSessionSnapshot(overrides)
+    return updateSessionInCollection(state.sessions, state.currentSessionId, {
+      transcript: snapshot.transcript,
+      tokens: snapshot.tokens,
+      providerId: snapshot.providerId,
+      status: 'recording',
+    })
+  }
+
+  const scheduleCurrentSessionAutosave = () => {
+    clearSessionAutosaveTimer()
+
+    sessionAutosaveTimer = setTimeout(() => {
+      const state = get()
+      if (!state.currentSessionId) {
+        return
+      }
+
+      const snapshot = buildCurrentSessionSnapshot()
+      if (!snapshot.transcript && !snapshot.tokens?.length) {
+        return
+      }
+
+      const sessions = sessionRepository.saveProgress(state.currentSessionId, snapshot)
+      set({ sessions })
+    }, SESSION_AUTOSAVE_DELAY_MS)
+  }
+
+  return ({
   // 语言状态
   language: getSavedLanguage(),
   t: getTranslations(getSavedLanguage()),
@@ -202,24 +320,42 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
   currentTranscript: '',
   finalTranscript: '',
   nonFinalTranscript: '',
-  setTranscript: (final, nonFinal) => set({
-    finalTranscript: final,
-    nonFinalTranscript: nonFinal,
-    currentTranscript: final + nonFinal
-  }),
-  clearTranscript: () => set({
-    currentTranscript: '',
-    finalTranscript: '',
-    nonFinalTranscript: '',
-    finalTokens: []
-  }),
+  setTranscript: (final, nonFinal) => {
+    const currentTranscript = final + nonFinal
+    const sessions = syncCurrentSessionInMemory({
+      finalTranscript: final,
+      nonFinalTranscript: nonFinal,
+      currentTranscript,
+    })
+
+    set({
+      finalTranscript: final,
+      nonFinalTranscript: nonFinal,
+      currentTranscript,
+      sessions,
+    })
+
+    scheduleCurrentSessionAutosave()
+  },
+  clearTranscript: () => {
+    clearSessionAutosaveTimer()
+    set({
+      currentTranscript: '',
+      finalTranscript: '',
+      nonFinalTranscript: '',
+      finalTokens: []
+    })
+  },
 
   // 当前会话
   currentSessionId: null,
+  recoverySession: null,
   startNewSession: () => {
+    clearSessionAutosaveTimer()
+
     const id = generateId()
     const now = Date.now()
-    const { t } = get()
+    const { t, settings } = get()
     const session: TranscriptSession = {
       id,
       title: t.session.defaultTitle(formatTime(now)),
@@ -229,10 +365,12 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
       updatedAt: now,
       transcript: '',
       tagIds: [],
+      providerId: settings.currentVendor,
+      status: 'recording',
+      lastPersistedAt: now,
     }
 
-    const sessions = [session, ...get().sessions]
-    saveSessions(sessions)
+    const sessions = sessionRepository.createDraft(session)
 
     set({
       currentSessionId: id,
@@ -246,48 +384,88 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
     return id
   },
   endCurrentSession: () => {
-    const { currentSessionId, finalTranscript, nonFinalTranscript, currentTranscript, sessions } = get()
-    // 保存完整的转录内容（包括 final 和 non-final）
-    // 对于火山引擎，final 只在会话结束时发送，所以需要保存 currentTranscript
-    const transcriptToSave = currentTranscript || finalTranscript || nonFinalTranscript
-    if (currentSessionId && transcriptToSave) {
-      const updatedSessions = sessions.map(s =>
-        s.id === currentSessionId
-          ? { ...s, transcript: transcriptToSave, updatedAt: Date.now() }
-          : s
-      )
-      saveSessions(updatedSessions)
-      set({ sessions: updatedSessions })
-      console.log('[TranscriptStore] 会话已保存, 文本长度:', transcriptToSave.length)
+    clearSessionAutosaveTimer()
+
+    const { currentSessionId } = get()
+    const snapshot = buildCurrentSessionSnapshot()
+    const hasContent = Boolean(snapshot.transcript || snapshot.tokens?.length)
+
+    if (currentSessionId && hasContent) {
+      const sessions = sessionRepository.completeSession(currentSessionId, snapshot)
+      set({ sessions })
+      console.log('[TranscriptStore] 会话已保存, 文本长度:', snapshot.transcript.length)
+    } else if (currentSessionId) {
+      const sessions = sessionRepository.deleteSession(currentSessionId)
+      set({ sessions })
+      console.log('[TranscriptStore] 空会话已丢弃:', currentSessionId)
     } else {
-      console.log('[TranscriptStore] 会话未保存: currentSessionId=', currentSessionId, ', transcriptToSave=', transcriptToSave?.substring(0, 50))
+      console.log('[TranscriptStore] 会话未保存: currentSessionId=', currentSessionId)
     }
+
     set({ currentSessionId: null })
+  },
+  restoreRecoverySession: () => {
+    const { recoverySession } = get()
+    if (!recoverySession) {
+      return
+    }
+
+    const restoredTranscript = recoverySession.transcript || recoverySession.tokens?.map((token) => token.text).join('') || ''
+    const restoredTokens: SonioxToken[] = (recoverySession.tokens || []).map((token) => ({
+      text: token.text,
+      is_final: true,
+      start_ms: token.startMs,
+      end_ms: token.endMs,
+      speaker: token.speaker,
+      language: token.language,
+      confidence: token.confidence,
+    }))
+    const sessions = sessionRepository.acknowledgeInterrupted(recoverySession.id)
+
+    set({
+      recoverySession: null,
+      sessions,
+      currentSessionId: null,
+      finalTokens: restoredTokens,
+      finalTranscript: restoredTranscript,
+      nonFinalTranscript: '',
+      currentTranscript: restoredTranscript,
+    })
+  },
+  dismissRecoverySession: () => {
+    const { recoverySession } = get()
+    if (!recoverySession) {
+      return
+    }
+
+    const sessions = sessionRepository.acknowledgeInterrupted(recoverySession.id)
+    set({
+      recoverySession: null,
+      sessions,
+    })
   },
 
   // 历史会话
   sessions: [],
-  loadSessions: () => {
-    const sessions = getSessions()
-    set({ sessions })
+  loadSessions: async () => {
+    const { sessions, recoverableSession } = await sessionRepository.loadForLaunch()
+    set({ sessions, recoverySession: recoverableSession })
   },
   updateSessionTitle: (id, title) => {
-    const sessions = get().sessions.map(s =>
-      s.id === id ? { ...s, title, updatedAt: Date.now() } : s
-    )
-    saveSessions(sessions)
+    const sessions = sessionRepository.updateMetadata(id, { title })
     set({ sessions })
   },
   deleteSession: (id) => {
-    const sessions = get().sessions.filter(s => s.id !== id)
-    saveSessions(sessions)
-    set({ sessions })
+    const sessions = sessionRepository.deleteSession(id)
+    const { recoverySession } = get()
+
+    set({
+      sessions,
+      recoverySession: recoverySession?.id === id ? null : recoverySession,
+    })
   },
   updateSessionTags: (sessionId, tagIds) => {
-    const sessions = get().sessions.map(s =>
-      s.id === sessionId ? { ...s, tagIds, updatedAt: Date.now() } : s
-    )
-    saveSessions(sessions)
+    const sessions = sessionRepository.updateMetadata(sessionId, { tagIds })
     set({ sessions })
   },
 
@@ -318,12 +496,12 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
       ...s,
       tagIds: s.tagIds?.filter(tid => tid !== id) || []
     }))
-    saveSessions(sessions)
+    const persistedSessions = sessionRepository.replaceAllSessions(sessions)
 
     // 从筛选中移除
     const selectedTagIds = get().selectedTagIds.filter(tid => tid !== id)
 
-    set({ tags, sessions, selectedTagIds })
+    set({ tags, sessions: persistedSessions, selectedTagIds })
   },
   updateTag: (id, updates) => {
     const tags = get().tags.map(t =>
@@ -440,34 +618,23 @@ export const useTranscriptStore = create<TranscriptState>((set, get) => ({
     }
 
     const finalText = newFinalTokens.map(t => t.text).join('')
+    const currentTranscript = finalText + nonFinalText
+    const sessions = syncCurrentSessionInMemory({
+      finalTokens: newFinalTokens,
+      finalTranscript: finalText,
+      nonFinalTranscript: nonFinalText,
+      currentTranscript,
+    })
 
     set({
       finalTokens: newFinalTokens,
       finalTranscript: finalText,
       nonFinalTranscript: nonFinalText,
-      currentTranscript: finalText + nonFinalText
+      currentTranscript,
+      sessions,
     })
 
-    // 实时保存到当前会话
-    const { currentSessionId, sessions } = get()
-    if (currentSessionId) {
-      // 将 tokens 转换为可保存的格式
-      const tokenData = newFinalTokens.map(t => ({
-        text: t.text,
-        startMs: t.start_ms,
-        endMs: t.end_ms,
-        speaker: t.speaker,
-        language: t.language,
-        confidence: t.confidence,
-      }))
-
-      const updatedSessions = sessions.map(s =>
-        s.id === currentSessionId
-          ? { ...s, transcript: finalText, tokens: tokenData, updatedAt: Date.now() }
-          : s
-      )
-      // 不频繁保存到localStorage，只更新内存中的状态
-      set({ sessions: updatedSessions })
-    }
+    scheduleCurrentSessionAutosave()
   },
-}))
+  })
+})

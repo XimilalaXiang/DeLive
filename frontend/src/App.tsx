@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Settings, Waves } from 'lucide-react'
+import { AlertTriangle, Settings, Waves } from 'lucide-react'
 import { useTranscriptStore } from './stores/transcriptStore'
 import { buildProviderConnectConfig, isProviderConfigured } from './utils/providerConfig'
 import { 
@@ -21,16 +21,39 @@ function App() {
   const [showSourcePicker, setShowSourcePicker] = useState(false)
   const [toasts, setToasts] = useState<ToastMessage[]>([])
   const [isInitialized, setIsInitialized] = useState(false)
-  const { loadSessions, loadSettings, loadTags, settings, initTheme, t, availableProviders } = useTranscriptStore()
+  const {
+    loadSessions,
+    loadSettings,
+    loadTags,
+    settings,
+    initTheme,
+    t,
+    availableProviders,
+    recoverySession,
+    restoreRecoverySession,
+    dismissRecoverySession,
+    recordingState,
+  } = useTranscriptStore()
   const hasCheckedApiKey = useRef(false)
 
   // 初始化加载
   useEffect(() => {
-    initTheme()
-    loadSettings()
-    loadSessions()
-    loadTags()
-    setIsInitialized(true)
+    let cancelled = false
+
+    void (async () => {
+      initTheme()
+      loadSettings()
+      loadTags()
+      await loadSessions()
+
+      if (!cancelled) {
+        setIsInitialized(true)
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
   }, [initTheme, loadSettings, loadSessions, loadTags])
 
   // 启动时自动检查更新（根据设置）
@@ -161,6 +184,47 @@ function App() {
                 <div className="text-sm text-amber-800 dark:text-amber-300">
                   {t.api.needConfigDesc}
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isInitialized && recordingState === 'idle' && recoverySession && (
+          <div className="animate-reveal-up rounded-lg border border-sky-200 bg-sky-50 p-4 dark:border-sky-900/50 dark:bg-sky-950/20">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <div className="p-1.5 rounded-full bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-300">
+                  <AlertTriangle className="h-4 w-4" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="font-medium leading-none tracking-tight text-sky-900 dark:text-sky-100">
+                    {t.session.recoveryTitle}
+                  </h3>
+                  <div className="text-sm text-sky-800 dark:text-sky-200">
+                    {t.session.recoveryDesc(recoverySession.title)}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 sm:flex-shrink-0">
+                <button
+                  onClick={() => {
+                    restoreRecoverySession()
+                    addToast('success', t.session.recoveredToast)
+                  }}
+                  className="inline-flex h-9 items-center justify-center rounded-md bg-sky-600 px-4 text-sm font-medium text-white transition-colors hover:bg-sky-700"
+                >
+                  {t.session.restoreInterrupted}
+                </button>
+                <button
+                  onClick={() => {
+                    dismissRecoverySession()
+                    addToast('success', t.session.dismissedToast)
+                  }}
+                  className="inline-flex h-9 items-center justify-center rounded-md border border-sky-200 bg-background px-4 text-sm font-medium text-sky-800 transition-colors hover:bg-sky-100 dark:border-sky-900/40 dark:bg-slate-950/40 dark:text-sky-200 dark:hover:bg-sky-950/40"
+                >
+                  {t.session.dismissInterrupted}
+                </button>
               </div>
             </div>
           </div>
