@@ -117,6 +117,7 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
       })
       const proxyUrl = `ws://localhost:3001/ws/volc?${params.toString()}`
       let ws: WebSocket | null = null
+      let lastProxyErrorMessage = ''
 
       const timeout = setTimeout(() => {
         ws?.close()
@@ -150,8 +151,9 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
 
           if (msg.type === 'error') {
             clearTimeout(timeout)
+            lastProxyErrorMessage = msg.message || ''
             ws?.close()
-            reject(new Error(msg.message || '火山引擎连接失败'))
+            reject(new Error(lastProxyErrorMessage || '火山引擎连接失败'))
           }
         } catch {
           // ignore invalid payload
@@ -168,7 +170,7 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
         if (event.code === 4001) {
           reject(new Error('缺少 APP ID 或 Access Token'))
         } else if (event.code === 4002) {
-          reject(new Error('火山引擎连接失败，请检查 APP ID 和 Access Token 是否正确'))
+          reject(new Error(lastProxyErrorMessage || '火山引擎连接失败，请检查网络、DNS、代理设置以及 APP ID / Access Token'))
         }
       }
     })

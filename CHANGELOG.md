@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.5] - 2026-03-07
+
+### Changed / 变更
+- Refactored `electron/main.ts` into focused modules for proxy, updater, caption window, tray, shortcuts, desktop source, app IPC, and local runtime orchestration
+- 将 `electron/main.ts` 进一步拆分为更聚焦的模块：代理、更新、字幕窗口、托盘、快捷键、桌面源、通用 IPC 与本地 runtime 编排
+- `electron/main.ts` was reduced from a giant multi-domain file to a much thinner application-composition entry
+- `electron/main.ts` 从一个超大多职责文件收缩为更薄的应用组装入口
+
+### Fixed / 修复
+- Improved Volcengine error reporting so DNS / network failures surface as actionable messages instead of raw `ENOTFOUND`
+- 优化火山引擎错误提示，DNS / 网络失败现在会显示可操作的信息，而不是原始 `ENOTFOUND`
+
+---
+
 ## [1.3.4] - 2026-03-07
 
 ### Added / 新增

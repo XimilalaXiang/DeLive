@@ -57,6 +57,30 @@ interface VolcProxyConfig {
   enableNonstream?: boolean
 }
 
+function formatVolcConnectionError(error: Error): string {
+  const networkError = error as NodeJS.ErrnoException
+  const message = error.message || 'WebSocket connection error'
+  const lower = message.toLowerCase()
+
+  if (networkError.code === 'ENOTFOUND' || lower.includes('getaddrinfo enotfound')) {
+    return '无法解析火山引擎服务地址 openspeech.bytedance.com，请检查当前网络、DNS、代理或 VPN 设置'
+  }
+
+  if (networkError.code === 'EAI_AGAIN' || lower.includes('eai_again')) {
+    return '火山引擎服务地址 DNS 查询超时，请稍后重试或切换 DNS 网络环境'
+  }
+
+  if (networkError.code === 'ETIMEDOUT' || lower.includes('timed out') || lower.includes('timeout')) {
+    return '连接火山引擎超时，请检查网络连通性或代理设置'
+  }
+
+  if (networkError.code === 'ECONNRESET' || lower.includes('socket hang up')) {
+    return '火山引擎连接被重置，请稍后重试'
+  }
+
+  return message
+}
+
 function generateUUID(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = Math.random() * 16 | 0
@@ -268,7 +292,7 @@ export function createVolcProxyServer(wss: WebSocketServer): void {
       if (!clientClosed) {
         clientWs.send(JSON.stringify({
           type: 'error',
-          message: error.message || 'WebSocket connection error',
+          message: formatVolcConnectionError(error),
         }))
         clientWs.close(4002, 'Volc WebSocket error')
       }
