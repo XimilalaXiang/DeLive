@@ -53,6 +53,7 @@ coverage/
 
 # Temporary files
 tmp/
+main.js
 
 # API documentation (private)
 soniox的api调用文档.md
