@@ -131,6 +131,10 @@ declare interface ElectronAPI {
   captionOpenSettings: () => Promise<boolean>
   onOpenCaptionSettings: (callback: () => void) => () => void
   exportDiagnostics: (payload: { settings: Record<string, unknown>; localStorageKeys: string[] }) => Promise<{ success: boolean; path?: string; reason?: string }>
+  safeStorageSet: (key: string, value: string) => Promise<boolean>
+  safeStorageGet: (key: string) => Promise<string | null>
+  safeStorageDelete: (key: string) => Promise<boolean>
+  safeStorageAvailable: () => Promise<boolean>
 }
 
 declare interface Window {

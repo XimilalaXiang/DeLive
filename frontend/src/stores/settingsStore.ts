@@ -4,7 +4,7 @@ import type {
   ProviderConfigData,
   CaptionStyle,
 } from '../types'
-import { getSettings, saveSettings } from '../utils/storage'
+import { getSettings, saveSettings, resolveApiKeysFromSafeStorage, migrateApiKeysToSafeStorage } from '../utils/storage'
 import { providerRegistry } from '../providers'
 import type { ASRProviderInfo, ASRVendor } from '../types/asr'
 
@@ -65,6 +65,12 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         },
       },
     })
+
+    void (async () => {
+      await migrateApiKeysToSafeStorage()
+      const resolved = await resolveApiKeysFromSafeStorage(get().settings)
+      set({ settings: resolved })
+    })()
   },
   updateSettings: (newSettings) => {
     const settings = { ...get().settings, ...newSettings }

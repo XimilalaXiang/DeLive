@@ -18,6 +18,7 @@ import {
   type ToastMessage 
 } from './components'
 import { UpdateNotification } from './components/UpdateNotification'
+import { initStorage } from './utils/storage'
 
 function App() {
   const [showSettings, setShowSettings] = useState(false)
@@ -35,6 +36,7 @@ function App() {
     let cancelled = false
 
     void (async () => {
+      await initStorage()
       initTheme()
       loadSettings()
       loadTags()

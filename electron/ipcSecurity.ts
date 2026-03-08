@@ -75,7 +75,7 @@ export function buildCSP(isDev: boolean): string {
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: blob:",
     "media-src 'self' blob: mediastream:",
-    `connect-src 'self' ws: wss: https: http://localhost:*${isDev ? ' ws://localhost:*' : ''}`,
+    "connect-src 'self' ws: wss: https: http://localhost:* http://127.0.0.1:*",
     "worker-src 'self' blob:",
     "frame-src 'none'",
     "object-src 'none'",

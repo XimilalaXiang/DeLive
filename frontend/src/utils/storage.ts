@@ -7,10 +7,15 @@ const STORAGE_KEYS = {
 } as const
 
 const DB_NAME = 'delive-app'
-const DB_VERSION = 1
+const DB_VERSION = 2
 const SESSION_STORE = 'sessions'
 const META_STORE = 'meta'
+const SETTINGS_STORE = 'settings'
+const TAGS_STORE = 'tags'
 const META_KEY_SESSIONS_MIGRATED = 'sessions_migrated'
+const META_KEY_SETTINGS_MIGRATED = 'settings_tags_migrated'
+const SETTINGS_SINGLETON_KEY = 'app_settings'
+const TAGS_SINGLETON_KEY = 'all_tags'
 
 const DEFAULT_CAPTION_STYLE: CaptionStyle = {
   fontSize: 24,
@@ -76,6 +81,14 @@ function openAppDatabase(): Promise<IDBDatabase> {
 
         if (!db.objectStoreNames.contains(META_STORE)) {
           db.createObjectStore(META_STORE, { keyPath: 'key' })
+        }
+
+        if (!db.objectStoreNames.contains(SETTINGS_STORE)) {
+          db.createObjectStore(SETTINGS_STORE, { keyPath: 'id' })
+        }
+
+        if (!db.objectStoreNames.contains(TAGS_STORE)) {
+          db.createObjectStore(TAGS_STORE, { keyPath: 'id' })
         }
       }
     })
@@ -236,9 +249,120 @@ export async function deleteSession(id: string): Promise<void> {
   await saveSessions(filtered)
 }
 
+// ==================== IndexedDB 镜像（settings / tags） ====================
+
+async function mirrorSettingsToIdb(settings: AppSettings): Promise<void> {
+  if (!supportsIndexedDb()) return
+  try {
+    const db = await openAppDatabase()
+    await createTransaction<void>(db, SETTINGS_STORE, 'readwrite', (store, resolve, reject) => {
+      const request = store.put({ id: SETTINGS_SINGLETON_KEY, data: settings })
+      request.onerror = () => reject(request.error)
+      request.onsuccess = () => resolve()
+    })
+  } catch (error) {
+    console.warn('Failed to mirror settings to IndexedDB:', error)
+  }
+}
+
+async function mirrorTagsToIdb(tags: Tag[]): Promise<void> {
+  if (!supportsIndexedDb()) return
+  try {
+    const db = await openAppDatabase()
+    await createTransaction<void>(db, TAGS_STORE, 'readwrite', (store, resolve, reject) => {
+      const request = store.put({ id: TAGS_SINGLETON_KEY, data: tags })
+      request.onerror = () => reject(request.error)
+      request.onsuccess = () => resolve()
+    })
+  } catch (error) {
+    console.warn('Failed to mirror tags to IndexedDB:', error)
+  }
+}
+
+async function readSettingsFromIdb(): Promise<AppSettings | null> {
+  if (!supportsIndexedDb()) return null
+  try {
+    const db = await openAppDatabase()
+    return createTransaction<AppSettings | null>(db, SETTINGS_STORE, 'readonly', (store, resolve, reject) => {
+      const request = store.get(SETTINGS_SINGLETON_KEY)
+      request.onerror = () => reject(request.error)
+      request.onsuccess = () => {
+        const result = request.result as { id: string; data: AppSettings } | undefined
+        resolve(result?.data ?? null)
+      }
+    })
+  } catch {
+    return null
+  }
+}
+
+async function readTagsFromIdb(): Promise<Tag[] | null> {
+  if (!supportsIndexedDb()) return null
+  try {
+    const db = await openAppDatabase()
+    return createTransaction<Tag[] | null>(db, TAGS_STORE, 'readonly', (store, resolve, reject) => {
+      const request = store.get(TAGS_SINGLETON_KEY)
+      request.onerror = () => reject(request.error)
+      request.onsuccess = () => {
+        const result = request.result as { id: string; data: Tag[] } | undefined
+        resolve(result?.data ?? null)
+      }
+    })
+  } catch {
+    return null
+  }
+}
+
+async function ensureSettingsTagsMigration(): Promise<void> {
+  if (!supportsIndexedDb()) return
+
+  const migrated = await getMetaValue<boolean>(META_KEY_SETTINGS_MIGRATED)
+  if (migrated) return
+
+  try {
+    const lsSettings = localStorage.getItem(STORAGE_KEYS.SETTINGS)
+    if (lsSettings) {
+      const parsed = JSON.parse(lsSettings) as AppSettings
+      await mirrorSettingsToIdb(parsed)
+    }
+  } catch { /* ignore parse errors */ }
+
+  try {
+    const lsTags = localStorage.getItem(STORAGE_KEYS.TAGS)
+    if (lsTags) {
+      const parsed = JSON.parse(lsTags) as Tag[]
+      await mirrorTagsToIdb(parsed)
+    }
+  } catch { /* ignore parse errors */ }
+
+  await setMetaValue(META_KEY_SETTINGS_MIGRATED, true)
+}
+
+export async function initStorage(): Promise<void> {
+  if (!supportsIndexedDb()) return
+  await ensureSettingsTagsMigration()
+
+  const lsSettings = localStorage.getItem(STORAGE_KEYS.SETTINGS)
+  if (!lsSettings) {
+    const idbSettings = await readSettingsFromIdb()
+    if (idbSettings) {
+      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(idbSettings))
+      console.log('[Storage] Restored settings from IndexedDB')
+    }
+  }
+
+  const lsTags = localStorage.getItem(STORAGE_KEYS.TAGS)
+  if (!lsTags) {
+    const idbTags = await readTagsFromIdb()
+    if (idbTags && idbTags.length > 0) {
+      localStorage.setItem(STORAGE_KEYS.TAGS, JSON.stringify(idbTags))
+      console.log('[Storage] Restored tags from IndexedDB')
+    }
+  }
+}
+
 // ==================== 标签相关 ====================
 
-// 获取所有标签
 export function getTags(): Tag[] {
   try {
     const data = localStorage.getItem(STORAGE_KEYS.TAGS)
@@ -249,18 +373,17 @@ export function getTags(): Tag[] {
   }
 }
 
-// 保存所有标签
 export function saveTags(tags: Tag[]): void {
   try {
     localStorage.setItem(STORAGE_KEYS.TAGS, JSON.stringify(tags))
   } catch (error) {
     console.error('Failed to save tags to localStorage:', error)
   }
+  void mirrorTagsToIdb(tags)
 }
 
 // ==================== 设置相关 ====================
 
-// 获取应用设置
 export function getSettings(): AppSettings {
   try {
     const data = localStorage.getItem(STORAGE_KEYS.SETTINGS)
@@ -270,7 +393,6 @@ export function getSettings(): AppSettings {
   } catch {
     console.error('Failed to parse settings from localStorage')
   }
-  // 默认设置
   return {
     apiKey: '',
     languageHints: ['zh', 'en'],
@@ -278,13 +400,93 @@ export function getSettings(): AppSettings {
   }
 }
 
-// 保存应用设置
 export function saveSettings(settings: AppSettings): void {
   try {
     localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings))
   } catch (error) {
     console.error('Failed to save settings to localStorage:', error)
   }
+  void mirrorSettingsToIdb(settings)
+}
+
+// ==================== safeStorage 集成 ====================
+
+const SAFE_STORAGE_PLACEHOLDER = '{{SAFE_STORAGE}}'
+
+function safeStorageKeyFor(path: string): string {
+  return `provider_secret_${path}`
+}
+
+export async function migrateApiKeysToSafeStorage(): Promise<void> {
+  if (!window.electronAPI?.safeStorageAvailable) return
+  const available = await window.electronAPI.safeStorageAvailable()
+  if (!available) return
+
+  const settings = getSettings()
+  let changed = false
+
+  if (settings.apiKey && settings.apiKey !== SAFE_STORAGE_PLACEHOLDER) {
+    const stored = await window.electronAPI.safeStorageSet(safeStorageKeyFor('legacy_apiKey'), settings.apiKey)
+    if (stored) {
+      settings.apiKey = SAFE_STORAGE_PLACEHOLDER
+      changed = true
+    }
+  }
+
+  if (settings.providerConfigs) {
+    for (const [vendorId, config] of Object.entries(settings.providerConfigs)) {
+      if (config.apiKey && typeof config.apiKey === 'string' && config.apiKey !== SAFE_STORAGE_PLACEHOLDER) {
+        const stored = await window.electronAPI.safeStorageSet(safeStorageKeyFor(vendorId), config.apiKey)
+        if (stored) {
+          config.apiKey = SAFE_STORAGE_PLACEHOLDER
+          changed = true
+        }
+      }
+    }
+  }
+
+  if (changed) {
+    try {
+      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings))
+    } catch { /* ignore */ }
+    void mirrorSettingsToIdb(settings)
+  }
+}
+
+export async function resolveApiKeysFromSafeStorage(settings: AppSettings): Promise<AppSettings> {
+  if (!window.electronAPI?.safeStorageGet) return settings
+
+  const resolved = { ...settings }
+
+  if (resolved.apiKey === SAFE_STORAGE_PLACEHOLDER) {
+    const val = await window.electronAPI.safeStorageGet(safeStorageKeyFor('legacy_apiKey'))
+    if (val) resolved.apiKey = val
+  }
+
+  if (resolved.providerConfigs) {
+    resolved.providerConfigs = { ...resolved.providerConfigs }
+    for (const [vendorId, config] of Object.entries(resolved.providerConfigs)) {
+      if (config.apiKey === SAFE_STORAGE_PLACEHOLDER) {
+        const val = await window.electronAPI.safeStorageGet(safeStorageKeyFor(vendorId))
+        if (val) {
+          resolved.providerConfigs[vendorId] = { ...config, apiKey: val }
+        }
+      }
+    }
+  }
+
+  return resolved
+}
+
+export async function encryptApiKeyForStorage(vendorId: string, apiKey: string): Promise<string> {
+  if (!apiKey || apiKey === SAFE_STORAGE_PLACEHOLDER) return apiKey
+  if (!window.electronAPI?.safeStorageSet) return apiKey
+
+  const available = await window.electronAPI.safeStorageAvailable()
+  if (!available) return apiKey
+
+  const stored = await window.electronAPI.safeStorageSet(safeStorageKeyFor(vendorId), apiKey)
+  return stored ? SAFE_STORAGE_PLACEHOLDER : apiKey
 }
 
 // ==================== 工具函数 ====================

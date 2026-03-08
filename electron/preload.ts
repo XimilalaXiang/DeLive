@@ -247,6 +247,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   exportDiagnostics: (payload: { settings: Record<string, unknown>; localStorageKeys: string[] }) =>
     ipcRenderer.invoke('export-diagnostics', payload) as Promise<{ success: boolean; path?: string; reason?: string }>,
 
+  // 安全存储（加密 API Key 等敏感数据）
+  safeStorageSet: (key: string, value: string) => ipcRenderer.invoke('safe-storage-set', key, value) as Promise<boolean>,
+  safeStorageGet: (key: string) => ipcRenderer.invoke('safe-storage-get', key) as Promise<string | null>,
+  safeStorageDelete: (key: string) => ipcRenderer.invoke('safe-storage-delete', key) as Promise<boolean>,
+  safeStorageAvailable: () => ipcRenderer.invoke('safe-storage-available') as Promise<boolean>,
+
   // 平台能力探测（用于前端做跨平台降级）
   supportsAutoLaunch: process.platform === 'win32' || process.platform === 'darwin',
   supportsAutoUpdate: process.platform !== 'linux' || Boolean(process.env.APPIMAGE),
@@ -372,6 +378,10 @@ declare global {
       captionOpenSettings: () => Promise<boolean>
       onOpenCaptionSettings: (callback: () => void) => () => void
       exportDiagnostics: (payload: { settings: Record<string, unknown>; localStorageKeys: string[] }) => Promise<{ success: boolean; path?: string; reason?: string }>
+      safeStorageSet: (key: string, value: string) => Promise<boolean>
+      safeStorageGet: (key: string) => Promise<string | null>
+      safeStorageDelete: (key: string) => Promise<boolean>
+      safeStorageAvailable: () => Promise<boolean>
       isElectron: boolean
       platform: 'win32' | 'darwin' | 'linux'
       supportsAutoLaunch: boolean

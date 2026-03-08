@@ -12,6 +12,7 @@ import { createAppTray, findIconPath } from './tray'
 import { registerUpdaterIpc } from './updaterIpc'
 import { installLogInterceptor, registerDiagnosticsIpc } from './diagnosticsIpc'
 import { registerTrustedWindow } from './ipcSecurity'
+import { registerSafeStorageIpc } from './safeStorageIpc'
 import { startVolcProxyServer } from './volcProxy'
 
 installLogInterceptor()
@@ -220,3 +221,5 @@ registerDiagnosticsIpc({
   ipcMain,
   getMainWindow: () => mainWindow,
 })
+
+registerSafeStorageIpc(ipcMain)
