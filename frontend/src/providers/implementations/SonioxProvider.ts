@@ -35,6 +35,7 @@ export class SonioxProvider extends BaseASRProvider {
       },
       prefersTokenEvents: true,
       supportsConfigTest: true,
+      supportsTranslation: true,
     },
     requiredConfigKeys: ['apiKey'],
     supportedLanguages: ['zh', 'en', 'ja', 'ko', 'es', 'fr', 'de', 'it', 'pt', 'ru'],

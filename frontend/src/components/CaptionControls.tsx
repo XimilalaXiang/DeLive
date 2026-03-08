@@ -52,7 +52,7 @@ interface CaptionControlsProps {
 
 export function CaptionControls({ className = '' }: CaptionControlsProps) {
   const { t } = useUIStore()
-  const { settings, updateSettings } = useSettingsStore()
+  const { settings, availableProviders, updateSettings } = useSettingsStore()
   const [isEnabled, setIsEnabled] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [style, setStyle] = useState<CaptionStyle>({
@@ -65,6 +65,9 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
     width: 800,
     displayMode: 'source',
   })
+  const currentVendor = settings.currentVendor || 'soniox'
+  const currentProvider = availableProviders.find((provider) => provider.id === currentVendor)
+  const supportsBilingualCaption = Boolean(currentProvider?.capabilities.supportsTranslation)
 
   // 获取初始状态
   useEffect(() => {
@@ -119,6 +122,18 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
     setStyle(updatedStyle)
     updateSettings({ captionStyle: updatedStyle })
   }, [updateSettings])
+
+  useEffect(() => {
+    if (supportsBilingualCaption) {
+      return
+    }
+
+    if ((settings.captionStyle?.displayMode ?? 'source') === 'source') {
+      return
+    }
+
+    void handleStyleChange({ displayMode: 'source' })
+  }, [handleStyleChange, settings.captionStyle?.displayMode, supportsBilingualCaption])
 
   // 如果不在 Electron 环境，不渲染
   if (!window.electronAPI?.captionToggle) {
@@ -245,33 +260,35 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
                 )}
               </div>
 
-              <div className="space-y-3">
-                <label className="text-sm font-medium flex items-center gap-2 text-foreground">
-                  <Subtitles className="w-4 h-4 text-muted-foreground" />
-                  <span>{t.caption?.displayMode || '显示模式'}</span>
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { value: 'source', label: t.caption?.modeSource || '原文' },
-                    { value: 'translated', label: t.caption?.modeTranslated || '翻译' },
-                    { value: 'dual', label: t.caption?.modeDual || '双语' },
-                  ].map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => handleStyleChange({ displayMode: option.value as CaptionStyle['displayMode'] })}
-                      className={`
-                        py-2 rounded-lg font-medium text-sm transition-all border-2
-                        ${(style.displayMode ?? 'source') === option.value
-                          ? 'bg-muted text-foreground border-gray-800 dark:border-white'
-                          : 'bg-muted hover:bg-accent text-muted-foreground hover:text-foreground border-transparent'
-                        }
-                      `}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
+              {supportsBilingualCaption && (
+                <div className="space-y-3">
+                  <label className="text-sm font-medium flex items-center gap-2 text-foreground">
+                    <Subtitles className="w-4 h-4 text-muted-foreground" />
+                    <span>{t.caption?.displayMode || '显示模式'}</span>
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { value: 'source', label: t.caption?.modeSource || '原文' },
+                      { value: 'translated', label: t.caption?.modeTranslated || '翻译' },
+                      { value: 'dual', label: t.caption?.modeDual || '双语' },
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => handleStyleChange({ displayMode: option.value as CaptionStyle['displayMode'] })}
+                        className={`
+                          py-2 rounded-lg font-medium text-sm transition-all border-2
+                          ${(style.displayMode ?? 'source') === option.value
+                            ? 'bg-muted text-foreground border-gray-800 dark:border-white'
+                            : 'bg-muted hover:bg-accent text-muted-foreground hover:text-foreground border-transparent'
+                          }
+                        `}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* 字体大小 */}
               <div className="space-y-3">

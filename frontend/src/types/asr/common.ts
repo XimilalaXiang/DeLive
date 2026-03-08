@@ -66,6 +66,8 @@ export interface ASRProviderCapabilities {
   prefersTokenEvents?: boolean
   // 是否支持在设置页进行连通性测试
   supportsConfigTest?: boolean
+  // 是否支持 provider 原生翻译输出
+  supportsTranslation?: boolean
   // 本地 Provider 的运行时/模型管理能力
   local?: LocalProviderCapabilities
 }
