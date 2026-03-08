@@ -1,5 +1,6 @@
 import { app, BrowserWindow, shell, type BrowserWindowConstructorOptions } from 'electron'
 import path from 'path'
+import { buildCSP, isAllowedNavigationUrl } from './ipcSecurity'
 
 interface CreateMainWindowOptions {
   isDev: boolean
@@ -64,6 +65,22 @@ export function createMainWindow(options: CreateMainWindowOptions): BrowserWindo
 
   mainWindow.on('blur', () => {
     options.onBlur?.()
+  })
+
+  mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [buildCSP(options.isDev)],
+      },
+    })
+  })
+
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (!isAllowedNavigationUrl(url)) {
+      console.warn(`[Security] Blocked navigation to: ${url}`)
+      event.preventDefault()
+    }
   })
 
   if (options.isDev) {

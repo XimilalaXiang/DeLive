@@ -608,6 +608,7 @@ export function createCaptionWindowController(options: CaptionControllerOptions)
   return {
     debug,
     isEnabled,
+    getWindow: () => captionWindow,
     createWindow,
     closeWindow,
     toggleWindow,

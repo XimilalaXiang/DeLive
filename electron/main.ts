@@ -11,6 +11,7 @@ import { registerAppShortcuts } from './shortcuts'
 import { createAppTray, findIconPath } from './tray'
 import { registerUpdaterIpc } from './updaterIpc'
 import { installLogInterceptor, registerDiagnosticsIpc } from './diagnosticsIpc'
+import { registerTrustedWindow } from './ipcSecurity'
 import { startVolcProxyServer } from './volcProxy'
 
 installLogInterceptor()
@@ -35,6 +36,9 @@ const captionController = createCaptionWindowController({
   isQuitting: () => isQuitting,
   isDev,
 })
+
+registerTrustedWindow(() => mainWindow)
+registerTrustedWindow(() => captionController.getWindow())
 
 const desktopSourceController = createDesktopSourceController({
   getMainWindow: () => mainWindow,

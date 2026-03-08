@@ -1,5 +1,6 @@
 import { autoUpdater } from 'electron-updater'
 import type { BrowserWindow, IpcMain } from 'electron'
+import { assertTrustedSender } from './ipcSecurity'
 
 interface RegisterUpdaterIpcOptions {
   ipcMain: IpcMain
@@ -31,7 +32,8 @@ export function registerUpdaterIpc(options: RegisterUpdaterIpcOptions): void {
     }
   })
 
-  options.ipcMain.handle('download-update', async () => {
+  options.ipcMain.handle('download-update', async (event) => {
+    assertTrustedSender(event, 'download-update')
     if (options.isDev) {
       return { error: '开发模式下不支持自动更新' }
     }
@@ -49,7 +51,8 @@ export function registerUpdaterIpc(options: RegisterUpdaterIpcOptions): void {
     }
   })
 
-  options.ipcMain.handle('install-update', () => {
+  options.ipcMain.handle('install-update', (event) => {
+    assertTrustedSender(event, 'install-update')
     if (!options.isAutoUpdateSupported()) {
       const mainWindow = options.getMainWindow()
       if (mainWindow && !mainWindow.isDestroyed()) {

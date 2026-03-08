@@ -1,5 +1,6 @@
 import { app, dialog, type BrowserWindow, type IpcMain } from 'electron'
 import fs from 'fs'
+import { assertTrustedSender, isPathAllowed } from './ipcSecurity'
 
 interface RegisterAppIpcOptions {
   ipcMain: IpcMain
@@ -110,7 +111,8 @@ export function registerAppIpc(options: RegisterAppIpcOptions): void {
     return getAutoLaunchEnabled()
   })
 
-  options.ipcMain.handle('set-auto-launch', (_event, enable: boolean) => {
+  options.ipcMain.handle('set-auto-launch', (event, enable: boolean) => {
+    assertTrustedSender(event, 'set-auto-launch')
     if (!isAutoLaunchSupported()) {
       return false
     }
@@ -134,10 +136,11 @@ export function registerAppIpc(options: RegisterAppIpcOptions): void {
     return getAutoLaunchEnabled()
   })
 
-  options.ipcMain.handle('pick-file-path', async (_event, dialogOptions?: {
+  options.ipcMain.handle('pick-file-path', async (event, dialogOptions?: {
     title?: string
     filters?: Array<{ name: string; extensions: string[] }>
   }) => {
+    assertTrustedSender(event, 'pick-file-path')
     const openDialogOptions = {
       title: dialogOptions?.title,
       properties: ['openFile'] as Electron.OpenDialogOptions['properties'],
@@ -155,8 +158,13 @@ export function registerAppIpc(options: RegisterAppIpcOptions): void {
     return result.filePaths[0]
   })
 
-  options.ipcMain.handle('path-exists', (_event, targetPath: string) => {
+  options.ipcMain.handle('path-exists', (event, targetPath: string) => {
+    assertTrustedSender(event, 'path-exists')
     if (!targetPath || !targetPath.trim()) {
+      return false
+    }
+    if (!isPathAllowed(targetPath)) {
+      console.warn(`[IPC Security] path-exists blocked for: ${targetPath}`)
       return false
     }
 

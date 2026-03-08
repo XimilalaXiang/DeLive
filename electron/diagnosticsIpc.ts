@@ -2,6 +2,7 @@ import { app, dialog, type BrowserWindow, type IpcMain } from 'electron'
 import os from 'os'
 import fs from 'fs'
 import path from 'path'
+import { assertTrustedSender } from './ipcSecurity'
 
 interface DiagnosticData {
   generatedAt: string
@@ -121,9 +122,10 @@ interface RegisterDiagnosticsIpcOptions {
 
 export function registerDiagnosticsIpc(options: RegisterDiagnosticsIpcOptions): void {
   options.ipcMain.handle('export-diagnostics', async (
-    _event,
+    event,
     rendererPayload: { settings: Record<string, unknown>; localStorageKeys: string[] }
   ) => {
+    assertTrustedSender(event, 'export-diagnostics')
     const mainWindow = options.getMainWindow()
     const diagnostics = collectDiagnostics(rendererPayload)
 
