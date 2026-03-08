@@ -73,19 +73,34 @@ export function useASR(options: UseASROptions = {}) {
       processTokens(tokens)
 
       const s = useSessionStore.getState()
-      captionRef.current.update(s.finalTranscript, s.nonFinalTranscript)
+      captionRef.current.update(
+        s.finalTranscript,
+        s.nonFinalTranscript,
+        s.finalTranslatedTranscript,
+        s.nonFinalTranslatedTranscript,
+      )
     },
 
     onPartial(text: string) {
       const s = useSessionStore.getState()
       s.setTranscript(s.finalTranscript, text)
-      captionRef.current.update(s.finalTranscript, text)
+      captionRef.current.update(
+        s.finalTranscript,
+        text,
+        s.finalTranslatedTranscript,
+        s.nonFinalTranslatedTranscript,
+      )
     },
 
     onFinal(text: string) {
       processTokens([{ text, isFinal: true }])
       const s = useSessionStore.getState()
-      captionRef.current.update(s.finalTranscript, '')
+      captionRef.current.update(
+        s.finalTranscript,
+        '',
+        s.finalTranslatedTranscript,
+        '',
+      )
     },
 
     onError(error: import('../types/asr').ASRError) {

@@ -37,6 +37,10 @@ export interface SonioxConfig {
   enable_language_identification?: boolean
   enable_speaker_diarization?: boolean
   enable_endpoint_detection?: boolean
+  translation?: {
+    type: 'one_way'
+    target_language: string
+  }
 }
 
 // Soniox 提供商特定配置
@@ -47,6 +51,8 @@ export interface SonioxProviderConfig {
   enableLanguageIdentification?: boolean
   enableSpeakerDiarization?: boolean
   enableEndpointDetection?: boolean
+  translationEnabled?: boolean
+  translationTargetLanguage?: string
 }
 
 // Soniox 常量

@@ -82,6 +82,7 @@ export interface TranscriptSourceMeta {
 }
 
 export type TranscriptSessionStatus = 'recording' | 'interrupted' | 'completed'
+export type CaptionDisplayMode = 'source' | 'translated' | 'dual'
 
 // 字幕样式
 export interface CaptionStyle {
@@ -92,6 +93,7 @@ export interface CaptionStyle {
   textShadow: boolean
   maxLines: number
   width: number
+  displayMode?: CaptionDisplayMode
 }
 
 // 转录会话类型

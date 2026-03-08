@@ -109,6 +109,8 @@ export interface TranscriptToken {
   confidence?: number
   language?: string
   speaker?: string
+  translationStatus?: 'none' | 'original' | 'translation'
+  sourceLanguage?: string
 }
 
 // 通用转录响应

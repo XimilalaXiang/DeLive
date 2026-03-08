@@ -17,6 +17,7 @@ export function formatTime(timestamp: number): string {
 export function exportToTxt(session: TranscriptSession, tags?: Tag[]): void {
   const sessionTags = tags?.filter((tag) => session.tagIds?.includes(tag.id)) || []
   const tagNames = sessionTags.map((tag) => tag.name).join(', ')
+  const translatedText = session.translatedTranscript?.text?.trim()
 
   const content = `标题: ${session.title}
 日期: ${session.date}
@@ -24,6 +25,7 @@ export function exportToTxt(session: TranscriptSession, tags?: Tag[]): void {
 ${'='.repeat(50)}
 
 ${session.transcript}
+${translatedText ? `\n\n${'-'.repeat(20)}\n翻译\n${'-'.repeat(20)}\n\n${translatedText}\n` : ''}
 `
 
   const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })

@@ -63,6 +63,7 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
     textShadow: true,
     maxLines: 2,
     width: 800,
+    displayMode: 'source',
   })
 
   // 获取初始状态
@@ -207,20 +208,69 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
                   backgroundColor: style.backgroundColor,
                 }}
               >
-                <p
-                  style={{
-                    fontFamily: style.fontFamily,
-                    fontSize: `${Math.min(style.fontSize, 32)}px`,
-                    color: style.textColor,
-                    textShadow: style.textShadow
-                      ? '2px 2px 4px rgba(0, 0, 0, 0.8)'
-                      : 'none',
-                    textAlign: 'center',
-                    lineHeight: 1.5,
-                  }}
-                >
-                  字幕预览效果
-                </p>
+                {(style.displayMode ?? 'source') !== 'translated' && (
+                  <p
+                    style={{
+                      fontFamily: style.fontFamily,
+                      fontSize: `${Math.min(style.fontSize, 32)}px`,
+                      color: style.textColor,
+                      textShadow: style.textShadow
+                        ? '2px 2px 4px rgba(0, 0, 0, 0.8)'
+                        : 'none',
+                      textAlign: 'center',
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    字幕预览效果
+                  </p>
+                )}
+                {(style.displayMode ?? 'source') === 'dual' && (
+                  <div className="my-2 h-px bg-white/20" />
+                )}
+                {(style.displayMode ?? 'source') !== 'source' && (
+                  <p
+                    style={{
+                      fontFamily: style.fontFamily,
+                      fontSize: `${Math.min(style.fontSize, 32)}px`,
+                      color: '#7dd3fc',
+                      textShadow: style.textShadow
+                        ? '2px 2px 4px rgba(0, 0, 0, 0.8)'
+                        : 'none',
+                      textAlign: 'center',
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    Translated caption preview
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-sm font-medium flex items-center gap-2 text-foreground">
+                  <Subtitles className="w-4 h-4 text-muted-foreground" />
+                  <span>{t.caption?.displayMode || '显示模式'}</span>
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { value: 'source', label: t.caption?.modeSource || '原文' },
+                    { value: 'translated', label: t.caption?.modeTranslated || '翻译' },
+                    { value: 'dual', label: t.caption?.modeDual || '双语' },
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => handleStyleChange({ displayMode: option.value as CaptionStyle['displayMode'] })}
+                      className={`
+                        py-2 rounded-lg font-medium text-sm transition-all border-2
+                        ${(style.displayMode ?? 'source') === option.value
+                          ? 'bg-muted text-foreground border-gray-800 dark:border-white'
+                          : 'bg-muted hover:bg-accent text-muted-foreground hover:text-foreground border-transparent'
+                        }
+                      `}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* 字体大小 */}

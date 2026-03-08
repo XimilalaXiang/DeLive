@@ -27,6 +27,7 @@ interface CaptionStyle {
   textShadow: boolean
   maxLines: number
   width: number
+  displayMode?: 'source' | 'translated' | 'dual'
 }
 
 // 默认样式
@@ -38,11 +39,14 @@ const defaultStyle: CaptionStyle = {
   textShadow: true,
   maxLines: 2,
   width: 800,
+  displayMode: 'source',
 }
 
 export function CaptionOverlay() {
   const [stableText, setStableText] = useState('')
   const [activeText, setActiveText] = useState('')
+  const [translatedStableText, setTranslatedStableText] = useState('')
+  const [translatedActiveText, setTranslatedActiveText] = useState('')
   const [isFinalText, setIsFinalText] = useState(false)
   const [style, setStyle] = useState<CaptionStyle>(defaultStyle)
   const [isDraggable, setIsDraggable] = useState(false)
@@ -64,6 +68,8 @@ export function CaptionOverlay() {
       setIsDraggable(status.draggable)
       setStableText(status.stableText ?? (status.isFinal ? status.text : ''))
       setActiveText(status.activeText ?? (status.isFinal ? '' : status.text))
+      setTranslatedStableText(status.translatedStableText ?? '')
+      setTranslatedActiveText(status.translatedActiveText ?? '')
       setIsFinalText(status.isFinal)
     }).catch(() => {
       // 忽略初始化同步失败，后续实时事件仍会更新字幕状态
@@ -106,10 +112,14 @@ export function CaptionOverlay() {
       const {
         stableText: nextStableText = data.isFinal ? data.text : '',
         activeText: nextActiveText = data.isFinal ? '' : data.text,
+        translatedStableText: nextTranslatedStableText = '',
+        translatedActiveText: nextTranslatedActiveText = '',
         isFinal,
       } = data
       setStableText(nextStableText)
       setActiveText(nextActiveText)
+      setTranslatedStableText(nextTranslatedStableText)
+      setTranslatedActiveText(nextTranslatedActiveText)
       setIsFinalText(isFinal)
     })
 
@@ -179,15 +189,15 @@ export function CaptionOverlay() {
     await window.electronAPI.captionToggle(false, 'caption-overlay-close-button')
   }, [])
 
-  const getDisplayLines = useCallback((): string[] => {
-    if (!stableText && !activeText) return []
+  const wrapCaptionLines = useCallback((baseText: string, liveText: string): string[] => {
+    if (!baseText && !liveText) return []
 
     const availableWidth = Math.max(1, containerWidth - 48)
     const canvas = document.createElement('canvas')
     const context = canvas.getContext('2d')
 
     if (!context) {
-      const fallbackText = stableText + activeText
+      const fallbackText = baseText + liveText
       return fallbackText ? [fallbackText].slice(-style.maxLines) : []
     }
 
@@ -197,13 +207,17 @@ export function CaptionOverlay() {
       maxWidth: availableWidth,
       measureText: (text: string) => context.measureText(text).width,
     } as const
-    const stableLines = wrapCaptionText(stableText, wrapOptions)
+    const stableLines = wrapCaptionText(baseText, wrapOptions)
 
-    return appendCaptionText(stableLines, activeText, wrapOptions)
-  }, [activeText, stableText, containerWidth, style.fontFamily, style.fontSize, style.maxLines])
+    return appendCaptionText(stableLines, liveText, wrapOptions)
+  }, [containerWidth, style.fontFamily, style.fontSize, style.maxLines])
 
-  const displayLines = getDisplayLines()
-  const hasContent = displayLines.length > 0
+  const sourceLines = wrapCaptionLines(stableText, activeText)
+  const translatedLines = wrapCaptionLines(translatedStableText, translatedActiveText)
+  const displayMode = style.displayMode ?? 'source'
+  const shouldShowSource = displayMode !== 'translated' || translatedLines.length === 0
+  const shouldShowTranslated = displayMode !== 'source' && translatedLines.length > 0
+  const hasContent = sourceLines.length > 0 || translatedLines.length > 0
   const showPlaceholder = !hasContent && !isDraggable
 
   // 是否显示锁按钮：鼠标悬停时或处于拖拽模式时
@@ -293,9 +307,9 @@ export function CaptionOverlay() {
         }}
       >
         {/* 渲染每一行 */}
-        {displayLines.map((line, index) => (
+        {shouldShowSource && sourceLines.map((line, index) => (
           <div
-            key={index}
+            key={`source-${index}`}
             style={{
               minHeight: `${style.fontSize * 1.5}px`,
               whiteSpace: 'nowrap',
@@ -303,16 +317,36 @@ export function CaptionOverlay() {
             }}
           >
             {line}
-            {/* 在最后一行且不是最终结果时显示光标 */}
-            {index === displayLines.length - 1 && !isFinalText && (
+            {index === sourceLines.length - 1 && !isFinalText && (
               <span
                 className="inline-block w-0.5 ml-0.5 bg-current animate-pulse"
                 style={{
                   height: `${style.fontSize}px`,
-                  verticalAlign: 'middle'
+                  verticalAlign: 'middle',
                 }}
               />
             )}
+          </div>
+        ))}
+
+        {shouldShowSource && shouldShowTranslated && (
+          <div
+            className="my-2 border-t border-white/20"
+            style={{ opacity: 0.7 }}
+          />
+        )}
+
+        {shouldShowTranslated && translatedLines.map((line, index) => (
+          <div
+            key={`translated-${index}`}
+            style={{
+              minHeight: `${style.fontSize * 1.5}px`,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              opacity: 0.92,
+            }}
+          >
+            {line}
           </div>
         ))}
 

@@ -51,6 +51,7 @@ interface CaptionStyle {
   textShadow: boolean
   maxLines: number
   width: number
+  displayMode?: 'source' | 'translated' | 'dual'
 }
 
 // 字幕状态类型
@@ -60,6 +61,9 @@ interface CaptionStatus {
   style: CaptionStyle
   stableText: string
   activeText: string
+  translatedStableText: string
+  translatedActiveText: string
+  translatedText: string
   text: string
   isFinal: boolean
 }
@@ -174,8 +178,20 @@ contextBridge.exposeInMainWorld('electronAPI', {
   captionGetStatus: () => ipcRenderer.invoke('caption-get-status') as Promise<CaptionStatus>,
 
   // 更新字幕文字
-  captionUpdateText: (stableText: string, activeText: string, isFinal: boolean) =>
-    ipcRenderer.invoke('caption-update-text', stableText, activeText, isFinal),
+  captionUpdateText: (
+    stableText: string,
+    activeText: string,
+    isFinal: boolean,
+    translatedStableText = '',
+    translatedActiveText = '',
+  ) => ipcRenderer.invoke(
+    'caption-update-text',
+    stableText,
+    activeText,
+    isFinal,
+    translatedStableText,
+    translatedActiveText,
+  ),
 
   // 更新字幕样式
   captionUpdateStyle: (style: Partial<CaptionStyle>) => ipcRenderer.invoke('caption-update-style', style) as Promise<CaptionStyle>,
@@ -203,10 +219,30 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
   // 监听字幕文字更新（用于字幕窗口）
-  onCaptionTextUpdate: (callback: (data: { stableText: string; activeText: string; text: string; isFinal: boolean }) => void) => {
+  onCaptionTextUpdate: (
+    callback: (
+      data: {
+        stableText: string
+        activeText: string
+        translatedStableText: string
+        translatedActiveText: string
+        text: string
+        translatedText: string
+        isFinal: boolean
+      },
+    ) => void,
+  ) => {
     const listener = (
       _event: Electron.IpcRendererEvent,
-      data: { stableText: string; activeText: string; text: string; isFinal: boolean },
+      data: {
+        stableText: string
+        activeText: string
+        translatedStableText: string
+        translatedActiveText: string
+        text: string
+        translatedText: string
+        isFinal: boolean
+      },
     ) => callback(data)
     ipcRenderer.on('caption-text-update', listener)
     return () => ipcRenderer.removeListener('caption-text-update', listener)
@@ -314,6 +350,7 @@ declare global {
     textShadow: boolean
     maxLines: number
     width: number
+    displayMode?: 'source' | 'translated' | 'dual'
   }
 
   interface CaptionStatus {
@@ -322,6 +359,9 @@ declare global {
     style: CaptionStyle
     stableText: string
     activeText: string
+    translatedStableText: string
+    translatedActiveText: string
+    translatedText: string
     text: string
     isFinal: boolean
   }
@@ -371,7 +411,13 @@ declare global {
       // 字幕窗口 API
       captionToggle: (enable?: boolean, source?: string) => Promise<boolean>
       captionGetStatus: () => Promise<CaptionStatus>
-      captionUpdateText: (stableText: string, activeText: string, isFinal: boolean) => Promise<void>
+      captionUpdateText: (
+        stableText: string,
+        activeText: string,
+        isFinal: boolean,
+        translatedStableText?: string,
+        translatedActiveText?: string,
+      ) => Promise<void>
       captionUpdateStyle: (style: Partial<CaptionStyle>) => Promise<CaptionStyle>
       captionToggleDraggable: (draggable?: boolean) => Promise<boolean>
       captionSetInteractive: (interactive: boolean) => Promise<boolean>
@@ -379,7 +425,19 @@ declare global {
       captionSetBounds: (bounds: Partial<CaptionBounds>) => Promise<boolean>
       captionResetPosition: () => Promise<boolean>
       onCaptionStatusChanged: (callback: (enabled: boolean) => void) => () => void
-      onCaptionTextUpdate: (callback: (data: { stableText: string; activeText: string; text: string; isFinal: boolean }) => void) => () => void
+      onCaptionTextUpdate: (
+        callback: (
+          data: {
+            stableText: string
+            activeText: string
+            translatedStableText: string
+            translatedActiveText: string
+            text: string
+            translatedText: string
+            isFinal: boolean
+          },
+        ) => void,
+      ) => () => void
       onCaptionStyleUpdate: (callback: (style: CaptionStyle) => void) => () => void
       onCaptionDraggableChanged: (callback: (draggable: boolean) => void) => () => void
       onCaptionInteractiveChanged: (callback: (interactive: boolean) => void) => () => void

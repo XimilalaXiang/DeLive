@@ -5,6 +5,7 @@ import type {
   TranscriptSpeaker,
   TranscriptSegment,
   TranscriptSourceMeta,
+  TranscriptTranslationData,
 } from '../types'
 import { getSessions, saveSessions } from './storage'
 
@@ -15,6 +16,7 @@ export interface SessionProgressSnapshot {
   speakers?: TranscriptSpeaker[]
   segments?: TranscriptSegment[]
   sourceMeta?: TranscriptSourceMeta
+  translatedTranscript?: TranscriptTranslationData
 }
 
 export interface SessionLaunchState {
@@ -107,7 +109,7 @@ export const sessionRepository = {
         return false
       }
 
-      return Boolean(session.transcript || session.tokens?.length)
+      return Boolean(session.transcript || session.tokens?.length || session.translatedTranscript?.text)
     }) || null
 
     return { sessions, recoverableSession }
@@ -141,6 +143,7 @@ export const sessionRepository = {
       speakers: snapshot.speakers,
       segments: snapshot.segments,
       sourceMeta: snapshot.sourceMeta,
+      translatedTranscript: snapshot.translatedTranscript,
       status: 'recording',
       lastPersistedAt: now,
     })
@@ -157,6 +160,7 @@ export const sessionRepository = {
       speakers: snapshot.speakers,
       segments: snapshot.segments,
       sourceMeta: snapshot.sourceMeta,
+      translatedTranscript: snapshot.translatedTranscript,
       status: 'completed',
       lastPersistedAt: now,
     })

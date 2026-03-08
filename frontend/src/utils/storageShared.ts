@@ -25,6 +25,7 @@ export const DEFAULT_CAPTION_STYLE: CaptionStyle = {
   textShadow: true,
   maxLines: 2,
   width: 800,
+  displayMode: 'source',
 }
 
 let dbPromise: Promise<IDBDatabase> | null = null

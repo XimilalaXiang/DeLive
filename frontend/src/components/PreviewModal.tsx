@@ -22,6 +22,8 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
     downloadSubtitle(session, 'srt')
   }
 
+  const translatedText = session.translatedTranscript?.text?.trim() || ''
+
   // 点击背景关闭
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -67,11 +69,21 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
 
         {/* 内容区域 */}
         <div className="flex-1 overflow-y-auto p-6 bg-background/50">
-          {session.transcript ? (
+          {session.transcript || translatedText ? (
             <div className="prose prose-sm dark:prose-invert max-w-none">
-              <p className="text-base leading-relaxed whitespace-pre-wrap text-foreground">
-                {session.transcript}
-              </p>
+              {session.transcript && (
+                <p className="text-base leading-relaxed whitespace-pre-wrap text-foreground">
+                  {session.transcript}
+                </p>
+              )}
+              {session.transcript && translatedText && (
+                <div className="my-4 h-px bg-border" />
+              )}
+              {translatedText && (
+                <p className="text-base leading-relaxed whitespace-pre-wrap text-sky-700 dark:text-sky-300">
+                  {translatedText}
+                </p>
+              )}
             </div>
           ) : (
             <div className="h-full flex flex-col items-center justify-center text-muted-foreground py-12">
@@ -95,7 +107,7 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
             >
               {t.common.close}
             </button>
-            {session.transcript && (
+            {(session.transcript || translatedText) && (
               <>
                 <button
                   onClick={handleExportSrt}

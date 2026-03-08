@@ -129,10 +129,12 @@ export class ProviderSessionManager {
       })
     }
 
-    provider.on('onFinal', (text: string) => {
-      console.log('[ProviderSession] 收到 final:', text.substring(0, 50))
-      this.callbacks?.onFinal(text)
-    })
+    if (!provider.info.capabilities.prefersTokenEvents) {
+      provider.on('onFinal', (text: string) => {
+        console.log('[ProviderSession] 收到 final:', text.substring(0, 50))
+        this.callbacks?.onFinal(text)
+      })
+    }
 
     provider.on('onError', (error: ASRError) => {
       console.error('[ProviderSession] Provider 错误:', error)

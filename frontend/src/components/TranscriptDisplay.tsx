@@ -7,7 +7,14 @@ import { useSessionStore } from '../stores/sessionStore'
 export function TranscriptDisplay() {
   const { t } = useUIStore()
   const { settings, availableProviders } = useSettingsStore()
-  const { finalTranscript, nonFinalTranscript, recordingState, currentSessionId } = useSessionStore()
+  const {
+    finalTranscript,
+    nonFinalTranscript,
+    finalTranslatedTranscript,
+    nonFinalTranslatedTranscript,
+    recordingState,
+    currentSessionId,
+  } = useSessionStore()
   
   // 获取当前提供商名称
   const currentVendor = settings.currentVendor || 'soniox'
@@ -29,15 +36,18 @@ export function TranscriptDisplay() {
   const handleScroll = useCallback(() => {
     const atBottom = isAtBottom()
     setShouldAutoScroll(atBottom)
-    setShowScrollButton(!atBottom && !!(finalTranscript || nonFinalTranscript))
-  }, [isAtBottom, finalTranscript, nonFinalTranscript])
+    setShowScrollButton(
+      !atBottom
+      && !!(finalTranscript || nonFinalTranscript || finalTranslatedTranscript || nonFinalTranslatedTranscript),
+    )
+  }, [isAtBottom, finalTranscript, nonFinalTranscript, finalTranslatedTranscript, nonFinalTranslatedTranscript])
 
   // 智能自动滚动：只有当用户在底部时才自动滚动
   useEffect(() => {
     if (containerRef.current && shouldAutoScroll) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight
     }
-  }, [finalTranscript, nonFinalTranscript, shouldAutoScroll])
+  }, [finalTranscript, nonFinalTranscript, finalTranslatedTranscript, nonFinalTranslatedTranscript, shouldAutoScroll])
 
   // 滚动到底部按钮点击
   const scrollToBottom = useCallback(() => {
@@ -51,7 +61,11 @@ export function TranscriptDisplay() {
     }
   }, [])
 
-  const isEmpty = !finalTranscript && !nonFinalTranscript
+  const captionDisplayMode = settings.captionStyle?.displayMode ?? 'source'
+  const translatedText = finalTranslatedTranscript + nonFinalTranslatedTranscript
+  const showSource = captionDisplayMode !== 'translated' || translatedText.length === 0
+  const showTranslated = captionDisplayMode !== 'source' && translatedText.length > 0
+  const isEmpty = !finalTranscript && !nonFinalTranscript && !translatedText
   const isRecording = recordingState === 'recording'
   const isStarting = recordingState === 'starting'
 
@@ -167,13 +181,24 @@ export function TranscriptDisplay() {
           </div>
         ) : (
           <div className="prose prose-sm dark:prose-invert max-w-none">
-            <p className="text-base leading-relaxed whitespace-pre-wrap">
-              <span className="text-foreground/90 font-medium transition-colors duration-300">{finalTranscript}</span>
-              <span className="text-muted-foreground transition-colors duration-300">{nonFinalTranscript}</span>
-              {isRecording && (
-                <span className="inline-block w-1.5 h-4 bg-primary ml-1 rounded-sm animate-pulse align-middle" />
-              )}
-            </p>
+            {showSource && (
+              <p className="text-base leading-relaxed whitespace-pre-wrap">
+                <span className="text-foreground/90 font-medium transition-colors duration-300">{finalTranscript}</span>
+                <span className="text-muted-foreground transition-colors duration-300">{nonFinalTranscript}</span>
+                {isRecording && (
+                  <span className="inline-block w-1.5 h-4 bg-primary ml-1 rounded-sm animate-pulse align-middle" />
+                )}
+              </p>
+            )}
+            {showSource && showTranslated && (
+              <div className="my-4 h-px bg-border" />
+            )}
+            {showTranslated && (
+              <p className="text-base leading-relaxed whitespace-pre-wrap text-sky-700 dark:text-sky-300">
+                <span className="font-medium transition-colors duration-300">{finalTranslatedTranscript}</span>
+                <span className="opacity-80 transition-colors duration-300">{nonFinalTranslatedTranscript}</span>
+              </p>
+            )}
           </div>
         )}
       </div>
@@ -193,11 +218,18 @@ export function TranscriptDisplay() {
       )}
 
       {/* 底部状态栏 */}
-      {(finalTranscript || nonFinalTranscript) && (
+      {(finalTranscript || nonFinalTranscript || translatedText) && (
         <div className="px-6 py-2.5 border-t border-border bg-muted/30 flex items-center justify-between text-xs">
           <div className="flex items-center gap-2 text-muted-foreground">
             <FileText className="w-3.5 h-3.5" />
-            <span>{t.transcript.transcribed} {(finalTranscript.length + nonFinalTranscript.length)} {t.common.characters}</span>
+            <span>
+              {t.transcript.transcribed} {(finalTranscript.length + nonFinalTranscript.length)} {t.common.characters}
+            </span>
+            {translatedText && (
+              <span className="text-sky-600 dark:text-sky-400">
+                {t.transcript.translated || '已翻译'} {translatedText.length}
+              </span>
+            )}
             {isRecording && nonFinalTranscript.length > 0 && (
               <span className="text-muted-foreground/60">
                 ({t.transcript.confirmed || '已确认'} {finalTranscript.length})

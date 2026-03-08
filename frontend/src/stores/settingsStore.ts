@@ -16,6 +16,7 @@ const defaultCaptionStyle: CaptionStyle = {
   textShadow: true,
   maxLines: 2,
   width: 800,
+  displayMode: 'source',
 }
 
 export interface SettingsState {

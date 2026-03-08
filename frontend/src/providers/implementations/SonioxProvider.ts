@@ -24,7 +24,7 @@ export class SonioxProvider extends BaseASRProvider {
   readonly info: ASRProviderInfo = {
     id: 'soniox' as ASRVendor,
     name: 'Soniox V4',
-    description: '高精度实时语音识别，支持 60+ 种语言',
+    description: '高精度实时语音识别，支持 60+ 种语言，可选实时翻译',
     type: 'cloud',
     supportsStreaming: true,
     capabilities: {
@@ -66,6 +66,34 @@ export class SonioxProvider extends BaseASRProvider {
         defaultValue: ['zh', 'en'],
         description: '提示可能使用的语言，提高识别准确率',
       },
+      {
+        key: 'translationEnabled',
+        label: '启用实时翻译',
+        type: 'boolean',
+        required: false,
+        defaultValue: false,
+        description: '开启后，Soniox 将返回实时翻译文本。',
+      },
+      {
+        key: 'translationTargetLanguage',
+        label: '翻译目标语言',
+        type: 'select',
+        required: false,
+        defaultValue: 'en',
+        options: [
+          { value: 'en', label: 'English' },
+          { value: 'zh', label: '中文' },
+          { value: 'ja', label: '日本語' },
+          { value: 'ko', label: '한국어' },
+          { value: 'es', label: 'Español' },
+          { value: 'fr', label: 'Français' },
+          { value: 'de', label: 'Deutsch' },
+          { value: 'it', label: 'Italiano' },
+          { value: 'pt', label: 'Português' },
+          { value: 'ru', label: 'Русский' },
+        ],
+        description: '仅在启用实时翻译时生效。',
+      },
     ],
   }
 
@@ -99,6 +127,13 @@ export class SonioxProvider extends BaseASRProvider {
             language_hints: (config.languageHints as string[]) || ['zh', 'en'],
             enable_language_identification: true,
             enable_endpoint_detection: true,
+          }
+
+          if (config.translationEnabled && typeof config.translationTargetLanguage === 'string') {
+            sonioxConfig.translation = {
+              type: 'one_way',
+              target_language: config.translationTargetLanguage,
+            }
           }
           
           console.log('[SonioxProvider] 发送配置:', { ...sonioxConfig, api_key: '***' })
@@ -223,9 +258,9 @@ export class SonioxProvider extends BaseASRProvider {
       const token = this.normalizeToken(st)
       tokens.push(token)
 
-      if (st.is_final) {
+      if (st.is_final && st.translation_status !== 'translation') {
         this.finalTokens.push(token)
-      } else {
+      } else if (!st.is_final && st.translation_status !== 'translation') {
         partialText += st.text
       }
     }
@@ -244,6 +279,8 @@ export class SonioxProvider extends BaseASRProvider {
       confidence: sonioxToken.confidence,
       language: sonioxToken.language,
       speaker: sonioxToken.speaker,
+      translationStatus: sonioxToken.translation_status ?? 'none',
+      sourceLanguage: sonioxToken.source_language,
     }
   }
 }

@@ -7,6 +7,7 @@ import type {
   TranscriptSourceMeta,
   TranscriptSpeaker,
   TranscriptTokenData,
+  TranscriptTranslationData,
 } from '../types'
 import type { ASRVendor, TranscriptToken } from '../types/asr'
 import { sessionRepository } from '../utils/sessionRepository'
@@ -171,6 +172,37 @@ function updateSessionInCollection(
   ))
 }
 
+function getTranslationTargetLanguage(): string | undefined {
+  const { settings } = useSettingsStore.getState()
+  const currentVendor = settings.currentVendor || 'soniox'
+  const providerConfig = settings.providerConfigs?.[currentVendor]
+  const value = providerConfig?.translationTargetLanguage
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined
+}
+
+function buildTranslatedTranscript(
+  text: string,
+): TranscriptTranslationData | undefined {
+  const normalized = text.trim()
+  if (!normalized) {
+    return undefined
+  }
+
+  const displayMode = useSettingsStore.getState().settings.captionStyle?.displayMode ?? 'source'
+  const mode: TranscriptTranslationData['mode'] = displayMode === 'dual'
+    ? 'dual-line'
+    : displayMode === 'translated'
+      ? 'output-only'
+      : 'inline'
+
+  return {
+    text: normalized,
+    targetLanguage: getTranslationTargetLanguage(),
+    mode,
+    updatedAt: Date.now(),
+  }
+}
+
 export interface SessionState {
   recordingState: RecordingState
   setRecordingState: (state: RecordingState) => void
@@ -178,6 +210,9 @@ export interface SessionState {
   currentTranscript: string
   finalTranscript: string
   nonFinalTranscript: string
+  currentTranslatedTranscript: string
+  finalTranslatedTranscript: string
+  nonFinalTranslatedTranscript: string
   setTranscript: (final: string, nonFinal: string) => void
   clearTranscript: () => void
 
@@ -208,18 +243,31 @@ export const useSessionStore = create<SessionState>((set, get) => {
     finalTranscript?: string
     nonFinalTranscript?: string
     currentTranscript?: string
+    finalTranslatedTranscript?: string
+    nonFinalTranslatedTranscript?: string
+    currentTranslatedTranscript?: string
   }) => {
     const state = get()
     const finalTokens = overrides?.finalTokens ?? state.finalTokens
     const finalTranscript = overrides?.finalTranscript ?? state.finalTranscript
     const nonFinalTranscript = overrides?.nonFinalTranscript ?? state.nonFinalTranscript
     const currentTranscript = overrides?.currentTranscript ?? state.currentTranscript
+    const finalTranslatedTranscript = overrides?.finalTranslatedTranscript ?? state.finalTranslatedTranscript
+    const nonFinalTranslatedTranscript = overrides?.nonFinalTranslatedTranscript ?? state.nonFinalTranslatedTranscript
+    const currentTranslatedTranscript = overrides?.currentTranslatedTranscript ?? state.currentTranslatedTranscript
+
     const transcript = buildTranscriptFromState(finalTranscript, nonFinalTranscript, currentTranscript)
+    const translatedText = buildTranscriptFromState(
+      finalTranslatedTranscript,
+      nonFinalTranslatedTranscript,
+      currentTranslatedTranscript,
+    )
     const tokens = buildStoredTokens(finalTokens)
     const providerId = useSettingsStore.getState().settings.currentVendor
 
     return {
       transcript,
+      translatedTranscript: buildTranslatedTranscript(translatedText),
       tokens,
       providerId,
       speakers: buildSpeakersFromTokens(finalTokens),
@@ -233,6 +281,9 @@ export const useSessionStore = create<SessionState>((set, get) => {
     finalTranscript?: string
     nonFinalTranscript?: string
     currentTranscript?: string
+    finalTranslatedTranscript?: string
+    nonFinalTranslatedTranscript?: string
+    currentTranslatedTranscript?: string
   }) => {
     const state = get()
     if (!state.currentSessionId) return state.sessions
@@ -240,6 +291,7 @@ export const useSessionStore = create<SessionState>((set, get) => {
     const snapshot = buildCurrentSessionSnapshot(overrides)
     return updateSessionInCollection(state.sessions, state.currentSessionId, {
       transcript: snapshot.transcript,
+      translatedTranscript: snapshot.translatedTranscript,
       tokens: snapshot.tokens,
       providerId: snapshot.providerId,
       speakers: snapshot.speakers,
@@ -256,7 +308,7 @@ export const useSessionStore = create<SessionState>((set, get) => {
       if (!state.currentSessionId) return
 
       const snapshot = buildCurrentSessionSnapshot()
-      if (!snapshot.transcript && !snapshot.tokens?.length) return
+      if (!snapshot.transcript && !snapshot.tokens?.length && !snapshot.translatedTranscript?.text) return
 
       const sessions = sessionRepository.saveProgress(state.currentSessionId, snapshot)
       set({ sessions })
@@ -270,6 +322,9 @@ export const useSessionStore = create<SessionState>((set, get) => {
     currentTranscript: '',
     finalTranscript: '',
     nonFinalTranscript: '',
+    currentTranslatedTranscript: '',
+    finalTranslatedTranscript: '',
+    nonFinalTranslatedTranscript: '',
     setTranscript: (final, nonFinal) => {
       const currentTranscript = final + nonFinal
       const sessions = syncCurrentSessionInMemory({
@@ -282,7 +337,15 @@ export const useSessionStore = create<SessionState>((set, get) => {
     },
     clearTranscript: () => {
       clearSessionAutosaveTimer()
-      set({ currentTranscript: '', finalTranscript: '', nonFinalTranscript: '', finalTokens: [] })
+      set({
+        currentTranscript: '',
+        finalTranscript: '',
+        nonFinalTranscript: '',
+        currentTranslatedTranscript: '',
+        finalTranslatedTranscript: '',
+        nonFinalTranslatedTranscript: '',
+        finalTokens: [],
+      })
     },
 
     currentSessionId: null,
@@ -317,6 +380,9 @@ export const useSessionStore = create<SessionState>((set, get) => {
         finalTranscript: '',
         nonFinalTranscript: '',
         currentTranscript: '',
+        currentTranslatedTranscript: '',
+        finalTranslatedTranscript: '',
+        nonFinalTranslatedTranscript: '',
         finalTokens: [],
       })
       return id
@@ -325,7 +391,11 @@ export const useSessionStore = create<SessionState>((set, get) => {
       clearSessionAutosaveTimer()
       const { currentSessionId } = get()
       const snapshot = buildCurrentSessionSnapshot()
-      const hasContent = Boolean(snapshot.transcript || snapshot.tokens?.length)
+      const hasContent = Boolean(
+        snapshot.transcript
+        || snapshot.tokens?.length
+        || snapshot.translatedTranscript?.text,
+      )
 
       if (currentSessionId && hasContent) {
         const sessions = sessionRepository.completeSession(currentSessionId, snapshot)
@@ -347,6 +417,7 @@ export const useSessionStore = create<SessionState>((set, get) => {
       const restoredTranscript = recoverySession.transcript
         || recoverySession.tokens?.map((token) => token.text).join('')
         || ''
+      const restoredTranslatedTranscript = recoverySession.translatedTranscript?.text || ''
       const restoredTokens = restoreStoredTokens(recoverySession.tokens || [])
       const sessions = sessionRepository.acknowledgeInterrupted(recoverySession.id)
       set({
@@ -357,6 +428,9 @@ export const useSessionStore = create<SessionState>((set, get) => {
         finalTranscript: restoredTranscript,
         nonFinalTranscript: '',
         currentTranscript: restoredTranscript,
+        finalTranslatedTranscript: restoredTranslatedTranscript,
+        nonFinalTranslatedTranscript: '',
+        currentTranslatedTranscript: restoredTranslatedTranscript,
       })
     },
     dismissRecoverySession: () => {
@@ -395,12 +469,27 @@ export const useSessionStore = create<SessionState>((set, get) => {
 
     finalTokens: [],
     processTokens: (tokens) => {
-      const { finalTokens } = get()
+      const {
+        finalTokens,
+        finalTranslatedTranscript,
+      } = get()
+
       const newFinalTokens = [...finalTokens]
       let nonFinalText = ''
+      let translatedNonFinalText = ''
+      let translatedFinalText = finalTranslatedTranscript
 
       for (const token of tokens) {
         if (!token.text) {
+          continue
+        }
+
+        if (token.translationStatus === 'translation') {
+          if (token.isFinal) {
+            translatedFinalText += token.text
+          } else {
+            translatedNonFinalText += token.text
+          }
           continue
         }
 
@@ -416,11 +505,15 @@ export const useSessionStore = create<SessionState>((set, get) => {
 
       const finalText = newFinalTokens.map((token) => token.text).join('')
       const currentTranscript = finalText + nonFinalText
+      const currentTranslatedTranscript = translatedFinalText + translatedNonFinalText
       const sessions = syncCurrentSessionInMemory({
         finalTokens: newFinalTokens,
         finalTranscript: finalText,
         nonFinalTranscript: nonFinalText,
         currentTranscript,
+        finalTranslatedTranscript: translatedFinalText,
+        nonFinalTranslatedTranscript: translatedNonFinalText,
+        currentTranslatedTranscript,
       })
 
       set({
@@ -428,6 +521,9 @@ export const useSessionStore = create<SessionState>((set, get) => {
         finalTranscript: finalText,
         nonFinalTranscript: nonFinalText,
         currentTranscript,
+        finalTranslatedTranscript: translatedFinalText,
+        nonFinalTranslatedTranscript: translatedNonFinalText,
+        currentTranslatedTranscript,
         sessions,
       })
       scheduleCurrentSessionAutosave()

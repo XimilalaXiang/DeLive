@@ -10,6 +10,7 @@ export interface CaptionStyle {
   textShadow: boolean
   maxLines: number
   width: number
+  displayMode?: 'source' | 'translated' | 'dual'
 }
 
 interface CaptionStatus {
@@ -18,6 +19,9 @@ interface CaptionStatus {
   style: CaptionStyle
   stableText: string
   activeText: string
+  translatedStableText: string
+  translatedActiveText: string
+  translatedText: string
   text: string
   isFinal: boolean
 }
@@ -36,7 +40,9 @@ function computeCaptionHeight(style: CaptionStyle): number {
   const contentPadding = 24
   const containerPadding = 20
   const controlSpace = 20
-  const height = Math.round(lineHeight * style.maxLines + contentPadding + containerPadding + controlSpace)
+  const displayMode = style.displayMode ?? 'source'
+  const visibleLineCount = displayMode === 'dual' ? style.maxLines * 2 : style.maxLines
+  const height = Math.round(lineHeight * visibleLineCount + contentPadding + containerPadding + controlSpace)
   return Math.max(height, 60)
 }
 
@@ -53,6 +59,8 @@ export function createCaptionWindowController(options: CaptionControllerOptions)
   let captionDraggable = false
   let captionStableText = ''
   let captionActiveText = ''
+  let captionTranslatedStableText = ''
+  let captionTranslatedActiveText = ''
   let captionTextIsFinal = false
   let mouseCheckInterval: NodeJS.Timeout | null = null
   let lastMouseInside = false
@@ -66,6 +74,7 @@ export function createCaptionWindowController(options: CaptionControllerOptions)
     textShadow: true,
     maxLines: 2,
     width: 800,
+    displayMode: 'source',
   }
 
   function getCaptionDebugLogPath(): string {
@@ -111,6 +120,8 @@ export function createCaptionWindowController(options: CaptionControllerOptions)
       currentInteractiveMode,
       captionStableTextLength: captionStableText.length,
       captionActiveTextLength: captionActiveText.length,
+      captionTranslatedStableTextLength: captionTranslatedStableText.length,
+      captionTranslatedActiveTextLength: captionTranslatedActiveText.length,
       mainWindow: getWindowDebugSnapshot(mainWindow),
       captionWindow: getWindowDebugSnapshot(captionWindow),
       ...extra,
@@ -181,7 +192,10 @@ export function createCaptionWindowController(options: CaptionControllerOptions)
     captionWindow.webContents.send('caption-text-update', {
       stableText: captionStableText,
       activeText: captionActiveText,
+      translatedStableText: captionTranslatedStableText,
+      translatedActiveText: captionTranslatedActiveText,
       text: captionStableText + captionActiveText,
+      translatedText: captionTranslatedStableText + captionTranslatedActiveText,
       isFinal: captionTextIsFinal,
     })
   }
@@ -482,14 +496,25 @@ export function createCaptionWindowController(options: CaptionControllerOptions)
       style: captionStyle,
       stableText: captionStableText,
       activeText: captionActiveText,
+      translatedStableText: captionTranslatedStableText,
+      translatedActiveText: captionTranslatedActiveText,
+      translatedText: captionTranslatedStableText + captionTranslatedActiveText,
       text: captionStableText + captionActiveText,
       isFinal: captionTextIsFinal,
     }
   }
 
-  function updateText(stableText: string, activeText: string, isFinal: boolean): void {
+  function updateText(
+    stableText: string,
+    activeText: string,
+    isFinal: boolean,
+    translatedStableText = '',
+    translatedActiveText = '',
+  ): void {
     captionStableText = stableText
     captionActiveText = activeText
+    captionTranslatedStableText = translatedStableText
+    captionTranslatedActiveText = translatedActiveText
     captionTextIsFinal = isFinal
 
     if (captionWindow && !captionWindow.isDestroyed() && captionEnabled) {
@@ -504,7 +529,10 @@ export function createCaptionWindowController(options: CaptionControllerOptions)
       captionWindow.webContents.send('caption-text-update', {
         stableText,
         activeText,
+        translatedStableText,
+        translatedActiveText,
         text: stableText + activeText,
+        translatedText: translatedStableText + translatedActiveText,
         isFinal,
       })
     } else {
