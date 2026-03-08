@@ -9,6 +9,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.1] - 2026-03-08
+
+### Added / 新增
+- 🧪 Added rolling-audio and caption-wrap tests, increasing frontend coverage from 129 to 146 tests
+- 🧪 新增滚动音频缓冲与字幕换行测试，前端测试总数从 129 提升到 146
+
+### Changed / 变更
+- ✅ Added frontend quality gates: runnable ESLint v9 config, root `check` script, and GitHub Actions lint/test/build validation before packaging
+- ✅ 增加前端质量闸门：补齐可运行的 ESLint v9 配置、根级 `check` 脚本，以及 GitHub Actions 在打包前执行 lint/test/build 校验
+- ♻️ Replaced unbounded session replay buffers for Groq / SiliconFlow / Local OpenAI-compatible / whisper.cpp with rolling transcription windows
+- ♻️ 将 Groq / SiliconFlow / Local OpenAI-compatible / whisper.cpp 的无限累积重转写缓冲改为滚动转写窗口
+- 🗂️ Extended transcript session schema for future translation, speaker, segment, source-meta, and post-process data
+- 🗂️ 扩展转录会话 schema，为后续翻译、说话人、分段、来源元数据与后处理结果预留字段
+- 🧩 Split `ApiKeyConfig`, `BundledRuntimeSetupGuide`, and `electron/localRuntime.ts` into smaller focused modules to improve maintainability
+- 🧩 拆分 `ApiKeyConfig`、`BundledRuntimeSetupGuide` 与 `electron/localRuntime.ts`，降低单文件复杂度并提升可维护性
+
+### Fixed / 修复
+- 🖥️ Reworked caption rendering to use a stable-text plus active-text model so partial updates only affect the live tail instead of reflowing the whole visible block
+- 🖥️ 重构字幕渲染为“稳定文本 + 活动文本”模型，partial 更新只影响最后的活动尾部，不再反复重排整个可见字幕块
+- 📏 Updated caption line wrapping to use measured visual width instead of a fixed character-count estimate
+- 📏 字幕换行改为基于真实测量宽度，而不是固定字符数估算
+
+---
+
 ## [1.4.0] - 2026-03-08
 
 ### Added / 新增
