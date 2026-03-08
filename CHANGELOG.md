@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.2] - 2026-03-08
+
+### Added / 新增
+- 🌐 Added Soniox bilingual caption flow across transcript, preview, overlay, and session persistence
+- 🌐 新增 Soniox 双语字幕流，贯通主转录区、预览弹窗、悬浮字幕与会话持久化
+- 🗣️ Added Soniox speaker diarization UI with speaker-grouped transcript and preview segments
+- 🗣️ 新增 Soniox 多发言人识别界面，支持按说话人分组展示实时转录与预览分段
+- 🧪 Added `windowedBatch` provider batching utility and unit tests for replay-style ASR backends
+- 🧪 新增 `windowedBatch` provider 批处理工具与单元测试，用于回放式 ASR 后端
+
+### Changed / 变更
+- 🧱 Completed P0 provider and storage foundations by extracting shared Volc proxy core plus modular settings / session / secret storage helpers
+- 🧱 完成 P0 provider 与存储基础设施收尾：抽离共享火山代理核心，并拆分 settings / session / secret storage 辅助模块
+- 🔄 Extended the Soniox realtime pipeline to carry translation and speaker metadata through provider session, caption bridge, and stored transcript sessions
+- 🔄 扩展 Soniox 实时链路，使翻译与说话人元数据贯通 provider session、caption bridge 与转录会话存储
+
+### Fixed / 修复
+- 🎛️ Scoped bilingual caption mode to Soniox so unsupported providers no longer expose the toggle or mixed behavior
+- 🎛️ 将双语字幕模式限制为 Soniox，避免不支持的 provider 暴露开关或出现混合行为
+
+---
+
 ## [1.4.1] - 2026-03-08
 
 ### Added / 新增
