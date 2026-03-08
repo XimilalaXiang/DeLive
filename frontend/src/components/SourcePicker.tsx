@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Monitor, AppWindow, X, Loader2, RefreshCw } from 'lucide-react'
 import { useUIStore } from '../stores/uiStore'
 
@@ -17,7 +17,7 @@ export function SourcePicker({ isOpen, onSelect, onCancel }: SourcePickerProps) 
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
   // 加载桌面源
-  const loadSources = async () => {
+  const loadSources = useCallback(async () => {
     if (!window.electronAPI?.getDesktopSources) return
     
     setLoading(true)
@@ -34,16 +34,16 @@ export function SourcePicker({ isOpen, onSelect, onCancel }: SourcePickerProps) 
     } finally {
       setLoading(false)
     }
-  }
+  }, [t.sourcePicker.loadFailed])
 
   useEffect(() => {
     if (isOpen) {
-      loadSources()
+      void loadSources()
     } else {
       setSources([])
       setSelectedId(null)
     }
-  }, [isOpen])
+  }, [isOpen, loadSources])
 
   if (!isOpen) return null
 

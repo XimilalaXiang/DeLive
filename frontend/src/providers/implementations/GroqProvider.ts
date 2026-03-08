@@ -155,6 +155,7 @@ export class GroqProvider extends BaseASRProvider {
 
     this.inFlight = true
     this.hasPendingAudio = false
+    let shouldRunFinalPass = false
 
     try {
       const apiKey = this.normalizeOptional(this._config.apiKey)
@@ -214,14 +215,15 @@ export class GroqProvider extends BaseASRProvider {
       this.inFlight = false
       if (this.pendingFinal && !isFinal) {
         this.pendingFinal = false
-        await this.transcribe(true)
-        return
-      }
-
-      if (isFinal) {
+        shouldRunFinalPass = true
+      } else if (isFinal) {
         this.setState('idle')
         this.resetSession()
       }
+    }
+
+    if (shouldRunFinalPass) {
+      await this.transcribe(true)
     }
   }
 

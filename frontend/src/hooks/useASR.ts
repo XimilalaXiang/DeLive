@@ -57,9 +57,12 @@ export function useASR(options: UseASROptions = {}) {
   // ── 组件卸载清理 ──────────────────────────────────
 
   useEffect(() => {
+    const capture = captureRef.current
+    const providerSession = providerSessionRef.current
+
     return () => {
-      captureRef.current.stop()
-      void providerSessionRef.current.disconnect()
+      capture.stop()
+      void providerSession.disconnect()
     }
   }, [])
 

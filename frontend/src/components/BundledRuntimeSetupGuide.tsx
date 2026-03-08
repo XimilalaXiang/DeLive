@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Activity, FolderOpen, Loader2, Play, RefreshCw, Square, AlertCircle, CheckCircle2, FileSearch, Download, Wand2, ChevronDown, ChevronUp } from 'lucide-react'
 import type { ProviderConfigData } from '../types'
 import type { ASRProviderInfo } from '../types/asr'
@@ -97,7 +97,7 @@ export function BundledRuntimeSetupGuide({
         description: '现在可以点“测试配置”或直接开始录制。',
       }
 
-  const refreshStatus = async () => {
+  const refreshStatus = useCallback(async () => {
     if (!manager) {
       setStatusState('error')
       setActionMessage('当前 provider 未声明 runtimeId，无法管理 bundled runtime')
@@ -114,13 +114,31 @@ export function BundledRuntimeSetupGuide({
       setStatusState('error')
       setActionMessage(error instanceof Error ? error.message : '获取 runtime 状态失败')
     }
-  }
+  }, [config, manager])
+
+  const handleLoadOfficialBinaryPresets = useCallback(async () => {
+    setStatusState('loading')
+    try {
+      const releaseInfo = await fetchLatestWhisperCppReleaseInfo(window.electronAPI?.platform)
+      const nextAssets = releaseInfo.assets.slice(0, 8)
+      setReleaseTag(releaseInfo.tag)
+      setReleaseAssets(nextAssets)
+      if (!binaryDownloadUrl.trim() && nextAssets[0]?.url) {
+        setBinaryDownloadUrl(nextAssets[0].url)
+      }
+      setStatusState('idle')
+      setActionMessage(`已加载 whisper.cpp ${releaseInfo.tag} 官方 release 资产`)
+    } catch (error) {
+      setStatusState('error')
+      setActionMessage(error instanceof Error ? error.message : '加载官方 binary 预设失败')
+    }
+  }, [binaryDownloadUrl])
 
   useEffect(() => {
     void refreshStatus()
-  }, [manager, config])
+  }, [refreshStatus])
 
-  const refreshModels = async () => {
+  const refreshModels = useCallback(async () => {
     if (!manager) return
     try {
       const files = await manager.listModels()
@@ -128,11 +146,11 @@ export function BundledRuntimeSetupGuide({
     } catch (error) {
       setActionMessage(error instanceof Error ? error.message : '获取模型列表失败')
     }
-  }
+  }, [manager])
 
   useEffect(() => {
     void refreshModels()
-  }, [manager])
+  }, [refreshModels])
 
   useEffect(() => {
     let cancelled = false
@@ -189,7 +207,7 @@ export function BundledRuntimeSetupGuide({
     if (releaseLoadedOnce) return
     setReleaseLoadedOnce(true)
     void handleLoadOfficialBinaryPresets()
-  }, [releaseLoadedOnce])
+  }, [handleLoadOfficialBinaryPresets, releaseLoadedOnce])
 
   const handlePrepareRecommendedFlow = async () => {
     onConfigPatch({ port: 8177 })
@@ -443,24 +461,6 @@ export function BundledRuntimeSetupGuide({
     } catch (error) {
       setStatusState('error')
       setActionMessage(error instanceof Error ? error.message : '下载模型失败')
-    }
-  }
-
-  const handleLoadOfficialBinaryPresets = async () => {
-    setStatusState('loading')
-    try {
-      const releaseInfo = await fetchLatestWhisperCppReleaseInfo(window.electronAPI?.platform)
-      const nextAssets = releaseInfo.assets.slice(0, 8)
-      setReleaseTag(releaseInfo.tag)
-      setReleaseAssets(nextAssets)
-      if (!binaryDownloadUrl.trim() && nextAssets[0]?.url) {
-        setBinaryDownloadUrl(nextAssets[0].url)
-      }
-      setStatusState('idle')
-      setActionMessage(`已加载 whisper.cpp ${releaseInfo.tag} 官方 release 资产`)
-    } catch (error) {
-      setStatusState('error')
-      setActionMessage(error instanceof Error ? error.message : '加载官方 binary 预设失败')
     }
   }
 

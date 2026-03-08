@@ -175,6 +175,7 @@ export class WhisperCppRuntimeProvider extends BaseASRProvider {
 
     this.inFlight = true
     this.hasPendingAudio = false
+    let shouldRunFinalPass = false
     try {
       const baseUrl = typeof this._config.baseUrl === 'string' ? this._config.baseUrl.replace(/\/+$/, '') : ''
       if (!baseUrl) {
@@ -226,14 +227,15 @@ export class WhisperCppRuntimeProvider extends BaseASRProvider {
       this.inFlight = false
       if (this.pendingFinal && !isFinal) {
         this.pendingFinal = false
-        await this.transcribe(true)
-        return
-      }
-
-      if (isFinal) {
+        shouldRunFinalPass = true
+      } else if (isFinal) {
         this.setState('idle')
         this.resetSession()
       }
+    }
+
+    if (shouldRunFinalPass) {
+      await this.transcribe(true)
     }
   }
 

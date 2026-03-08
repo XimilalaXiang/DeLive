@@ -156,6 +156,7 @@ export class LocalOpenAIProvider extends BaseASRProvider {
     }
 
     this.inFlight = true
+    let shouldRunFinalPass = false
     try {
       const baseUrl = this.normalizeBaseUrl(this._config.baseUrl)
       const model = this.normalizeModel(this._config.model)
@@ -210,14 +211,15 @@ export class LocalOpenAIProvider extends BaseASRProvider {
       this.inFlight = false
       if (this.pendingFinal && !isFinal) {
         this.pendingFinal = false
-        await this.transcribe(true)
-        return
-      }
-
-      if (isFinal) {
+        shouldRunFinalPass = true
+      } else if (isFinal) {
         this.setState('idle')
         this.resetSession()
       }
+    }
+
+    if (shouldRunFinalPass) {
+      await this.transcribe(true)
     }
   }
 

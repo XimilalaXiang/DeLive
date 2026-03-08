@@ -61,7 +61,7 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
     setRevealedFields({})
     setTestStatus('idle')
     setTestMessage('')
-  }, [currentProvider, currentStoredConfig, settings.apiKey, settings.languageHints, currentVendor])
+  }, [currentProvider, currentStoredConfig, settings])
 
   // 加载开机自启动状态和应用版本（仅 Electron 环境）
   useEffect(() => {
