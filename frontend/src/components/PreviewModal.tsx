@@ -9,6 +9,14 @@ interface PreviewModalProps {
   onClose: () => void
 }
 
+function getSpeakerLabel(speakerId: string | undefined): string {
+  if (!speakerId) {
+    return 'Speaker'
+  }
+
+  return speakerId
+}
+
 export function PreviewModal({ session, onClose }: PreviewModalProps) {
   const { t } = useUIStore()
   
@@ -23,6 +31,7 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
   }
 
   const translatedText = session.translatedTranscript?.text?.trim() || ''
+  const speakerSegments = (session.segments || []).filter((segment) => segment.speakerId && segment.text.trim())
 
   // 点击背景关闭
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -71,12 +80,25 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
         <div className="flex-1 overflow-y-auto p-6 bg-background/50">
           {session.transcript || translatedText ? (
             <div className="prose prose-sm dark:prose-invert max-w-none">
-              {session.transcript && (
+              {speakerSegments.length > 0 ? (
+                <div className="space-y-4">
+                  {speakerSegments.map((segment, index) => (
+                    <div key={`${segment.speakerId || 'speaker'}-${index}`} className="space-y-1">
+                      <div className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                        {getSpeakerLabel(segment.speakerId)}
+                      </div>
+                      <p className="text-base leading-relaxed whitespace-pre-wrap text-foreground m-0">
+                        {segment.text}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : session.transcript ? (
                 <p className="text-base leading-relaxed whitespace-pre-wrap text-foreground">
                   {session.transcript}
                 </p>
-              )}
-              {session.transcript && translatedText && (
+              ) : null}
+              {(session.transcript || speakerSegments.length > 0) && translatedText && (
                 <div className="my-4 h-px bg-border" />
               )}
               {translatedText && (

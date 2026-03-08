@@ -36,6 +36,7 @@ export class SonioxProvider extends BaseASRProvider {
       prefersTokenEvents: true,
       supportsConfigTest: true,
       supportsTranslation: true,
+      supportsSpeakerDiarization: true,
     },
     requiredConfigKeys: ['apiKey'],
     supportedLanguages: ['zh', 'en', 'ja', 'ko', 'es', 'fr', 'de', 'it', 'pt', 'ru'],
@@ -95,6 +96,14 @@ export class SonioxProvider extends BaseASRProvider {
         ],
         description: '仅在启用实时翻译时生效。',
       },
+      {
+        key: 'enableSpeakerDiarization',
+        label: '启用多发言人识别',
+        type: 'boolean',
+        required: false,
+        defaultValue: false,
+        description: '开启后，Soniox 会返回按说话人区分的转录结果。',
+      },
     ],
   }
 
@@ -127,6 +136,7 @@ export class SonioxProvider extends BaseASRProvider {
             audio_format: 'auto',
             language_hints: (config.languageHints as string[]) || ['zh', 'en'],
             enable_language_identification: true,
+            enable_speaker_diarization: Boolean(config.enableSpeakerDiarization),
             enable_endpoint_detection: true,
           }
 

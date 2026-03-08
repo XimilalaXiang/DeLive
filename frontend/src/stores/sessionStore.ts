@@ -213,6 +213,8 @@ export interface SessionState {
   currentTranslatedTranscript: string
   finalTranslatedTranscript: string
   nonFinalTranslatedTranscript: string
+  currentSegments: TranscriptSegment[]
+  currentSpeakers: TranscriptSpeaker[]
   setTranscript: (final: string, nonFinal: string) => void
   clearTranscript: () => void
 
@@ -325,6 +327,8 @@ export const useSessionStore = create<SessionState>((set, get) => {
     currentTranslatedTranscript: '',
     finalTranslatedTranscript: '',
     nonFinalTranslatedTranscript: '',
+    currentSegments: [],
+    currentSpeakers: [],
     setTranscript: (final, nonFinal) => {
       const currentTranscript = final + nonFinal
       const sessions = syncCurrentSessionInMemory({
@@ -344,6 +348,8 @@ export const useSessionStore = create<SessionState>((set, get) => {
         currentTranslatedTranscript: '',
         finalTranslatedTranscript: '',
         nonFinalTranslatedTranscript: '',
+        currentSegments: [],
+        currentSpeakers: [],
         finalTokens: [],
       })
     },
@@ -383,6 +389,8 @@ export const useSessionStore = create<SessionState>((set, get) => {
         currentTranslatedTranscript: '',
         finalTranslatedTranscript: '',
         nonFinalTranslatedTranscript: '',
+        currentSegments: [],
+        currentSpeakers: [],
         finalTokens: [],
       })
       return id
@@ -431,6 +439,8 @@ export const useSessionStore = create<SessionState>((set, get) => {
         finalTranslatedTranscript: restoredTranslatedTranscript,
         nonFinalTranslatedTranscript: '',
         currentTranslatedTranscript: restoredTranslatedTranscript,
+        currentSegments: recoverySession.segments ?? buildSegmentsFromTokens(restoredTokens),
+        currentSpeakers: recoverySession.speakers ?? buildSpeakersFromTokens(restoredTokens),
       })
     },
     dismissRecoverySession: () => {
@@ -506,6 +516,8 @@ export const useSessionStore = create<SessionState>((set, get) => {
       const finalText = newFinalTokens.map((token) => token.text).join('')
       const currentTranscript = finalText + nonFinalText
       const currentTranslatedTranscript = translatedFinalText + translatedNonFinalText
+      const currentSegments = buildSegmentsFromTokens(newFinalTokens)
+      const currentSpeakers = buildSpeakersFromTokens(newFinalTokens)
       const sessions = syncCurrentSessionInMemory({
         finalTokens: newFinalTokens,
         finalTranscript: finalText,
@@ -524,6 +536,8 @@ export const useSessionStore = create<SessionState>((set, get) => {
         finalTranslatedTranscript: translatedFinalText,
         nonFinalTranslatedTranscript: translatedNonFinalText,
         currentTranslatedTranscript,
+        currentSegments,
+        currentSpeakers,
         sessions,
       })
       scheduleCurrentSessionAutosave()

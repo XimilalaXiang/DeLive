@@ -4,6 +4,14 @@ import { useUIStore } from '../stores/uiStore'
 import { useSettingsStore } from '../stores/settingsStore'
 import { useSessionStore } from '../stores/sessionStore'
 
+function getSpeakerLabel(speakerId: string | undefined): string {
+  if (!speakerId) {
+    return 'Speaker'
+  }
+
+  return speakerId
+}
+
 export function TranscriptDisplay() {
   const { t } = useUIStore()
   const { settings, availableProviders } = useSettingsStore()
@@ -12,6 +20,7 @@ export function TranscriptDisplay() {
     nonFinalTranscript,
     finalTranslatedTranscript,
     nonFinalTranslatedTranscript,
+    currentSegments,
     recordingState,
     currentSessionId,
   } = useSessionStore()
@@ -65,6 +74,10 @@ export function TranscriptDisplay() {
   const translatedText = finalTranslatedTranscript + nonFinalTranslatedTranscript
   const showSource = captionDisplayMode !== 'translated' || translatedText.length === 0
   const showTranslated = captionDisplayMode !== 'source' && translatedText.length > 0
+  const speakerDiarizationEnabled = currentVendor === 'soniox'
+    && Boolean(settings.providerConfigs?.soniox?.enableSpeakerDiarization)
+    && Boolean(currentProvider?.capabilities.supportsSpeakerDiarization)
+    && currentSegments.some((segment) => segment.speakerId)
   const isEmpty = !finalTranscript && !nonFinalTranscript && !translatedText
   const isRecording = recordingState === 'recording'
   const isStarting = recordingState === 'starting'
@@ -182,13 +195,36 @@ export function TranscriptDisplay() {
         ) : (
           <div className="prose prose-sm dark:prose-invert max-w-none">
             {showSource && (
-              <p className="text-base leading-relaxed whitespace-pre-wrap">
-                <span className="text-foreground/90 font-medium transition-colors duration-300">{finalTranscript}</span>
-                <span className="text-muted-foreground transition-colors duration-300">{nonFinalTranscript}</span>
-                {isRecording && (
-                  <span className="inline-block w-1.5 h-4 bg-primary ml-1 rounded-sm animate-pulse align-middle" />
-                )}
-              </p>
+              speakerDiarizationEnabled ? (
+                <div className="space-y-4">
+                  {currentSegments.map((segment, index) => (
+                    <div key={`${segment.speakerId || 'speaker'}-${index}`} className="space-y-1">
+                      <div className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                        {getSpeakerLabel(segment.speakerId)}
+                      </div>
+                      <p className="text-base leading-relaxed whitespace-pre-wrap text-foreground/90 font-medium">
+                        {segment.text}
+                      </p>
+                    </div>
+                  ))}
+                  {nonFinalTranscript && (
+                    <p className="text-base leading-relaxed whitespace-pre-wrap text-muted-foreground transition-colors duration-300">
+                      {nonFinalTranscript}
+                      {isRecording && (
+                        <span className="inline-block w-1.5 h-4 bg-primary ml-1 rounded-sm animate-pulse align-middle" />
+                      )}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-base leading-relaxed whitespace-pre-wrap">
+                  <span className="text-foreground/90 font-medium transition-colors duration-300">{finalTranscript}</span>
+                  <span className="text-muted-foreground transition-colors duration-300">{nonFinalTranscript}</span>
+                  {isRecording && (
+                    <span className="inline-block w-1.5 h-4 bg-primary ml-1 rounded-sm animate-pulse align-middle" />
+                  )}
+                </p>
+              )
             )}
             {showSource && showTranslated && (
               <div className="my-4 h-px bg-border" />

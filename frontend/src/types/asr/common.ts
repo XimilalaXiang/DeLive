@@ -68,6 +68,8 @@ export interface ASRProviderCapabilities {
   supportsConfigTest?: boolean
   // 是否支持 provider 原生翻译输出
   supportsTranslation?: boolean
+  // 是否支持 provider 原生说话人识别
+  supportsSpeakerDiarization?: boolean
   // 本地 Provider 的运行时/模型管理能力
   local?: LocalProviderCapabilities
 }
