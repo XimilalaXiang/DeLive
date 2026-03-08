@@ -78,6 +78,13 @@ export const zh = {
     themeRose: '玫瑰',
     themeGreen: '翡翠',
     themeAmber: '琥珀',
+    // 诊断信息
+    diagnostics: '诊断信息',
+    exportDiagnostics: '导出诊断包',
+    exportDiagnosticsDesc: '生成包含系统信息、配置和日志的诊断文件，用于问题排查（API 密钥已脱敏）',
+    diagnosticsExported: '诊断信息已导出',
+    diagnosticsExportFailed: '导出失败',
+    diagnosticsExportCancelled: '已取消导出',
   },
 
   // 提供商相关

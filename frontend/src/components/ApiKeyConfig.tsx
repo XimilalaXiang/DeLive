@@ -880,6 +880,41 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
                       </div>
                     </div>
                   )}
+
+                  {/* 诊断信息导出 */}
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium leading-none flex items-center gap-2">
+                      <AlertCircle className="w-3.5 h-3.5 text-muted-foreground" />
+                      {t.settings.diagnostics}
+                    </label>
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                      <div>
+                        <p className="text-sm font-medium">{t.settings.exportDiagnostics}</p>
+                        <p className="text-[10px] text-muted-foreground">{t.settings.exportDiagnosticsDesc}</p>
+                      </div>
+                      <button
+                        onClick={async () => {
+                          if (!window.electronAPI?.exportDiagnostics) return
+                          const settingsData = { ...settings } as Record<string, unknown>
+                          const localStorageKeys: string[] = []
+                          for (let i = 0; i < localStorage.length; i++) {
+                            const key = localStorage.key(i)
+                            if (key) localStorageKeys.push(key)
+                          }
+                          const result = await window.electronAPI.exportDiagnostics({ settings: settingsData, localStorageKeys })
+                          if (result.success) {
+                            alert(t.settings.diagnosticsExported)
+                          } else if (result.reason !== 'cancelled') {
+                            alert(`${t.settings.diagnosticsExportFailed}: ${result.reason}`)
+                          }
+                        }}
+                        className="inline-flex items-center justify-center gap-2 h-9 px-4 text-sm font-medium rounded-md transition-colors bg-primary text-primary-foreground hover:bg-primary/90"
+                      >
+                        <Download className="w-4 h-4" />
+                        {t.settings.exportDiagnostics}
+                      </button>
+                    </div>
+                  </div>
                 </>
               )}
             </>

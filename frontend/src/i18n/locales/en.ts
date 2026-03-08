@@ -80,6 +80,13 @@ export const en: Translations = {
     themeRose: 'Rose',
     themeGreen: 'Emerald',
     themeAmber: 'Amber',
+    // Diagnostics
+    diagnostics: 'Diagnostics',
+    exportDiagnostics: 'Export Diagnostics',
+    exportDiagnosticsDesc: 'Generate a diagnostics file with system info, config, and logs for troubleshooting (API keys are redacted)',
+    diagnosticsExported: 'Diagnostics exported',
+    diagnosticsExportFailed: 'Export failed',
+    diagnosticsExportCancelled: 'Export cancelled',
   },
 
   // Provider related

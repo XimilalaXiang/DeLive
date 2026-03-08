@@ -10,7 +10,10 @@ import { createMainWindow } from './mainWindow'
 import { registerAppShortcuts } from './shortcuts'
 import { createAppTray, findIconPath } from './tray'
 import { registerUpdaterIpc } from './updaterIpc'
+import { installLogInterceptor, registerDiagnosticsIpc } from './diagnosticsIpc'
 import { startVolcProxyServer } from './volcProxy'
+
+installLogInterceptor()
 
 if (process.platform === 'darwin') {
   app.commandLine.appendSwitch('enable-features', 'ScreenCaptureKitAudio,ScreenCaptureKitStreamPickerSonoma')
@@ -207,4 +210,9 @@ registerUpdaterIpc({
 registerCaptionIpc({
   ipcMain,
   controller: captionController,
+})
+
+registerDiagnosticsIpc({
+  ipcMain,
+  getMainWindow: () => mainWindow,
 })

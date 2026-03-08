@@ -243,6 +243,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // 当前运行平台
   platform: process.platform as 'win32' | 'darwin' | 'linux',
 
+  // 诊断信息导出
+  exportDiagnostics: (payload: { settings: Record<string, unknown>; localStorageKeys: string[] }) =>
+    ipcRenderer.invoke('export-diagnostics', payload) as Promise<{ success: boolean; path?: string; reason?: string }>,
+
   // 平台能力探测（用于前端做跨平台降级）
   supportsAutoLaunch: process.platform === 'win32' || process.platform === 'darwin',
   supportsAutoUpdate: process.platform !== 'linux' || Boolean(process.env.APPIMAGE),
@@ -367,6 +371,7 @@ declare global {
       onCaptionInteractiveChanged: (callback: (interactive: boolean) => void) => () => void
       captionOpenSettings: () => Promise<boolean>
       onOpenCaptionSettings: (callback: () => void) => () => void
+      exportDiagnostics: (payload: { settings: Record<string, unknown>; localStorageKeys: string[] }) => Promise<{ success: boolean; path?: string; reason?: string }>
       isElectron: boolean
       platform: 'win32' | 'darwin' | 'linux'
       supportsAutoLaunch: boolean

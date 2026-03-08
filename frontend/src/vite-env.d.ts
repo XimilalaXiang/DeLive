@@ -130,6 +130,7 @@ declare interface ElectronAPI {
   onCaptionInteractiveChanged: (callback: (interactive: boolean) => void) => () => void
   captionOpenSettings: () => Promise<boolean>
   onOpenCaptionSettings: (callback: () => void) => () => void
+  exportDiagnostics: (payload: { settings: Record<string, unknown>; localStorageKeys: string[] }) => Promise<{ success: boolean; path?: string; reason?: string }>
 }
 
 declare interface Window {
