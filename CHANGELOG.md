@@ -9,6 +9,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.0] - 2026-03-08
+
+### Added / 新增
+- 🏗️ Split monolithic `transcriptStore` into `uiStore`, `settingsStore`, `sessionStore`, `tagStore` with backward-compatible facade
+- 🏗️ 将单体 `transcriptStore` 拆分为 `uiStore`、`settingsStore`、`sessionStore`、`tagStore`，保留向后兼容外观层
+- 🔬 Split monolithic `useASR` hook into `CaptureManager`, `CaptionBridge`, `ProviderSessionManager` services; deleted obsolete `useSoniox`
+- 🔬 将单体 `useASR` hook 拆分为 `CaptureManager`、`CaptionBridge`、`ProviderSessionManager` 服务；删除废弃的 `useSoniox`
+- 🧪 Added Vitest framework with 129 unit tests covering `providerConfig`, `subtitleExport`, `transcriptStabilizer`, `storage`, and `BaseASRProvider`
+- 🧪 引入 Vitest 测试框架，编写 129 个单元测试覆盖核心纯函数和类逻辑
+- ⚡ Migrated audio processing from deprecated `ScriptProcessorNode` to `AudioWorklet` with automatic fallback
+- ⚡ 将音频处理从已废弃的 `ScriptProcessorNode` 迁移至 `AudioWorklet`，支持自动回退
+- 🩺 One-click diagnostics export — collects system info, redacted config, and last 500 log entries into a JSON file
+- 🩺 一键导出诊断包 — 收集系统信息、脱敏配置和最近 500 条日志到 JSON 文件
+
+### Security / 安全
+- 🔒 IPC sender verification — all sensitive IPC handlers now validate the caller is a trusted window
+- 🔒 IPC 发送者验证 — 所有敏感 IPC handler 现在验证调用者为可信窗口
+- 🛡️ Content Security Policy (CSP) injected into main window with safe `connect-src` for local models
+- 🛡️ 主窗口注入内容安全策略 (CSP)，为本地模型配置安全的 `connect-src`
+- 🚫 Navigation guard blocks unexpected URL loads; path allowlist for `path-exists` IPC
+- 🚫 导航守卫阻止意外 URL 加载；`path-exists` IPC 增加路径白名单
+- 🔐 API keys encrypted via Electron `safeStorage` (Windows DPAPI / macOS Keychain) with transparent migration
+- 🔐 API 密钥通过 Electron `safeStorage`（Windows DPAPI / macOS Keychain）加密存储，支持透明迁移
+
+### Changed / 变更
+- 🗄️ Unified persistence: settings and tags now dual-write to localStorage (fast sync) + IndexedDB (durable backup), with auto-restore on localStorage loss
+- 🗄️ 统一持久化：settings 和 tags 现在双写 localStorage（快速同步）+ IndexedDB（持久备份），localStorage 丢失时自动恢复
+- 📦 IndexedDB schema upgraded from v1 to v2 with automatic migration
+- 📦 IndexedDB schema 从 v1 升级到 v2，支持自动迁移
+
+---
+
 ## [1.3.5] - 2026-03-07
 
 ### Changed / 变更
