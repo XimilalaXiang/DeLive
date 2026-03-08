@@ -33,7 +33,8 @@
 - **按 Provider 自动切换音频管线**：根据后端要求，在 `MediaRecorder` 与 `AudioWorklet` PCM16 处理之间自动切换。
 - **本地模型工作流**：支持探测本地服务、列出已安装模型、Ollama 一键拉取，以及 `whisper.cpp` binary / 模型导入与下载。
 - **悬浮字幕窗口**：独立透明窗口、始终置顶，可拖动、锁定，并自定义样式。
-- **历史记录与导出**：支持标签、搜索、TXT / SRT / VTT 导出。
+- **Soniox 双语字幕与说话人视图**：支持原文 / 翻译 / 双语显示模式，以及按说话人分组的历史预览。
+- **历史记录与导出**：当前 UI 支持标签、搜索、TXT / SRT 导出，代码层已具备 VTT 生成能力。
 - **桌面级集成**：系统托盘、全局快捷键、开机自启动、更新检查、中英文界面。
 - **安全加固**：IPC 发送者验证、内容安全策略（CSP）、导航守卫、路径白名单、API 密钥通过操作系统级 `safeStorage` 加密存储。
 - **一键诊断导出**：收集系统信息、脱敏配置和最近日志到 JSON 文件，方便问题排查。
@@ -174,7 +175,7 @@ graph TB
 
 | 服务 | 类型 | 音频路径 | 说明 |
 |------|------|----------|------|
-| **Soniox V4** | 云端 | `MediaRecorder` → WebSocket | Token 级实时转录，多语言 |
+| **Soniox V4** | 云端 | `MediaRecorder` → WebSocket | Token 级实时转录、实时翻译、双语字幕、多发言人识别 |
 | **火山引擎** | 云端 | PCM16 → 内置代理 → WebSocket | 中文优化，代理负责补齐 Header |
 | **Groq** | 云端 | `MediaRecorder` → REST API | Whisper large-v3-turbo / large-v3，整段重转写 |
 | **硅基流动** | 云端 | `MediaRecorder` → REST API | SenseVoice、TeleSpeech、Qwen Omni，整段重转写 |
@@ -233,7 +234,7 @@ npm run dist:all     # 全平台
 cd frontend && npm test
 ```
 
-通过 Vitest 运行 129 个单元测试，覆盖 Provider 配置、字幕导出、转录稳定器、存储工具和 BaseASRProvider 事件系统。
+通过 Vitest 运行 149 个单元测试，覆盖 Provider 配置、字幕导出、转录稳定器、窗口批处理、存储工具和 BaseASRProvider 事件系统。
 
 ### 可选：打包时预置 `whisper.cpp`
 
@@ -252,7 +253,7 @@ npm run stage:whisper-runtime -- --binary /path/to/whisper-server --target linux
 2. 填写凭据并点击 **测试配置**。
 3. 点击 **开始录制**。
 4. 选择要共享的屏幕或窗口，并确保勾选共享音频。
-5. 实时结果会显示在主窗口，也可以同步到悬浮字幕窗口。
+5. 实时结果会显示在主窗口，也可以同步到悬浮字幕窗口。使用 Soniox 时，还可以切换翻译 / 双语字幕模式，并查看按说话人分组的转录。
 
 ### 本地 OpenAI-compatible
 
@@ -272,8 +273,9 @@ npm run stage:whisper-runtime -- --binary /path/to/whisper-server --target linux
 ### 字幕、历史与导出
 
 - 开启悬浮字幕窗口，自定义字体、颜色、字号、宽度、阴影和位置。
+- 使用 Soniox 时，可切换原文 / 翻译 / 双语字幕模式，并在历史预览里按说话人查看分段。
 - 在历史面板中重命名会话、打标签、搜索记录。
-- 导出 TXT、SRT 或 VTT。
+- 当前 UI 可导出 TXT、SRT；代码层已包含 VTT 生成能力，后续可继续补齐更多导出入口。
 - 在设置面板中导入 / 导出全部本地数据，用于备份和迁移。
 
 ### 诊断信息
@@ -305,7 +307,7 @@ DeLive/
 ├── frontend/
 │   ├── caption.html                  # 字幕窗口入口
 │   ├── src/
-│   │   ├── components/               # UI 组件（17 个文件）
+│   │   ├── components/               # UI 组件
 │   │   ├── hooks/                    # useASR — ASR 编排 hook
 │   │   ├── services/                 # CaptureManager、CaptionBridge、ProviderSessionManager
 │   │   ├── providers/                # Provider 注册表 + 6 个实现
@@ -319,7 +321,7 @@ DeLive/
 │   └── whisper_cpp/                  # 可选的预置 whisper.cpp runtime 资源
 ├── scripts/                          # 图标生成、runtime 拉取/预置、release notes
 ├── server/                           # 独立火山引擎代理（供调试使用）
-├── .github/workflows/release.yml     # CI/CD：tag 推送触发构建与 GitHub Release
+├── .github/workflows/release.yml     # CI/CD：tag release 流水线（常规 push / PR CI 仍待补齐）
 └── package.json
 ```
 
@@ -331,13 +333,13 @@ DeLive/
 | 前端 | React 18 + TypeScript 5.6 + Vite 6 |
 | 样式 | Tailwind CSS 3.4 |
 | 状态管理 | Zustand 4.5（4 个聚焦 Store） |
-| 测试 | Vitest 4（129 个单元测试） |
+| 测试 | Vitest 4（149 个单元测试） |
 | 音频处理 | AudioWorklet（ScriptProcessorNode 回退） |
 | 桌面服务 | Electron 内置 Express + ws |
 | 持久化 | IndexedDB + localStorage + Electron safeStorage |
 | ASR 后端 | Soniox V4、火山引擎、Groq、硅基流动、OpenAI-compatible 本地 ASR、whisper.cpp |
 | 打包 | electron-builder (NSIS / DMG / AppImage) |
-| CI/CD | GitHub Actions |
+| CI/CD | GitHub Actions（当前为 tag release 流水线） |
 
 ## 🔒 安全
 
