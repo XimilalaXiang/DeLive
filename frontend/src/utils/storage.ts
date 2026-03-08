@@ -545,7 +545,7 @@ export interface BackupData {
 // 导出所有数据为JSON
 export async function exportAllData(): Promise<void> {
   const data: BackupData = {
-    version: '1.0',
+    version: '1.1',
     exportedAt: new Date().toISOString(),
     sessions: await getSessions(),
     tags: getTags(),

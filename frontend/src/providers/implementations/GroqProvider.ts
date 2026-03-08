@@ -6,12 +6,15 @@ import {
   GROQ_DEFAULT_MODEL,
   GROQ_TRANSCRIPTION_MODELS,
 } from '../../types/asr/vendors/groq'
+import { RollingAudioBuffer, getPcmChunkDurationMs } from '../../utils/rollingAudioBuffer'
 import { TranscriptStabilizer } from '../../utils/transcriptStabilizer'
+import { buildWindowedTranscriptSnapshot } from '../../utils/windowedTranscript'
 
 const GROQ_SAMPLE_RATE = 16000
 const GROQ_CHANNELS = 1
 const GROQ_BITS_PER_SAMPLE = 16
 const GROQ_TRANSCRIBE_INTERVAL_MS = 1500
+const GROQ_MAX_WINDOW_MS = 45000
 
 export class GroqProvider extends BaseASRProvider {
   readonly id: ASRVendor = 'groq' as ASRVendor
@@ -63,7 +66,7 @@ export class GroqProvider extends BaseASRProvider {
     ],
   }
 
-  private chunks: ArrayBuffer[] = []
+  private audioWindow = new RollingAudioBuffer<ArrayBuffer>(GROQ_MAX_WINDOW_MS)
   private transcribeLoop: ReturnType<typeof setInterval> | null = null
   private inFlight = false
   private pendingFinal = false
@@ -91,7 +94,7 @@ export class GroqProvider extends BaseASRProvider {
   async disconnect(): Promise<void> {
     this.clearLoop()
 
-    if (this.chunks.length > 0) {
+    if (this.audioWindow.hasData()) {
       this.pendingFinal = true
       await this.transcribe(true)
     } else {
@@ -109,7 +112,10 @@ export class GroqProvider extends BaseASRProvider {
     this.setState('recording')
     if (data instanceof Blob) {
       void data.arrayBuffer().then((buffer) => {
-        this.chunks.push(buffer)
+        this.audioWindow.add(
+          buffer,
+          getPcmChunkDurationMs(buffer, GROQ_SAMPLE_RATE, GROQ_CHANNELS, GROQ_BITS_PER_SAMPLE),
+        )
         this.hasPendingAudio = true
         this.ensureTranscribeLoop()
       }).catch((error) => {
@@ -118,7 +124,10 @@ export class GroqProvider extends BaseASRProvider {
       return
     }
 
-    this.chunks.push(data)
+    this.audioWindow.add(
+      data,
+      getPcmChunkDurationMs(data, GROQ_SAMPLE_RATE, GROQ_CHANNELS, GROQ_BITS_PER_SAMPLE),
+    )
     this.hasPendingAudio = true
     this.ensureTranscribeLoop()
   }
@@ -144,7 +153,7 @@ export class GroqProvider extends BaseASRProvider {
   }
 
   private async transcribe(isFinal: boolean): Promise<void> {
-    if (!this._config || this.chunks.length === 0) {
+    if (!this._config || !this.audioWindow.hasData()) {
       return
     }
 
@@ -188,9 +197,13 @@ export class GroqProvider extends BaseASRProvider {
 
       const result = await response.json() as GroqTranscriptionResponse
       const transcriptText = typeof result.text === 'string' ? result.text : ''
+      const syntheticSnapshot = buildWindowedTranscriptSnapshot(
+        this.stabilizer.getCommittedText(),
+        transcriptText,
+      )
       const update = isFinal
-        ? this.stabilizer.flush(transcriptText)
-        : this.stabilizer.process(transcriptText)
+        ? this.stabilizer.flush(syntheticSnapshot)
+        : this.stabilizer.process(syntheticSnapshot)
 
       if (update.finalizedText) {
         this.emitFinal(update.finalizedText)
@@ -228,7 +241,8 @@ export class GroqProvider extends BaseASRProvider {
   }
 
   private buildWavBlob(): Blob {
-    const pcmSize = this.chunks.reduce((total, chunk) => total + chunk.byteLength, 0)
+    const chunks = this.audioWindow.getItems()
+    const pcmSize = chunks.reduce((total, chunk) => total + chunk.byteLength, 0)
     const wavHeader = new ArrayBuffer(44)
     const view = new DataView(wavHeader)
 
@@ -249,7 +263,7 @@ export class GroqProvider extends BaseASRProvider {
     this.writeAscii(view, 36, 'data')
     view.setUint32(40, pcmSize, true)
 
-    return new Blob([wavHeader, ...this.chunks], { type: 'audio/wav' })
+    return new Blob([wavHeader, ...chunks], { type: 'audio/wav' })
   }
 
   private getLanguageHint(): string | undefined {
@@ -282,7 +296,7 @@ export class GroqProvider extends BaseASRProvider {
 
   private resetSession(): void {
     this.clearLoop()
-    this.chunks = []
+    this.audioWindow.clear()
     this.inFlight = false
     this.pendingFinal = false
     this.hasPendingAudio = false

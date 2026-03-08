@@ -10,6 +10,13 @@ import {
   LOCAL_OPENAI_DEFAULT_BASE_URL,
   LOCAL_OPENAI_DEFAULT_MODEL,
 } from '../../types/asr/vendors/localOpenAI'
+import { RollingAudioBuffer, getMediaRecorderChunkDurationMs } from '../../utils/rollingAudioBuffer'
+import { TranscriptStabilizer } from '../../utils/transcriptStabilizer'
+import { buildWindowedTranscriptSnapshot } from '../../utils/windowedTranscript'
+
+const LOCAL_OPENAI_TRANSCRIBE_INTERVAL_MS = 1200
+const LOCAL_OPENAI_MAX_WINDOW_MS = 45000
+const LOCAL_OPENAI_MEDIA_CHUNK_MS = 100
 
 export class LocalOpenAIProvider extends BaseASRProvider {
   readonly id: ASRVendor = 'local_openai' as ASRVendor
@@ -75,11 +82,12 @@ export class LocalOpenAIProvider extends BaseASRProvider {
     ],
   }
 
-  private chunks: Blob[] = []
+  private audioWindow = new RollingAudioBuffer<Blob>(LOCAL_OPENAI_MAX_WINDOW_MS)
   private transcribeTimer: ReturnType<typeof setTimeout> | null = null
   private inFlight = false
   private pendingFinal = false
-  private lastTranscript = ''
+  private stabilizer = new TranscriptStabilizer()
+  private lastPartialText = ''
 
   async connect(config: ProviderConfig): Promise<void> {
     const baseUrl = this.normalizeBaseUrl(config.baseUrl)
@@ -110,7 +118,7 @@ export class LocalOpenAIProvider extends BaseASRProvider {
   async disconnect(): Promise<void> {
     this.clearTimer()
 
-    if (this.chunks.length > 0) {
+    if (this.audioWindow.hasData()) {
       this.pendingFinal = true
       await this.transcribe(true)
     } else {
@@ -127,7 +135,7 @@ export class LocalOpenAIProvider extends BaseASRProvider {
 
     this.setState('recording')
     const blob = data instanceof Blob ? data : new Blob([data], { type: 'audio/webm' })
-    this.chunks.push(blob)
+    this.audioWindow.add(blob, getMediaRecorderChunkDurationMs(LOCAL_OPENAI_MEDIA_CHUNK_MS))
     this.scheduleTranscribe()
   }
 
@@ -135,7 +143,7 @@ export class LocalOpenAIProvider extends BaseASRProvider {
     this.clearTimer()
     this.transcribeTimer = setTimeout(() => {
       void this.transcribe(false)
-    }, 1200)
+    }, LOCAL_OPENAI_TRANSCRIBE_INTERVAL_MS)
   }
 
   private clearTimer(): void {
@@ -146,7 +154,7 @@ export class LocalOpenAIProvider extends BaseASRProvider {
   }
 
   private async transcribe(isFinal: boolean): Promise<void> {
-    if (!this._config || this.chunks.length === 0) {
+    if (!this._config || !this.audioWindow.hasData()) {
       return
     }
 
@@ -191,14 +199,27 @@ export class LocalOpenAIProvider extends BaseASRProvider {
 
       const result = await response.json() as OpenAITranscriptionResponse
       const transcriptText = typeof result.text === 'string' ? result.text : ''
+      const syntheticSnapshot = buildWindowedTranscriptSnapshot(
+        this.stabilizer.getCommittedText(),
+        transcriptText,
+      )
+      const update = isFinal
+        ? this.stabilizer.flush(syntheticSnapshot)
+        : this.stabilizer.process(syntheticSnapshot)
 
-      if (transcriptText && transcriptText !== this.lastTranscript) {
-        this.lastTranscript = transcriptText
-        this.emitPartial(transcriptText)
+      if (update.finalizedText) {
+        this.emitFinal(update.finalizedText)
+      }
+
+      if (update.partialText !== this.lastPartialText) {
+        this.lastPartialText = update.partialText
+        if (update.partialText) {
+          this.emitPartial(update.partialText)
+        }
       }
 
       if (isFinal) {
-        this.emitFinal(this.lastTranscript || transcriptText)
+        this.lastPartialText = ''
         this.emitFinished()
       }
     } catch (error) {
@@ -224,8 +245,9 @@ export class LocalOpenAIProvider extends BaseASRProvider {
   }
 
   private buildAudioBlob(): Blob {
-    const mimeType = this.chunks.find(chunk => !!chunk.type)?.type || 'audio/webm'
-    return new Blob(this.chunks, { type: mimeType })
+    const chunks = this.audioWindow.getItems()
+    const mimeType = chunks.find(chunk => !!chunk.type)?.type || 'audio/webm'
+    return new Blob(chunks, { type: mimeType })
   }
 
   private getAudioFileName(blob: Blob): string {
@@ -264,9 +286,10 @@ export class LocalOpenAIProvider extends BaseASRProvider {
 
   private resetSession(): void {
     this.clearTimer()
-    this.chunks = []
+    this.audioWindow.clear()
     this.inFlight = false
     this.pendingFinal = false
-    this.lastTranscript = ''
+    this.stabilizer.reset()
+    this.lastPartialText = ''
   }
 }

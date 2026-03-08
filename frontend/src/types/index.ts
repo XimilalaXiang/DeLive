@@ -33,6 +33,53 @@ export interface TranscriptTokenData {
   confidence?: number
 }
 
+export interface TranscriptSpeaker {
+  id: string
+  label: string
+  displayName?: string
+}
+
+export interface TranscriptSegment {
+  text: string
+  translatedText?: string
+  startMs?: number
+  endMs?: number
+  speakerId?: string
+  language?: string
+  isFinal?: boolean
+}
+
+export interface TranscriptTranslationData {
+  text: string
+  targetLanguage?: string
+  mode?: 'inline' | 'dual-line' | 'output-only'
+  updatedAt?: number
+}
+
+export interface TranscriptChapter {
+  title: string
+  startMs?: number
+  endMs?: number
+  summary?: string
+}
+
+export interface TranscriptPostProcess {
+  summary?: string
+  actionItems?: string[]
+  keywords?: string[]
+  chapters?: TranscriptChapter[]
+  generatedAt?: number
+  model?: string
+}
+
+export interface TranscriptSourceMeta {
+  captureMode?: 'system-audio' | 'file' | 'mixed' | 'unknown'
+  sourceId?: string
+  sourceLabel?: string
+  platform?: 'win32' | 'darwin' | 'linux' | 'unknown'
+  providerMode?: 'realtime' | 'full-session-retranscription' | 'local-runtime' | 'unknown'
+}
+
 export type TranscriptSessionStatus = 'recording' | 'interrupted' | 'completed'
 
 // 字幕样式
@@ -49,15 +96,21 @@ export interface CaptionStyle {
 // 转录会话类型
 export interface TranscriptSession {
   id: string
+  schemaVersion?: number
   title: string
   date: string // YYYY-MM-DD 格式
   time: string // HH:mm 格式
   createdAt: number // 时间戳
   updatedAt: number
   transcript: string
+  translatedTranscript?: TranscriptTranslationData
   duration?: number // 毫秒
   tagIds?: string[] // 关联的标签ID列表
   tokens?: TranscriptTokenData[] // 带时间戳的 tokens（用于 SRT 导出）
+  speakers?: TranscriptSpeaker[]
+  segments?: TranscriptSegment[]
+  sourceMeta?: TranscriptSourceMeta
+  postProcess?: TranscriptPostProcess
   providerId?: string
   status?: TranscriptSessionStatus
   lastPersistedAt?: number

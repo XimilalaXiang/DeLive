@@ -17,13 +17,18 @@ export interface SessionLaunchState {
 }
 
 const DEFAULT_STATUS: TranscriptSessionStatus = 'completed'
+const CURRENT_SESSION_SCHEMA_VERSION = 2
 let cachedSessions: TranscriptSession[] = []
 let cacheReady = false
 
 function normalizeSession(session: TranscriptSession): TranscriptSession {
   return {
     ...session,
+    schemaVersion: session.schemaVersion ?? CURRENT_SESSION_SCHEMA_VERSION,
     status: session.status ?? DEFAULT_STATUS,
+    tagIds: session.tagIds ?? [],
+    speakers: session.speakers ?? [],
+    segments: session.segments ?? [],
     lastPersistedAt: session.lastPersistedAt ?? session.updatedAt ?? session.createdAt,
   }
 }

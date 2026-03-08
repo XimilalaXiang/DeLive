@@ -63,6 +63,10 @@ export class TranscriptStabilizer {
   private committedText = ''
   private previousSnapshot = ''
 
+  getCommittedText(): string {
+    return this.committedText
+  }
+
   process(snapshot: string): StabilizedTranscriptUpdate {
     const normalizedSnapshot = normalizeSnapshot(snapshot)
     const commonPrefixLength = getLongestCommonPrefixLength(this.previousSnapshot, normalizedSnapshot)

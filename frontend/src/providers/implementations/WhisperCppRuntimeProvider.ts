@@ -1,6 +1,9 @@
 import { BaseASRProvider } from '../base'
 import type { ASRProviderInfo, ProviderConfig, ASRVendor } from '../../types/asr'
 import { createBundledRuntimeManager } from '../../utils/localRuntimeManager'
+import { RollingAudioBuffer, getPcmChunkDurationMs } from '../../utils/rollingAudioBuffer'
+import { TranscriptStabilizer } from '../../utils/transcriptStabilizer'
+import { buildWindowedTranscriptSnapshot } from '../../utils/windowedTranscript'
 
 const WHISPER_CPP_RUNTIME_ID = 'whisper_cpp'
 const WHISPER_CPP_DEFAULT_PORT = 8177
@@ -8,6 +11,7 @@ const WHISPER_CPP_SAMPLE_RATE = 16000
 const WHISPER_CPP_CHANNELS = 1
 const WHISPER_CPP_BITS_PER_SAMPLE = 16
 const WHISPER_CPP_TRANSCRIBE_INTERVAL_MS = 1500
+const WHISPER_CPP_MAX_WINDOW_MS = 45000
 
 export class WhisperCppRuntimeProvider extends BaseASRProvider {
   readonly id: ASRVendor = 'local_whisper_cpp' as ASRVendor
@@ -73,12 +77,13 @@ export class WhisperCppRuntimeProvider extends BaseASRProvider {
     ],
   }
 
-  private chunks: ArrayBuffer[] = []
+  private audioWindow = new RollingAudioBuffer<ArrayBuffer>(WHISPER_CPP_MAX_WINDOW_MS)
   private transcribeLoop: ReturnType<typeof setInterval> | null = null
   private inFlight = false
   private pendingFinal = false
   private hasPendingAudio = false
-  private lastTranscript = ''
+  private stabilizer = new TranscriptStabilizer()
+  private lastPartialText = ''
 
   async connect(config: ProviderConfig): Promise<void> {
     if (!window.electronAPI?.localRuntimeStart) {
@@ -111,7 +116,7 @@ export class WhisperCppRuntimeProvider extends BaseASRProvider {
   async disconnect(): Promise<void> {
     this.clearLoop()
 
-    if (this.chunks.length > 0) {
+    if (this.audioWindow.hasData()) {
       this.pendingFinal = true
       await this.transcribe(true)
     } else {
@@ -129,7 +134,10 @@ export class WhisperCppRuntimeProvider extends BaseASRProvider {
     this.setState('recording')
     if (data instanceof Blob) {
       void data.arrayBuffer().then((buffer) => {
-        this.chunks.push(buffer)
+        this.audioWindow.add(
+          buffer,
+          getPcmChunkDurationMs(buffer, WHISPER_CPP_SAMPLE_RATE, WHISPER_CPP_CHANNELS, WHISPER_CPP_BITS_PER_SAMPLE),
+        )
         this.hasPendingAudio = true
         this.ensureTranscribeLoop()
       }).catch((error) => {
@@ -138,7 +146,10 @@ export class WhisperCppRuntimeProvider extends BaseASRProvider {
       return
     }
 
-    this.chunks.push(data)
+    this.audioWindow.add(
+      data,
+      getPcmChunkDurationMs(data, WHISPER_CPP_SAMPLE_RATE, WHISPER_CPP_CHANNELS, WHISPER_CPP_BITS_PER_SAMPLE),
+    )
     this.hasPendingAudio = true
     this.ensureTranscribeLoop()
   }
@@ -164,7 +175,7 @@ export class WhisperCppRuntimeProvider extends BaseASRProvider {
   }
 
   private async transcribe(isFinal: boolean): Promise<void> {
-    if (!this._config || this.chunks.length === 0) {
+    if (!this._config || !this.audioWindow.hasData()) {
       return
     }
 
@@ -205,14 +216,27 @@ export class WhisperCppRuntimeProvider extends BaseASRProvider {
 
       const result = await response.json() as { text?: string }
       const transcriptText = typeof result.text === 'string' ? result.text : ''
+      const syntheticSnapshot = buildWindowedTranscriptSnapshot(
+        this.stabilizer.getCommittedText(),
+        transcriptText,
+      )
+      const update = isFinal
+        ? this.stabilizer.flush(syntheticSnapshot)
+        : this.stabilizer.process(syntheticSnapshot)
 
-      if (transcriptText && transcriptText !== this.lastTranscript) {
-        this.lastTranscript = transcriptText
-        this.emitPartial(transcriptText)
+      if (update.finalizedText) {
+        this.emitFinal(update.finalizedText)
+      }
+
+      if (update.partialText !== this.lastPartialText) {
+        this.lastPartialText = update.partialText
+        if (update.partialText) {
+          this.emitPartial(update.partialText)
+        }
       }
 
       if (isFinal) {
-        this.emitFinal(this.lastTranscript || transcriptText)
+        this.lastPartialText = ''
         this.emitFinished()
       }
     } catch (error) {
@@ -240,7 +264,8 @@ export class WhisperCppRuntimeProvider extends BaseASRProvider {
   }
 
   private buildWavBlob(): Blob {
-    const pcmSize = this.chunks.reduce((total, chunk) => total + chunk.byteLength, 0)
+    const chunks = this.audioWindow.getItems()
+    const pcmSize = chunks.reduce((total, chunk) => total + chunk.byteLength, 0)
     const wavHeader = new ArrayBuffer(44)
     const view = new DataView(wavHeader)
 
@@ -261,7 +286,7 @@ export class WhisperCppRuntimeProvider extends BaseASRProvider {
     this.writeAscii(view, 36, 'data')
     view.setUint32(40, pcmSize, true)
 
-    return new Blob([wavHeader, ...this.chunks], { type: 'audio/wav' })
+    return new Blob([wavHeader, ...chunks], { type: 'audio/wav' })
   }
 
   private getAudioFileName(blob: Blob): string {
@@ -295,10 +320,11 @@ export class WhisperCppRuntimeProvider extends BaseASRProvider {
 
   private resetSession(): void {
     this.clearLoop()
-    this.chunks = []
+    this.audioWindow.clear()
     this.inFlight = false
     this.pendingFinal = false
     this.hasPendingAudio = false
-    this.lastTranscript = ''
+    this.stabilizer.reset()
+    this.lastPartialText = ''
   }
 }

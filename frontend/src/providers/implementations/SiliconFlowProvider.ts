@@ -5,13 +5,16 @@ import {
   SILICONFLOW_DEFAULT_MODEL,
   SILICONFLOW_TRANSCRIPTION_MODELS,
 } from '../../types/asr/vendors/siliconflow'
+import { RollingAudioBuffer, getPcmChunkDurationMs } from '../../utils/rollingAudioBuffer'
 import { transcribeSiliconFlowAudio } from '../../utils/siliconflow'
 import { TranscriptStabilizer } from '../../utils/transcriptStabilizer'
+import { buildWindowedTranscriptSnapshot } from '../../utils/windowedTranscript'
 
 const SILICONFLOW_SAMPLE_RATE = 16000
 const SILICONFLOW_CHANNELS = 1
 const SILICONFLOW_BITS_PER_SAMPLE = 16
 const SILICONFLOW_TRANSCRIBE_INTERVAL_MS = 1500
+const SILICONFLOW_MAX_WINDOW_MS = 45000
 
 export class SiliconFlowProvider extends BaseASRProvider {
   readonly id: ASRVendor = 'siliconflow' as ASRVendor
@@ -66,7 +69,7 @@ export class SiliconFlowProvider extends BaseASRProvider {
     ],
   }
 
-  private chunks: ArrayBuffer[] = []
+  private audioWindow = new RollingAudioBuffer<ArrayBuffer>(SILICONFLOW_MAX_WINDOW_MS)
   private transcribeLoop: ReturnType<typeof setInterval> | null = null
   private inFlight = false
   private pendingFinal = false
@@ -94,7 +97,7 @@ export class SiliconFlowProvider extends BaseASRProvider {
   async disconnect(): Promise<void> {
     this.clearLoop()
 
-    if (this.chunks.length > 0) {
+    if (this.audioWindow.hasData()) {
       this.pendingFinal = true
       await this.transcribe(true)
     } else {
@@ -112,7 +115,10 @@ export class SiliconFlowProvider extends BaseASRProvider {
     this.setState('recording')
     if (data instanceof Blob) {
       void data.arrayBuffer().then((buffer) => {
-        this.chunks.push(buffer)
+        this.audioWindow.add(
+          buffer,
+          getPcmChunkDurationMs(buffer, SILICONFLOW_SAMPLE_RATE, SILICONFLOW_CHANNELS, SILICONFLOW_BITS_PER_SAMPLE),
+        )
         this.hasPendingAudio = true
         this.ensureTranscribeLoop()
       }).catch((error) => {
@@ -121,7 +127,10 @@ export class SiliconFlowProvider extends BaseASRProvider {
       return
     }
 
-    this.chunks.push(data)
+    this.audioWindow.add(
+      data,
+      getPcmChunkDurationMs(data, SILICONFLOW_SAMPLE_RATE, SILICONFLOW_CHANNELS, SILICONFLOW_BITS_PER_SAMPLE),
+    )
     this.hasPendingAudio = true
     this.ensureTranscribeLoop()
   }
@@ -147,7 +156,7 @@ export class SiliconFlowProvider extends BaseASRProvider {
   }
 
   private async transcribe(isFinal: boolean): Promise<void> {
-    if (!this._config || this.chunks.length === 0) {
+    if (!this._config || !this.audioWindow.hasData()) {
       return
     }
 
@@ -173,10 +182,14 @@ export class SiliconFlowProvider extends BaseASRProvider {
         wavBlob: fileBlob,
         language: this.getLanguageHint(),
       })
+      const syntheticSnapshot = buildWindowedTranscriptSnapshot(
+        this.stabilizer.getCommittedText(),
+        transcriptText,
+      )
 
       const update = isFinal
-        ? this.stabilizer.flush(transcriptText)
-        : this.stabilizer.process(transcriptText)
+        ? this.stabilizer.flush(syntheticSnapshot)
+        : this.stabilizer.process(syntheticSnapshot)
 
       if (update.finalizedText) {
         this.emitFinal(update.finalizedText)
@@ -214,7 +227,8 @@ export class SiliconFlowProvider extends BaseASRProvider {
   }
 
   private buildWavBlob(): Blob {
-    const pcmSize = this.chunks.reduce((total, chunk) => total + chunk.byteLength, 0)
+    const chunks = this.audioWindow.getItems()
+    const pcmSize = chunks.reduce((total, chunk) => total + chunk.byteLength, 0)
     const wavHeader = new ArrayBuffer(44)
     const view = new DataView(wavHeader)
 
@@ -235,7 +249,7 @@ export class SiliconFlowProvider extends BaseASRProvider {
     this.writeAscii(view, 36, 'data')
     view.setUint32(40, pcmSize, true)
 
-    return new Blob([wavHeader, ...this.chunks], { type: 'audio/wav' })
+    return new Blob([wavHeader, ...chunks], { type: 'audio/wav' })
   }
 
   private getLanguageHint(): string | undefined {
@@ -268,7 +282,7 @@ export class SiliconFlowProvider extends BaseASRProvider {
 
   private resetSession(): void {
     this.clearLoop()
-    this.chunks = []
+    this.audioWindow.clear()
     this.inFlight = false
     this.pendingFinal = false
     this.hasPendingAudio = false
