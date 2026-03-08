@@ -395,7 +395,7 @@ export function createCaptionWindowController(options: CaptionControllerOptions)
     if (options.isDev) {
       void captionWindow.loadURL('http://localhost:5173/caption.html')
     } else {
-      void captionWindow.loadFile(path.join(__dirname, '../frontend/dist/caption.html'))
+      void captionWindow.loadFile(path.join(__dirname, '../../frontend/dist/caption.html'))
     }
 
     captionEnabled = true

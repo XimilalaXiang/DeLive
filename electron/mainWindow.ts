@@ -87,7 +87,7 @@ export function createMainWindow(options: CreateMainWindowOptions): BrowserWindo
     void mainWindow.loadURL('http://localhost:5173')
     mainWindow.webContents.openDevTools()
   } else {
-    void mainWindow.loadFile(path.join(__dirname, '../frontend/dist/index.html'))
+    void mainWindow.loadFile(path.join(__dirname, '../../frontend/dist/index.html'))
   }
 
   mainWindow.once('ready-to-show', () => {

@@ -3,7 +3,7 @@
   "version": "1.4.1",
   "description": "DeLive",
   "private": true,
-  "main": "dist-electron/main.js",
+  "main": "dist-electron/electron/main.js",
   "author": "XimilalaXiang",
   "license": "Apache-2.0",
   "scripts": {

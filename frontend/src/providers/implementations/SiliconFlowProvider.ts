@@ -1,14 +1,13 @@
-import { BaseASRProvider } from '../base'
+import { WindowedBatchTranscriptionProvider } from '../windowedBatch'
 import type { ASRProviderInfo, ProviderConfig, ASRVendor } from '../../types/asr'
 import {
   SILICONFLOW_DEFAULT_BASE_URL,
   SILICONFLOW_DEFAULT_MODEL,
   SILICONFLOW_TRANSCRIPTION_MODELS,
 } from '../../types/asr/vendors/siliconflow'
-import { RollingAudioBuffer, getPcmChunkDurationMs } from '../../utils/rollingAudioBuffer'
+import { getPcmChunkDurationMs } from '../../utils/rollingAudioBuffer'
+import { buildPcmWavBlob } from '../../utils/pcmWav'
 import { transcribeSiliconFlowAudio } from '../../utils/siliconflow'
-import { TranscriptStabilizer } from '../../utils/transcriptStabilizer'
-import { buildWindowedTranscriptSnapshot } from '../../utils/windowedTranscript'
 
 const SILICONFLOW_SAMPLE_RATE = 16000
 const SILICONFLOW_CHANNELS = 1
@@ -16,7 +15,7 @@ const SILICONFLOW_BITS_PER_SAMPLE = 16
 const SILICONFLOW_TRANSCRIBE_INTERVAL_MS = 1500
 const SILICONFLOW_MAX_WINDOW_MS = 45000
 
-export class SiliconFlowProvider extends BaseASRProvider {
+export class SiliconFlowProvider extends WindowedBatchTranscriptionProvider<ArrayBuffer> {
   readonly id: ASRVendor = 'siliconflow' as ASRVendor
 
   readonly info: ASRProviderInfo = {
@@ -69,13 +68,13 @@ export class SiliconFlowProvider extends BaseASRProvider {
     ],
   }
 
-  private audioWindow = new RollingAudioBuffer<ArrayBuffer>(SILICONFLOW_MAX_WINDOW_MS)
-  private transcribeLoop: ReturnType<typeof setInterval> | null = null
-  private inFlight = false
-  private pendingFinal = false
-  private hasPendingAudio = false
-  private stabilizer = new TranscriptStabilizer()
-  private lastPartialText = ''
+  constructor() {
+    super({
+      maxWindowMs: SILICONFLOW_MAX_WINDOW_MS,
+      transcribeIntervalMs: SILICONFLOW_TRANSCRIBE_INTERVAL_MS,
+      scheduleMode: 'interval',
+    })
+  }
 
   async connect(config: ProviderConfig): Promise<void> {
     const apiKey = this.normalizeOptional(config.apiKey)
@@ -84,179 +83,48 @@ export class SiliconFlowProvider extends BaseASRProvider {
       return
     }
 
-    this._config = {
+    this.beginWindowedSession({
       ...config,
       apiKey,
       model: this.normalizeModel(config.model),
       baseUrl: SILICONFLOW_DEFAULT_BASE_URL,
-    }
-    this.resetSession()
-    this.setState('connected')
+    })
   }
 
-  async disconnect(): Promise<void> {
-    this.clearLoop()
-
-    if (this.audioWindow.hasData()) {
-      this.pendingFinal = true
-      await this.transcribe(true)
-    } else {
-      this.setState('idle')
-      this.resetSession()
-    }
-  }
-
-  sendAudio(data: Blob | ArrayBuffer): void {
-    if (!this._config) {
-      console.warn('[SiliconFlowProvider] 未连接，忽略音频数据')
-      return
-    }
-
-    this.setState('recording')
-    if (data instanceof Blob) {
-      void data.arrayBuffer().then((buffer) => {
-        this.audioWindow.add(
-          buffer,
-          getPcmChunkDurationMs(buffer, SILICONFLOW_SAMPLE_RATE, SILICONFLOW_CHANNELS, SILICONFLOW_BITS_PER_SAMPLE),
-        )
-        this.hasPendingAudio = true
-        this.ensureTranscribeLoop()
-      }).catch((error) => {
-        console.error('[SiliconFlowProvider] 读取 Blob 音频失败:', error)
-      })
-      return
-    }
-
-    this.audioWindow.add(
-      data,
-      getPcmChunkDurationMs(data, SILICONFLOW_SAMPLE_RATE, SILICONFLOW_CHANNELS, SILICONFLOW_BITS_PER_SAMPLE),
-    )
-    this.hasPendingAudio = true
-    this.ensureTranscribeLoop()
-  }
-
-  private ensureTranscribeLoop(): void {
-    if (this.transcribeLoop) {
-      return
-    }
-
-    this.transcribeLoop = setInterval(() => {
-      if (this.inFlight || !this.hasPendingAudio || this.pendingFinal) {
-        return
-      }
-      void this.transcribe(false)
-    }, SILICONFLOW_TRANSCRIBE_INTERVAL_MS)
-  }
-
-  private clearLoop(): void {
-    if (this.transcribeLoop) {
-      clearInterval(this.transcribeLoop)
-      this.transcribeLoop = null
+  protected async resolveAudioChunk(data: Blob | ArrayBuffer) {
+    const buffer = data instanceof Blob ? await data.arrayBuffer() : data
+    return {
+      chunk: buffer,
+      durationMs: getPcmChunkDurationMs(
+        buffer,
+        SILICONFLOW_SAMPLE_RATE,
+        SILICONFLOW_CHANNELS,
+        SILICONFLOW_BITS_PER_SAMPLE,
+      ),
     }
   }
 
-  private async transcribe(isFinal: boolean): Promise<void> {
-    if (!this._config || !this.audioWindow.hasData()) {
-      return
+  protected async transcribeWindow(chunks: ArrayBuffer[], config: ProviderConfig): Promise<string> {
+    const apiKey = this.normalizeOptional(config.apiKey)
+    if (!apiKey) {
+      throw new Error('硅基流动 API Key 缺失')
     }
 
-    if (this.inFlight) {
-      if (isFinal) this.pendingFinal = true
-      return
-    }
-
-    this.inFlight = true
-    this.hasPendingAudio = false
-    let shouldRunFinalPass = false
-
-    try {
-      const apiKey = this.normalizeOptional(this._config.apiKey)
-      if (!apiKey) {
-        throw new Error('硅基流动 API Key 缺失')
-      }
-
-      const fileBlob = this.buildWavBlob()
-      const transcriptText = await transcribeSiliconFlowAudio({
-        apiKey,
-        model: this.normalizeModel(this._config.model),
-        wavBlob: fileBlob,
-        language: this.getLanguageHint(),
-      })
-      const syntheticSnapshot = buildWindowedTranscriptSnapshot(
-        this.stabilizer.getCommittedText(),
-        transcriptText,
-      )
-
-      const update = isFinal
-        ? this.stabilizer.flush(syntheticSnapshot)
-        : this.stabilizer.process(syntheticSnapshot)
-
-      if (update.finalizedText) {
-        this.emitFinal(update.finalizedText)
-      }
-
-      if (update.partialText !== this.lastPartialText) {
-        this.lastPartialText = update.partialText
-        if (update.partialText) {
-          this.emitPartial(update.partialText)
-        }
-      }
-
-      if (isFinal) {
-        this.lastPartialText = ''
-        this.emitFinished()
-      }
-    } catch (error) {
-      console.error('[SiliconFlowProvider] 转录失败:', error)
-      const message = error instanceof Error ? error.message : '硅基流动转录失败'
-      this.emitError(this.createError('TRANSCRIPTION_ERROR', message))
-    } finally {
-      this.inFlight = false
-      if (this.pendingFinal && !isFinal) {
-        this.pendingFinal = false
-        shouldRunFinalPass = true
-      } else if (isFinal) {
-        this.setState('idle')
-        this.resetSession()
-      }
-    }
-
-    if (shouldRunFinalPass) {
-      await this.transcribe(true)
-    }
+    return transcribeSiliconFlowAudio({
+      apiKey,
+      model: this.normalizeModel(config.model),
+      wavBlob: buildPcmWavBlob(chunks, {
+        sampleRate: SILICONFLOW_SAMPLE_RATE,
+        channels: SILICONFLOW_CHANNELS,
+        bitsPerSample: SILICONFLOW_BITS_PER_SAMPLE,
+      }),
+      language: this.getLanguageHint(config),
+    })
   }
 
-  private buildWavBlob(): Blob {
-    const chunks = this.audioWindow.getItems()
-    const pcmSize = chunks.reduce((total, chunk) => total + chunk.byteLength, 0)
-    const wavHeader = new ArrayBuffer(44)
-    const view = new DataView(wavHeader)
-
-    const byteRate = SILICONFLOW_SAMPLE_RATE * SILICONFLOW_CHANNELS * (SILICONFLOW_BITS_PER_SAMPLE / 8)
-    const blockAlign = SILICONFLOW_CHANNELS * (SILICONFLOW_BITS_PER_SAMPLE / 8)
-
-    this.writeAscii(view, 0, 'RIFF')
-    view.setUint32(4, 36 + pcmSize, true)
-    this.writeAscii(view, 8, 'WAVE')
-    this.writeAscii(view, 12, 'fmt ')
-    view.setUint32(16, 16, true)
-    view.setUint16(20, 1, true)
-    view.setUint16(22, SILICONFLOW_CHANNELS, true)
-    view.setUint32(24, SILICONFLOW_SAMPLE_RATE, true)
-    view.setUint32(28, byteRate, true)
-    view.setUint16(32, blockAlign, true)
-    view.setUint16(34, SILICONFLOW_BITS_PER_SAMPLE, true)
-    this.writeAscii(view, 36, 'data')
-    view.setUint32(40, pcmSize, true)
-
-    return new Blob([wavHeader, ...chunks], { type: 'audio/wav' })
-  }
-
-  private getLanguageHint(): string | undefined {
-    if (!this._config) return undefined
-
-    if (Array.isArray(this._config.languageHints)) {
-      const first = this._config.languageHints.find(item => typeof item === 'string' && item.trim().length > 0)
+  private getLanguageHint(config: ProviderConfig): string | undefined {
+    if (Array.isArray(config.languageHints)) {
+      const first = config.languageHints.find(item => typeof item === 'string' && item.trim().length > 0)
       if (first) return first.trim()
     }
 
@@ -272,21 +140,5 @@ export class SiliconFlowProvider extends BaseASRProvider {
     if (typeof value !== 'string') return undefined
     const trimmed = value.trim()
     return trimmed.length > 0 ? trimmed : undefined
-  }
-
-  private writeAscii(view: DataView, offset: number, text: string): void {
-    for (let i = 0; i < text.length; i += 1) {
-      view.setUint8(offset + i, text.charCodeAt(i))
-    }
-  }
-
-  private resetSession(): void {
-    this.clearLoop()
-    this.audioWindow.clear()
-    this.inFlight = false
-    this.pendingFinal = false
-    this.hasPendingAudio = false
-    this.stabilizer.reset()
-    this.lastPartialText = ''
   }
 }

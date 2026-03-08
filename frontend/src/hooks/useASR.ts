@@ -70,16 +70,7 @@ export function useASR(options: UseASROptions = {}) {
 
   const buildProviderCallbacks = useCallback(() => ({
     onTokens(tokens: import('../types/asr').TranscriptToken[]) {
-      const legacyTokens = tokens.map(t => ({
-        text: t.text,
-        is_final: t.isFinal,
-        start_ms: t.startMs,
-        end_ms: t.endMs,
-        confidence: t.confidence,
-        language: t.language,
-        speaker: t.speaker,
-      }))
-      processTokens(legacyTokens)
+      processTokens(tokens)
 
       const s = useSessionStore.getState()
       captionRef.current.update(s.finalTranscript, s.nonFinalTranscript)
@@ -92,7 +83,7 @@ export function useASR(options: UseASROptions = {}) {
     },
 
     onFinal(text: string) {
-      processTokens([{ text, is_final: true, start_ms: 0, end_ms: 0 }])
+      processTokens([{ text, isFinal: true }])
       const s = useSessionStore.getState()
       captionRef.current.update(s.finalTranscript, '')
     },

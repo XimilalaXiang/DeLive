@@ -2,6 +2,9 @@ import type {
   TranscriptSession,
   TranscriptSessionStatus,
   TranscriptTokenData,
+  TranscriptSpeaker,
+  TranscriptSegment,
+  TranscriptSourceMeta,
 } from '../types'
 import { getSessions, saveSessions } from './storage'
 
@@ -9,6 +12,9 @@ export interface SessionProgressSnapshot {
   transcript: string
   tokens?: TranscriptTokenData[]
   providerId?: string
+  speakers?: TranscriptSpeaker[]
+  segments?: TranscriptSegment[]
+  sourceMeta?: TranscriptSourceMeta
 }
 
 export interface SessionLaunchState {
@@ -17,7 +23,7 @@ export interface SessionLaunchState {
 }
 
 const DEFAULT_STATUS: TranscriptSessionStatus = 'completed'
-const CURRENT_SESSION_SCHEMA_VERSION = 2
+const CURRENT_SESSION_SCHEMA_VERSION = 3
 let cachedSessions: TranscriptSession[] = []
 let cacheReady = false
 
@@ -132,6 +138,9 @@ export const sessionRepository = {
       transcript: snapshot.transcript,
       tokens: snapshot.tokens,
       providerId: snapshot.providerId,
+      speakers: snapshot.speakers,
+      segments: snapshot.segments,
+      sourceMeta: snapshot.sourceMeta,
       status: 'recording',
       lastPersistedAt: now,
     })
@@ -145,6 +154,9 @@ export const sessionRepository = {
       transcript: snapshot.transcript,
       tokens: snapshot.tokens,
       providerId: snapshot.providerId,
+      speakers: snapshot.speakers,
+      segments: snapshot.segments,
+      sourceMeta: snapshot.sourceMeta,
       status: 'completed',
       lastPersistedAt: now,
     })

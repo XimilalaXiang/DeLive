@@ -7,9 +7,9 @@
     "strict": true,
     "skipLibCheck": true,
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": "..",
     "declaration": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "../shared/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

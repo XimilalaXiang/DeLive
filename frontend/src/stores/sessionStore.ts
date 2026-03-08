@@ -1,14 +1,18 @@
 import { create } from 'zustand'
+import { providerRegistry } from '../providers'
 import type {
-  TranscriptSession,
   RecordingState,
-  SonioxToken,
+  TranscriptSegment,
+  TranscriptSession,
+  TranscriptSourceMeta,
+  TranscriptSpeaker,
   TranscriptTokenData,
 } from '../types'
-import { generateId, formatDate, formatTime } from '../utils/storage'
+import type { ASRVendor, TranscriptToken } from '../types/asr'
 import { sessionRepository } from '../utils/sessionRepository'
-import { useUIStore } from './uiStore'
+import { formatDate, formatTime, generateId } from '../utils/storage'
 import { useSettingsStore } from './settingsStore'
+import { useUIStore } from './uiStore'
 
 const SESSION_AUTOSAVE_DELAY_MS = 1200
 let sessionAutosaveTimer: ReturnType<typeof setTimeout> | null = null
@@ -20,25 +24,143 @@ function clearSessionAutosaveTimer(): void {
   }
 }
 
-function mapTokensForStorage(tokens: SonioxToken[]): TranscriptTokenData[] {
+function mapTokensForStorage(tokens: TranscriptToken[]): TranscriptTokenData[] {
   return tokens.map((token) => ({
     text: token.text,
-    startMs: token.start_ms,
-    endMs: token.end_ms,
+    isFinal: token.isFinal,
+    startMs: token.startMs,
+    endMs: token.endMs,
     speaker: token.speaker,
     language: token.language,
     confidence: token.confidence,
   }))
 }
 
-function buildTranscriptFromState(finalTranscript: string, nonFinalTranscript: string, currentTranscript: string): string {
+function restoreStoredTokens(tokens: TranscriptTokenData[]): TranscriptToken[] {
+  return tokens.map((token) => ({
+    text: token.text,
+    isFinal: token.isFinal !== false,
+    startMs: token.startMs,
+    endMs: token.endMs,
+    speaker: token.speaker,
+    language: token.language,
+    confidence: token.confidence,
+  }))
+}
+
+function buildTranscriptFromState(
+  finalTranscript: string,
+  nonFinalTranscript: string,
+  currentTranscript: string,
+): string {
   return currentTranscript || finalTranscript || nonFinalTranscript
+}
+
+function buildSpeakersFromTokens(tokens: TranscriptToken[]): TranscriptSpeaker[] {
+  const speakers = new Map<string, TranscriptSpeaker>()
+
+  for (const token of tokens) {
+    const speakerId = token.speaker?.trim()
+    if (!speakerId || speakers.has(speakerId)) {
+      continue
+    }
+
+    speakers.set(speakerId, {
+      id: speakerId,
+      label: speakerId,
+      displayName: speakerId,
+    })
+  }
+
+  return Array.from(speakers.values())
+}
+
+function buildSegmentsFromTokens(tokens: TranscriptToken[]): TranscriptSegment[] {
+  const segments: TranscriptSegment[] = []
+  let currentSegment: TranscriptSegment | null = null
+
+  for (const token of tokens) {
+    if (!token.text) {
+      continue
+    }
+
+    if (!currentSegment) {
+      currentSegment = {
+        text: token.text,
+        startMs: token.startMs,
+        endMs: token.endMs,
+        speakerId: token.speaker,
+        language: token.language,
+        isFinal: true,
+      }
+      continue
+    }
+
+    const sameSpeaker = currentSegment.speakerId === token.speaker
+    const sameLanguage = currentSegment.language === token.language
+
+    if (sameSpeaker && sameLanguage) {
+      currentSegment.text += token.text
+      currentSegment.endMs = token.endMs ?? currentSegment.endMs
+      continue
+    }
+
+    segments.push(currentSegment)
+    currentSegment = {
+      text: token.text,
+      startMs: token.startMs,
+      endMs: token.endMs,
+      speakerId: token.speaker,
+      language: token.language,
+      isFinal: true,
+    }
+  }
+
+  if (currentSegment) {
+    segments.push(currentSegment)
+  }
+
+  return segments
+}
+
+function resolveProviderMode(providerId: string | undefined): TranscriptSourceMeta['providerMode'] {
+  if (!providerId) {
+    return 'unknown'
+  }
+
+  const providerInfo = providerRegistry.getInfo(providerId as ASRVendor)
+  if (!providerInfo) {
+    return 'unknown'
+  }
+
+  switch (providerInfo.capabilities.transport.type) {
+    case 'realtime':
+      return 'realtime'
+    case 'full-session-retranscription':
+      return 'full-session-retranscription'
+    case 'local-runtime':
+      return 'local-runtime'
+    default:
+      return 'unknown'
+  }
+}
+
+function buildSourceMeta(providerId: string | undefined): TranscriptSourceMeta | undefined {
+  if (!providerId) {
+    return undefined
+  }
+
+  return {
+    captureMode: 'system-audio',
+    platform: window.electronAPI?.platform ?? 'unknown',
+    providerMode: resolveProviderMode(providerId),
+  }
 }
 
 function updateSessionInCollection(
   sessions: TranscriptSession[],
   sessionId: string | null,
-  updates: Partial<TranscriptSession>
+  updates: Partial<TranscriptSession>,
 ): TranscriptSession[] {
   if (!sessionId) return sessions
   const now = Date.now()
@@ -73,16 +195,16 @@ export interface SessionState {
   updateSessionTags: (sessionId: string, tagIds: string[]) => void
   replaceAllSessions: (sessions: TranscriptSession[]) => TranscriptSession[]
 
-  finalTokens: SonioxToken[]
-  processTokens: (tokens: SonioxToken[]) => void
+  finalTokens: TranscriptToken[]
+  processTokens: (tokens: TranscriptToken[]) => void
 }
 
 export const useSessionStore = create<SessionState>((set, get) => {
-  const buildStoredTokens = (tokens: SonioxToken[]): TranscriptTokenData[] | undefined =>
+  const buildStoredTokens = (tokens: TranscriptToken[]): TranscriptTokenData[] | undefined =>
     tokens.length > 0 ? mapTokensForStorage(tokens) : undefined
 
   const buildCurrentSessionSnapshot = (overrides?: {
-    finalTokens?: SonioxToken[]
+    finalTokens?: TranscriptToken[]
     finalTranscript?: string
     nonFinalTranscript?: string
     currentTranscript?: string
@@ -94,16 +216,20 @@ export const useSessionStore = create<SessionState>((set, get) => {
     const currentTranscript = overrides?.currentTranscript ?? state.currentTranscript
     const transcript = buildTranscriptFromState(finalTranscript, nonFinalTranscript, currentTranscript)
     const tokens = buildStoredTokens(finalTokens)
+    const providerId = useSettingsStore.getState().settings.currentVendor
 
     return {
       transcript,
       tokens,
-      providerId: useSettingsStore.getState().settings.currentVendor,
+      providerId,
+      speakers: buildSpeakersFromTokens(finalTokens),
+      segments: buildSegmentsFromTokens(finalTokens),
+      sourceMeta: buildSourceMeta(providerId),
     }
   }
 
   const syncCurrentSessionInMemory = (overrides?: {
-    finalTokens?: SonioxToken[]
+    finalTokens?: TranscriptToken[]
     finalTranscript?: string
     nonFinalTranscript?: string
     currentTranscript?: string
@@ -116,6 +242,9 @@ export const useSessionStore = create<SessionState>((set, get) => {
       transcript: snapshot.transcript,
       tokens: snapshot.tokens,
       providerId: snapshot.providerId,
+      speakers: snapshot.speakers,
+      segments: snapshot.segments,
+      sourceMeta: snapshot.sourceMeta,
       status: 'recording',
     })
   }
@@ -164,6 +293,8 @@ export const useSessionStore = create<SessionState>((set, get) => {
       const now = Date.now()
       const { t } = useUIStore.getState()
       const { settings } = useSettingsStore.getState()
+      const providerId = settings.currentVendor
+
       const session: TranscriptSession = {
         id,
         title: t.session.defaultTitle(formatTime(now)),
@@ -173,10 +304,12 @@ export const useSessionStore = create<SessionState>((set, get) => {
         updatedAt: now,
         transcript: '',
         tagIds: [],
-        providerId: settings.currentVendor,
+        providerId,
+        sourceMeta: buildSourceMeta(providerId),
         status: 'recording',
         lastPersistedAt: now,
       }
+
       const sessions = sessionRepository.createDraft(session)
       set({
         currentSessionId: id,
@@ -211,16 +344,10 @@ export const useSessionStore = create<SessionState>((set, get) => {
       const { recoverySession } = get()
       if (!recoverySession) return
 
-      const restoredTranscript = recoverySession.transcript || recoverySession.tokens?.map((t) => t.text).join('') || ''
-      const restoredTokens: SonioxToken[] = (recoverySession.tokens || []).map((token) => ({
-        text: token.text,
-        is_final: true,
-        start_ms: token.startMs,
-        end_ms: token.endMs,
-        speaker: token.speaker,
-        language: token.language,
-        confidence: token.confidence,
-      }))
+      const restoredTranscript = recoverySession.transcript
+        || recoverySession.tokens?.map((token) => token.text).join('')
+        || ''
+      const restoredTokens = restoreStoredTokens(recoverySession.tokens || [])
       const sessions = sessionRepository.acknowledgeInterrupted(recoverySession.id)
       set({
         recoverySession: null,
@@ -273,16 +400,21 @@ export const useSessionStore = create<SessionState>((set, get) => {
       let nonFinalText = ''
 
       for (const token of tokens) {
-        if (token.text) {
-          if (token.is_final) {
-            newFinalTokens.push(token)
-          } else {
-            nonFinalText += token.text
-          }
+        if (!token.text) {
+          continue
+        }
+
+        if (token.isFinal) {
+          newFinalTokens.push({
+            ...token,
+            isFinal: true,
+          })
+        } else {
+          nonFinalText += token.text
         }
       }
 
-      const finalText = newFinalTokens.map(t => t.text).join('')
+      const finalText = newFinalTokens.map((token) => token.text).join('')
       const currentTranscript = finalText + nonFinalText
       const sessions = syncCurrentSessionInMemory({
         finalTokens: newFinalTokens,
@@ -290,6 +422,7 @@ export const useSessionStore = create<SessionState>((set, get) => {
         nonFinalTranscript: nonFinalText,
         currentTranscript,
       })
+
       set({
         finalTokens: newFinalTokens,
         finalTranscript: finalText,

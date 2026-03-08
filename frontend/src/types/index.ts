@@ -23,9 +23,10 @@ export const TAG_COLORS = [
   { name: 'red', bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-700 dark:text-red-300', border: 'border-red-200 dark:border-red-800' },
 ] as const
 
-// 转录 Token 类型（用于保存时间戳信息）
+// 转录 Token 类型（用于会话持久化和导出）
 export interface TranscriptTokenData {
   text: string
+  isFinal?: boolean
   startMs?: number
   endMs?: number
   speaker?: string

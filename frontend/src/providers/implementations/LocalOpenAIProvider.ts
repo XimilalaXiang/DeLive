@@ -3,22 +3,20 @@
  * 基于 /v1/audio/transcriptions 接口实现渐进式转录
  */
 
-import { BaseASRProvider } from '../base'
+import { WindowedBatchTranscriptionProvider } from '../windowedBatch'
 import type { ASRProviderInfo, ProviderConfig, ASRVendor } from '../../types/asr'
 import type { OpenAITranscriptionResponse } from '../../types/asr/vendors/localOpenAI'
 import {
   LOCAL_OPENAI_DEFAULT_BASE_URL,
   LOCAL_OPENAI_DEFAULT_MODEL,
 } from '../../types/asr/vendors/localOpenAI'
-import { RollingAudioBuffer, getMediaRecorderChunkDurationMs } from '../../utils/rollingAudioBuffer'
-import { TranscriptStabilizer } from '../../utils/transcriptStabilizer'
-import { buildWindowedTranscriptSnapshot } from '../../utils/windowedTranscript'
+import { getMediaRecorderChunkDurationMs } from '../../utils/rollingAudioBuffer'
 
 const LOCAL_OPENAI_TRANSCRIBE_INTERVAL_MS = 1200
 const LOCAL_OPENAI_MAX_WINDOW_MS = 45000
 const LOCAL_OPENAI_MEDIA_CHUNK_MS = 100
 
-export class LocalOpenAIProvider extends BaseASRProvider {
+export class LocalOpenAIProvider extends WindowedBatchTranscriptionProvider<Blob> {
   readonly id: ASRVendor = 'local_openai' as ASRVendor
 
   readonly info: ASRProviderInfo = {
@@ -82,12 +80,13 @@ export class LocalOpenAIProvider extends BaseASRProvider {
     ],
   }
 
-  private audioWindow = new RollingAudioBuffer<Blob>(LOCAL_OPENAI_MAX_WINDOW_MS)
-  private transcribeTimer: ReturnType<typeof setTimeout> | null = null
-  private inFlight = false
-  private pendingFinal = false
-  private stabilizer = new TranscriptStabilizer()
-  private lastPartialText = ''
+  constructor() {
+    super({
+      maxWindowMs: LOCAL_OPENAI_MAX_WINDOW_MS,
+      transcribeIntervalMs: LOCAL_OPENAI_TRANSCRIBE_INTERVAL_MS,
+      scheduleMode: 'debounce',
+    })
+  }
 
   async connect(config: ProviderConfig): Promise<void> {
     const baseUrl = this.normalizeBaseUrl(config.baseUrl)
@@ -105,147 +104,62 @@ export class LocalOpenAIProvider extends BaseASRProvider {
       return
     }
 
-    this._config = {
+    this.beginWindowedSession({
       ...config,
       baseUrl,
       model,
       apiKey: this.normalizeOptional(config.apiKey),
-    }
-    this.resetSession()
-    this.setState('connected')
+    })
   }
 
-  async disconnect(): Promise<void> {
-    this.clearTimer()
+  protected shouldEmitErrorOnNonFinalTranscriptionFailure(): boolean {
+    return false
+  }
 
-    if (this.audioWindow.hasData()) {
-      this.pendingFinal = true
-      await this.transcribe(true)
-    } else {
-      this.setState('idle')
-      this.resetSession()
+  protected async resolveAudioChunk(data: Blob | ArrayBuffer) {
+    return {
+      chunk: data instanceof Blob ? data : new Blob([data], { type: 'audio/webm' }),
+      durationMs: getMediaRecorderChunkDurationMs(LOCAL_OPENAI_MEDIA_CHUNK_MS),
     }
   }
 
-  sendAudio(data: Blob | ArrayBuffer): void {
-    if (!this._config) {
-      console.warn('[LocalOpenAIProvider] 未连接，忽略音频数据')
-      return
+  protected async transcribeWindow(chunks: Blob[], config: ProviderConfig): Promise<string> {
+    const baseUrl = this.normalizeBaseUrl(config.baseUrl)
+    const model = this.normalizeModel(config.model)
+    const apiKey = this.normalizeOptional(config.apiKey)
+
+    const endpoint = `${baseUrl}/v1/audio/transcriptions`
+    const fileBlob = this.buildAudioBlob(chunks)
+    const formData = new FormData()
+    formData.append('file', fileBlob, this.getAudioFileName(fileBlob))
+    formData.append('model', model)
+
+    const language = this.getLanguageHint(config)
+    if (language) {
+      formData.append('language', language)
     }
 
-    this.setState('recording')
-    const blob = data instanceof Blob ? data : new Blob([data], { type: 'audio/webm' })
-    this.audioWindow.add(blob, getMediaRecorderChunkDurationMs(LOCAL_OPENAI_MEDIA_CHUNK_MS))
-    this.scheduleTranscribe()
+    const headers: HeadersInit = {}
+    if (apiKey) {
+      headers.Authorization = `Bearer ${apiKey}`
+    }
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers,
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => '')
+      throw new Error(errorText || `HTTP ${response.status}`)
+    }
+
+    const result = await response.json() as OpenAITranscriptionResponse
+    return typeof result.text === 'string' ? result.text : ''
   }
 
-  private scheduleTranscribe(): void {
-    this.clearTimer()
-    this.transcribeTimer = setTimeout(() => {
-      void this.transcribe(false)
-    }, LOCAL_OPENAI_TRANSCRIBE_INTERVAL_MS)
-  }
-
-  private clearTimer(): void {
-    if (this.transcribeTimer) {
-      clearTimeout(this.transcribeTimer)
-      this.transcribeTimer = null
-    }
-  }
-
-  private async transcribe(isFinal: boolean): Promise<void> {
-    if (!this._config || !this.audioWindow.hasData()) {
-      return
-    }
-
-    if (this.inFlight) {
-      if (isFinal) this.pendingFinal = true
-      return
-    }
-
-    this.inFlight = true
-    let shouldRunFinalPass = false
-    try {
-      const baseUrl = this.normalizeBaseUrl(this._config.baseUrl)
-      const model = this.normalizeModel(this._config.model)
-      const apiKey = this.normalizeOptional(this._config.apiKey)
-
-      const endpoint = `${baseUrl}/v1/audio/transcriptions`
-      const formData = new FormData()
-      const fileBlob = this.buildAudioBlob()
-      formData.append('file', fileBlob, this.getAudioFileName(fileBlob))
-      formData.append('model', model)
-
-      const language = this.getLanguageHint()
-      if (language) {
-        formData.append('language', language)
-      }
-
-      const headers: HeadersInit = {}
-      if (apiKey) {
-        headers.Authorization = `Bearer ${apiKey}`
-      }
-
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers,
-        body: formData,
-      })
-
-      if (!response.ok) {
-        const errorText = await response.text().catch(() => '')
-        throw new Error(errorText || `HTTP ${response.status}`)
-      }
-
-      const result = await response.json() as OpenAITranscriptionResponse
-      const transcriptText = typeof result.text === 'string' ? result.text : ''
-      const syntheticSnapshot = buildWindowedTranscriptSnapshot(
-        this.stabilizer.getCommittedText(),
-        transcriptText,
-      )
-      const update = isFinal
-        ? this.stabilizer.flush(syntheticSnapshot)
-        : this.stabilizer.process(syntheticSnapshot)
-
-      if (update.finalizedText) {
-        this.emitFinal(update.finalizedText)
-      }
-
-      if (update.partialText !== this.lastPartialText) {
-        this.lastPartialText = update.partialText
-        if (update.partialText) {
-          this.emitPartial(update.partialText)
-        }
-      }
-
-      if (isFinal) {
-        this.lastPartialText = ''
-        this.emitFinished()
-      }
-    } catch (error) {
-      console.error('[LocalOpenAIProvider] 转录失败:', error)
-      const message = error instanceof Error ? error.message : '本地转录失败'
-      if (isFinal) {
-        this.emitError(this.createError('TRANSCRIPTION_ERROR', message))
-      }
-    } finally {
-      this.inFlight = false
-      if (this.pendingFinal && !isFinal) {
-        this.pendingFinal = false
-        shouldRunFinalPass = true
-      } else if (isFinal) {
-        this.setState('idle')
-        this.resetSession()
-      }
-    }
-
-    if (shouldRunFinalPass) {
-      await this.transcribe(true)
-    }
-  }
-
-  private buildAudioBlob(): Blob {
-    const chunks = this.audioWindow.getItems()
+  private buildAudioBlob(chunks: Blob[]): Blob {
     const mimeType = chunks.find(chunk => !!chunk.type)?.type || 'audio/webm'
     return new Blob(chunks, { type: mimeType })
   }
@@ -256,11 +170,9 @@ export class LocalOpenAIProvider extends BaseASRProvider {
     return 'audio.webm'
   }
 
-  private getLanguageHint(): string | undefined {
-    if (!this._config) return undefined
-
-    if (Array.isArray(this._config.languageHints)) {
-      const first = this._config.languageHints.find(item => typeof item === 'string' && item.trim().length > 0)
+  private getLanguageHint(config: ProviderConfig): string | undefined {
+    if (Array.isArray(config.languageHints)) {
+      const first = config.languageHints.find(item => typeof item === 'string' && item.trim().length > 0)
       if (first) return first.trim()
     }
 
@@ -282,14 +194,5 @@ export class LocalOpenAIProvider extends BaseASRProvider {
     if (typeof value !== 'string') return undefined
     const trimmed = value.trim()
     return trimmed.length > 0 ? trimmed : undefined
-  }
-
-  private resetSession(): void {
-    this.clearTimer()
-    this.audioWindow.clear()
-    this.inFlight = false
-    this.pendingFinal = false
-    this.stabilizer.reset()
-    this.lastPartialText = ''
   }
 }
