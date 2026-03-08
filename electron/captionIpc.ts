@@ -15,8 +15,8 @@ export function registerCaptionIpc({ ipcMain, controller }: RegisterCaptionIpcOp
     return controller.getStatus()
   })
 
-  ipcMain.handle('caption-update-text', (_event, text: string, isFinal: boolean) => {
-    controller.updateText(text, isFinal)
+  ipcMain.handle('caption-update-text', (_event, stableText: string, activeText: string, isFinal: boolean) => {
+    controller.updateText(stableText, activeText, isFinal)
   })
 
   ipcMain.handle('caption-update-style', (_event, newStyle) => {

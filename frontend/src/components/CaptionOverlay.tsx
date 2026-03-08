@@ -16,6 +16,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Move, Lock, Unlock, X } from 'lucide-react'
+import { appendCaptionText, wrapCaptionText } from '../utils/captionLineWrap'
 
 // 字幕样式接口
 interface CaptionStyle {
@@ -39,15 +40,9 @@ const defaultStyle: CaptionStyle = {
   width: 800,
 }
 
-// 估算每行可以显示的字符数
-const estimateCharsPerLine = (fontSize: number, containerWidth: number): number => {
-  const availableWidth = containerWidth - 48 // 减去左右 padding
-  const charWidth = fontSize
-  return Math.floor(availableWidth / charWidth)
-}
-
 export function CaptionOverlay() {
-  const [currentText, setCurrentText] = useState('')
+  const [stableText, setStableText] = useState('')
+  const [activeText, setActiveText] = useState('')
   const [isFinalText, setIsFinalText] = useState(false)
   const [style, setStyle] = useState<CaptionStyle>(defaultStyle)
   const [isDraggable, setIsDraggable] = useState(false)
@@ -67,7 +62,8 @@ export function CaptionOverlay() {
 
       setStyle(status.style)
       setIsDraggable(status.draggable)
-      setCurrentText(status.text)
+      setStableText(status.stableText ?? (status.isFinal ? status.text : ''))
+      setActiveText(status.activeText ?? (status.isFinal ? '' : status.text))
       setIsFinalText(status.isFinal)
     }).catch(() => {
       // 忽略初始化同步失败，后续实时事件仍会更新字幕状态
@@ -107,8 +103,13 @@ export function CaptionOverlay() {
     if (!window.electronAPI?.onCaptionTextUpdate) return
 
     const cleanup = window.electronAPI.onCaptionTextUpdate((data) => {
-      const { text, isFinal } = data
-      setCurrentText(text)
+      const {
+        stableText: nextStableText = data.isFinal ? data.text : '',
+        activeText: nextActiveText = data.isFinal ? '' : data.text,
+        isFinal,
+      } = data
+      setStableText(nextStableText)
+      setActiveText(nextActiveText)
       setIsFinalText(isFinal)
     })
 
@@ -178,23 +179,28 @@ export function CaptionOverlay() {
     await window.electronAPI.captionToggle(false, 'caption-overlay-close-button')
   }, [])
 
-  // 拖拽处理
-  // 计算显示行
-  const charsPerLine = estimateCharsPerLine(style.fontSize, containerWidth)
-
   const getDisplayLines = useCallback((): string[] => {
-    if (!currentText) return []
+    if (!stableText && !activeText) return []
 
-    const lines: string[] = []
-    let remaining = currentText
+    const availableWidth = Math.max(1, containerWidth - 48)
+    const canvas = document.createElement('canvas')
+    const context = canvas.getContext('2d')
 
-    while (remaining.length > 0) {
-      lines.push(remaining.slice(0, charsPerLine))
-      remaining = remaining.slice(charsPerLine)
+    if (!context) {
+      const fallbackText = stableText + activeText
+      return fallbackText ? [fallbackText].slice(-style.maxLines) : []
     }
 
-    return lines.slice(-style.maxLines)
-  }, [currentText, charsPerLine, style.maxLines])
+    context.font = `${style.fontSize}px ${style.fontFamily}`
+    const wrapOptions = {
+      maxLines: style.maxLines,
+      maxWidth: availableWidth,
+      measureText: (text: string) => context.measureText(text).width,
+    } as const
+    const stableLines = wrapCaptionText(stableText, wrapOptions)
+
+    return appendCaptionText(stableLines, activeText, wrapOptions)
+  }, [activeText, stableText, containerWidth, style.fontFamily, style.fontSize, style.maxLines])
 
   const displayLines = getDisplayLines()
   const hasContent = displayLines.length > 0
@@ -279,8 +285,8 @@ export function CaptionOverlay() {
           textShadow: style.textShadow
             ? '2px 2px 4px rgba(0, 0, 0, 0.8), -1px -1px 2px rgba(0, 0, 0, 0.5)'
             : 'none',
-          width: '90%',
-          maxWidth: '90%',
+          width: '100%',
+          maxWidth: '100%',
           textAlign: 'left',
           lineHeight: 1.5,
           borderRadius: '12px', // 四个角都是圆角

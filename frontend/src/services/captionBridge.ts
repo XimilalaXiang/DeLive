@@ -6,23 +6,32 @@
  */
 
 export class CaptionBridge {
-  private lastText = ''
+  private lastStableText = ''
+  private lastActiveText = ''
   private lastIsFinal = false
 
   /** 推送文本到字幕窗口，自动去重 */
-  update(text: string, isFinal: boolean): void {
-    if (text === this.lastText && isFinal === this.lastIsFinal) {
+  update(stableText: string, activeText: string): void {
+    const isFinal = activeText.length === 0 && stableText.length > 0
+
+    if (
+      stableText === this.lastStableText &&
+      activeText === this.lastActiveText &&
+      isFinal === this.lastIsFinal
+    ) {
       return
     }
-    this.lastText = text
+    this.lastStableText = stableText
+    this.lastActiveText = activeText
     this.lastIsFinal = isFinal
-    window.electronAPI?.captionUpdateText(text, isFinal)
+    window.electronAPI?.captionUpdateText(stableText, activeText, isFinal)
   }
 
   /** 清空字幕并重置去重状态 */
   clear(): void {
-    this.lastText = ''
+    this.lastStableText = ''
+    this.lastActiveText = ''
     this.lastIsFinal = false
-    window.electronAPI?.captionUpdateText('', false)
+    window.electronAPI?.captionUpdateText('', '', false)
   }
 }

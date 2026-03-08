@@ -63,6 +63,8 @@ declare interface CaptionStatus {
   enabled: boolean
   draggable: boolean
   style: CaptionStyle
+  stableText: string
+  activeText: string
   text: string
   isFinal: boolean
 }
@@ -116,7 +118,7 @@ declare interface ElectronAPI {
   // 字幕窗口 API
   captionToggle: (enable?: boolean, source?: string) => Promise<boolean>
   captionGetStatus: () => Promise<CaptionStatus>
-  captionUpdateText: (text: string, isFinal: boolean) => Promise<void>
+  captionUpdateText: (stableText: string, activeText: string, isFinal: boolean) => Promise<void>
   captionUpdateStyle: (style: Partial<CaptionStyle>) => Promise<CaptionStyle>
   captionToggleDraggable: (draggable?: boolean) => Promise<boolean>
   captionSetInteractive: (interactive: boolean) => Promise<boolean>
@@ -124,7 +126,7 @@ declare interface ElectronAPI {
   captionSetBounds: (bounds: Partial<CaptionBounds>) => Promise<boolean>
   captionResetPosition: () => Promise<boolean>
   onCaptionStatusChanged: (callback: (enabled: boolean) => void) => () => void
-  onCaptionTextUpdate: (callback: (data: { text: string; isFinal: boolean }) => void) => () => void
+  onCaptionTextUpdate: (callback: (data: { stableText: string; activeText: string; text: string; isFinal: boolean }) => void) => () => void
   onCaptionStyleUpdate: (callback: (style: CaptionStyle) => void) => () => void
   onCaptionDraggableChanged: (callback: (draggable: boolean) => void) => () => void
   onCaptionInteractiveChanged: (callback: (interactive: boolean) => void) => () => void

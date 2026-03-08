@@ -58,6 +58,8 @@ interface CaptionStatus {
   enabled: boolean
   draggable: boolean
   style: CaptionStyle
+  stableText: string
+  activeText: string
   text: string
   isFinal: boolean
 }
@@ -172,7 +174,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   captionGetStatus: () => ipcRenderer.invoke('caption-get-status') as Promise<CaptionStatus>,
 
   // 更新字幕文字
-  captionUpdateText: (text: string, isFinal: boolean) => ipcRenderer.invoke('caption-update-text', text, isFinal),
+  captionUpdateText: (stableText: string, activeText: string, isFinal: boolean) =>
+    ipcRenderer.invoke('caption-update-text', stableText, activeText, isFinal),
 
   // 更新字幕样式
   captionUpdateStyle: (style: Partial<CaptionStyle>) => ipcRenderer.invoke('caption-update-style', style) as Promise<CaptionStyle>,
@@ -200,8 +203,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
   // 监听字幕文字更新（用于字幕窗口）
-  onCaptionTextUpdate: (callback: (data: { text: string; isFinal: boolean }) => void) => {
-    const listener = (_event: Electron.IpcRendererEvent, data: { text: string; isFinal: boolean }) => callback(data)
+  onCaptionTextUpdate: (callback: (data: { stableText: string; activeText: string; text: string; isFinal: boolean }) => void) => {
+    const listener = (
+      _event: Electron.IpcRendererEvent,
+      data: { stableText: string; activeText: string; text: string; isFinal: boolean },
+    ) => callback(data)
     ipcRenderer.on('caption-text-update', listener)
     return () => ipcRenderer.removeListener('caption-text-update', listener)
   },
@@ -314,6 +320,8 @@ declare global {
     enabled: boolean
     draggable: boolean
     style: CaptionStyle
+    stableText: string
+    activeText: string
     text: string
     isFinal: boolean
   }
@@ -363,7 +371,7 @@ declare global {
       // 字幕窗口 API
       captionToggle: (enable?: boolean, source?: string) => Promise<boolean>
       captionGetStatus: () => Promise<CaptionStatus>
-      captionUpdateText: (text: string, isFinal: boolean) => Promise<void>
+      captionUpdateText: (stableText: string, activeText: string, isFinal: boolean) => Promise<void>
       captionUpdateStyle: (style: Partial<CaptionStyle>) => Promise<CaptionStyle>
       captionToggleDraggable: (draggable?: boolean) => Promise<boolean>
       captionSetInteractive: (interactive: boolean) => Promise<boolean>
@@ -371,7 +379,7 @@ declare global {
       captionSetBounds: (bounds: Partial<CaptionBounds>) => Promise<boolean>
       captionResetPosition: () => Promise<boolean>
       onCaptionStatusChanged: (callback: (enabled: boolean) => void) => () => void
-      onCaptionTextUpdate: (callback: (data: { text: string; isFinal: boolean }) => void) => () => void
+      onCaptionTextUpdate: (callback: (data: { stableText: string; activeText: string; text: string; isFinal: boolean }) => void) => () => void
       onCaptionStyleUpdate: (callback: (style: CaptionStyle) => void) => () => void
       onCaptionDraggableChanged: (callback: (draggable: boolean) => void) => () => void
       onCaptionInteractiveChanged: (callback: (interactive: boolean) => void) => () => void

@@ -16,6 +16,8 @@ interface CaptionStatus {
   enabled: boolean
   draggable: boolean
   style: CaptionStyle
+  stableText: string
+  activeText: string
   text: string
   isFinal: boolean
 }
@@ -49,7 +51,8 @@ export function createCaptionWindowController(options: CaptionControllerOptions)
   let captionWindow: BrowserWindow | null = null
   let captionEnabled = false
   let captionDraggable = false
-  let captionText = ''
+  let captionStableText = ''
+  let captionActiveText = ''
   let captionTextIsFinal = false
   let mouseCheckInterval: NodeJS.Timeout | null = null
   let lastMouseInside = false
@@ -106,6 +109,8 @@ export function createCaptionWindowController(options: CaptionControllerOptions)
       captionEnabled,
       captionDraggable,
       currentInteractiveMode,
+      captionStableTextLength: captionStableText.length,
+      captionActiveTextLength: captionActiveText.length,
       mainWindow: getWindowDebugSnapshot(mainWindow),
       captionWindow: getWindowDebugSnapshot(captionWindow),
       ...extra,
@@ -174,7 +179,9 @@ export function createCaptionWindowController(options: CaptionControllerOptions)
     captionWindow.webContents.send('caption-style-update', captionStyle)
     captionWindow.webContents.send('caption-draggable-changed', captionDraggable)
     captionWindow.webContents.send('caption-text-update', {
-      text: captionText,
+      stableText: captionStableText,
+      activeText: captionActiveText,
+      text: captionStableText + captionActiveText,
       isFinal: captionTextIsFinal,
     })
   }
@@ -473,27 +480,37 @@ export function createCaptionWindowController(options: CaptionControllerOptions)
       enabled: captionEnabled,
       draggable: captionDraggable,
       style: captionStyle,
-      text: captionText,
+      stableText: captionStableText,
+      activeText: captionActiveText,
+      text: captionStableText + captionActiveText,
       isFinal: captionTextIsFinal,
     }
   }
 
-  function updateText(text: string, isFinal: boolean): void {
-    captionText = text
+  function updateText(stableText: string, activeText: string, isFinal: boolean): void {
+    captionStableText = stableText
+    captionActiveText = activeText
     captionTextIsFinal = isFinal
 
     if (captionWindow && !captionWindow.isDestroyed() && captionEnabled) {
       if (!captionWindow.isVisible()) {
         debug('caption-update-text.window-not-visible', {
-          textLength: text.length,
+          stableTextLength: stableText.length,
+          activeTextLength: activeText.length,
           isFinal,
         })
       }
       showCaptionWindow(captionWindow, 'caption-update-text')
-      captionWindow.webContents.send('caption-text-update', { text, isFinal })
+      captionWindow.webContents.send('caption-text-update', {
+        stableText,
+        activeText,
+        text: stableText + activeText,
+        isFinal,
+      })
     } else {
       debug('caption-update-text.no-window', {
-        textLength: text.length,
+        stableTextLength: stableText.length,
+        activeTextLength: activeText.length,
         isFinal,
       })
     }
