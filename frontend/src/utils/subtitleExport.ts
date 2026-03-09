@@ -5,6 +5,16 @@
 
 import type { TranscriptTokenData, TranscriptSession } from '../types'
 
+type SubtitleTranslationDisplay = 'auto' | 'source-only' | 'dual' | 'translated-only'
+
+interface GroupedSubtitle {
+  startMs: number
+  endMs: number
+  text: string
+  speakerId?: string
+  translatedText?: string
+}
+
 /**
  * 将毫秒转换为 SRT 时间格式 (HH:MM:SS,mmm)
  */
@@ -40,14 +50,14 @@ function groupTokensIntoSubtitles(
     maxDurationMs?: number    // 每段最大时长（毫秒）
     minDurationMs?: number    // 每段最小时长（毫秒）
   } = {}
-): Array<{ startMs: number; endMs: number; text: string; speaker?: string }> {
+): GroupedSubtitle[] {
   const {
     maxCharsPerLine = 40,
     maxDurationMs = 5000,
     minDurationMs = 1000,
   } = options
 
-  const subtitles: Array<{ startMs: number; endMs: number; text: string; speaker?: string }> = []
+  const subtitles: GroupedSubtitle[] = []
   
   if (tokens.length === 0) return subtitles
 
@@ -55,7 +65,7 @@ function groupTokensIntoSubtitles(
     startMs: tokens[0].startMs ?? 0,
     endMs: tokens[0].endMs ?? 0,
     text: '',
-    speaker: tokens[0].speaker,
+    speakerId: tokens[0].speaker,
   }
 
   for (const token of tokens) {
@@ -65,7 +75,7 @@ function groupTokensIntoSubtitles(
     // 判断是否需要开始新的字幕段
     const currentDuration = currentSubtitle.endMs - currentSubtitle.startMs
     const newDuration = tokenEndMs - currentSubtitle.startMs
-    const speakerChanged = token.speaker && token.speaker !== currentSubtitle.speaker
+    const speakerChanged = token.speaker && token.speaker !== currentSubtitle.speakerId
     
     const shouldStartNew = 
       (currentSubtitle.text.length + token.text.length > maxCharsPerLine && currentDuration >= minDurationMs) ||
@@ -78,13 +88,13 @@ function groupTokensIntoSubtitles(
         startMs: tokenStartMs,
         endMs: tokenEndMs,
         text: token.text,
-        speaker: token.speaker,
+        speakerId: token.speaker,
       }
     } else {
       currentSubtitle.text += token.text
       currentSubtitle.endMs = tokenEndMs
       if (token.speaker) {
-        currentSubtitle.speaker = token.speaker
+        currentSubtitle.speakerId = token.speaker
       }
     }
   }
@@ -97,6 +107,125 @@ function groupTokensIntoSubtitles(
   return subtitles
 }
 
+function resolveTranslationDisplayMode(
+  session: TranscriptSession | undefined,
+  translationDisplay: SubtitleTranslationDisplay | undefined,
+): Exclude<SubtitleTranslationDisplay, 'auto'> {
+  if (translationDisplay && translationDisplay !== 'auto') {
+    return translationDisplay
+  }
+
+  const translatedText = session?.translatedTranscript?.text?.trim()
+  if (!translatedText) {
+    return 'source-only'
+  }
+
+  return session?.translatedTranscript?.mode === 'output-only'
+    ? 'translated-only'
+    : 'dual'
+}
+
+function buildSpeakerNameMap(session: TranscriptSession | undefined): Record<string, string> {
+  const entries = (session?.speakers || [])
+    .map((speaker) => {
+      const displayName = speaker.displayName?.trim() || speaker.label?.trim() || speaker.id
+      return displayName ? [speaker.id, displayName] : null
+    })
+    .filter((entry): entry is [string, string] => Boolean(entry))
+
+  return Object.fromEntries(entries)
+}
+
+function splitTranslatedTextIntoSubtitles(
+  translatedText: string,
+  subtitles: GroupedSubtitle[],
+): string[] {
+  if (!translatedText.trim() || subtitles.length === 0) {
+    return subtitles.map(() => '')
+  }
+
+  const sentenceMatches = translatedText
+    .match(/[^。！？.!?\n]+[。！？.!?]*/g)
+    ?.map((sentence) => sentence.trim())
+    .filter(Boolean) || []
+
+  if (sentenceMatches.length >= subtitles.length) {
+    const buckets = Array.from({ length: subtitles.length }, () => [] as string[])
+    sentenceMatches.forEach((sentence, index) => {
+      const bucketIndex = Math.min(
+        subtitles.length - 1,
+        Math.floor(index * subtitles.length / sentenceMatches.length),
+      )
+      buckets[bucketIndex].push(sentence)
+    })
+    return buckets.map((bucket) => bucket.join(' ').trim())
+  }
+
+  const units = translatedText.includes(' ')
+    ? (translatedText.match(/\S+\s*/g) ?? [translatedText])
+    : Array.from(translatedText)
+  const weights = subtitles.map((subtitle) => Math.max(1, subtitle.text.replace(/\s+/g, '').length))
+  const totalWeight = weights.reduce((sum, value) => sum + value, 0)
+
+  let previousBoundary = 0
+  let consumedWeight = 0
+
+  return weights.map((weight, index) => {
+    consumedWeight += weight
+    const nextBoundary = index === weights.length - 1
+      ? units.length
+      : Math.round(consumedWeight / totalWeight * units.length)
+    const chunk = units.slice(previousBoundary, nextBoundary).join('').trim()
+    previousBoundary = nextBoundary
+    return chunk
+  })
+}
+
+function attachTranslatedTextToSubtitles(
+  subtitles: GroupedSubtitle[],
+  translatedText: string | undefined,
+): GroupedSubtitle[] {
+  if (!translatedText?.trim()) {
+    return subtitles
+  }
+
+  const translatedChunks = splitTranslatedTextIntoSubtitles(translatedText, subtitles)
+  return subtitles.map((subtitle, index) => ({
+    ...subtitle,
+    translatedText: translatedChunks[index] || '',
+  }))
+}
+
+function renderSubtitleText(
+  subtitle: GroupedSubtitle,
+  options: {
+    includeSpeaker: boolean
+    speakerNameMap?: Record<string, string>
+    translationDisplay: Exclude<SubtitleTranslationDisplay, 'auto'>
+  },
+): string {
+  const {
+    includeSpeaker,
+    speakerNameMap = {},
+    translationDisplay,
+  } = options
+  const speakerLabel = subtitle.speakerId
+    ? speakerNameMap[subtitle.speakerId] || subtitle.speakerId
+    : ''
+  const speakerPrefix = includeSpeaker && speakerLabel ? `[${speakerLabel}] ` : ''
+  const translatedText = subtitle.translatedText?.trim() || ''
+
+  if (translationDisplay === 'translated-only') {
+    return translatedText ? `${speakerPrefix}${translatedText}` : `${speakerPrefix}${subtitle.text}`
+  }
+
+  if (translationDisplay === 'dual' && translatedText) {
+    return `${speakerPrefix}${subtitle.text}\n${translatedText}`
+  }
+
+  return `${speakerPrefix}${subtitle.text}`
+}
+
 /**
  * 生成 SRT 格式字幕
  */
@@ -106,18 +235,33 @@ export function generateSRT(
     maxCharsPerLine?: number
     maxDurationMs?: number
     includeSpeaker?: boolean
+    speakerNameMap?: Record<string, string>
+    translationDisplay?: Exclude<SubtitleTranslationDisplay, 'auto'>
+    translatedText?: string
   }
 ): string {
-  const { includeSpeaker = true, ...groupOptions } = options || {}
-  const subtitles = groupTokensIntoSubtitles(tokens, groupOptions)
+  const {
+    includeSpeaker = true,
+    speakerNameMap = {},
+    translationDisplay = 'source-only',
+    translatedText,
+    ...groupOptions
+  } = options || {}
+  const subtitles = attachTranslatedTextToSubtitles(
+    groupTokensIntoSubtitles(tokens, groupOptions),
+    translatedText,
+  )
 
   return subtitles
     .map((sub, index) => {
       const startTime = msToSrtTime(sub.startMs)
       const endTime = msToSrtTime(sub.endMs)
-      const speakerPrefix = includeSpeaker && sub.speaker ? `[${sub.speaker}] ` : ''
       
-      return `${index + 1}\n${startTime} --> ${endTime}\n${speakerPrefix}${sub.text}\n`
+      return `${index + 1}\n${startTime} --> ${endTime}\n${renderSubtitleText(sub, {
+        includeSpeaker,
+        speakerNameMap,
+        translationDisplay,
+      })}\n`
     })
     .join('\n')
 }
@@ -132,10 +276,23 @@ export function generateVTT(
     maxDurationMs?: number
     includeSpeaker?: boolean
     title?: string
+    speakerNameMap?: Record<string, string>
+    translationDisplay?: Exclude<SubtitleTranslationDisplay, 'auto'>
+    translatedText?: string
   }
 ): string {
-  const { includeSpeaker = true, title, ...groupOptions } = options || {}
-  const subtitles = groupTokensIntoSubtitles(tokens, groupOptions)
+  const {
+    includeSpeaker = true,
+    title,
+    speakerNameMap = {},
+    translationDisplay = 'source-only',
+    translatedText,
+    ...groupOptions
+  } = options || {}
+  const subtitles = attachTranslatedTextToSubtitles(
+    groupTokensIntoSubtitles(tokens, groupOptions),
+    translatedText,
+  )
 
   let vtt = 'WEBVTT\n'
   if (title) {
@@ -147,9 +304,18 @@ export function generateVTT(
     .map((sub, index) => {
       const startTime = msToVttTime(sub.startMs)
       const endTime = msToVttTime(sub.endMs)
-      const speakerPrefix = includeSpeaker && sub.speaker ? `<v ${sub.speaker}>` : ''
+      const speakerLabel = sub.speakerId
+        ? speakerNameMap[sub.speakerId] || sub.speakerId
+        : ''
+      const speakerPrefix = includeSpeaker && speakerLabel ? `<v ${speakerLabel}>` : ''
+      const translatedTextLine = sub.translatedText?.trim() || ''
+      const cueText = translationDisplay === 'translated-only'
+        ? (translatedTextLine || sub.text)
+        : translationDisplay === 'dual' && translatedTextLine
+          ? `${sub.text}\n${translatedTextLine}`
+          : sub.text
       
-      return `${index + 1}\n${startTime} --> ${endTime}\n${speakerPrefix}${sub.text}\n`
+      return `${index + 1}\n${startTime} --> ${endTime}\n${speakerPrefix}${cueText}\n`
     })
     .join('\n')
 }
@@ -164,13 +330,29 @@ export function generateSubtitleFromSession(
     maxCharsPerLine?: number
     maxDurationMs?: number
     includeSpeaker?: boolean
+    translationDisplay?: SubtitleTranslationDisplay
   }
 ): string {
+  const translationDisplay = resolveTranslationDisplayMode(session, options?.translationDisplay)
+  const speakerNameMap = buildSpeakerNameMap(session)
+  const translatedText = session.translatedTranscript?.text?.trim()
+
   // 如果有 tokens，使用 tokens 生成
   if (session.tokens && session.tokens.length > 0) {
     return format === 'srt' 
-      ? generateSRT(session.tokens, options)
-      : generateVTT(session.tokens, { ...options, title: session.title })
+      ? generateSRT(session.tokens, {
+        ...options,
+        speakerNameMap,
+        translationDisplay,
+        translatedText,
+      })
+      : generateVTT(session.tokens, {
+        ...options,
+        title: session.title,
+        speakerNameMap,
+        translationDisplay,
+        translatedText,
+      })
   }
 
   // 如果没有 tokens，基于纯文本生成简单字幕
@@ -197,8 +379,19 @@ export function generateSubtitleFromSession(
   }))
 
   return format === 'srt' 
-    ? generateSRT(tokens, options)
-    : generateVTT(tokens, { ...options, title: session.title })
+    ? generateSRT(tokens, {
+      ...options,
+      speakerNameMap,
+      translationDisplay,
+      translatedText,
+    })
+    : generateVTT(tokens, {
+      ...options,
+      title: session.title,
+      speakerNameMap,
+      translationDisplay,
+      translatedText,
+    })
 }
 
 /**
@@ -211,6 +404,7 @@ export function downloadSubtitle(
     maxCharsPerLine?: number
     maxDurationMs?: number
     includeSpeaker?: boolean
+    translationDisplay?: SubtitleTranslationDisplay
   }
 ): void {
   const content = generateSubtitleFromSession(session, format, options)

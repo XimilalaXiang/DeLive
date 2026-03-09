@@ -113,6 +113,49 @@ describe('generateSubtitleFromSession', () => {
     expect(vtt.startsWith('WEBVTT\n')).toBe(true)
   })
 
+  it('uses speaker display names from session metadata', () => {
+    const session = makeSession({
+      tokens: [
+        { text: 'Hello', startMs: 0, endMs: 1000, speaker: 'speaker-1' },
+      ],
+      speakers: [
+        { id: 'speaker-1', label: 'speaker-1', displayName: 'Alice' },
+      ],
+    })
+    const srt = generateSubtitleFromSession(session, 'srt')
+    expect(srt).toContain('[Alice]')
+    expect(srt).not.toContain('[speaker-1]')
+  })
+
+  it('generates dual-language subtitles when translated transcript exists', () => {
+    const session = makeSession({
+      tokens: [
+        { text: 'Hello world.', startMs: 0, endMs: 2000 },
+      ],
+      translatedTranscript: {
+        text: '你好，世界。',
+        mode: 'dual-line',
+      },
+    })
+    const srt = generateSubtitleFromSession(session, 'srt')
+    expect(srt).toContain('Hello world.\n你好，世界。')
+  })
+
+  it('uses translated-only export when session mode is output-only', () => {
+    const session = makeSession({
+      tokens: [
+        { text: 'Hello world.', startMs: 0, endMs: 2000 },
+      ],
+      translatedTranscript: {
+        text: 'Bonjour le monde.',
+        mode: 'output-only',
+      },
+    })
+    const srt = generateSubtitleFromSession(session, 'srt')
+    expect(srt).toContain('Bonjour le monde.')
+    expect(srt).not.toContain('Hello world.')
+  })
+
   it('defaults to SRT format', () => {
     const session = makeSession({ tokens: makeTokens() })
     const result = generateSubtitleFromSession(session)

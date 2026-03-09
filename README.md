@@ -34,7 +34,7 @@ DeLive captures system audio output directly. If your computer can play the soun
 - **Local model workflows** including service detection, installed-model discovery, optional Ollama one-click pull, and `whisper.cpp` binary/model import or download.
 - **Floating caption overlay** with always-on-top transparent window, draggable mode, and style customization.
 - **Soniox bilingual captions and speaker-aware transcript views** with source / translated / dual-line display modes and speaker-grouped history preview.
-- **History, tags, search, and export** with TXT / SRT in the current UI plus built-in VTT subtitle generation utilities.
+- **History, tags, search, and export** with TXT / SRT / VTT in the current UI.
 - **Desktop integration** with tray behavior, global shortcut, auto-launch, update checks, and bilingual UI (Chinese / English).
 - **Security hardening** with IPC sender verification, Content Security Policy, navigation guard, path allowlists, and API key encryption via OS-level `safeStorage`.
 - **One-click diagnostics export** for troubleshooting, collecting system info, redacted config, and recent logs into a single JSON file.
@@ -234,7 +234,7 @@ Artifacts are written to `release/`.
 cd frontend && npm test
 ```
 
-Runs 149 unit tests via Vitest covering provider config, subtitle export, transcript stabilization, windowed batching, storage utilities, and the base ASR provider event system.
+Runs 155 unit tests via Vitest covering provider config, subtitle export, transcript stabilization, windowed batching, storage utilities, and the base ASR provider event system.
 
 ### Optional: Stage `whisper.cpp` Into Packaged Builds
 
@@ -275,7 +275,7 @@ If `local-runtimes/whisper_cpp/whisper-server(.exe)` exists at build time, `elec
 - Toggle the floating caption window and adjust font, colors, size, width, shadow, and position.
 - With Soniox, switch captions between source, translated, and dual-line modes, and review speaker-grouped transcript segments in history preview.
 - Review saved sessions in the history panel, rename them, and organize them with tags.
-- Export transcripts as TXT or SRT from the current UI. VTT subtitle generation utilities are included in the codebase and can be wired into additional UI entry points later.
+- Export transcripts as TXT, SRT, or VTT from the current UI.
 - Import or export all local data from the settings panel for backup or migration.
 
 ### Diagnostics
@@ -333,7 +333,7 @@ DeLive/
 | Frontend | React 18 + TypeScript 5.6 + Vite 6 |
 | Styling | Tailwind CSS 3.4 |
 | State management | Zustand 4.5 (4 focused stores) |
-| Testing | Vitest 4 (149 unit tests) |
+| Testing | Vitest 4 (155 unit tests) |
 | Audio processing | AudioWorklet (with ScriptProcessorNode fallback) |
 | Desktop services | Express + ws inside Electron |
 | Persistence | IndexedDB + localStorage + Electron safeStorage |

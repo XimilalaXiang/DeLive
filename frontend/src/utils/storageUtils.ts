@@ -18,13 +18,32 @@ export function exportToTxt(session: TranscriptSession, tags?: Tag[]): void {
   const sessionTags = tags?.filter((tag) => session.tagIds?.includes(tag.id)) || []
   const tagNames = sessionTags.map((tag) => tag.name).join(', ')
   const translatedText = session.translatedTranscript?.text?.trim()
+  const speakerNameMap = Object.fromEntries(
+    (session.speakers || []).map((speaker) => [
+      speaker.id,
+      speaker.displayName?.trim() || speaker.label?.trim() || speaker.id,
+    ]),
+  )
+  const speakerAwareTranscript = (session.segments || []).length > 0
+    ? (session.segments || [])
+      .filter((segment) => segment.text.trim())
+      .map((segment) => {
+        const speakerLabel = segment.speakerId
+          ? speakerNameMap[segment.speakerId] || segment.speakerId
+          : ''
+        return speakerLabel
+          ? `[${speakerLabel}]\n${segment.text}`
+          : segment.text
+      })
+      .join('\n\n')
+    : session.transcript
 
   const content = `标题: ${session.title}
 日期: ${session.date}
 时间: ${session.time}${tagNames ? `\n标签: ${tagNames}` : ''}
 ${'='.repeat(50)}
 
-${session.transcript}
+${speakerAwareTranscript}
 ${translatedText ? `\n\n${'-'.repeat(20)}\n翻译\n${'-'.repeat(20)}\n\n${translatedText}\n` : ''}
 `
 

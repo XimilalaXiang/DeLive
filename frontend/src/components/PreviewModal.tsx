@@ -1,37 +1,95 @@
-import { X, Download, Calendar, Clock, FileText, Subtitles } from 'lucide-react'
-import type { TranscriptSession } from '../types'
+import { useEffect, useMemo, useState } from 'react'
+import { X, Download, Calendar, Clock, FileText, Subtitles, Pencil, Check } from 'lucide-react'
+import type { TranscriptSession, TranscriptSpeaker } from '../types'
 import { exportToTxt } from '../utils/storage'
 import { downloadSubtitle } from '../utils/subtitleExport'
 import { useUIStore } from '../stores/uiStore'
+import { useSessionStore } from '../stores/sessionStore'
 
 interface PreviewModalProps {
   session: TranscriptSession | null
   onClose: () => void
 }
 
-function getSpeakerLabel(speakerId: string | undefined): string {
+function getSpeakerLabel(
+  speakerId: string | undefined,
+  speakerNameMap: Record<string, string>,
+): string {
   if (!speakerId) {
     return 'Speaker'
   }
 
-  return speakerId
+  return speakerNameMap[speakerId] || speakerId
 }
 
 export function PreviewModal({ session, onClose }: PreviewModalProps) {
   const { t } = useUIStore()
-  
-  if (!session) return null
+  const updateSessionSpeakers = useSessionStore((state) => state.updateSessionSpeakers)
+  const [editingSpeakerId, setEditingSpeakerId] = useState<string | null>(null)
+  const [speakerDraftName, setSpeakerDraftName] = useState('')
+
+  useEffect(() => {
+    setEditingSpeakerId(null)
+    setSpeakerDraftName('')
+  }, [session?.id])
 
   const handleExport = () => {
+    if (!session) return
     exportToTxt(session)
   }
 
   const handleExportSrt = () => {
+    if (!session) return
     downloadSubtitle(session, 'srt')
   }
 
-  const translatedText = session.translatedTranscript?.text?.trim() || ''
-  const speakerSegments = (session.segments || []).filter((segment) => segment.speakerId && segment.text.trim())
+  const handleExportVtt = () => {
+    if (!session) return
+    downloadSubtitle(session, 'vtt')
+  }
+
+  const translatedText = session?.translatedTranscript?.text?.trim() || ''
+  const speakerSegments = (session?.segments || []).filter((segment) => segment.speakerId && segment.text.trim())
+  const sessionSpeakers = useMemo(
+    () => (session?.speakers || []).filter((speaker) => speaker.id.trim()),
+    [session?.speakers],
+  )
+  const speakerNameMap = useMemo(() => (
+    Object.fromEntries(
+      sessionSpeakers.map((speaker) => [
+        speaker.id,
+        speaker.displayName?.trim() || speaker.label?.trim() || speaker.id,
+      ]),
+    )
+  ), [sessionSpeakers])
+
+  const startEditingSpeaker = (speaker: TranscriptSpeaker) => {
+    setEditingSpeakerId(speaker.id)
+    setSpeakerDraftName(speaker.displayName?.trim() || speaker.label?.trim() || speaker.id)
+  }
+
+  const cancelEditingSpeaker = () => {
+    setEditingSpeakerId(null)
+    setSpeakerDraftName('')
+  }
+
+  const saveSpeakerName = () => {
+    if (!session || !editingSpeakerId) return
+
+    const updatedSpeakers = sessionSpeakers.map((speaker) => (
+      speaker.id === editingSpeakerId
+        ? {
+          ...speaker,
+          displayName: speakerDraftName.trim() || speaker.label || speaker.id,
+        }
+        : speaker
+    ))
+
+    updateSessionSpeakers(session.id, updatedSpeakers)
+    cancelEditingSpeaker()
+  }
+
+  if (!session) return null
 
   // 点击背景关闭
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -80,12 +138,72 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
         <div className="flex-1 overflow-y-auto p-6 bg-background/50">
           {session.transcript || translatedText ? (
             <div className="prose prose-sm dark:prose-invert max-w-none">
+              {sessionSpeakers.length > 0 && (
+                <div className="not-prose mb-6 rounded-xl border border-border bg-card/70 p-4 space-y-3">
+                  <div className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                    {t.preview.speakerLabels || 'Speaker labels'}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {sessionSpeakers.map((speaker) => (
+                      editingSpeakerId === speaker.id ? (
+                        <div
+                          key={speaker.id}
+                          className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-2.5 py-2"
+                        >
+                          <input
+                            type="text"
+                            value={speakerDraftName}
+                            onChange={(e) => setSpeakerDraftName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') saveSpeakerName()
+                              if (e.key === 'Escape') cancelEditingSpeaker()
+                            }}
+                            className="h-8 min-w-[120px] rounded-md border border-input bg-background px-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                            placeholder={t.preview.speakerNamePlaceholder || 'Speaker name'}
+                            autoFocus
+                          />
+                          <button
+                            onClick={saveSpeakerName}
+                            className="p-1.5 rounded-md text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 transition-colors"
+                            title={t.common.save}
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={cancelEditingSpeaker}
+                            className="p-1.5 rounded-md text-muted-foreground hover:bg-muted transition-colors"
+                            title={t.common.cancel}
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div
+                          key={speaker.id}
+                          className="flex items-center gap-2 rounded-full border border-border bg-muted/50 px-3 py-1.5"
+                        >
+                          <span className="text-sm font-medium text-foreground">
+                            {speakerNameMap[speaker.id]}
+                          </span>
+                          <button
+                            onClick={() => startEditingSpeaker(speaker)}
+                            className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-background transition-colors"
+                            title={t.preview.renameSpeaker || 'Rename speaker'}
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )
+                    ))}
+                  </div>
+                </div>
+              )}
               {speakerSegments.length > 0 ? (
                 <div className="space-y-4">
                   {speakerSegments.map((segment, index) => (
                     <div key={`${segment.speakerId || 'speaker'}-${index}`} className="space-y-1">
                       <div className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                        {getSpeakerLabel(segment.speakerId)}
+                        {getSpeakerLabel(segment.speakerId, speakerNameMap)}
                       </div>
                       <p className="text-base leading-relaxed whitespace-pre-wrap text-foreground m-0">
                         {segment.text}
@@ -131,6 +249,15 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
             </button>
             {(session.transcript || translatedText) && (
               <>
+                <button
+                  onClick={handleExportVtt}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-primary/30
+                           text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors"
+                  title={t.history?.exportVtt || 'Export VTT'}
+                >
+                  <Subtitles className="w-4 h-4" />
+                  VTT
+                </button>
                 <button
                   onClick={handleExportSrt}
                   className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-primary/30

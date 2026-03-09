@@ -228,6 +228,7 @@ export interface SessionState {
   sessions: TranscriptSession[]
   loadSessions: () => Promise<void>
   updateSessionTitle: (id: string, title: string) => void
+  updateSessionSpeakers: (sessionId: string, speakers: TranscriptSpeaker[]) => void
   deleteSession: (id: string) => void
   updateSessionTags: (sessionId: string, tagIds: string[]) => void
   replaceAllSessions: (sessions: TranscriptSession[]) => TranscriptSession[]
@@ -458,6 +459,17 @@ export const useSessionStore = create<SessionState>((set, get) => {
     updateSessionTitle: (id, title) => {
       const sessions = sessionRepository.updateMetadata(id, { title })
       set({ sessions })
+    },
+    updateSessionSpeakers: (sessionId, speakers) => {
+      const { currentSessionId, currentSpeakers, recoverySession } = get()
+      const sessions = sessionRepository.updateMetadata(sessionId, { speakers })
+      set({
+        sessions,
+        currentSpeakers: currentSessionId === sessionId ? speakers : currentSpeakers,
+        recoverySession: recoverySession?.id === sessionId
+          ? { ...recoverySession, speakers }
+          : recoverySession,
+      })
     },
     deleteSession: (id) => {
       const sessions = sessionRepository.deleteSession(id)

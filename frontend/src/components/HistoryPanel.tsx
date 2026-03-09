@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { History, Calendar, Pencil, Trash2, Check, X, ChevronDown, ChevronRight, Search, FileText, Subtitles } from 'lucide-react'
+import { History, Calendar, Pencil, Trash2, Check, X, ChevronDown, ChevronRight, Search, FileText } from 'lucide-react'
 import { useUIStore } from '../stores/uiStore'
 import { useSessionStore } from '../stores/sessionStore'
 import { useTagStore } from '../stores/tagStore'
@@ -16,8 +16,12 @@ export function HistoryPanel() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingTitle, setEditingTitle] = useState('')
   const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set())
-  const [previewSession, setPreviewSession] = useState<TranscriptSession | null>(null)
+  const [previewSessionId, setPreviewSessionId] = useState<string | null>(null)
   const [searchInput, setSearchInput] = useState(searchQuery) // 本地输入状态
+  const previewSession = useMemo(
+    () => sessions.find((session) => session.id === previewSessionId) || null,
+    [previewSessionId, sessions],
+  )
 
   // 按回车执行搜索
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -116,9 +120,14 @@ export function HistoryPanel() {
     downloadSubtitle(session, 'srt')
   }
 
+  const handleExportVtt = (e: React.MouseEvent, session: TranscriptSession) => {
+    e.stopPropagation()
+    downloadSubtitle(session, 'vtt')
+  }
+
   const handlePreview = (session: TranscriptSession) => {
     if (editingId) return // 编辑中不触发预览
-    setPreviewSession(session)
+    setPreviewSessionId(session.id)
   }
 
   const formatDateDisplay = (dateStr: string) => {
@@ -298,10 +307,17 @@ export function HistoryPanel() {
                                   </button>
                                   <button
                                     onClick={(e) => handleExportSrt(e, session)}
-                                    className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md transition-all shadow-sm border border-transparent hover:border-primary/30"
+                                    className="px-2 py-1 text-[10px] font-semibold text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md transition-all shadow-sm border border-transparent hover:border-primary/30"
                                     title={t.history?.exportSrt || 'Export SRT'}
                                   >
-                                    <Subtitles className="w-3.5 h-3.5" />
+                                    SRT
+                                  </button>
+                                  <button
+                                    onClick={(e) => handleExportVtt(e, session)}
+                                    className="px-2 py-1 text-[10px] font-semibold text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md transition-all shadow-sm border border-transparent hover:border-primary/30"
+                                    title={t.history?.exportVtt || 'Export VTT'}
+                                  >
+                                    VTT
                                   </button>
                                   <button
                                     onClick={(e) => handleDelete(e, session.id)}
@@ -340,7 +356,7 @@ export function HistoryPanel() {
       {/* 预览弹窗 */}
       <PreviewModal 
         session={previewSession} 
-        onClose={() => setPreviewSession(null)} 
+        onClose={() => setPreviewSessionId(null)} 
       />
     </>
   )

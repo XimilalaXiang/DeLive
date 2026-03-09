@@ -174,6 +174,9 @@ export const zh = {
     noContent: '此记录没有转录内容',
     totalCharacters: '共',
     exportTxt: '导出 TXT',
+    speakerLabels: '说话人标签',
+    renameSpeaker: '重命名说话人',
+    speakerNamePlaceholder: '说话人名称',
   },
 
   // 源选择器

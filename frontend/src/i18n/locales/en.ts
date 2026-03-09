@@ -176,6 +176,9 @@ export const en: Translations = {
     noContent: 'This record has no transcription content',
     totalCharacters: 'Total',
     exportTxt: 'Export TXT',
+    speakerLabels: 'Speaker labels',
+    renameSpeaker: 'Rename speaker',
+    speakerNamePlaceholder: 'Speaker name',
   },
 
   // Source picker
