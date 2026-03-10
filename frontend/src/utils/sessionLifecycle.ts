@@ -67,7 +67,9 @@ export function mergeSessionPostProcess(
     patch.summary?.trim()
     || patch.actionItems?.length
     || patch.keywords?.length
-    || patch.chapters?.length,
+    || patch.chapters?.length
+    || patch.titleSuggestion?.trim()
+    || patch.tagSuggestions?.length,
   )
 
   return {

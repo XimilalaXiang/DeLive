@@ -20,7 +20,7 @@
 
 </div>
 
-只要電腦能播放出聲音，DeLive 就能擷取這段系統音訊，送到你選擇的 ASR 後端，並把轉錄內容保存在本機，方便後續整理、檢索與匯出。
+只要電腦能播放出聲音，DeLive 就能擷取這段系統音訊，送到你選擇的 ASR 後端，並把轉錄內容保存在本機，還能把已完成會話進一步整理成 AI briefing，方便後續回顧、檢索與匯出。
 
 <div align="center">
 <img width="800" alt="DeLive 截圖" src="https://github.com/user-attachments/assets/f0d26fe3-ae9c-4d24-8b5d-b12f2095acb7" />
@@ -33,7 +33,8 @@
 - **依 Provider 自動切換音訊管線**：在 `MediaRecorder` 與 `AudioWorklet` PCM16 處理之間切換。
 - **本地模型工作流**：支援本地服務偵測、模型列表、Ollama 一鍵拉取，以及 `whisper.cpp` binary / 模型導入與下載。
 - **懸浮字幕視窗**：透明、置頂、可拖曳與鎖定，並可自訂樣式。
-- **歷史、標籤與匯出**：支援搜尋、TXT / SRT / VTT 匯出與資料備份。
+- **會話級 AI 後處理**：支援配置 OpenAI-compatible briefing 生成，為已完成會話產生摘要、行動項、關鍵詞、章節、標題建議與標籤建議。
+- **歷史、標籤與匯出**：支援 AI briefing 卡片、搜尋、TXT / SRT / VTT 匯出與資料備份。
 - **桌面級整合**：系統匣、全域快捷鍵、開機自啟動、更新檢查、中英文介面。
 - **安全加固**：IPC 發送者驗證、內容安全策略（CSP）、導覽守衛、路徑白名單、API 金鑰透過作業系統級 `safeStorage` 加密儲存。
 - **一鍵診斷匯出**：收集系統資訊、脫敏設定和近期日誌為 JSON 檔案，方便問題排查。
@@ -231,7 +232,7 @@ npm run dist:all     # 全平台
 cd frontend && npm test
 ```
 
-透過 Vitest 執行 129 個單元測試，涵蓋 Provider 設定、字幕匯出、轉錄穩定器、儲存工具和 BaseASRProvider 事件系統。
+透過 Vitest 執行 180 個單元測試，涵蓋 Provider 設定、字幕匯出、轉錄穩定器、視窗批次處理、AI 後處理解析、儲存工具和 BaseASRProvider 事件系統。
 
 ### 可選：預置 `whisper.cpp`
 
@@ -251,6 +252,14 @@ npm run stage:whisper-runtime -- --binary /path/to/whisper-server --target linux
 3. 點擊 **開始錄製**，選擇要分享的視窗或螢幕並勾選音訊。
 4. 即時結果會顯示在主視窗，也可同步至懸浮字幕視窗。
 
+### AI Briefing
+
+1. 打開 **設定 → 一般設定**，啟用 **AI 後處理**。
+2. 配置 OpenAI-compatible 的 `Base URL`、`Model` 和可選 API Key。
+3. 在歷史記錄中打開任意一個已完成會話。
+4. 點擊 **生成 AI 摘要**，生成摘要、行動項、關鍵詞、章節、標題建議與標籤建議。
+5. 如果建議合適，可以直接在會話預覽中一鍵套用標題或標籤。
+
 ### 本地 OpenAI-compatible
 
 1. 選擇 **本地 OpenAI-compatible**。
@@ -267,7 +276,8 @@ npm run stage:whisper-runtime -- --binary /path/to/whisper-server --target linux
 ### 字幕、歷史與匯出
 
 - 開啟懸浮字幕視窗，自訂字型、顏色、字級、寬度、陰影和位置。
-- 在歷史面板中重新命名會話、打標籤、搜尋紀錄。
+- 在歷史面板中重新命名會話、打標籤、搜尋紀錄，並生成 AI briefing 卡片。
+- 在歷史預覽中可直接套用 AI 建議的標題與標籤。
 - 匯出 TXT、SRT 或 VTT。
 - 在設定面板中匯入 / 匯出全部本地資料，用於備份和轉移。
 
@@ -323,7 +333,7 @@ DeLive/
 | 前端 | React 18 + TypeScript 5.6 + Vite 6 |
 | 樣式 | Tailwind CSS 3.4 |
 | 狀態管理 | Zustand 4.5（4 個聚焦 Store） |
-| 測試 | Vitest 4（129 個單元測試） |
+| 測試 | Vitest 4（180 個單元測試） |
 | 音訊處理 | AudioWorklet（ScriptProcessorNode 回退） |
 | 桌面服務 | Electron 內建 Express + ws |
 | 持久化 | IndexedDB + localStorage + Electron safeStorage |

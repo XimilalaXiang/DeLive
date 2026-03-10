@@ -20,7 +20,7 @@
 
 </div>
 
-只要电脑能播放出声音，DeLive 就能把这段系统音频捕获下来，送到你选定的 ASR 后端，并把转录结果保存在本地，供继续整理、检索和导出。
+只要电脑能播放出声音，DeLive 就能把这段系统音频捕获下来，送到你选定的 ASR 后端，并把转录结果保存在本地，还能把已完成会话进一步整理成 AI briefing，方便继续回顾、检索和导出。
 
 <div align="center">
 <img width="800" alt="DeLive 截图" src="https://github.com/user-attachments/assets/f0d26fe3-ae9c-4d24-8b5d-b12f2095acb7" />
@@ -34,7 +34,8 @@
 - **本地模型工作流**：支持探测本地服务、列出已安装模型、Ollama 一键拉取，以及 `whisper.cpp` binary / 模型导入与下载。
 - **悬浮字幕窗口**：独立透明窗口、始终置顶，可拖动、锁定，并自定义样式。
 - **Soniox 双语字幕与说话人视图**：支持原文 / 翻译 / 双语显示模式，以及按说话人分组的历史预览。
-- **历史记录与导出**：当前 UI 支持标签、搜索、TXT / SRT / VTT 导出。
+- **会话级 AI 后处理**：支持配置 OpenAI-compatible briefing 生成，对已完成会话生成摘要、行动项、关键词、章节、标题建议和标签建议。
+- **历史记录与导出**：当前 UI 支持 AI briefing 卡片、标签、搜索、TXT / SRT / VTT 导出。
 - **桌面级集成**：系统托盘、全局快捷键、开机自启动、更新检查、中英文界面。
 - **安全加固**：IPC 发送者验证、内容安全策略（CSP）、导航守卫、路径白名单、API 密钥通过操作系统级 `safeStorage` 加密存储。
 - **一键诊断导出**：收集系统信息、脱敏配置和最近日志到 JSON 文件，方便问题排查。
@@ -234,7 +235,7 @@ npm run dist:all     # 全平台
 cd frontend && npm test
 ```
 
-通过 Vitest 运行 155 个单元测试，覆盖 Provider 配置、字幕导出、转录稳定器、窗口批处理、存储工具和 BaseASRProvider 事件系统。
+通过 Vitest 运行 180 个单元测试，覆盖 Provider 配置、字幕导出、转录稳定器、窗口批处理、AI 后处理解析、存储工具和 BaseASRProvider 事件系统。
 
 ### 可选：打包时预置 `whisper.cpp`
 
@@ -255,6 +256,14 @@ npm run stage:whisper-runtime -- --binary /path/to/whisper-server --target linux
 4. 选择要共享的屏幕或窗口，并确保勾选共享音频。
 5. 实时结果会显示在主窗口，也可以同步到悬浮字幕窗口。使用 Soniox 时，还可以切换翻译 / 双语字幕模式，并查看按说话人分组的转录。
 
+### AI Briefing
+
+1. 打开 **设置 → 通用设置**，启用 **AI 后处理**。
+2. 配置 OpenAI-compatible 的 `Base URL`、`Model` 和可选 API Key。
+3. 在历史记录中打开任意一个已完成会话。
+4. 点击 **生成 AI 摘要**，生成摘要、行动项、关键词、章节、标题建议和标签建议。
+5. 如果建议合适，可以直接在会话预览中一键应用标题或标签。
+
 ### 本地 OpenAI-compatible
 
 1. 选择 **本地 OpenAI-compatible**。
@@ -274,7 +283,8 @@ npm run stage:whisper-runtime -- --binary /path/to/whisper-server --target linux
 
 - 开启悬浮字幕窗口，自定义字体、颜色、字号、宽度、阴影和位置。
 - 使用 Soniox 时，可切换原文 / 翻译 / 双语字幕模式，并在历史预览里按说话人查看分段。
-- 在历史面板中重命名会话、打标签、搜索记录。
+- 在历史面板中重命名会话、打标签、搜索记录，并生成 AI briefing 卡片。
+- 在历史预览中可直接应用 AI 推荐的标题和标签。
 - 当前 UI 可导出 TXT、SRT、VTT。
 - 在设置面板中导入 / 导出全部本地数据，用于备份和迁移。
 
@@ -333,7 +343,7 @@ DeLive/
 | 前端 | React 18 + TypeScript 5.6 + Vite 6 |
 | 样式 | Tailwind CSS 3.4 |
 | 状态管理 | Zustand 4.5（4 个聚焦 Store） |
-| 测试 | Vitest 4（155 个单元测试） |
+| 测试 | Vitest 4（180 个单元测试） |
 | 音频处理 | AudioWorklet（ScriptProcessorNode 回退） |
 | 桌面服务 | Electron 内置 Express + ws |
 | 持久化 | IndexedDB + localStorage + Electron safeStorage |

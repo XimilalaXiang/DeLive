@@ -154,7 +154,9 @@ export function hasPostProcessContent(postProcess: TranscriptPostProcess | undef
     postProcess.summary?.trim()
     || postProcess.actionItems?.length
     || postProcess.keywords?.length
-    || postProcess.chapters?.length,
+    || postProcess.chapters?.length
+    || postProcess.titleSuggestion?.trim()
+    || postProcess.tagSuggestions?.length,
   )
 }
 

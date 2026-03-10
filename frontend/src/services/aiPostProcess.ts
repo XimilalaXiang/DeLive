@@ -19,6 +19,8 @@ interface ChatCompletionResponse {
 }
 
 interface AiBriefingPayload {
+  titleSuggestion?: unknown
+  tagSuggestions?: unknown
   summary?: unknown
   actionItems?: unknown
   keywords?: unknown
@@ -49,9 +51,9 @@ function normalizeStringArray(value: unknown, limit = 8): string[] | undefined {
   const normalized = value
     .map((item) => typeof item === 'string' ? item.trim() : '')
     .filter(Boolean)
-    .slice(0, limit)
+  const unique = normalized.filter((item, index) => normalized.indexOf(item) === index).slice(0, limit)
 
-  return normalized.length > 0 ? normalized : undefined
+  return unique.length > 0 ? unique : undefined
 }
 
 function normalizeChapter(value: unknown): TranscriptChapter | null {
@@ -74,6 +76,10 @@ function normalizeChapter(value: unknown): TranscriptChapter | null {
 }
 
 function normalizeBriefingPayload(payload: AiBriefingPayload, model: string): TranscriptPostProcess {
+  const titleSuggestion = typeof payload.titleSuggestion === 'string'
+    ? payload.titleSuggestion.trim()
+    : undefined
+  const tagSuggestions = normalizeStringArray(payload.tagSuggestions, 8)
   const summary = typeof payload.summary === 'string' ? payload.summary.trim() : undefined
   const actionItems = normalizeStringArray(payload.actionItems)
   const keywords = normalizeStringArray(payload.keywords, 12)
@@ -84,11 +90,13 @@ function normalizeBriefingPayload(payload: AiBriefingPayload, model: string): Tr
       .slice(0, 8)
     : undefined
 
-  if (!summary && !actionItems?.length && !keywords?.length && !chapters?.length) {
+  if (!summary && !actionItems?.length && !keywords?.length && !chapters?.length && !titleSuggestion && !tagSuggestions?.length) {
     throw new Error('AI 未返回可用的结构化结果')
   }
 
   return {
+    titleSuggestion: titleSuggestion || undefined,
+    tagSuggestions,
     summary,
     actionItems,
     keywords,
@@ -140,7 +148,9 @@ function buildSystemPrompt(language: NonNullable<AiPostProcessConfig['promptLang
   if (language === 'en') {
     return [
       'You are an assistant that converts a transcript into structured meeting notes.',
-      'Return only a JSON object with keys: summary, actionItems, keywords, chapters.',
+      'Return only a JSON object with keys: titleSuggestion, tagSuggestions, summary, actionItems, keywords, chapters.',
+      'titleSuggestion must be a short, specific title.',
+      'tagSuggestions must be an array of short topic tags.',
       'summary must be a concise paragraph.',
       'actionItems must be an array of actionable bullet-style strings.',
       'keywords must be an array of short keywords.',
@@ -151,7 +161,9 @@ function buildSystemPrompt(language: NonNullable<AiPostProcessConfig['promptLang
 
   return [
     '你是一个把转录内容整理成结构化摘要的助手。',
-    '你只能返回 JSON 对象，且只允许包含 summary、actionItems、keywords、chapters 四个字段。',
+    '你只能返回 JSON 对象，且只允许包含 titleSuggestion、tagSuggestions、summary、actionItems、keywords、chapters 六个字段。',
+    'titleSuggestion 是简洁明确的标题建议。',
+    'tagSuggestions 是简短标签数组。',
     'summary 是简洁摘要。',
     'actionItems 是行动项字符串数组。',
     'keywords 是关键词字符串数组。',

@@ -4,6 +4,8 @@ import { parseAiBriefingResponse, isAiPostProcessConfigured } from './aiPostProc
 describe('aiPostProcess', () => {
   it('parses plain json responses', () => {
     const result = parseAiBriefingResponse(JSON.stringify({
+      titleSuggestion: 'Weekly Sync',
+      tagSuggestions: ['planning', 'release'],
       summary: 'A concise summary',
       actionItems: ['Ship the feature'],
       keywords: ['ai', 'summary'],
@@ -12,6 +14,8 @@ describe('aiPostProcess', () => {
       ],
     }), 'gpt-test')
 
+    expect(result.titleSuggestion).toBe('Weekly Sync')
+    expect(result.tagSuggestions).toEqual(['planning', 'release'])
     expect(result.summary).toBe('A concise summary')
     expect(result.actionItems).toEqual(['Ship the feature'])
     expect(result.keywords).toEqual(['ai', 'summary'])

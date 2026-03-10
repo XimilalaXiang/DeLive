@@ -20,7 +20,7 @@ English | [简体中文](./README_ZH.md) | [繁體中文](./README_TW.md) | [日
 
 </div>
 
-DeLive captures system audio output directly. If your computer can play the sound, DeLive can capture it, feed it into the ASR backend you choose, and keep the resulting transcript on your machine for review, export, and reuse.
+DeLive captures system audio output directly. If your computer can play the sound, DeLive can capture it, feed it into the ASR backend you choose, keep the resulting transcript on your machine, and turn completed sessions into AI briefings for review and reuse.
 
 <div align="center">
 <img width="800" alt="DeLive Screenshot" src="https://github.com/user-attachments/assets/f0d26fe3-ae9c-4d24-8b5d-b12f2095acb7" />
@@ -34,7 +34,8 @@ DeLive captures system audio output directly. If your computer can play the soun
 - **Local model workflows** including service detection, installed-model discovery, optional Ollama one-click pull, and `whisper.cpp` binary/model import or download.
 - **Floating caption overlay** with always-on-top transparent window, draggable mode, and style customization.
 - **Soniox bilingual captions and speaker-aware transcript views** with source / translated / dual-line display modes and speaker-grouped history preview.
-- **History, tags, search, and export** with TXT / SRT / VTT in the current UI.
+- **AI post-process for completed sessions** with configurable OpenAI-compatible briefing generation for summaries, action items, keywords, chapters, title suggestions, and tag suggestions.
+- **History, tags, search, and export** with AI-generated briefing cards plus TXT / SRT / VTT in the current UI.
 - **Desktop integration** with tray behavior, global shortcut, auto-launch, update checks, and bilingual UI (Chinese / English).
 - **Security hardening** with IPC sender verification, Content Security Policy, navigation guard, path allowlists, and API key encryption via OS-level `safeStorage`.
 - **One-click diagnostics export** for troubleshooting, collecting system info, redacted config, and recent logs into a single JSON file.
@@ -234,7 +235,7 @@ Artifacts are written to `release/`.
 cd frontend && npm test
 ```
 
-Runs 155 unit tests via Vitest covering provider config, subtitle export, transcript stabilization, windowed batching, storage utilities, and the base ASR provider event system.
+Runs 180 unit tests via Vitest covering provider config, subtitle export, transcript stabilization, windowed batching, AI post-process parsing, storage utilities, and the base ASR provider event system.
 
 ### Optional: Stage `whisper.cpp` Into Packaged Builds
 
@@ -255,6 +256,14 @@ If `local-runtimes/whisper_cpp/whisper-server(.exe)` exists at build time, `elec
 4. Choose a screen or window and make sure audio sharing is enabled.
 5. Watch partial and final transcripts update in the main window or caption overlay. With Soniox, you can also use translated / dual-line caption modes and speaker-grouped transcript views.
 
+### AI Briefing
+
+1. Open **Settings → General** and enable **AI Post-Process**.
+2. Configure an OpenAI-compatible `Base URL`, `Model`, and optional API key.
+3. Open any completed session from History.
+4. Click **Generate AI Briefing** to create a summary, action items, keywords, chapters, title suggestion, and tag suggestions.
+5. Apply the suggested title or tags directly from the session preview if they look correct.
+
 ### Local OpenAI-compatible Services
 
 1. Select **Local OpenAI-compatible**.
@@ -274,7 +283,8 @@ If `local-runtimes/whisper_cpp/whisper-server(.exe)` exists at build time, `elec
 
 - Toggle the floating caption window and adjust font, colors, size, width, shadow, and position.
 - With Soniox, switch captions between source, translated, and dual-line modes, and review speaker-grouped transcript segments in history preview.
-- Review saved sessions in the history panel, rename them, and organize them with tags.
+- Review saved sessions in the history panel, rename them, organize them with tags, and generate AI briefing cards.
+- Apply AI-suggested titles and tags directly from the history preview.
 - Export transcripts as TXT, SRT, or VTT from the current UI.
 - Import or export all local data from the settings panel for backup or migration.
 
@@ -333,7 +343,7 @@ DeLive/
 | Frontend | React 18 + TypeScript 5.6 + Vite 6 |
 | Styling | Tailwind CSS 3.4 |
 | State management | Zustand 4.5 (4 focused stores) |
-| Testing | Vitest 4 (155 unit tests) |
+| Testing | Vitest 4 (180 unit tests) |
 | Audio processing | AudioWorklet (with ScriptProcessorNode fallback) |
 | Desktop services | Express + ws inside Electron |
 | Persistence | IndexedDB + localStorage + Electron safeStorage |

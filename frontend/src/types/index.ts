@@ -71,6 +71,8 @@ export interface TranscriptPostProcess {
   actionItems?: string[]
   keywords?: string[]
   chapters?: TranscriptChapter[]
+  titleSuggestion?: string
+  tagSuggestions?: string[]
   generatedAt?: number
   requestedAt?: number
   model?: string

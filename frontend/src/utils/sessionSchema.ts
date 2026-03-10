@@ -180,6 +180,8 @@ function normalizePostProcess(value: unknown): TranscriptPostProcess | undefined
   const summary = getString(value.summary)?.trim()
   const actionItems = normalizeStringArray(value.actionItems)
   const keywords = normalizeStringArray(value.keywords)
+  const titleSuggestion = getString(value.titleSuggestion)?.trim()
+  const tagSuggestions = normalizeStringArray(value.tagSuggestions)
   const chapters = Array.isArray(value.chapters)
     ? value.chapters
       .map(normalizeChapter)
@@ -199,6 +201,8 @@ function normalizePostProcess(value: unknown): TranscriptPostProcess | undefined
     !summary
     && actionItems.length === 0
     && keywords.length === 0
+    && !titleSuggestion
+    && tagSuggestions.length === 0
     && (!chapters || chapters.length === 0)
     && !model
     && !generatedAt
@@ -213,6 +217,8 @@ function normalizePostProcess(value: unknown): TranscriptPostProcess | undefined
     summary,
     actionItems: actionItems.length > 0 ? actionItems : undefined,
     keywords: keywords.length > 0 ? keywords : undefined,
+    titleSuggestion,
+    tagSuggestions: tagSuggestions.length > 0 ? tagSuggestions : undefined,
     chapters: chapters && chapters.length > 0 ? chapters : undefined,
     generatedAt,
     requestedAt,
