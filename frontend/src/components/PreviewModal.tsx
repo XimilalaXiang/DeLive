@@ -1,10 +1,26 @@
 import { useEffect, useMemo, useState } from 'react'
-import { X, Download, Calendar, Clock, FileText, Subtitles, Pencil, Check } from 'lucide-react'
+import {
+  X,
+  Download,
+  Calendar,
+  Clock,
+  FileText,
+  Subtitles,
+  Pencil,
+  Check,
+  Sparkles,
+  Loader2,
+  ListTodo,
+  Tags,
+  BookOpenText,
+} from 'lucide-react'
 import type { TranscriptSession, TranscriptSpeaker } from '../types'
 import { exportToTxt } from '../utils/storage'
 import { downloadSubtitle } from '../utils/subtitleExport'
 import { useUIStore } from '../stores/uiStore'
 import { useSessionStore } from '../stores/sessionStore'
+import { useSettingsStore } from '../stores/settingsStore'
+import { isAiPostProcessConfigured } from '../services/aiPostProcess'
 
 interface PreviewModalProps {
   session: TranscriptSession | null
@@ -24,7 +40,9 @@ function getSpeakerLabel(
 
 export function PreviewModal({ session, onClose }: PreviewModalProps) {
   const { t } = useUIStore()
+  const settings = useSettingsStore((state) => state.settings)
   const updateSessionSpeakers = useSessionStore((state) => state.updateSessionSpeakers)
+  const generateSessionPostProcess = useSessionStore((state) => state.generateSessionPostProcess)
   const [editingSpeakerId, setEditingSpeakerId] = useState<string | null>(null)
   const [speakerDraftName, setSpeakerDraftName] = useState('')
 
@@ -49,6 +67,7 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
   }
 
   const translatedText = session?.translatedTranscript?.text?.trim() || ''
+  const postProcess = session?.postProcess
   const speakerSegments = (session?.segments || []).filter((segment) => segment.speakerId && segment.text.trim())
   const sessionSpeakers = useMemo(
     () => (session?.speakers || []).filter((speaker) => speaker.id.trim()),
@@ -87,6 +106,25 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
 
     updateSessionSpeakers(session.id, updatedSpeakers)
     cancelEditingSpeaker()
+  }
+
+  const aiConfigured = isAiPostProcessConfigured(settings)
+  const aiGenerating = postProcess?.status === 'pending'
+  const hasAiContent = Boolean(
+    postProcess?.summary?.trim()
+    || postProcess?.actionItems?.length
+    || postProcess?.keywords?.length
+    || postProcess?.chapters?.length,
+  )
+
+  const handleGenerateAiBriefing = async () => {
+    if (!session || aiGenerating) return
+
+    try {
+      await generateSessionPostProcess(session.id)
+    } catch (error) {
+      console.error('[PreviewModal] AI post-process failed:', error)
+    }
   }
 
   if (!session) return null
@@ -136,6 +174,129 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
 
         {/* 内容区域 */}
         <div className="flex-1 overflow-y-auto p-6 bg-background/50">
+          <div className="not-prose mb-6 rounded-xl border border-border bg-card/70 p-4 space-y-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-primary">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  {t.preview.aiBriefing}
+                </div>
+                {!aiConfigured && (
+                  <p className="text-xs text-muted-foreground">
+                    {t.preview.aiNotConfigured}
+                  </p>
+                )}
+                {postProcess?.status === 'error' && postProcess.error && (
+                  <p className="text-xs text-red-600 dark:text-red-400">
+                    {postProcess.error}
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={() => void handleGenerateAiBriefing()}
+                disabled={!aiConfigured || aiGenerating || !session.transcript.trim()}
+                className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                  !aiConfigured || !session.transcript.trim()
+                    ? 'cursor-not-allowed border border-border bg-muted text-muted-foreground'
+                    : aiGenerating
+                      ? 'border border-primary/30 bg-primary/10 text-primary'
+                      : 'border border-primary/30 bg-primary text-primary-foreground hover:bg-primary/90'
+                }`}
+              >
+                {aiGenerating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    {t.preview.aiGenerating}
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4" />
+                    {hasAiContent ? t.preview.aiRegenerate : t.preview.aiGenerate}
+                  </>
+                )}
+              </button>
+            </div>
+
+            {hasAiContent && (
+              <div className="grid gap-4">
+                {postProcess?.summary && (
+                  <div className="space-y-2">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      {t.preview.aiSummary}
+                    </div>
+                    <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap">
+                      {postProcess.summary}
+                    </p>
+                  </div>
+                )}
+
+                {postProcess?.actionItems && postProcess.actionItems.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      <ListTodo className="w-3.5 h-3.5" />
+                      {t.preview.aiActionItems}
+                    </div>
+                    <div className="space-y-2">
+                      {postProcess.actionItems.map((item, index) => (
+                        <div
+                          key={`${item}-${index}`}
+                          className="rounded-lg border border-border bg-background/70 px-3 py-2 text-sm text-foreground"
+                        >
+                          {item}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {postProcess?.keywords && postProcess.keywords.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      <Tags className="w-3.5 h-3.5" />
+                      {t.preview.aiKeywords}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {postProcess.keywords.map((keyword) => (
+                        <span
+                          key={keyword}
+                          className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+                        >
+                          {keyword}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {postProcess?.chapters && postProcess.chapters.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      <BookOpenText className="w-3.5 h-3.5" />
+                      {t.preview.aiChapters}
+                    </div>
+                    <div className="space-y-2">
+                      {postProcess.chapters.map((chapter, index) => (
+                        <div
+                          key={`${chapter.title}-${index}`}
+                          className="rounded-lg border border-border bg-background/70 px-3 py-3"
+                        >
+                          <div className="text-sm font-medium text-foreground">
+                            {chapter.title}
+                          </div>
+                          {chapter.summary && (
+                            <p className="mt-1 text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap">
+                              {chapter.summary}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           {session.transcript || translatedText ? (
             <div className="prose prose-sm dark:prose-invert max-w-none">
               {sessionSpeakers.length > 0 && (

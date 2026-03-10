@@ -186,9 +186,26 @@ function normalizePostProcess(value: unknown): TranscriptPostProcess | undefined
       .filter((chapter): chapter is TranscriptChapter => chapter !== null)
     : undefined
   const generatedAt = getNumber(value.generatedAt)
+  const requestedAt = getNumber(value.requestedAt)
   const model = getString(value.model)
+  const status = value.status === 'pending'
+    || value.status === 'success'
+    || value.status === 'error'
+    ? value.status
+    : undefined
+  const error = getString(value.error)?.trim()
 
-  if (!summary && actionItems.length === 0 && keywords.length === 0 && (!chapters || chapters.length === 0) && !model && !generatedAt) {
+  if (
+    !summary
+    && actionItems.length === 0
+    && keywords.length === 0
+    && (!chapters || chapters.length === 0)
+    && !model
+    && !generatedAt
+    && !requestedAt
+    && !status
+    && !error
+  ) {
     return undefined
   }
 
@@ -198,7 +215,10 @@ function normalizePostProcess(value: unknown): TranscriptPostProcess | undefined
     keywords: keywords.length > 0 ? keywords : undefined,
     chapters: chapters && chapters.length > 0 ? chapters : undefined,
     generatedAt,
+    requestedAt,
     model,
+    status,
+    error,
   }
 }
 

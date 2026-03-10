@@ -64,13 +64,18 @@ export interface TranscriptChapter {
   summary?: string
 }
 
+export type TranscriptPostProcessStatus = 'pending' | 'success' | 'error'
+
 export interface TranscriptPostProcess {
   summary?: string
   actionItems?: string[]
   keywords?: string[]
   chapters?: TranscriptChapter[]
   generatedAt?: number
+  requestedAt?: number
   model?: string
+  status?: TranscriptPostProcessStatus
+  error?: string
 }
 
 export interface TranscriptSourceMeta {
@@ -130,6 +135,15 @@ export interface ProviderConfigData {
   [key: string]: unknown
 }
 
+export interface AiPostProcessConfig {
+  enabled?: boolean
+  provider?: 'openai-compatible'
+  baseUrl?: string
+  model?: string
+  apiKey?: string
+  promptLanguage?: 'zh' | 'en'
+}
+
 // 应用设置（支持多提供商）
 export interface AppSettings {
   // 兼容旧版：保留单一 API Key（用于 Soniox）
@@ -145,4 +159,6 @@ export interface AppSettings {
   captionStyle?: CaptionStyle
   // 配色主题
   colorTheme?: string
+  // AI 后处理
+  aiPostProcess?: AiPostProcessConfig
 }

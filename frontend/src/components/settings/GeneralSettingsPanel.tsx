@@ -4,14 +4,16 @@ import {
   Check,
   Download,
   Globe,
+  Key,
   Loader2,
   Palette,
   Power,
   RefreshCw,
+  Sparkles,
   Upload,
 } from 'lucide-react'
 import type { Language, Translations } from '../../i18n'
-import type { AppSettings } from '../../types'
+import type { AiPostProcessConfig, AppSettings } from '../../types'
 import { colorThemes, type ColorThemeId } from '../../themes'
 
 interface ImportMessage {
@@ -37,6 +39,8 @@ interface GeneralSettingsPanelProps {
   supportsAutoUpdate: boolean
   settings: AppSettings
   updateSettings: (settings: Partial<AppSettings>) => void
+  aiPostProcessConfig: AiPostProcessConfig
+  updateAiPostProcessConfig: (config: Partial<AiPostProcessConfig>) => void
   appVersion: string
   updateStatus: 'idle' | 'checking' | 'available' | 'not-available' | 'error'
   handleCheckUpdate: () => Promise<void>
@@ -61,11 +65,15 @@ export function GeneralSettingsPanel({
   supportsAutoUpdate,
   settings,
   updateSettings,
+  aiPostProcessConfig,
+  updateAiPostProcessConfig,
   appVersion,
   updateStatus,
   handleCheckUpdate,
   handleExportDiagnostics,
 }: GeneralSettingsPanelProps) {
+  const aiConfig = aiPostProcessConfig
+
   return (
     <>
       <div className="space-y-3">
@@ -139,6 +147,100 @@ export function GeneralSettingsPanel({
               </span>
             </button>
           ))}
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <label className="text-sm font-medium leading-none flex items-center gap-2">
+          <Sparkles className="w-3.5 h-3.5 text-muted-foreground" />
+          {t.settings.aiPostProcessTitle}
+        </label>
+        <p className="text-[10px] text-muted-foreground">
+          {t.settings.aiPostProcessDesc}
+        </p>
+
+        <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+          <div>
+            <p className="text-sm font-medium">{t.settings.aiPostProcessEnable}</p>
+            <p className="text-[10px] text-muted-foreground">{t.settings.aiPostProcessEnableDesc}</p>
+          </div>
+          <button
+            onClick={() => updateAiPostProcessConfig({ enabled: !aiConfig.enabled })}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              aiConfig.enabled ? 'bg-green-500' : 'bg-gray-400 dark:bg-gray-600'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${
+                aiConfig.enabled ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-muted-foreground">{t.settings.aiBaseUrl}</label>
+          <input
+            type="text"
+            value={aiConfig.baseUrl || ''}
+            onChange={(event) => updateAiPostProcessConfig({ baseUrl: event.target.value })}
+            placeholder="http://127.0.0.1:11434/v1"
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-muted-foreground">{t.settings.aiModel}</label>
+          <input
+            type="text"
+            value={aiConfig.model || ''}
+            onChange={(event) => updateAiPostProcessConfig({ model: event.target.value })}
+            placeholder="qwen2.5:7b-instruct"
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-muted-foreground flex items-center gap-2">
+            <Key className="w-3.5 h-3.5" />
+            {t.settings.aiApiKey}
+          </label>
+          <input
+            type="password"
+            value={aiConfig.apiKey || ''}
+            onChange={(event) => updateAiPostProcessConfig({ apiKey: event.target.value })}
+            placeholder={t.settings.aiApiKeyPlaceholder}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          />
+          <p className="text-[10px] text-muted-foreground">
+            {t.settings.aiApiKeyDesc}
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-muted-foreground">{t.settings.aiPromptLanguage}</label>
+          <div className="flex gap-2">
+            <button
+              onClick={() => updateAiPostProcessConfig({ promptLanguage: 'zh' })}
+              className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all ${
+                (aiConfig.promptLanguage || 'zh') === 'zh'
+                  ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-2 border-green-500 ring-2 ring-green-500/20'
+                  : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
+              }`}
+            >
+              中文
+            </button>
+            <button
+              onClick={() => updateAiPostProcessConfig({ promptLanguage: 'en' })}
+              className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all ${
+                (aiConfig.promptLanguage || 'zh') === 'en'
+                  ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-2 border-green-500 ring-2 ring-green-500/20'
+                  : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
+              }`}
+            >
+              English
+            </button>
+          </div>
         </div>
       </div>
 

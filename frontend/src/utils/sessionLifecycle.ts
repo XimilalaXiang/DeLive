@@ -63,9 +63,17 @@ export function mergeSessionPostProcess(
   patch: Partial<TranscriptPostProcess>,
   generatedAt = Date.now(),
 ): TranscriptPostProcess {
+  const hasStructuredContent = Boolean(
+    patch.summary?.trim()
+    || patch.actionItems?.length
+    || patch.keywords?.length
+    || patch.chapters?.length,
+  )
+
   return {
     ...(currentPostProcess || {}),
     ...patch,
-    generatedAt: patch.generatedAt ?? generatedAt,
+    generatedAt: patch.generatedAt
+      ?? (hasStructuredContent ? generatedAt : currentPostProcess?.generatedAt),
   }
 }

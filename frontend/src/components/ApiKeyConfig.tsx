@@ -22,6 +22,7 @@ import {
   type ProviderFormState,
 } from '../utils/providerConfigForm'
 import { testProviderConfig } from '../utils/providerConfigTest'
+import { getDefaultSettings } from '../utils/storageShared'
 
 interface ApiKeyConfigProps {
   isOpen: boolean
@@ -30,7 +31,13 @@ interface ApiKeyConfigProps {
 
 export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
   const { t, language, setLanguage, colorTheme, setColorTheme } = useUIStore()
-  const { settings, updateSettings, availableProviders, updateProviderConfig } = useSettingsStore()
+  const {
+    settings,
+    updateSettings,
+    updateAiPostProcessConfig,
+    availableProviders,
+    updateProviderConfig,
+  } = useSettingsStore()
   const { loadSessions } = useSessionStore()
   const { loadTags } = useTagStore()
   
@@ -45,6 +52,9 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
   const [languageHints, setLanguageHints] = useState(() => (
     formatStringArrayValue(currentStoredConfig?.languageHints, settings.languageHints || ['zh', 'en'])
   ))
+  const [aiPostProcessConfig, setAiPostProcessConfig] = useState(
+    settings.aiPostProcess || getDefaultSettings().aiPostProcess || {},
+  )
   
   const [importMessage, setImportMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [autoLaunch, setAutoLaunch] = useState(false)
@@ -61,6 +71,7 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
   useEffect(() => {
     setFormState(buildProviderFormState(currentProvider, currentStoredConfig, settings))
     setLanguageHints(formatStringArrayValue(currentStoredConfig?.languageHints, settings.languageHints || ['zh', 'en']))
+    setAiPostProcessConfig(settings.aiPostProcess || getDefaultSettings().aiPostProcess || {})
     setRevealedFields({})
     setTestStatus('idle')
     setTestMessage('')
@@ -174,7 +185,7 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
     }
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const providerConfig = buildEditableProviderConfig()
     const normalizedHints = Array.isArray(providerConfig.languageHints) && providerConfig.languageHints.length > 0
       ? providerConfig.languageHints
@@ -200,6 +211,7 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
         : settings.apiKey,
       languageHints: normalizedHints,
     })
+    await updateAiPostProcessConfig(aiPostProcessConfig)
     onClose()
   }
   
@@ -417,6 +429,13 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
               supportsAutoUpdate={supportsAutoUpdate}
               settings={settings}
               updateSettings={updateSettings}
+              aiPostProcessConfig={aiPostProcessConfig}
+              updateAiPostProcessConfig={(patch) => {
+                setAiPostProcessConfig((prev) => ({
+                  ...prev,
+                  ...patch,
+                }))
+              }}
               appVersion={appVersion}
               updateStatus={updateStatus}
               handleCheckUpdate={handleCheckUpdate}
@@ -434,7 +453,7 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
             {t.common.cancel}
           </button>
           <button
-            onClick={handleSave}
+            onClick={() => void handleSave()}
             className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 gap-2 press-scale"
           >
             <Check className="w-4 h-4" />

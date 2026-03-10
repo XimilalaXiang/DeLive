@@ -87,6 +87,16 @@ export const en: Translations = {
     diagnosticsExported: 'Diagnostics exported',
     diagnosticsExportFailed: 'Export failed',
     diagnosticsExportCancelled: 'Export cancelled',
+    aiPostProcessTitle: 'AI Post-Process',
+    aiPostProcessDesc: 'Generate summaries, action items, keywords, and chapters for completed transcripts.',
+    aiPostProcessEnable: 'Enable AI briefing',
+    aiPostProcessEnableDesc: 'When enabled, you can generate AI results for a single session from history details.',
+    aiBaseUrl: 'AI Base URL',
+    aiModel: 'AI Model',
+    aiApiKey: 'AI API Key',
+    aiApiKeyPlaceholder: 'Optional: usually empty for local services',
+    aiApiKeyDesc: 'Used for OpenAI-compatible text generation endpoints.',
+    aiPromptLanguage: 'AI Output Language',
   },
 
   // Provider related
@@ -179,6 +189,15 @@ export const en: Translations = {
     speakerLabels: 'Speaker labels',
     renameSpeaker: 'Rename speaker',
     speakerNamePlaceholder: 'Speaker name',
+    aiBriefing: 'AI Briefing',
+    aiGenerate: 'Generate AI Briefing',
+    aiRegenerate: 'Regenerate',
+    aiGenerating: 'Generating AI briefing...',
+    aiSummary: 'Summary',
+    aiActionItems: 'Action Items',
+    aiKeywords: 'Keywords',
+    aiChapters: 'Chapters',
+    aiNotConfigured: 'Enable and configure AI post-process in Settings > General first.',
   },
 
   // Source picker

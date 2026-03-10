@@ -1,10 +1,18 @@
 import { create } from 'zustand'
 import type {
+  AiPostProcessConfig,
   AppSettings,
   ProviderConfigData,
   CaptionStyle,
 } from '../types'
-import { getSettings, saveSettings, resolveApiKeysFromSafeStorage, migrateApiKeysToSafeStorage } from '../utils/storage'
+import {
+  encryptApiKeyForStorage,
+  getSettings,
+  saveSettings,
+  resolveApiKeysFromSafeStorage,
+  migrateApiKeysToSafeStorage,
+} from '../utils/storage'
+import { getDefaultSettings } from '../utils/storageShared'
 import { providerRegistry } from '../providers'
 import type { ASRProviderInfo, ASRVendor } from '../types/asr'
 
@@ -23,6 +31,7 @@ export interface SettingsState {
   settings: AppSettings
   loadSettings: () => void
   updateSettings: (settings: Partial<AppSettings>) => void
+  updateAiPostProcessConfig: (config: Partial<AiPostProcessConfig>) => Promise<void>
 
   availableProviders: ASRProviderInfo[]
   setCurrentVendor: (vendorId: string) => void
@@ -37,9 +46,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     currentVendor: 'soniox',
     providerConfigs: {},
     captionStyle: defaultCaptionStyle,
+    aiPostProcess: getDefaultSettings().aiPostProcess,
   },
   loadSettings: () => {
     const settings = getSettings()
+    const defaultSettings = getDefaultSettings()
     const registeredVendors = providerRegistry.getAllProviders().map(p => p.id)
 
     if (settings.apiKey && (!settings.providerConfigs || !settings.providerConfigs['soniox'])) {
@@ -64,6 +75,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           ...defaultCaptionStyle,
           ...(settings.captionStyle || {}),
         },
+        aiPostProcess: {
+          ...defaultSettings.aiPostProcess,
+          ...(settings.aiPostProcess || {}),
+        },
       },
     })
 
@@ -77,6 +92,29 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     const settings = { ...get().settings, ...newSettings }
     saveSettings(settings)
     set({ settings })
+  },
+  updateAiPostProcessConfig: async (config) => {
+    const { settings } = get()
+    const currentConfig = settings.aiPostProcess || {}
+    const nextConfig = { ...currentConfig, ...config }
+    const inMemorySettings = {
+      ...settings,
+      aiPostProcess: nextConfig,
+    }
+
+    set({ settings: inMemorySettings })
+
+    const encryptedApiKey = typeof nextConfig.apiKey === 'string'
+      ? await encryptApiKeyForStorage('ai_postprocess', nextConfig.apiKey)
+      : nextConfig.apiKey
+
+    saveSettings({
+      ...inMemorySettings,
+      aiPostProcess: {
+        ...nextConfig,
+        apiKey: encryptedApiKey,
+      },
+    })
   },
 
   availableProviders: providerRegistry.getAllProviders(),

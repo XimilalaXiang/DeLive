@@ -85,6 +85,16 @@ export const zh = {
     diagnosticsExported: '诊断信息已导出',
     diagnosticsExportFailed: '导出失败',
     diagnosticsExportCancelled: '已取消导出',
+    aiPostProcessTitle: 'AI 后处理',
+    aiPostProcessDesc: '为已完成的转录生成摘要、行动项、关键词和章节',
+    aiPostProcessEnable: '启用 AI briefing',
+    aiPostProcessEnableDesc: '启用后，可在历史详情中对单个会话生成 AI 结果',
+    aiBaseUrl: 'AI Base URL',
+    aiModel: 'AI 模型',
+    aiApiKey: 'AI API Key',
+    aiApiKeyPlaceholder: '可选：本地服务通常可留空',
+    aiApiKeyDesc: '用于 OpenAI-compatible 文本生成接口，可选',
+    aiPromptLanguage: 'AI 输出语言',
   },
 
   // 提供商相关
@@ -177,6 +187,15 @@ export const zh = {
     speakerLabels: '说话人标签',
     renameSpeaker: '重命名说话人',
     speakerNamePlaceholder: '说话人名称',
+    aiBriefing: 'AI Briefing',
+    aiGenerate: '生成 AI 摘要',
+    aiRegenerate: '重新生成',
+    aiGenerating: 'AI 正在生成...',
+    aiSummary: '摘要',
+    aiActionItems: '行动项',
+    aiKeywords: '关键词',
+    aiChapters: '章节',
+    aiNotConfigured: '请先到设置 > 通用设置 中启用并配置 AI 后处理',
   },
 
   // 源选择器

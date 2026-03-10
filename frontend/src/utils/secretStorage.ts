@@ -45,6 +45,24 @@ export async function migrateApiKeysToSafeStorage(): Promise<void> {
     }
   }
 
+  if (
+    settings.aiPostProcess?.apiKey
+    && typeof settings.aiPostProcess.apiKey === 'string'
+    && settings.aiPostProcess.apiKey !== SAFE_STORAGE_PLACEHOLDER
+  ) {
+    const stored = await window.electronAPI.safeStorageSet(
+      safeStorageKeyFor('ai_postprocess'),
+      settings.aiPostProcess.apiKey,
+    )
+    if (stored) {
+      settings.aiPostProcess = {
+        ...settings.aiPostProcess,
+        apiKey: SAFE_STORAGE_PLACEHOLDER,
+      }
+      changed = true
+    }
+  }
+
   if (changed) {
     saveSettings(settings)
   }
@@ -72,6 +90,16 @@ export async function resolveApiKeysFromSafeStorage(
         if (value) {
           resolved.providerConfigs[vendorId] = { ...config, apiKey: value }
         }
+      }
+    }
+  }
+
+  if (resolved.aiPostProcess?.apiKey === SAFE_STORAGE_PLACEHOLDER) {
+    const value = await window.electronAPI.safeStorageGet(safeStorageKeyFor('ai_postprocess'))
+    if (value) {
+      resolved.aiPostProcess = {
+        ...resolved.aiPostProcess,
+        apiKey: value,
       }
     }
   }

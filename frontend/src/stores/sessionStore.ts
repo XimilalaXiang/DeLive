@@ -7,6 +7,7 @@ import type {
   TranscriptSpeaker,
 } from '../types'
 import type { TranscriptToken } from '../types/asr'
+import { generateSessionBriefing } from '../services/aiPostProcess'
 import { sessionRepository } from '../utils/sessionRepository'
 import { formatTime } from '../utils/storage'
 import {
@@ -84,6 +85,10 @@ export interface SessionState {
   updateSessionTitle: (id: string, title: string) => void
   updateSessionSpeakers: (sessionId: string, speakers: TranscriptSpeaker[]) => void
   updateSessionPostProcess: (sessionId: string, patch: Partial<TranscriptPostProcess>) => void
+  generateSessionPostProcess: (
+    sessionId: string,
+    options?: { overwrite?: boolean },
+  ) => Promise<TranscriptPostProcess>
   deleteSession: (id: string) => void
   updateSessionTags: (sessionId: string, tagIds: string[]) => void
   replaceAllSessions: (sessions: TranscriptSession[]) => TranscriptSession[]
@@ -165,6 +170,30 @@ export const useSessionStore = create<SessionState>((set, get) => {
       const sessions = sessionRepository.saveProgress(state.currentSessionId, snapshot)
       set({ sessions })
     }, SESSION_AUTOSAVE_DELAY_MS)
+  }
+
+  const replaceSessionPostProcess = (
+    sessionId: string,
+    nextPostProcess: TranscriptPostProcess,
+  ) => {
+    const { currentSessionId, currentPostProcess, recoverySession } = get()
+    const nextState = applySessionMetadataUpdate(
+      get().sessions,
+      sessionId,
+      { postProcess: nextPostProcess },
+      {
+        currentSessionId,
+        recoverySession,
+        currentSpeakers: get().currentSpeakers,
+        currentPostProcess,
+      },
+    )
+    const sessions = sessionRepository.updateMetadata(sessionId, { postProcess: nextPostProcess })
+    set({
+      sessions,
+      currentPostProcess: nextState.currentPostProcess,
+      recoverySession: nextState.recoverySession,
+    })
   }
 
   return {
@@ -338,6 +367,50 @@ export const useSessionStore = create<SessionState>((set, get) => {
         currentPostProcess: nextState.currentPostProcess,
         recoverySession: nextState.recoverySession,
       })
+    },
+    generateSessionPostProcess: async (sessionId, options) => {
+      const session = get().sessions.find((item) => item.id === sessionId)
+      if (!session) {
+        throw new Error('未找到要分析的会话')
+      }
+
+      const requestedAt = Date.now()
+      get().updateSessionPostProcess(sessionId, {
+        status: 'pending',
+        error: undefined,
+        requestedAt,
+      })
+
+      try {
+        const { postProcess } = await generateSessionBriefing(
+          session,
+          useSettingsStore.getState().settings,
+        )
+        const nextPostProcess = options?.overwrite === false
+          ? mergeSessionPostProcess(session.postProcess, {
+            ...postProcess,
+            status: 'success',
+            error: undefined,
+            requestedAt,
+          })
+          : {
+            ...postProcess,
+            status: 'success' as const,
+            error: undefined,
+            requestedAt,
+          }
+
+        replaceSessionPostProcess(sessionId, nextPostProcess)
+        return nextPostProcess
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'AI 后处理失败'
+        get().updateSessionPostProcess(sessionId, {
+          status: 'error',
+          error: message,
+          requestedAt,
+        })
+        throw error
+      }
     },
     deleteSession: (id) => {
       const { sessions: currentSessions, recoverySession } = get()

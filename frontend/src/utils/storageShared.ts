@@ -147,5 +147,13 @@ export function getDefaultSettings(): AppSettings {
     apiKey: '',
     languageHints: ['zh', 'en'],
     captionStyle: DEFAULT_CAPTION_STYLE,
+    aiPostProcess: {
+      enabled: false,
+      provider: 'openai-compatible',
+      baseUrl: 'http://127.0.0.1:11434/v1',
+      model: '',
+      apiKey: '',
+      promptLanguage: 'zh',
+    },
   }
 }

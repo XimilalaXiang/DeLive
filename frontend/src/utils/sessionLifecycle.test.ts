@@ -82,4 +82,23 @@ describe('sessionLifecycle', () => {
       generatedAt: 123,
     })
   })
+
+  it('does not stamp generatedAt for status-only patches', () => {
+    const merged = mergeSessionPostProcess(
+      {
+        summary: 'Summary',
+        generatedAt: 456,
+      },
+      {
+        status: 'pending',
+      },
+      123,
+    )
+
+    expect(merged).toEqual({
+      summary: 'Summary',
+      status: 'pending',
+      generatedAt: 456,
+    })
+  })
 })

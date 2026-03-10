@@ -1,4 +1,5 @@
 import type {
+  AiPostProcessConfig,
   AppSettings,
   CaptionStyle,
   ProviderConfigData,
@@ -131,6 +132,28 @@ function normalizeCaptionStyle(
   }
 }
 
+function normalizeAiPostProcessConfig(value: unknown): AiPostProcessConfig | undefined {
+  if (!isRecord(value)) {
+    return undefined
+  }
+
+  const provider = value.provider === 'openai-compatible'
+    ? value.provider
+    : 'openai-compatible'
+  const promptLanguage = value.promptLanguage === 'en' || value.promptLanguage === 'zh'
+    ? value.promptLanguage
+    : undefined
+
+  return {
+    enabled: typeof value.enabled === 'boolean' ? value.enabled : undefined,
+    provider,
+    baseUrl: typeof value.baseUrl === 'string' ? value.baseUrl : undefined,
+    model: typeof value.model === 'string' ? value.model : undefined,
+    apiKey: typeof value.apiKey === 'string' ? value.apiKey : undefined,
+    promptLanguage,
+  }
+}
+
 function normalizeSettings(value: unknown): AppSettings {
   const defaults = getDefaultSettings()
   const record = isRecord(value) ? value : {}
@@ -146,6 +169,10 @@ function normalizeSettings(value: unknown): AppSettings {
     autoCheckUpdate: typeof record.autoCheckUpdate === 'boolean' ? record.autoCheckUpdate : undefined,
     captionStyle: normalizeCaptionStyle(record.captionStyle, defaults.captionStyle),
     colorTheme: typeof record.colorTheme === 'string' ? record.colorTheme : undefined,
+    aiPostProcess: {
+      ...defaults.aiPostProcess,
+      ...(normalizeAiPostProcessConfig(record.aiPostProcess) || {}),
+    },
   }
 }
 
