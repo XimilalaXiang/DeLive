@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.4] - 2026-03-10
+
+### Added / 新增
+- 💬 Added session-level AI Q&A with persistent ask history, transcript-grounded answers, citation snippets, and support for multiple conversation threads inside a single saved session
+- 💬 新增会话级 AI 问答，支持持久化问答历史、基于 transcript 的回答、引用片段，以及单个会话内的多对话线程
+- 🧠 Added AI-generated session mind maps using Markmap-compatible Markdown with local editing, live preview, and session persistence
+- 🧠 新增 AI 思维导图功能，基于 Markmap-compatible Markdown 生成，支持本地编辑、实时预览与会话持久化
+- 🖼️ Added mind map export actions for SVG and PNG directly from session preview
+- 🖼️ 新增会话详情中的思维导图 SVG / PNG 导出能力
+- 🧪 Added session schema coverage for Q&A and mind map payloads, increasing frontend coverage from 180 to 184 tests
+- 🧪 新增会话 schema 对问答与思维导图数据的测试覆盖，前端测试总数从 180 提升到 184
+
+### Changed / 变更
+- ✨ Upgraded the session AI panel into a more conversation-like chat experience inspired by modern AI chat products, with suggestions, fixed composer area, and threaded context switching
+- ✨ 将会话 AI 面板升级为更接近现代 AI 产品的对话体验，支持建议问题、固定输入区和多线程上下文切换
+- 🗺️ Reworked mind map export sizing and cropping based on actual rendered SVG bounds to avoid partial exports and excessive whitespace
+- 🗺️ 基于实际渲染后的 SVG 边界重写思维导图导出尺寸与裁切逻辑，避免只导出部分内容或出现大面积留白
+
+---
+
 ## [1.4.3] - 2026-03-10
 
 ### Added / 新增
