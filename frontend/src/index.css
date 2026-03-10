@@ -4,6 +4,7 @@
 
 /* ===== CSS 变量 — 从 Tailwind HSL tokens 派生 ===== */
 :root {
+  --radius: 1rem;
   --bg-primary: hsl(var(--background));
   --bg-secondary: hsl(var(--card));
   --bg-tertiary: hsl(var(--muted));
@@ -37,6 +38,12 @@
   box-sizing: border-box;
 }
 
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
 body {
   margin: 0;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -46,6 +53,32 @@ body {
   background-image: radial-gradient(ellipse 80% 50% at 50% -20%, var(--primary-glow), transparent);
   color: var(--text-primary);
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+@layer components {
+  .workspace-panel {
+    @apply rounded-2xl border border-border/70 bg-card/90 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/80;
+  }
+
+  .workspace-panel-muted {
+    @apply rounded-2xl border border-border/60 bg-muted/30 shadow-sm;
+  }
+
+  .workspace-kicker {
+    @apply text-[11px] font-semibold uppercase tracking-[0.24em] text-primary/80;
+  }
+
+  .workspace-heading {
+    @apply text-2xl font-semibold tracking-tight text-foreground;
+  }
+
+  .workspace-subtle {
+    @apply text-sm leading-6 text-muted-foreground;
+  }
+
+  .workspace-badge {
+    @apply inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/80 px-3 py-1.5 text-xs font-medium text-muted-foreground;
+  }
 }
 
 /* ===== 滚动条样式 ===== */

@@ -318,11 +318,29 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
     e.target.value = ''
   }
 
+  useEffect(() => {
+    if (!isOpen) return undefined
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onClose])
+
   if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 bg-black/50 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
-      <div className="bg-card text-card-foreground border border-border rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col dark:ring-1 dark:ring-white/[0.08]">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="settings-dialog-title"
+        className="bg-card text-card-foreground border border-border rounded-2xl shadow-2xl w-full max-w-[min(78rem,calc(100vw-2rem))] mx-4 overflow-hidden animate-in zoom-in-95 duration-200 h-[min(92vh,58rem)] flex flex-col dark:ring-1 dark:ring-white/[0.08]"
+      >
         {/* 头部 */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/30 flex-shrink-0">
           <div className="flex items-center gap-3">
@@ -330,13 +348,14 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
               <Settings className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold tracking-tight">{t.settings.title}</h2>
+              <h2 id="settings-dialog-title" className="text-lg font-semibold tracking-tight">{t.settings.title}</h2>
               <p className="text-xs text-muted-foreground">{t.settings.subtitle}</p>
             </div>
           </div>
           <button
             onClick={onClose}
             className="p-2 hover:bg-muted rounded-lg transition-colors text-muted-foreground hover:text-foreground"
+            aria-label={t.common.close}
           >
             <X className="w-5 h-5" />
           </button>

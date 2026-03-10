@@ -9,8 +9,18 @@ import { PreviewModal } from './PreviewModal'
 import { TagSelector, TagFilter } from './TagSelector'
 import type { TranscriptSession } from '../types'
 
-export function HistoryPanel() {
-  const { t } = useUIStore()
+interface HistoryPanelProps {
+  variant?: 'full' | 'rail'
+  className?: string
+  contentHeightClassName?: string
+}
+
+export function HistoryPanel({
+  variant = 'full',
+  className = '',
+  contentHeightClassName,
+}: HistoryPanelProps) {
+  const { t, language } = useUIStore()
   const { sessions, updateSessionTitle, deleteSession } = useSessionStore()
   const { tags, selectedTagIds, searchQuery, setSearchQuery } = useTagStore()
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -148,20 +158,34 @@ export function HistoryPanel() {
   const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
   const isExpanded = (date: string) => 
     expandedDates.has(date) || date === today || date === yesterday
+  const isRail = variant === 'rail'
+  const resolvedContentHeightClassName = contentHeightClassName || (isRail ? 'h-[min(62vh,44rem)]' : 'max-h-[400px]')
+  const railCopy = language === 'zh'
+    ? {
+      title: 'Session Library',
+      description: '检索、重开并整理已完成会话。',
+    }
+    : {
+      title: 'Session Library',
+      description: 'Search, reopen, and organize finished sessions.',
+    }
 
   return (
     <>
-      <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md dark:ring-1 dark:ring-white/[0.06]">
+      <div className={`workspace-panel overflow-hidden ${className}`}>
         {/* 头部 */}
-        <div className="px-6 py-4 border-b border-border bg-muted/30 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="p-1 rounded bg-background border border-border shadow-sm">
-                <History className="w-4 h-4 text-primary" />
+        <div className={`space-y-3 border-b border-border/70 bg-muted/20 ${isRail ? 'px-5 py-4' : 'px-6 py-4'}`}>
+          <div className="flex items-center justify-between gap-3">
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary/80">
+                <History className="h-3.5 w-3.5" />
+                {isRail ? railCopy.title : t.history.title}
               </div>
-              <span className="text-sm font-semibold text-foreground">{t.history.title}</span>
+              <p className="text-xs text-muted-foreground">
+                {isRail ? railCopy.description : 'Search transcripts and reopen completed sessions.'}
+              </p>
             </div>
-            <span className="text-xs font-medium text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
+            <span className="workspace-badge">
               {(selectedTagIds.length > 0 || searchQuery.trim())
                 ? `${filteredSessions.length}/${sessions.length} ${t.common.items}`
                 : `${sessions.length} ${t.common.items}`
@@ -185,6 +209,7 @@ export function HistoryPanel() {
               <button
                 onClick={clearSearch}
                 className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground rounded"
+                aria-label="Clear search"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -196,7 +221,7 @@ export function HistoryPanel() {
         </div>
 
         {/* 内容 */}
-        <div className="max-h-[400px] overflow-y-auto bg-background/50">
+        <div className={`${resolvedContentHeightClassName} overflow-y-auto bg-background/40`}>
           {groupedSessions.length === 0 ? (
             <div className="py-12 text-center text-muted-foreground">
               <div className="bg-muted w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -288,6 +313,11 @@ export function HistoryPanel() {
                                 <span className="flex-1 text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
                                   {session.title}
                                 </span>
+                                {session.providerId && (
+                                  <span className="hidden rounded-full border border-border/70 bg-background/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground md:inline-flex">
+                                    {session.providerId}
+                                  </span>
+                                )}
 
                                 {/* 操作按钮 */}
                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">

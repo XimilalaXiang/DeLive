@@ -274,56 +274,78 @@ export function ServiceSettingsPanel({
   )
 
   return (
-    <>
-      <div className="space-y-3">
-        <label className="text-sm font-medium leading-none flex items-center gap-2">
-          <Cpu className="w-3.5 h-3.5 text-muted-foreground" />
-          {t.settings?.asrProvider || '语音识别服务'}
-        </label>
-        <ProviderSelector />
-        <p className="text-[10px] text-muted-foreground">
-          {t.settings?.asrProviderDesc || '选择语音识别服务提供商，不同提供商有不同的特性和价格'}
-        </p>
+    <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+      <div className="space-y-6">
+        <section className="workspace-panel-muted p-4">
+          <div className="space-y-3">
+            <label className="text-sm font-medium leading-none flex items-center gap-2">
+              <Cpu className="w-3.5 h-3.5 text-muted-foreground" />
+              {t.settings?.asrProvider || '语音识别服务'}
+            </label>
+            <ProviderSelector />
+            <p className="text-[10px] text-muted-foreground">
+              {t.settings?.asrProviderDesc || '选择语音识别服务提供商，不同提供商有不同的特性和价格'}
+            </p>
+          </div>
+        </section>
+
+        {providerFields.length > 0 && (
+          <section className="workspace-panel-muted p-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              {providerFields.map(renderProviderField)}
+            </div>
+          </section>
+        )}
+
+        {renderTestButton() && (
+          <section className="workspace-panel-muted p-4">
+            {renderTestButton()}
+          </section>
+        )}
       </div>
 
-      {providerFields.map(renderProviderField)}
+      <div className="space-y-6">
+        {shouldShowLocalSetupGuide && currentProvider && (
+          <section className="workspace-panel-muted p-4">
+            <LocalModelSetupGuide
+              provider={currentProvider}
+              config={buildEditableProviderConfig()}
+              onModelChange={(value) => updateFormField('model', value)}
+            />
+          </section>
+        )}
 
-      {shouldShowLocalSetupGuide && currentProvider && (
-        <LocalModelSetupGuide
-          provider={currentProvider}
-          config={buildEditableProviderConfig()}
-          onModelChange={(value) => updateFormField('model', value)}
-        />
-      )}
+        {shouldShowBundledRuntimeGuide && currentProvider && (
+          <section className="workspace-panel-muted p-4">
+            <BundledRuntimeSetupGuide
+              provider={currentProvider}
+              config={buildEditableProviderConfig()}
+              onRunConfigTest={onRunConfigTest}
+              testStatus={testStatus}
+              testMessage={testMessage}
+              onConfigPatch={onBundledRuntimePatch}
+            />
+          </section>
+        )}
 
-      {shouldShowBundledRuntimeGuide && currentProvider && (
-        <BundledRuntimeSetupGuide
-          provider={currentProvider}
-          config={buildEditableProviderConfig()}
-          onRunConfigTest={onRunConfigTest}
-          testStatus={testStatus}
-          testMessage={testMessage}
-          onConfigPatch={onBundledRuntimePatch}
-        />
-      )}
-
-      {renderTestButton()}
-
-      <div className="space-y-3">
-        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-          {t.settings.languageHints}
-        </label>
-        <input
-          type="text"
-          value={languageHints}
-          onChange={(e) => onLanguageHintsChange(e.target.value)}
-          placeholder={t.settings.languageHintsPlaceholder}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        />
-        <p className="text-[10px] text-muted-foreground">
-          {t.settings.languageHintsDesc}
-        </p>
+        <section className="workspace-panel-muted p-4">
+          <div className="space-y-3">
+            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              {t.settings.languageHints}
+            </label>
+            <input
+              type="text"
+              value={languageHints}
+              onChange={(e) => onLanguageHintsChange(e.target.value)}
+              placeholder={t.settings.languageHintsPlaceholder}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            />
+            <p className="text-[10px] text-muted-foreground">
+              {t.settings.languageHintsDesc}
+            </p>
+          </div>
+        </section>
       </div>
-    </>
+    </div>
   )
 }

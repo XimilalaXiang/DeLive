@@ -58,7 +58,12 @@ export function SourcePicker({ isOpen, onSelect, onCancel }: SourcePickerProps) 
 
   return (
     <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-      <div className="bg-card text-card-foreground border border-border rounded-xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="source-picker-title"
+        className="bg-card text-card-foreground border border-border rounded-xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+      >
         {/* 头部 */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/30">
           <div className="flex items-center gap-3">
@@ -66,7 +71,7 @@ export function SourcePicker({ isOpen, onSelect, onCancel }: SourcePickerProps) 
               <Monitor className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold tracking-tight">{t.sourcePicker.title}</h2>
+              <h2 id="source-picker-title" className="text-lg font-semibold tracking-tight">{t.sourcePicker.title}</h2>
               <p className="text-xs text-muted-foreground">{t.sourcePicker.subtitle}</p>
             </div>
           </div>
@@ -76,12 +81,14 @@ export function SourcePicker({ isOpen, onSelect, onCancel }: SourcePickerProps) 
               disabled={loading}
               className="p-2 hover:bg-muted rounded-lg transition-colors text-muted-foreground hover:text-foreground"
               title={t.sourcePicker.refresh}
+              aria-label={t.sourcePicker.refresh}
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
             <button
               onClick={onCancel}
               className="p-2 hover:bg-muted rounded-lg transition-colors text-muted-foreground hover:text-foreground"
+              aria-label={t.common.close}
             >
               <X className="w-5 h-5" />
             </button>

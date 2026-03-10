@@ -4,6 +4,11 @@ import { useUIStore } from '../stores/uiStore'
 import { useSettingsStore } from '../stores/settingsStore'
 import { useSessionStore } from '../stores/sessionStore'
 
+interface TranscriptDisplayProps {
+  className?: string
+  contentHeightClassName?: string
+}
+
 function getSpeakerLabel(speakerId: string | undefined): string {
   if (!speakerId) {
     return 'Speaker'
@@ -12,7 +17,10 @@ function getSpeakerLabel(speakerId: string | undefined): string {
   return speakerId
 }
 
-export function TranscriptDisplay() {
+export function TranscriptDisplay({
+  className = '',
+  contentHeightClassName = 'h-[320px]',
+}: TranscriptDisplayProps) {
   const { t } = useUIStore()
   const { settings, availableProviders } = useSettingsStore()
   const {
@@ -81,58 +89,75 @@ export function TranscriptDisplay() {
   const isEmpty = !finalTranscript && !nonFinalTranscript && !translatedText
   const isRecording = recordingState === 'recording'
   const isStarting = recordingState === 'starting'
+  const providerModeLabel = currentProvider?.type === 'local' ? 'Local' : 'Cloud'
 
   return (
-    <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-hidden relative transition-all duration-200 hover:shadow-lg hover:border-primary/20 dark:ring-1 dark:ring-white/[0.06]">
+    <div className={`workspace-panel overflow-hidden relative ${className}`}>
       {/* 头部 */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/30">
-        <div className="flex items-center gap-2.5">
-          <div className="p-1.5 rounded-md bg-background border border-border shadow-sm">
-            <Activity className="w-4 h-4 text-primary" />
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border/70 bg-muted/25 px-6 py-5">
+        <div className="space-y-3">
+          <div className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary/80">
+            <Activity className="h-3.5 w-3.5" />
+            {t.transcript.title}
           </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-semibold tracking-tight">{t.transcript.title}</span>
+          <div className="flex flex-wrap gap-2">
+            <span className="workspace-badge">
+              {providerName}
+              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                {providerModeLabel}
+              </span>
+            </span>
             {currentSessionId && (
-              <span className="text-[10px] text-muted-foreground font-mono">
-                ID: {currentSessionId.slice(0, 8)}
+              <span className="workspace-badge font-mono">
+                ID {currentSessionId.slice(0, 8)}
+              </span>
+            )}
+            {showTranslated && (
+              <span className="workspace-badge text-sky-700 dark:text-sky-300">
+                {t.transcript.translated || 'Translated'}
+              </span>
+            )}
+            {speakerDiarizationEnabled && (
+              <span className="workspace-badge">
+                Speakers
               </span>
             )}
           </div>
         </div>
 
         {/* 状态指示器 */}
-        {isStarting && (
-          <div className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-400">
-            <span className="relative flex h-2 w-2 mr-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {!shouldAutoScroll && isRecording && (
+            <span className="workspace-badge">
+              {t.transcript.scrollPaused}
             </span>
-            {t.recording.starting.replace('...', '')}
-          </div>
-        )}
-        {isRecording && (
-          <div className="flex items-center gap-3">
-            {!shouldAutoScroll && (
-              <span className="text-xs font-medium text-muted-foreground animate-in fade-in">
-                {t.transcript.scrollPaused}
+          )}
+          {isStarting && (
+            <div className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-400">
+              <span className="relative mr-2 flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
               </span>
-            )}
-            <div className="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400 shadow-sm">
-              <span className="relative flex h-2 w-2 mr-2">
+              {t.recording.starting.replace('...', '')}
+            </div>
+          )}
+          {isRecording && (
+            <div className="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400 shadow-sm">
+              <span className="relative mr-2 flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
               </span>
               REC
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* 转录内容 */}
       <div 
         ref={containerRef}
         onScroll={handleScroll}
-        className="h-[320px] overflow-y-auto p-6 scroll-smooth bg-background/50"
+        className={`${contentHeightClassName} overflow-y-auto bg-background/40 p-6 scroll-smooth`}
       >
         {isStarting ? (
           <div className="h-full flex flex-col items-center justify-center text-muted-foreground">

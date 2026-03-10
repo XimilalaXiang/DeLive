@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { AlertTriangle, Settings, Waves } from 'lucide-react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { AlertTriangle, Clock3, History, Radio, Settings, Sparkles, Waves } from 'lucide-react'
 import { useUIStore } from './stores/uiStore'
 import { useSettingsStore } from './stores/settingsStore'
 import { useSessionStore } from './stores/sessionStore'
@@ -25,9 +25,17 @@ function App() {
   const [showSourcePicker, setShowSourcePicker] = useState(false)
   const [toasts, setToasts] = useState<ToastMessage[]>([])
   const [isInitialized, setIsInitialized] = useState(false)
-  const { initTheme, t } = useUIStore()
+  const { initTheme, language, t } = useUIStore()
   const { loadSettings, settings, availableProviders } = useSettingsStore()
-  const { loadSessions, recoverySession, restoreRecoverySession, dismissRecoverySession, recordingState } = useSessionStore()
+  const {
+    loadSessions,
+    recoverySession,
+    restoreRecoverySession,
+    dismissRecoverySession,
+    recordingState,
+    sessions,
+    currentSessionId,
+  } = useSessionStore()
   const { loadTags } = useTagStore()
   const hasCheckedApiKey = useRef(false)
 
@@ -116,35 +124,109 @@ function App() {
 
   // 检测是否在 Electron 环境中
   const isElectron = !!window.electronAPI?.isElectron
+  const currentSession = useMemo(
+    () => sessions.find((session) => session.id === currentSessionId) || null,
+    [currentSessionId, sessions],
+  )
+  const workspaceCopy = language === 'zh'
+    ? {
+      liveDesk: 'Live Desk',
+      liveDeskTitle: '把实时转录、控制和回看组织成一个桌面工作台。',
+      liveDeskDescription: '主工作区优先服务录制与阅读，完成后再进入 Review Desk 继续做 AI 摘要、问答和整理。',
+      providerLabel: '当前 Provider',
+      stateLabel: '当前状态',
+      sessionLabel: '当前会话',
+      historyLabel: '历史会话',
+      controlsLabel: 'Capture Controls',
+      controlsDescription: '开始/停止录制保持在主工作流中央，避免被设置和历史打断。',
+      utilityLabel: 'Utility Rail',
+      utilityDescription: '把字幕、主题和环境级操作放到辅助区，而不是挤占主舞台。',
+      reviewLabel: 'Review Path',
+      reviewDescription: '完成录制后，从右侧 Session Library 进入独立的 Review Desk 继续查看摘要、问答和导出。',
+      notConfigured: '未完成配置',
+      noSession: '尚未开始会话',
+      statusIdle: '待命',
+      statusStarting: '正在启动',
+      statusRecording: '录制中',
+      statusStopping: '正在停止',
+      aiReady: 'AI Briefing',
+      aiEnabled: '已启用',
+      aiDisabled: '未启用',
+      captionsReady: '实时字幕',
+      captionsAvailable: '可用',
+      captionsUnavailable: '不可用',
+    }
+    : {
+      liveDesk: 'Live Desk',
+      liveDeskTitle: 'Organize live transcription, controls, and session review as one workspace.',
+      liveDeskDescription: 'The main workspace stays focused on capture and reading. Move into the Review Desk after recording for AI briefing, Q&A, and exports.',
+      providerLabel: 'Current Provider',
+      stateLabel: 'Current State',
+      sessionLabel: 'Active Session',
+      historyLabel: 'Session Count',
+      controlsLabel: 'Capture Controls',
+      controlsDescription: 'Keep start/stop capture anchored in the main workflow instead of burying it under settings.',
+      utilityLabel: 'Utility Rail',
+      utilityDescription: 'Place captions, theming, and environment-level actions in a secondary rail instead of the main stage.',
+      reviewLabel: 'Review Path',
+      reviewDescription: 'Use the Session Library on the right to move from recording into a dedicated Review Desk for briefing, Q&A, and exports.',
+      notConfigured: 'Not configured',
+      noSession: 'No session started yet',
+      statusIdle: 'Idle',
+      statusStarting: 'Starting',
+      statusRecording: 'Recording',
+      statusStopping: 'Stopping',
+      aiReady: 'AI Briefing',
+      aiEnabled: 'Enabled',
+      aiDisabled: 'Disabled',
+      captionsReady: 'Live Caption',
+      captionsAvailable: 'Available',
+      captionsUnavailable: 'Unavailable',
+    }
+
+  const recordingStateLabel = (() => {
+    if (recordingState === 'recording') return workspaceCopy.statusRecording
+    if (recordingState === 'starting') return workspaceCopy.statusStarting
+    if (recordingState === 'stopping') return workspaceCopy.statusStopping
+    return workspaceCopy.statusIdle
+  })()
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
+      <a
+        href="#app-main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[110] focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-foreground focus:shadow-lg"
+      >
+        Skip to main content
+      </a>
       {/* 自定义标题栏 - 仅 Electron */}
       <TitleBar />
       
-      {/* 头部 - 使用玻璃拟态效果 */}
-      <header className={`sticky z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:ring-1 dark:ring-white/[0.06] ${isElectron ? 'top-8 mt-8' : 'top-0'}`}>
-        {/* 底部渐变分割线 */}
-        <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-        <div className="container max-w-5xl mx-auto px-4 sm:px-6">
-          <div className="flex h-16 items-center justify-between">
-            {/* Logo */}
+      <header className={`sticky z-40 w-full bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/75 ${isElectron ? 'top-8 pt-4' : 'top-0 pt-4'}`}>
+        <div className="container mx-auto max-w-[1500px] px-4 sm:px-6">
+          <div className="workspace-panel-muted flex flex-wrap items-center justify-between gap-4 px-5 py-4">
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center h-9 w-9 rounded-lg bg-primary text-primary-foreground shadow-sm shadow-primary/25">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm shadow-primary/25">
                 <Waves className="h-5 w-5" />
               </div>
-              <div className="flex flex-col gap-0.5">
-                <h1 className="text-lg font-bold leading-none tracking-tight">{t.app.name}</h1>
-                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">{t.app.subtitle}</p>
+              <div className="space-y-1">
+                <div className="flex flex-wrap items-center gap-3">
+                  <h1 className="text-lg font-semibold tracking-tight">{t.app.name}</h1>
+                  <span className="workspace-badge">
+                    {currentProvider?.name || 'Soniox'}
+                  </span>
+                  <span className="workspace-badge">
+                    {recordingStateLabel}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t.app.subtitle}
+                </p>
               </div>
             </div>
 
-            {/* 右侧按钮组 */}
             <div className="flex items-center gap-2">
-              {/* 主题切换按钮 */}
               <AnimatedThemeToggler />
-              
-              {/* 设置按钮 */}
               <button
                 onClick={() => setShowSettings(true)}
                 className={`
@@ -164,102 +246,201 @@ function App() {
         </div>
       </header>
 
-      {/* 主内容 */}
-      <main className="container max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-        {/* API 未配置提示 */}
-        {isInitialized && !hasApiKey && (
-          <div className="animate-reveal-up rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/50 dark:bg-amber-900/20">
-            <div className="flex items-start gap-3">
-              <div className="p-1.5 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400">
-                <Settings className="h-4 w-4" />
-              </div>
-              <div className="space-y-1">
-                <h3 className="font-medium leading-none tracking-tight text-amber-900 dark:text-amber-200">
-                  {t.api.needConfig}
-                </h3>
-                <div className="text-sm text-amber-800 dark:text-amber-300">
-                  {t.api.needConfigDesc}
+      <main id="app-main" className="container mx-auto max-w-[1500px] px-4 pb-8 pt-6 sm:px-6">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.65fr)_360px]">
+          <div className="space-y-6">
+            <section className="workspace-panel overflow-hidden">
+              <div className="grid gap-6 p-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(18rem,0.8fr)]">
+                <div className="space-y-4">
+                  <div className="workspace-kicker">{workspaceCopy.liveDesk}</div>
+                  <div className="space-y-2">
+                    <h2 className="workspace-heading">{workspaceCopy.liveDeskTitle}</h2>
+                    <p className="workspace-subtle">{workspaceCopy.liveDeskDescription}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="workspace-badge">
+                      <Settings className="h-3.5 w-3.5" />
+                      {workspaceCopy.providerLabel}: {currentProvider?.name || workspaceCopy.notConfigured}
+                    </span>
+                    <span className="workspace-badge">
+                      <Radio className="h-3.5 w-3.5" />
+                      {workspaceCopy.stateLabel}: {recordingStateLabel}
+                    </span>
+                    <span className="workspace-badge">
+                      <History className="h-3.5 w-3.5" />
+                      {workspaceCopy.historyLabel}: {sessions.length}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </div>
-        )}
 
-        {isInitialized && recordingState === 'idle' && recoverySession && (
-          <div className="animate-reveal-up rounded-lg border border-sky-200 bg-sky-50 p-4 dark:border-sky-900/50 dark:bg-sky-950/20">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-start gap-3">
-                <div className="p-1.5 rounded-full bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-300">
-                  <AlertTriangle className="h-4 w-4" />
-                </div>
-                <div className="space-y-1">
-                  <h3 className="font-medium leading-none tracking-tight text-sky-900 dark:text-sky-100">
-                    {t.session.recoveryTitle}
-                  </h3>
-                  <div className="text-sm text-sky-800 dark:text-sky-200">
-                    {t.session.recoveryDesc(recoverySession.title)}
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="workspace-panel-muted p-4">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                      {workspaceCopy.providerLabel}
+                    </div>
+                    <div className="mt-2 text-sm font-medium text-foreground">
+                      {currentProvider?.name || workspaceCopy.notConfigured}
+                    </div>
+                  </div>
+                  <div className="workspace-panel-muted p-4">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                      {workspaceCopy.aiReady}
+                    </div>
+                    <div className="mt-2 text-sm font-medium text-foreground">
+                      {settings.aiPostProcess?.enabled ? workspaceCopy.aiEnabled : workspaceCopy.aiDisabled}
+                    </div>
+                  </div>
+                  <div className="workspace-panel-muted p-4">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                      {workspaceCopy.sessionLabel}
+                    </div>
+                    <div className="mt-2 truncate text-sm font-medium text-foreground">
+                      {currentSession?.title || workspaceCopy.noSession}
+                    </div>
+                  </div>
+                  <div className="workspace-panel-muted p-4">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                      {workspaceCopy.captionsReady}
+                    </div>
+                    <div className="mt-2 text-sm font-medium text-foreground">
+                      {isElectron ? workspaceCopy.captionsAvailable : workspaceCopy.captionsUnavailable}
+                    </div>
                   </div>
                 </div>
               </div>
+            </section>
 
-              <div className="flex items-center gap-2 sm:flex-shrink-0">
-                <button
-                  onClick={() => {
-                    restoreRecoverySession()
-                    addToast('success', t.session.recoveredToast)
-                  }}
-                  className="inline-flex h-9 items-center justify-center rounded-md bg-sky-600 px-4 text-sm font-medium text-white transition-colors hover:bg-sky-700"
-                >
-                  {t.session.restoreInterrupted}
-                </button>
-                <button
-                  onClick={() => {
-                    dismissRecoverySession()
-                    addToast('success', t.session.dismissedToast)
-                  }}
-                  className="inline-flex h-9 items-center justify-center rounded-md border border-sky-200 bg-background px-4 text-sm font-medium text-sky-800 transition-colors hover:bg-sky-100 dark:border-sky-900/40 dark:bg-slate-950/40 dark:text-sky-200 dark:hover:bg-sky-950/40"
-                >
-                  {t.session.dismissInterrupted}
-                </button>
+            {/* API 未配置提示 */}
+            {isInitialized && !hasApiKey && (
+              <div className="workspace-panel-muted animate-reveal-up p-4">
+                <div className="flex items-start gap-3">
+                  <div className="rounded-full bg-amber-100 p-1.5 text-amber-600 dark:bg-amber-900/50 dark:text-amber-400">
+                    <Settings className="h-4 w-4" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="font-medium leading-none tracking-tight text-amber-900 dark:text-amber-200">
+                      {t.api.needConfig}
+                    </h3>
+                    <div className="text-sm text-amber-800 dark:text-amber-300">
+                      {t.api.needConfigDesc}
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+
+            {isInitialized && recordingState === 'idle' && recoverySession && (
+              <div className="workspace-panel-muted animate-reveal-up p-4">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-start gap-3">
+                    <div className="rounded-full bg-sky-100 p-1.5 text-sky-600 dark:bg-sky-900/40 dark:text-sky-300">
+                      <AlertTriangle className="h-4 w-4" />
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="font-medium leading-none tracking-tight text-sky-900 dark:text-sky-100">
+                        {t.session.recoveryTitle}
+                      </h3>
+                      <div className="text-sm text-sky-800 dark:text-sky-200">
+                        {t.session.recoveryDesc(recoverySession.title)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 sm:flex-shrink-0">
+                    <button
+                      onClick={() => {
+                        restoreRecoverySession()
+                        addToast('success', t.session.recoveredToast)
+                      }}
+                      className="inline-flex h-9 items-center justify-center rounded-md bg-sky-600 px-4 text-sm font-medium text-white transition-colors hover:bg-sky-700"
+                    >
+                      {t.session.restoreInterrupted}
+                    </button>
+                    <button
+                      onClick={() => {
+                        dismissRecoverySession()
+                        addToast('success', t.session.dismissedToast)
+                      }}
+                      className="inline-flex h-9 items-center justify-center rounded-md border border-sky-200 bg-background px-4 text-sm font-medium text-sky-800 transition-colors hover:bg-sky-100 dark:border-sky-900/40 dark:bg-slate-950/40 dark:text-sky-200 dark:hover:bg-sky-950/40"
+                    >
+                      {t.session.dismissInterrupted}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <TranscriptDisplay
+              className="animate-reveal-up [animation-delay:100ms]"
+              contentHeightClassName="h-[min(52vh,44rem)] min-h-[30rem]"
+            />
+
+            <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+              <div className="workspace-panel animate-reveal-up [animation-delay:180ms] p-6">
+                <div className="mb-4 space-y-2">
+                  <div className="workspace-kicker">{workspaceCopy.controlsLabel}</div>
+                  <p className="workspace-subtle">{workspaceCopy.controlsDescription}</p>
+                </div>
+                <RecordingControls onError={handleError} />
+              </div>
+
+              <div className="workspace-panel animate-reveal-up [animation-delay:220ms] p-6">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="workspace-kicker">{workspaceCopy.utilityLabel}</div>
+                    <p className="workspace-subtle">{workspaceCopy.utilityDescription}</p>
+                  </div>
+                  {isElectron ? (
+                    <CaptionControls />
+                  ) : (
+                    <div className="rounded-xl border border-dashed border-border/80 bg-background/70 px-4 py-5 text-sm text-muted-foreground">
+                      {workspaceCopy.captionsUnavailable}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </section>
           </div>
-        )}
 
-        {/* 转录显示区域 - 占据主要视觉 */}
-        <section className="animate-reveal-up [animation-delay:100ms] space-y-4">
-          <TranscriptDisplay />
-        </section>
+          <aside className="space-y-6">
+            <section className="workspace-panel animate-reveal-up [animation-delay:140ms] p-5">
+              <div className="space-y-3">
+                <div className="workspace-kicker">{workspaceCopy.reviewLabel}</div>
+                <p className="workspace-subtle">{workspaceCopy.reviewDescription}</p>
+                <div className="space-y-2 rounded-xl border border-border/70 bg-background/60 p-4">
+                  <div className="flex items-start gap-3">
+                    <Sparkles className="mt-0.5 h-4 w-4 text-primary" />
+                    <div className="space-y-1">
+                      <div className="text-sm font-medium text-foreground">
+                        Review Desk
+                      </div>
+                      <p className="text-xs leading-5 text-muted-foreground">
+                        AI briefing, Ask This Session, mind map, transcript export and speaker review now live behind each saved session.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Clock3 className="mt-0.5 h-4 w-4 text-primary" />
+                    <div className="space-y-1">
+                      <div className="text-sm font-medium text-foreground">
+                        Session-first flow
+                      </div>
+                      <p className="text-xs leading-5 text-muted-foreground">
+                        Record first, then move into the library on the right to reopen and continue the session as a knowledge artifact.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
 
-        {/* 录制控制 */}
-        <section className="animate-reveal-up [animation-delay:200ms] flex flex-col items-center gap-4 py-4">
-          <RecordingControls onError={handleError} />
-          
-          {/* 字幕控制 - 仅 Electron 环境 */}
-          {isElectron && (
-            <CaptionControls className="mt-2" />
-          )}
-        </section>
-
-        {/* 历史记录 */}
-        <section className="animate-reveal-up [animation-delay:300ms] space-y-4">
-          <HistoryPanel />
-        </section>
-      </main>
-
-      {/* 页脚 */}
-      <footer className="relative mt-auto">
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-        <div className="bg-muted/30 dark:ring-1 dark:ring-white/[0.04]">
-          <div className="container max-w-5xl mx-auto px-4 sm:px-6 py-5">
-            <p className="text-center text-xs text-muted-foreground">
-              {t.app.footer}{' '}
-              <a href="https://github.com/XimilalaXiang/DeLive" target="_blank" rel="noopener noreferrer" 
-                 className="font-medium text-primary/70 hover:text-primary transition-colors">GitHub</a>
-            </p>
-          </div>
+            <HistoryPanel
+              variant="rail"
+              className="animate-reveal-up [animation-delay:260ms]"
+            />
+          </aside>
         </div>
-      </footer>
+      </main>
 
       {/* API 设置弹窗 */}
       <ApiKeyConfig 

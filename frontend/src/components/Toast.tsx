@@ -23,6 +23,8 @@ export function Toast({ toast, onClose }: ToastProps) {
 
   return (
     <div
+      role={toast.type === 'error' ? 'alert' : 'status'}
+      aria-live={toast.type === 'error' ? 'assertive' : 'polite'}
       className={`
         flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg backdrop-blur-sm border
         animate-in slide-in-from-right duration-300 fade-in
@@ -43,6 +45,7 @@ export function Toast({ toast, onClose }: ToastProps) {
       <button
         onClick={() => onClose(toast.id)}
         className="p-1 hover:bg-muted rounded transition-colors"
+        aria-label="Dismiss notification"
       >
         <X className="w-4 h-4 opacity-50 hover:opacity-100" />
       </button>
@@ -59,7 +62,7 @@ export function ToastContainer({ toasts, onClose }: ToastContainerProps) {
   if (toasts.length === 0) return null
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2" aria-live="polite" aria-atomic="true">
       {toasts.map((toast) => (
         <Toast key={toast.id} toast={toast} onClose={onClose} />
       ))}

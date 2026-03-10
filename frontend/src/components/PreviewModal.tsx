@@ -73,6 +73,19 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
     setActiveConversationId('default')
   }, [session?.id])
 
+  useEffect(() => {
+    if (!session) return undefined
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [onClose, session])
+
   const askConversations = useMemo(() => {
     const grouped = new Map<string, typeof askHistory>()
 
@@ -267,7 +280,12 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
       className="fixed inset-0 bg-black/50 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200"
       onClick={handleBackdropClick}
     >
-      <div className="bg-card text-card-foreground border border-border rounded-xl shadow-2xl dark:ring-1 dark:ring-white/[0.08] w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="session-review-title"
+        className="bg-card text-card-foreground border border-border rounded-2xl shadow-2xl dark:ring-1 dark:ring-white/[0.08] w-full max-w-[min(88rem,calc(100vw-2rem))] h-[min(92vh,58rem)] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+      >
         {/* 头部 */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/30">
           <div className="flex items-center gap-3 min-w-0">
@@ -275,10 +293,10 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
               <FileText className="w-5 h-5 text-primary" />
             </div>
             <div className="min-w-0">
-              <h2 className="text-lg font-semibold tracking-tight truncate">
+              <h2 id="session-review-title" className="text-lg font-semibold tracking-tight truncate">
                 {session.title}
               </h2>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
+              <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-0.5">
                 <span className="flex items-center gap-1">
                   <Calendar className="w-3 h-3" />
                   {session.date}
@@ -287,12 +305,16 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
                   <Clock className="w-3 h-3" />
                   {session.time}
                 </span>
+                <span className="rounded-full border border-border/70 bg-background/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                  Review Desk
+                </span>
               </div>
             </div>
           </div>
           <button
             onClick={onClose}
             className="p-2 hover:bg-muted rounded-lg transition-colors text-muted-foreground hover:text-foreground"
+            aria-label={t.common.close}
           >
             <X className="w-5 h-5" />
           </button>

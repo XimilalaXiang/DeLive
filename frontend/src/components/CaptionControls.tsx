@@ -199,17 +199,21 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
           <div className="absolute inset-0 bg-black/60 dark:bg-black/70 backdrop-blur-sm" />
 
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="caption-settings-title"
             className="relative w-[420px] max-h-[85vh] flex flex-col rounded-2xl shadow-2xl dark:ring-1 dark:ring-white/[0.08] bg-card border border-border overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 bg-card border-b border-border">
-              <h3 className="text-lg font-semibold flex items-center gap-2 text-foreground">
+              <h3 id="caption-settings-title" className="text-lg font-semibold flex items-center gap-2 text-foreground">
                 <Subtitles className="w-5 h-5 text-primary" />
                 {t.caption?.styleSettings || '字幕样式设置'}
               </h3>
               <button
                 onClick={() => setShowSettings(false)}
                 className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                aria-label={t.common.close}
               >
                 <X className="w-5 h-5" />
               </button>
