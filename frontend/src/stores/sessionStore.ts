@@ -2,13 +2,18 @@ import { create } from 'zustand'
 import type {
   RecordingState,
   TranscriptAskTurn,
+  TranscriptMindMap,
   TranscriptPostProcess,
   TranscriptSegment,
   TranscriptSession,
   TranscriptSpeaker,
 } from '../types'
 import type { TranscriptToken } from '../types/asr'
-import { askQuestionForSession, generateSessionBriefing } from '../services/aiPostProcess'
+import {
+  askQuestionForSession,
+  generateSessionBriefing,
+  generateSessionMindMap as generateMindMapForSession,
+} from '../services/aiPostProcess'
 import { sessionRepository } from '../utils/sessionRepository'
 import { formatTime } from '../utils/storage'
 import {
@@ -87,6 +92,8 @@ export interface SessionState {
   updateSessionTitle: (id: string, title: string) => void
   updateSessionSpeakers: (sessionId: string, speakers: TranscriptSpeaker[]) => void
   updateSessionPostProcess: (sessionId: string, patch: Partial<TranscriptPostProcess>) => void
+  updateSessionMindMap: (sessionId: string, patch: Partial<TranscriptMindMap>) => void
+  generateSessionMindMap: (sessionId: string) => Promise<TranscriptMindMap>
   askSessionQuestion: (
     sessionId: string,
     question: string,
@@ -213,6 +220,20 @@ export const useSessionStore = create<SessionState>((set, get) => {
       sessions,
       recoverySession: recoverySession?.id === sessionId
         ? { ...recoverySession, askHistory }
+        : recoverySession,
+    })
+  }
+
+  const replaceSessionMindMap = (
+    sessionId: string,
+    mindMap: TranscriptMindMap,
+  ) => {
+    const { recoverySession } = get()
+    const sessions = sessionRepository.updateMetadata(sessionId, { mindMap })
+    set({
+      sessions,
+      recoverySession: recoverySession?.id === sessionId
+        ? { ...recoverySession, mindMap }
         : recoverySession,
     })
   }
@@ -388,6 +409,57 @@ export const useSessionStore = create<SessionState>((set, get) => {
         currentPostProcess: nextState.currentPostProcess,
         recoverySession: nextState.recoverySession,
       })
+    },
+    updateSessionMindMap: (sessionId, patch) => {
+      const session = get().sessions.find((item) => item.id === sessionId)
+      if (!session) return
+
+      const nextMindMap: TranscriptMindMap = {
+        markdown: '',
+        ...(session.mindMap || {}),
+        ...patch,
+        updatedAt: patch.updatedAt ?? Date.now(),
+      }
+      replaceSessionMindMap(sessionId, nextMindMap)
+    },
+    generateSessionMindMap: async (sessionId) => {
+      const session = get().sessions.find((item) => item.id === sessionId)
+      if (!session) {
+        throw new Error('未找到要生成思维导图的会话')
+      }
+
+      const requestedAt = Date.now()
+      get().updateSessionMindMap(sessionId, {
+        status: 'pending',
+        error: undefined,
+        requestedAt,
+      })
+
+      try {
+        const { mindMap } = await generateMindMapForSession(
+          session,
+          useSettingsStore.getState().settings,
+        )
+        const nextMindMap: TranscriptMindMap = {
+          ...(session.mindMap || {}),
+          ...mindMap,
+          requestedAt,
+          status: 'success',
+          error: undefined,
+          updatedAt: Date.now(),
+        }
+        replaceSessionMindMap(sessionId, nextMindMap)
+        return nextMindMap
+      } catch (error) {
+        const message = error instanceof Error ? error.message : '思维导图生成失败'
+        get().updateSessionMindMap(sessionId, {
+          status: 'error',
+          error: message,
+          requestedAt,
+          updatedAt: Date.now(),
+        })
+        throw error
+      }
     },
     askSessionQuestion: async (sessionId, question, options) => {
       const normalizedQuestion = question.trim()

@@ -42,4 +42,31 @@ describe('sessionSchema', () => {
       },
     ])
   })
+
+  it('normalizes mind map payloads', () => {
+    const normalized = normalizeTranscriptSession({
+      id: 'session-2',
+      title: 'Mind Map Session',
+      date: '2026-03-10',
+      time: '12:10',
+      createdAt: 1,
+      updatedAt: 2,
+      transcript: 'Hello world',
+      mindMap: {
+        markdown: '# Root\n## Branch',
+        title: 'Root',
+        status: 'success',
+        generatedAt: 111,
+        updatedAt: 222,
+      },
+    })
+
+    expect(normalized.mindMap).toEqual({
+      markdown: '# Root\n## Branch',
+      title: 'Root',
+      status: 'success',
+      generatedAt: 111,
+      updatedAt: 222,
+    })
+  })
 })

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   parseAiBriefingResponse,
+  parseSessionMindMapResponse,
   parseSessionQaResponse,
   isAiPostProcessConfigured,
 } from './aiPostProcess'
@@ -76,6 +77,23 @@ describe('aiPostProcess', () => {
         { quote: 'We should ship it this week.', speakerLabel: 'Alice' },
       ],
       model: 'qwen-test',
+    })
+  })
+
+  it('parses session mind map responses', () => {
+    const result = parseSessionMindMapResponse(JSON.stringify({
+      title: 'Weekly Sync',
+      markdown: '# Weekly Sync\n## Decisions\n### Ship this week',
+    }), 'mindmap-model')
+
+    expect(result).toEqual({
+      title: 'Weekly Sync',
+      markdown: '# Weekly Sync\n## Decisions\n### Ship this week',
+      model: 'mindmap-model',
+      status: 'success',
+      error: undefined,
+      generatedAt: expect.any(Number),
+      updatedAt: expect.any(Number),
     })
   })
 })

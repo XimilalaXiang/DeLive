@@ -2,6 +2,7 @@ import type {
   AiPostProcessConfig,
   AppSettings,
   TranscriptChapter,
+  TranscriptMindMap,
   TranscriptPostProcess,
   TranscriptQaCitation,
   TranscriptSession,
@@ -33,6 +34,11 @@ interface SessionQaPayload {
   citations?: unknown
 }
 
+interface SessionMindMapPayload {
+  title?: unknown
+  markdown?: unknown
+}
+
 export interface SessionBriefingResult {
   postProcess: TranscriptPostProcess
 }
@@ -41,6 +47,10 @@ export interface SessionQaResult {
   answer: string
   citations?: TranscriptQaCitation[]
   model: string
+}
+
+export interface SessionMindMapResult {
+  mindMap: TranscriptMindMap
 }
 
 function getAiConfig(settings: AppSettings): AiPostProcessConfig {
@@ -158,6 +168,25 @@ function normalizeQaPayload(payload: SessionQaPayload, model: string): SessionQa
     answer,
     citations: citations && citations.length > 0 ? citations : undefined,
     model,
+  }
+}
+
+function normalizeMindMapPayload(payload: SessionMindMapPayload, model: string): TranscriptMindMap {
+  const title = typeof payload.title === 'string' ? payload.title.trim() : ''
+  const markdown = typeof payload.markdown === 'string' ? payload.markdown.trim() : ''
+
+  if (!markdown) {
+    throw new Error('AI 未返回思维导图 Markdown')
+  }
+
+  return {
+    markdown,
+    title: title || undefined,
+    generatedAt: Date.now(),
+    updatedAt: Date.now(),
+    model,
+    status: 'success',
+    error: undefined,
   }
 }
 
@@ -316,6 +345,66 @@ function buildAskUserPrompt(
   ].filter(Boolean).join('\n\n')
 }
 
+function buildMindMapSystemPrompt(language: NonNullable<AiPostProcessConfig['promptLanguage']>): string {
+  if (language === 'en') {
+    return [
+      'You generate a Markmap-compatible Markdown mind map for a single transcript session.',
+      'Return only a JSON object with keys: title, markdown.',
+      'markdown must be valid Markmap Markdown that starts with a single # root heading.',
+      'Use nested headings like ## and ### for branches and sub-branches.',
+      'Keep the structure concise, readable, and grounded in the transcript.',
+      'Do not include code fences.',
+    ].join(' ')
+  }
+
+  return [
+    '你负责为单个会话转录生成兼容 Markmap 的 Markdown 思维导图。',
+    '你只能返回 JSON 对象，且只允许包含 title 和 markdown 两个字段。',
+    'markdown 必须是合法的 Markmap Markdown，并且以单个 # 根标题开头。',
+    '使用 ##、### 这样的层级标题表示分支和子分支。',
+    '结构要简洁、清晰，并严格基于转录内容。',
+    '不要返回代码块围栏。',
+  ].join('')
+}
+
+function buildMindMapUserPrompt(
+  session: TranscriptSession,
+  language: NonNullable<AiPostProcessConfig['promptLanguage']>,
+): string {
+  const transcriptBlock = buildSessionContextBlock(session)
+  const summaryBlock = session.postProcess?.summary?.trim()
+    ? `Summary:\n${session.postProcess.summary.trim()}`
+    : ''
+  const actionBlock = session.postProcess?.actionItems?.length
+    ? `Action items:\n${session.postProcess.actionItems.join('\n')}`
+    : ''
+  const keywordsBlock = session.postProcess?.keywords?.length
+    ? `Keywords:\n${session.postProcess.keywords.join(', ')}`
+    : ''
+
+  if (language === 'en') {
+    return [
+      `Session title: ${session.title}`,
+      summaryBlock,
+      actionBlock,
+      keywordsBlock,
+      'Generate a concise mind map that helps someone review this session quickly.',
+      'Transcript:',
+      transcriptBlock,
+    ].filter(Boolean).join('\n\n')
+  }
+
+  return [
+    `会话标题：${session.title}`,
+    summaryBlock ? `摘要：\n${session.postProcess?.summary?.trim()}` : '',
+    actionBlock ? `行动项：\n${session.postProcess?.actionItems?.join('\n')}` : '',
+    keywordsBlock ? `关键词：\n${session.postProcess?.keywords?.join('，')}` : '',
+    '请生成一份适合快速回顾会话内容的思维导图。',
+    '转录内容：',
+    transcriptBlock,
+  ].filter(Boolean).join('\n\n')
+}
+
 export function isAiPostProcessConfigured(settings: AppSettings): boolean {
   const config = getAiConfig(settings)
   return Boolean(
@@ -349,6 +438,19 @@ export function parseSessionQaResponse(raw: string, model: string): SessionQaRes
   }
 
   return normalizeQaPayload(parsed, model)
+}
+
+export function parseSessionMindMapResponse(raw: string, model: string): TranscriptMindMap {
+  const jsonText = extractJsonObject(raw)
+
+  let parsed: SessionMindMapPayload
+  try {
+    parsed = JSON.parse(jsonText) as SessionMindMapPayload
+  } catch {
+    throw new Error('AI 返回内容无法解析为 JSON')
+  }
+
+  return normalizeMindMapPayload(parsed, model)
 }
 
 export async function generateSessionBriefing(
@@ -464,4 +566,53 @@ export async function askQuestionForSession(
   const payload = await response.json() as ChatCompletionResponse
   const content = extractTextContent(payload.choices)
   return parseSessionQaResponse(content, model)
+}
+
+export async function generateSessionMindMap(
+  session: TranscriptSession,
+  settings: AppSettings,
+): Promise<SessionMindMapResult> {
+  const config = getAiConfig(settings)
+  const baseUrl = config.baseUrl?.trim().replace(/\/+$/, '') || DEFAULT_AI_BASE_URL
+  const model = config.model?.trim()
+  const promptLanguage = config.promptLanguage || DEFAULT_PROMPT_LANGUAGE
+
+  if (!config.enabled) {
+    throw new Error('请先在设置中启用 AI 后处理')
+  }
+
+  if (!model) {
+    throw new Error('请先配置 AI 模型')
+  }
+
+  if (!session.transcript.trim()) {
+    throw new Error('当前会话没有可用于生成思维导图的转录内容')
+  }
+
+  const response = await fetch(`${baseUrl}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(config.apiKey?.trim() ? { Authorization: `Bearer ${config.apiKey.trim()}` } : {}),
+    },
+    body: JSON.stringify({
+      model,
+      temperature: 0.2,
+      messages: [
+        { role: 'system', content: buildMindMapSystemPrompt(promptLanguage) },
+        { role: 'user', content: buildMindMapUserPrompt(session, promptLanguage) },
+      ],
+    }),
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => '')
+    throw new Error(errorText || `AI 请求失败: HTTP ${response.status}`)
+  }
+
+  const payload = await response.json() as ChatCompletionResponse
+  const content = extractTextContent(payload.choices)
+  const mindMap = parseSessionMindMapResponse(content, model)
+
+  return { mindMap }
 }

@@ -66,6 +66,7 @@ export interface TranscriptChapter {
 
 export type TranscriptPostProcessStatus = 'pending' | 'success' | 'error'
 export type TranscriptAskTurnStatus = 'pending' | 'success' | 'error'
+export type TranscriptMindMapStatus = 'pending' | 'success' | 'error'
 
 export interface TranscriptQaCitation {
   quote: string
@@ -82,6 +83,17 @@ export interface TranscriptAskTurn {
   answeredAt?: number
   model?: string
   status: TranscriptAskTurnStatus
+  error?: string
+}
+
+export interface TranscriptMindMap {
+  markdown: string
+  title?: string
+  generatedAt?: number
+  requestedAt?: number
+  updatedAt?: number
+  model?: string
+  status?: TranscriptMindMapStatus
   error?: string
 }
 
@@ -141,6 +153,7 @@ export interface TranscriptSession {
   sourceMeta?: TranscriptSourceMeta
   postProcess?: TranscriptPostProcess
   askHistory?: TranscriptAskTurn[]
+  mindMap?: TranscriptMindMap
   providerId?: string
   status?: TranscriptSessionStatus
   lastPersistedAt?: number

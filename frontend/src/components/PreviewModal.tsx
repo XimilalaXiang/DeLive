@@ -29,6 +29,7 @@ import { useSettingsStore } from '../stores/settingsStore'
 import { isAiPostProcessConfigured } from '../services/aiPostProcess'
 import { useTagStore } from '../stores/tagStore'
 import { generateId } from '../utils/storage'
+import { SessionMindMapCard } from './SessionMindMapCard'
 
 interface PreviewModalProps {
   session: TranscriptSession | null
@@ -480,6 +481,8 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
               </div>
             )}
           </div>
+
+          <SessionMindMapCard session={session} />
 
           <div className="not-prose mb-6 rounded-xl border border-border bg-card/70 p-4 space-y-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

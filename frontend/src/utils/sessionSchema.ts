@@ -1,6 +1,7 @@
 import type {
   TranscriptAskTurn,
   TranscriptChapter,
+  TranscriptMindMap,
   TranscriptPostProcess,
   TranscriptQaCitation,
   TranscriptSegment,
@@ -226,6 +227,40 @@ function normalizeAskTurn(value: unknown): TranscriptAskTurn | null {
   }
 }
 
+function normalizeMindMap(value: unknown): TranscriptMindMap | undefined {
+  if (!isRecord(value)) {
+    return undefined
+  }
+
+  const markdown = getString(value.markdown)?.trim()
+  const title = getString(value.title)?.trim()
+  const generatedAt = getNumber(value.generatedAt)
+  const requestedAt = getNumber(value.requestedAt)
+  const updatedAt = getNumber(value.updatedAt)
+  const model = getString(value.model)?.trim()
+  const status = value.status === 'pending'
+    || value.status === 'success'
+    || value.status === 'error'
+    ? value.status
+    : undefined
+  const error = getString(value.error)?.trim()
+
+  if (!markdown && !title && !generatedAt && !requestedAt && !updatedAt && !model && !status && !error) {
+    return undefined
+  }
+
+  return {
+    markdown: markdown || '',
+    title: title || undefined,
+    generatedAt,
+    requestedAt,
+    updatedAt,
+    model,
+    status,
+    error: error || undefined,
+  }
+}
+
 function normalizePostProcess(value: unknown): TranscriptPostProcess | undefined {
   if (!isRecord(value)) {
     return undefined
@@ -328,6 +363,7 @@ export function normalizeTranscriptSession(session: Partial<TranscriptSession>):
     sourceMeta: normalizeSourceMeta(session.sourceMeta),
     postProcess: normalizePostProcess(session.postProcess),
     askHistory: askHistory && askHistory.length > 0 ? askHistory : undefined,
+    mindMap: normalizeMindMap(session.mindMap),
     providerId: getString(session.providerId),
     status,
     lastPersistedAt: getNumber(session.lastPersistedAt) ?? updatedAt,
