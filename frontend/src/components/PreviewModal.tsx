@@ -18,6 +18,7 @@ import {
   Send,
   Quote,
   ArrowUpRight,
+  Plus,
 } from 'lucide-react'
 import type { TranscriptSession, TranscriptSpeaker } from '../types'
 import { exportToTxt } from '../utils/storage'
@@ -27,6 +28,7 @@ import { useSessionStore } from '../stores/sessionStore'
 import { useSettingsStore } from '../stores/settingsStore'
 import { isAiPostProcessConfigured } from '../services/aiPostProcess'
 import { useTagStore } from '../stores/tagStore'
+import { generateId } from '../utils/storage'
 
 interface PreviewModalProps {
   session: TranscriptSession | null
@@ -57,21 +59,63 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
   const [editingSpeakerId, setEditingSpeakerId] = useState<string | null>(null)
   const [speakerDraftName, setSpeakerDraftName] = useState('')
   const [questionDraft, setQuestionDraft] = useState('')
+  const [activeConversationId, setActiveConversationId] = useState<string>('default')
   const askMessagesEndRef = useRef<HTMLDivElement>(null)
   const translatedText = session?.translatedTranscript?.text?.trim() || ''
   const postProcess = session?.postProcess
-  const askHistory = session?.askHistory || []
-  const latestAskStatus = askHistory.length > 0 ? askHistory[askHistory.length - 1]?.status : undefined
+  const askHistory = useMemo(() => session?.askHistory || [], [session?.askHistory])
 
   useEffect(() => {
     setEditingSpeakerId(null)
     setSpeakerDraftName('')
     setQuestionDraft('')
+    setActiveConversationId('default')
   }, [session?.id])
+
+  const askConversations = useMemo(() => {
+    const grouped = new Map<string, typeof askHistory>()
+
+    for (const turn of askHistory) {
+      const conversationId = turn.conversationId || 'default'
+      const current = grouped.get(conversationId) || []
+      current.push(turn)
+      grouped.set(conversationId, current)
+    }
+
+    return Array.from(grouped.entries())
+      .map(([id, turns]) => ({
+        id,
+        turns,
+        firstTurn: turns[0],
+        lastTurn: turns[turns.length - 1],
+      }))
+      .sort((a, b) => (b.lastTurn?.createdAt || 0) - (a.lastTurn?.createdAt || 0))
+  }, [askHistory])
+
+  const hasActiveConversation = askConversations.some((conversation) => conversation.id === activeConversationId)
+  const displayedAskHistory = askHistory.filter((turn) => (
+    (turn.conversationId || 'default') === activeConversationId
+  ))
+  const latestAskStatus = displayedAskHistory.length > 0
+    ? displayedAskHistory[displayedAskHistory.length - 1]?.status
+    : undefined
+
+  useEffect(() => {
+    if (hasActiveConversation) {
+      return
+    }
+
+    if (askConversations.length > 0) {
+      setActiveConversationId(askConversations[0].id)
+      return
+    }
+
+    setActiveConversationId('default')
+  }, [activeConversationId, askConversations, hasActiveConversation])
 
   useEffect(() => {
     askMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [askHistory.length, latestAskStatus, session?.id])
+  }, [displayedAskHistory.length, latestAskStatus, activeConversationId, session?.id])
 
   const handleExport = () => {
     if (!session) return
@@ -152,14 +196,38 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
     if (!session || askPending) return
 
     try {
-      await askSessionQuestion(session.id, questionDraft)
+      await askSessionQuestion(session.id, questionDraft, {
+        conversationId: activeConversationId,
+      })
       setQuestionDraft('')
     } catch (error) {
       console.error('[PreviewModal] Session QA failed:', error)
     }
   }
 
+  const handleStartNewConversation = () => {
+    setActiveConversationId(generateId())
+    setQuestionDraft('')
+  }
+
   const askSuggestions = t.preview.askSuggestions || []
+
+  const getConversationLabel = (
+    conversationId: string,
+    question: string | undefined,
+    index: number,
+  ) => {
+    if (question?.trim()) {
+      const trimmed = question.trim()
+      return trimmed.length > 28 ? `${trimmed.slice(0, 28)}...` : trimmed
+    }
+
+    if (!askConversations.some((conversation) => conversation.id === conversationId)) {
+      return t.preview.askNewConversationLabel
+    }
+
+    return `${t.preview.askConversation} ${index + 1}`
+  }
 
   const handleApplySuggestedTitle = () => {
     if (!session || !postProcess?.titleSuggestion?.trim()) return
@@ -431,13 +499,56 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
                   </p>
                 )}
               </div>
+              <button
+                onClick={handleStartNewConversation}
+                disabled={!aiConfigured || !session.transcript.trim() || askPending}
+                className={`inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  !aiConfigured || !session.transcript.trim() || askPending
+                    ? 'cursor-not-allowed border border-border bg-muted text-muted-foreground'
+                    : 'border border-border bg-background text-foreground hover:border-primary/30 hover:bg-primary/5 hover:text-primary'
+                }`}
+              >
+                <Plus className="w-4 h-4" />
+                {t.preview.askNewConversation}
+              </button>
             </div>
+
+            {(askConversations.length > 0 || !hasActiveConversation || activeConversationId !== 'default') && (
+              <div className="flex flex-wrap gap-2">
+                {askConversations.map((conversation, index) => (
+                  <button
+                    key={conversation.id}
+                    onClick={() => setActiveConversationId(conversation.id)}
+                    className={`inline-flex max-w-full items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                      conversation.id === activeConversationId
+                        ? 'border-primary/30 bg-primary/10 text-primary'
+                        : 'border-border bg-background text-muted-foreground hover:border-primary/20 hover:text-foreground'
+                    }`}
+                    title={conversation.firstTurn?.question}
+                  >
+                    <span className="truncate">
+                      {getConversationLabel(conversation.id, conversation.firstTurn?.question, index)}
+                    </span>
+                  </button>
+                ))}
+                {!hasActiveConversation && activeConversationId !== 'default' && (
+                  <button
+                    type="button"
+                    className="inline-flex max-w-full items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary"
+                  >
+                    <span className="truncate">
+                      {t.preview.askNewConversationLabel}
+                    </span>
+                  </button>
+                )}
+              </div>
+            )}
 
             <div className="overflow-hidden rounded-2xl border border-border bg-background/70">
               <div className="max-h-[420px] overflow-y-auto px-4 py-4">
-                {askHistory.length > 0 ? (
+                {displayedAskHistory.length > 0 ? (
                   <div className="space-y-5">
-                    {askHistory.map((turn) => (
+                    {displayedAskHistory.map((turn) => (
                       <div key={turn.id} className="space-y-3">
                         <div className="flex justify-end">
                           <div className="max-w-[88%] rounded-2xl rounded-br-md bg-primary px-4 py-3 text-sm font-medium leading-relaxed text-primary-foreground shadow-sm">
@@ -510,7 +621,7 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
                         {t.preview.askEmpty}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {t.preview.askEmptyHint}
+                        {hasActiveConversation ? t.preview.askEmptyHint : t.preview.askNewConversationHint}
                       </p>
                     </div>
                     {askSuggestions.length > 0 && (

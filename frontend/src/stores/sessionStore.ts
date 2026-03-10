@@ -87,7 +87,11 @@ export interface SessionState {
   updateSessionTitle: (id: string, title: string) => void
   updateSessionSpeakers: (sessionId: string, speakers: TranscriptSpeaker[]) => void
   updateSessionPostProcess: (sessionId: string, patch: Partial<TranscriptPostProcess>) => void
-  askSessionQuestion: (sessionId: string, question: string) => Promise<TranscriptAskTurn>
+  askSessionQuestion: (
+    sessionId: string,
+    question: string,
+    options?: { conversationId?: string },
+  ) => Promise<TranscriptAskTurn>
   generateSessionPostProcess: (
     sessionId: string,
     options?: { overwrite?: boolean },
@@ -385,7 +389,7 @@ export const useSessionStore = create<SessionState>((set, get) => {
         recoverySession: nextState.recoverySession,
       })
     },
-    askSessionQuestion: async (sessionId, question) => {
+    askSessionQuestion: async (sessionId, question, options) => {
       const normalizedQuestion = question.trim()
       if (!normalizedQuestion) {
         throw new Error('请输入问题')
@@ -396,8 +400,10 @@ export const useSessionStore = create<SessionState>((set, get) => {
         throw new Error('未找到要提问的会话')
       }
 
+      const conversationId = options?.conversationId?.trim() || 'default'
       const pendingTurn: TranscriptAskTurn = {
         id: generateId(),
+        conversationId,
         question: normalizedQuestion,
         createdAt: Date.now(),
         status: 'pending',
@@ -413,6 +419,7 @@ export const useSessionStore = create<SessionState>((set, get) => {
           },
           normalizedQuestion,
           useSettingsStore.getState().settings,
+          { conversationId },
         )
 
         const latestSession = get().sessions.find((item) => item.id === sessionId)

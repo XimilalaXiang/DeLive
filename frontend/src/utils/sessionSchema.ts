@@ -214,6 +214,7 @@ function normalizeAskTurn(value: unknown): TranscriptAskTurn | null {
 
   return {
     id,
+    conversationId: getString(value.conversationId)?.trim() || undefined,
     question,
     answer: getString(value.answer)?.trim() || undefined,
     citations: citations && citations.length > 0 ? citations : undefined,

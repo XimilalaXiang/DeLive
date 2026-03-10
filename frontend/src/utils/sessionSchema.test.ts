@@ -14,6 +14,7 @@ describe('sessionSchema', () => {
       askHistory: [
         {
           id: 'turn-1',
+          conversationId: 'conv-1',
           question: 'What happened?',
           answer: 'The team agreed to ship.',
           status: 'success',
@@ -29,6 +30,7 @@ describe('sessionSchema', () => {
     expect(normalized.askHistory).toEqual([
       {
         id: 'turn-1',
+        conversationId: 'conv-1',
         question: 'What happened?',
         answer: 'The team agreed to ship.',
         status: 'success',

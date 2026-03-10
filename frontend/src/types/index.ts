@@ -74,6 +74,7 @@ export interface TranscriptQaCitation {
 
 export interface TranscriptAskTurn {
   id: string
+  conversationId?: string
   question: string
   answer?: string
   citations?: TranscriptQaCitation[]

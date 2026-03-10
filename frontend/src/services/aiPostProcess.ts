@@ -404,6 +404,7 @@ export async function askQuestionForSession(
   session: TranscriptSession,
   question: string,
   settings: AppSettings,
+  options?: { conversationId?: string },
 ): Promise<SessionQaResult> {
   const config = getAiConfig(settings)
   const baseUrl = config.baseUrl?.trim().replace(/\/+$/, '') || DEFAULT_AI_BASE_URL
@@ -427,6 +428,8 @@ export async function askQuestionForSession(
     throw new Error('请输入问题')
   }
 
+  const conversationId = options?.conversationId?.trim()
+
   const response = await fetch(`${baseUrl}/chat/completions`, {
     method: 'POST',
     headers: {
@@ -438,7 +441,17 @@ export async function askQuestionForSession(
       temperature: 0.2,
       messages: [
         { role: 'system', content: buildAskSystemPrompt(promptLanguage) },
-        { role: 'user', content: buildAskUserPrompt(session, normalizedQuestion, promptLanguage) },
+        {
+          role: 'user',
+          content: buildAskUserPrompt({
+            ...session,
+            askHistory: conversationId
+              ? (session.askHistory || []).filter((turn) => (
+                (turn.conversationId || 'default') === conversationId
+              ))
+              : session.askHistory,
+          }, normalizedQuestion, promptLanguage),
+        },
       ],
     }),
   })
