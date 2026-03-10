@@ -65,6 +65,24 @@ export interface TranscriptChapter {
 }
 
 export type TranscriptPostProcessStatus = 'pending' | 'success' | 'error'
+export type TranscriptAskTurnStatus = 'pending' | 'success' | 'error'
+
+export interface TranscriptQaCitation {
+  quote: string
+  speakerLabel?: string
+}
+
+export interface TranscriptAskTurn {
+  id: string
+  question: string
+  answer?: string
+  citations?: TranscriptQaCitation[]
+  createdAt: number
+  answeredAt?: number
+  model?: string
+  status: TranscriptAskTurnStatus
+  error?: string
+}
 
 export interface TranscriptPostProcess {
   summary?: string
@@ -121,6 +139,7 @@ export interface TranscriptSession {
   segments?: TranscriptSegment[]
   sourceMeta?: TranscriptSourceMeta
   postProcess?: TranscriptPostProcess
+  askHistory?: TranscriptAskTurn[]
   providerId?: string
   status?: TranscriptSessionStatus
   lastPersistedAt?: number

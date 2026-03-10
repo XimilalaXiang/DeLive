@@ -3,6 +3,7 @@ import type {
   AppSettings,
   TranscriptChapter,
   TranscriptPostProcess,
+  TranscriptQaCitation,
   TranscriptSession,
 } from '../types'
 
@@ -27,8 +28,19 @@ interface AiBriefingPayload {
   chapters?: unknown
 }
 
+interface SessionQaPayload {
+  answer?: unknown
+  citations?: unknown
+}
+
 export interface SessionBriefingResult {
   postProcess: TranscriptPostProcess
+}
+
+export interface SessionQaResult {
+  answer: string
+  citations?: TranscriptQaCitation[]
+  model: string
 }
 
 function getAiConfig(settings: AppSettings): AiPostProcessConfig {
@@ -75,6 +87,27 @@ function normalizeChapter(value: unknown): TranscriptChapter | null {
   }
 }
 
+function normalizeQaCitation(value: unknown): TranscriptQaCitation | null {
+  if (!value || typeof value !== 'object') {
+    return null
+  }
+
+  const record = value as Record<string, unknown>
+  const quote = typeof record.quote === 'string' ? record.quote.trim() : ''
+  if (!quote) {
+    return null
+  }
+
+  const speakerLabel = typeof record.speakerLabel === 'string'
+    ? record.speakerLabel.trim()
+    : ''
+
+  return {
+    quote,
+    speakerLabel: speakerLabel || undefined,
+  }
+}
+
 function normalizeBriefingPayload(payload: AiBriefingPayload, model: string): TranscriptPostProcess {
   const titleSuggestion = typeof payload.titleSuggestion === 'string'
     ? payload.titleSuggestion.trim()
@@ -105,6 +138,26 @@ function normalizeBriefingPayload(payload: AiBriefingPayload, model: string): Tr
     model,
     status: 'success',
     error: undefined,
+  }
+}
+
+function normalizeQaPayload(payload: SessionQaPayload, model: string): SessionQaResult {
+  const answer = typeof payload.answer === 'string' ? payload.answer.trim() : ''
+  const citations = Array.isArray(payload.citations)
+    ? payload.citations
+      .map(normalizeQaCitation)
+      .filter((citation): citation is TranscriptQaCitation => citation !== null)
+      .slice(0, 5)
+    : undefined
+
+  if (!answer) {
+    throw new Error('AI 未返回有效回答')
+  }
+
+  return {
+    answer,
+    citations: citations && citations.length > 0 ? citations : undefined,
+    model,
   }
 }
 
@@ -176,14 +229,7 @@ function buildUserPrompt(
   session: TranscriptSession,
   language: NonNullable<AiPostProcessConfig['promptLanguage']>,
 ): string {
-  const transcript = session.transcript.trim()
-  const clippedTranscript = transcript.length > MAX_TRANSCRIPT_CHARS
-    ? `${transcript.slice(0, MAX_TRANSCRIPT_CHARS)}\n\n[truncated]`
-    : transcript
-  const translatedTranscript = session.translatedTranscript?.text?.trim()
-  const transcriptBlock = translatedTranscript
-    ? `${clippedTranscript}\n\n=== translated ===\n${translatedTranscript}`
-    : clippedTranscript
+  const transcriptBlock = buildSessionContextBlock(session)
 
   if (language === 'en') {
     return [
@@ -202,6 +248,72 @@ function buildUserPrompt(
     '转录内容：',
     transcriptBlock,
   ].join('\n\n')
+}
+
+function buildSessionContextBlock(session: TranscriptSession): string {
+  const transcript = session.transcript.trim()
+  const clippedTranscript = transcript.length > MAX_TRANSCRIPT_CHARS
+    ? `${transcript.slice(0, MAX_TRANSCRIPT_CHARS)}\n\n[truncated]`
+    : transcript
+  const translatedTranscript = session.translatedTranscript?.text?.trim()
+  return translatedTranscript
+    ? `${clippedTranscript}\n\n=== translated ===\n${translatedTranscript}`
+    : clippedTranscript
+}
+
+function buildAskSystemPrompt(language: NonNullable<AiPostProcessConfig['promptLanguage']>): string {
+  if (language === 'en') {
+    return [
+      'You answer questions about a single transcript session.',
+      'Return only a JSON object with keys: answer, citations.',
+      'answer must be grounded in the transcript only.',
+      'citations must be an array of objects with quote and optional speakerLabel.',
+      'Use exact short quotes from the transcript whenever possible.',
+      'If the answer is not in the transcript, say so explicitly.',
+    ].join(' ')
+  }
+
+  return [
+    '你是一个只回答单个会话转录内容问题的助手。',
+    '你只能返回 JSON 对象，且只允许包含 answer 和 citations 两个字段。',
+    'answer 必须严格基于转录内容。',
+    'citations 必须是由 quote 和可选 speakerLabel 组成的数组。',
+    '尽量引用转录中的原句短片段。',
+    '如果转录中没有答案，要明确说明无法从当前会话确认。',
+  ].join('')
+}
+
+function buildAskUserPrompt(
+  session: TranscriptSession,
+  question: string,
+  language: NonNullable<AiPostProcessConfig['promptLanguage']>,
+): string {
+  const transcriptBlock = buildSessionContextBlock(session)
+  const previousTurns = (session.askHistory || [])
+    .filter((turn) => turn.status === 'success' && turn.answer?.trim())
+    .slice(-4)
+
+  const historyBlock = previousTurns.length > 0
+    ? previousTurns.map((turn) => `Q: ${turn.question}\nA: ${turn.answer}`).join('\n\n')
+    : ''
+
+  if (language === 'en') {
+    return [
+      `Session title: ${session.title}`,
+      historyBlock ? `Previous Q&A:\n${historyBlock}` : '',
+      `Question:\n${question.trim()}`,
+      'Transcript:',
+      transcriptBlock,
+    ].filter(Boolean).join('\n\n')
+  }
+
+  return [
+    `会话标题：${session.title}`,
+    historyBlock ? `历史问答：\n${historyBlock}` : '',
+    `问题：\n${question.trim()}`,
+    '转录内容：',
+    transcriptBlock,
+  ].filter(Boolean).join('\n\n')
 }
 
 export function isAiPostProcessConfigured(settings: AppSettings): boolean {
@@ -224,6 +336,19 @@ export function parseAiBriefingResponse(raw: string, model: string): TranscriptP
   }
 
   return normalizeBriefingPayload(parsed, model)
+}
+
+export function parseSessionQaResponse(raw: string, model: string): SessionQaResult {
+  const jsonText = extractJsonObject(raw)
+
+  let parsed: SessionQaPayload
+  try {
+    parsed = JSON.parse(jsonText) as SessionQaPayload
+  } catch {
+    throw new Error('AI 返回内容无法解析为 JSON')
+  }
+
+  return normalizeQaPayload(parsed, model)
 }
 
 export async function generateSessionBriefing(
@@ -273,4 +398,57 @@ export async function generateSessionBriefing(
   const postProcess = parseAiBriefingResponse(content, model)
 
   return { postProcess }
+}
+
+export async function askQuestionForSession(
+  session: TranscriptSession,
+  question: string,
+  settings: AppSettings,
+): Promise<SessionQaResult> {
+  const config = getAiConfig(settings)
+  const baseUrl = config.baseUrl?.trim().replace(/\/+$/, '') || DEFAULT_AI_BASE_URL
+  const model = config.model?.trim()
+  const promptLanguage = config.promptLanguage || DEFAULT_PROMPT_LANGUAGE
+  const normalizedQuestion = question.trim()
+
+  if (!config.enabled) {
+    throw new Error('请先在设置中启用 AI 后处理')
+  }
+
+  if (!model) {
+    throw new Error('请先配置 AI 模型')
+  }
+
+  if (!session.transcript.trim()) {
+    throw new Error('当前会话没有可用于问答的转录内容')
+  }
+
+  if (!normalizedQuestion) {
+    throw new Error('请输入问题')
+  }
+
+  const response = await fetch(`${baseUrl}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(config.apiKey?.trim() ? { Authorization: `Bearer ${config.apiKey.trim()}` } : {}),
+    },
+    body: JSON.stringify({
+      model,
+      temperature: 0.2,
+      messages: [
+        { role: 'system', content: buildAskSystemPrompt(promptLanguage) },
+        { role: 'user', content: buildAskUserPrompt(session, normalizedQuestion, promptLanguage) },
+      ],
+    }),
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => '')
+    throw new Error(errorText || `AI 请求失败: HTTP ${response.status}`)
+  }
+
+  const payload = await response.json() as ChatCompletionResponse
+  const content = extractTextContent(payload.choices)
+  return parseSessionQaResponse(content, model)
 }

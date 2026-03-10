@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { parseAiBriefingResponse, isAiPostProcessConfigured } from './aiPostProcess'
+import {
+  parseAiBriefingResponse,
+  parseSessionQaResponse,
+  isAiPostProcessConfigured,
+} from './aiPostProcess'
 
 describe('aiPostProcess', () => {
   it('parses plain json responses', () => {
@@ -56,5 +60,22 @@ describe('aiPostProcess', () => {
         model: 'qwen2.5:7b',
       },
     })).toBe(false)
+  })
+
+  it('parses session qa responses with citations', () => {
+    const result = parseSessionQaResponse(JSON.stringify({
+      answer: 'Alice suggested shipping this week.',
+      citations: [
+        { quote: 'We should ship it this week.', speakerLabel: 'Alice' },
+      ],
+    }), 'qwen-test')
+
+    expect(result).toEqual({
+      answer: 'Alice suggested shipping this week.',
+      citations: [
+        { quote: 'We should ship it this week.', speakerLabel: 'Alice' },
+      ],
+      model: 'qwen-test',
+    })
   })
 })

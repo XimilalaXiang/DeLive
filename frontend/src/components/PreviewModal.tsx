@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   X,
   Download,
@@ -14,6 +14,10 @@ import {
   ListTodo,
   Tags,
   BookOpenText,
+  MessageSquareQuote,
+  Send,
+  Quote,
+  ArrowUpRight,
 } from 'lucide-react'
 import type { TranscriptSession, TranscriptSpeaker } from '../types'
 import { exportToTxt } from '../utils/storage'
@@ -46,16 +50,28 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
   const updateSessionSpeakers = useSessionStore((state) => state.updateSessionSpeakers)
   const updateSessionTitle = useSessionStore((state) => state.updateSessionTitle)
   const updateSessionTags = useSessionStore((state) => state.updateSessionTags)
+  const askSessionQuestion = useSessionStore((state) => state.askSessionQuestion)
   const generateSessionPostProcess = useSessionStore((state) => state.generateSessionPostProcess)
   const tags = useTagStore((state) => state.tags)
   const addTag = useTagStore((state) => state.addTag)
   const [editingSpeakerId, setEditingSpeakerId] = useState<string | null>(null)
   const [speakerDraftName, setSpeakerDraftName] = useState('')
+  const [questionDraft, setQuestionDraft] = useState('')
+  const askMessagesEndRef = useRef<HTMLDivElement>(null)
+  const translatedText = session?.translatedTranscript?.text?.trim() || ''
+  const postProcess = session?.postProcess
+  const askHistory = session?.askHistory || []
+  const latestAskStatus = askHistory.length > 0 ? askHistory[askHistory.length - 1]?.status : undefined
 
   useEffect(() => {
     setEditingSpeakerId(null)
     setSpeakerDraftName('')
+    setQuestionDraft('')
   }, [session?.id])
+
+  useEffect(() => {
+    askMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [askHistory.length, latestAskStatus, session?.id])
 
   const handleExport = () => {
     if (!session) return
@@ -72,8 +88,6 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
     downloadSubtitle(session, 'vtt')
   }
 
-  const translatedText = session?.translatedTranscript?.text?.trim() || ''
-  const postProcess = session?.postProcess
   const speakerSegments = (session?.segments || []).filter((segment) => segment.speakerId && segment.text.trim())
   const sessionSpeakers = useMemo(
     () => (session?.speakers || []).filter((speaker) => speaker.id.trim()),
@@ -116,6 +130,7 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
 
   const aiConfigured = isAiPostProcessConfigured(settings)
   const aiGenerating = postProcess?.status === 'pending'
+  const askPending = askHistory.some((turn) => turn.status === 'pending')
   const hasAiContent = Boolean(
     postProcess?.summary?.trim()
     || postProcess?.actionItems?.length
@@ -132,6 +147,19 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
       console.error('[PreviewModal] AI post-process failed:', error)
     }
   }
+
+  const handleAskQuestion = async () => {
+    if (!session || askPending) return
+
+    try {
+      await askSessionQuestion(session.id, questionDraft)
+      setQuestionDraft('')
+    } catch (error) {
+      console.error('[PreviewModal] Session QA failed:', error)
+    }
+  }
+
+  const askSuggestions = t.preview.askSuggestions || []
 
   const handleApplySuggestedTitle = () => {
     if (!session || !postProcess?.titleSuggestion?.trim()) return
@@ -383,6 +411,169 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
                 )}
               </div>
             )}
+          </div>
+
+          <div className="not-prose mb-6 rounded-xl border border-border bg-card/70 p-4 space-y-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-primary">
+                  <MessageSquareQuote className="w-3.5 h-3.5" />
+                  {t.preview.askThisSession}
+                </div>
+                {!aiConfigured && (
+                  <p className="text-xs text-muted-foreground">
+                    {t.preview.aiNotConfigured}
+                  </p>
+                )}
+                {!session.transcript.trim() && (
+                  <p className="text-xs text-muted-foreground">
+                    {t.preview.askNoTranscript}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-2xl border border-border bg-background/70">
+              <div className="max-h-[420px] overflow-y-auto px-4 py-4">
+                {askHistory.length > 0 ? (
+                  <div className="space-y-5">
+                    {askHistory.map((turn) => (
+                      <div key={turn.id} className="space-y-3">
+                        <div className="flex justify-end">
+                          <div className="max-w-[88%] rounded-2xl rounded-br-md bg-primary px-4 py-3 text-sm font-medium leading-relaxed text-primary-foreground shadow-sm">
+                            <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-primary-foreground/70">
+                              {t.preview.askQuestion}
+                            </div>
+                            <p className="whitespace-pre-wrap">
+                              {turn.question}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex justify-start">
+                          <div className="max-w-[92%] rounded-2xl rounded-bl-md border border-border bg-card px-4 py-3 shadow-sm">
+                            <div className="mb-2 inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                              <MessageSquareQuote className="w-3.5 h-3.5" />
+                              {t.preview.askAnswer}
+                            </div>
+                            {turn.status === 'pending' ? (
+                              <div className="inline-flex items-center gap-2 text-sm text-primary">
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                {t.preview.askSending}
+                              </div>
+                            ) : turn.status === 'error' ? (
+                              <p className="text-sm leading-relaxed text-red-600 dark:text-red-400 whitespace-pre-wrap">
+                                {turn.error || t.preview.askErrorFallback}
+                              </p>
+                            ) : (
+                              <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap">
+                                {turn.answer}
+                              </p>
+                            )}
+
+                            {turn.citations && turn.citations.length > 0 && (
+                              <div className="mt-3 space-y-2 border-t border-border/70 pt-3">
+                                <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                                  {t.preview.askReferences}
+                                </div>
+                                <div className="grid gap-2">
+                                  {turn.citations.map((citation, index) => (
+                                    <div
+                                      key={`${citation.quote}-${index}`}
+                                      className="rounded-xl border border-border bg-background/70 px-3 py-2"
+                                    >
+                                      <div className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                                        <Quote className="w-3 h-3" />
+                                        {citation.speakerLabel || t.preview.askReferenceFallback}
+                                      </div>
+                                      <p className="mt-1 text-sm leading-relaxed text-foreground whitespace-pre-wrap">
+                                        {citation.quote}
+                                      </p>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    <div ref={askMessagesEndRef} />
+                  </div>
+                ) : (
+                  <div className="flex min-h-[220px] flex-col items-center justify-center gap-4 px-4 py-8 text-center">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-primary">
+                      <MessageSquareQuote className="h-7 w-7" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-foreground">
+                        {t.preview.askEmpty}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {t.preview.askEmptyHint}
+                      </p>
+                    </div>
+                    {askSuggestions.length > 0 && (
+                      <div className="flex flex-wrap justify-center gap-2">
+                        {askSuggestions.map((suggestion) => (
+                          <button
+                            key={suggestion}
+                            onClick={() => setQuestionDraft(suggestion)}
+                            className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+                          >
+                            <ArrowUpRight className="h-3 w-3" />
+                            {suggestion}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="border-t border-border bg-card/70 px-4 py-4">
+                <div className="space-y-3">
+                  <textarea
+                    value={questionDraft}
+                    onChange={(event) => setQuestionDraft(event.target.value)}
+                    onKeyDown={(event) => {
+                      if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+                        event.preventDefault()
+                        void handleAskQuestion()
+                      }
+                    }}
+                    placeholder={t.preview.askPlaceholder}
+                    className="min-h-[88px] w-full rounded-xl border border-input bg-background px-3 py-3 text-sm leading-relaxed ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  />
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-[11px] text-muted-foreground">
+                      {t.preview.askShortcut}
+                    </p>
+                    <button
+                      onClick={() => void handleAskQuestion()}
+                      disabled={!aiConfigured || askPending || !session.transcript.trim() || !questionDraft.trim()}
+                      className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                        !aiConfigured || askPending || !session.transcript.trim() || !questionDraft.trim()
+                          ? 'cursor-not-allowed border border-border bg-muted text-muted-foreground'
+                          : 'border border-primary/30 bg-primary text-primary-foreground hover:bg-primary/90'
+                      }`}
+                    >
+                      {askPending ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          {t.preview.askSending}
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4" />
+                          {t.preview.askSend}
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {session.transcript || translatedText ? (

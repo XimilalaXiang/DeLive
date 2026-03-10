@@ -1,6 +1,8 @@
 import type {
+  TranscriptAskTurn,
   TranscriptChapter,
   TranscriptPostProcess,
+  TranscriptQaCitation,
   TranscriptSegment,
   TranscriptSession,
   TranscriptSessionStatus,
@@ -172,6 +174,57 @@ function normalizeChapter(value: unknown): TranscriptChapter | null {
   }
 }
 
+function normalizeQaCitation(value: unknown): TranscriptQaCitation | null {
+  if (!isRecord(value)) {
+    return null
+  }
+
+  const quote = getString(value.quote)?.trim()
+  if (!quote) {
+    return null
+  }
+
+  return {
+    quote,
+    speakerLabel: getString(value.speakerLabel)?.trim() || undefined,
+  }
+}
+
+function normalizeAskTurn(value: unknown): TranscriptAskTurn | null {
+  if (!isRecord(value)) {
+    return null
+  }
+
+  const id = getString(value.id)?.trim()
+  const question = getString(value.question)?.trim()
+  if (!id || !question) {
+    return null
+  }
+
+  const status = value.status === 'pending'
+    || value.status === 'success'
+    || value.status === 'error'
+    ? value.status
+    : 'success'
+  const citations = Array.isArray(value.citations)
+    ? value.citations
+      .map(normalizeQaCitation)
+      .filter((citation): citation is TranscriptQaCitation => citation !== null)
+    : undefined
+
+  return {
+    id,
+    question,
+    answer: getString(value.answer)?.trim() || undefined,
+    citations: citations && citations.length > 0 ? citations : undefined,
+    createdAt: getNumber(value.createdAt) ?? Date.now(),
+    answeredAt: getNumber(value.answeredAt),
+    model: getString(value.model)?.trim() || undefined,
+    status,
+    error: getString(value.error)?.trim() || undefined,
+  }
+}
+
 function normalizePostProcess(value: unknown): TranscriptPostProcess | undefined {
   if (!isRecord(value)) {
     return undefined
@@ -247,6 +300,11 @@ export function normalizeTranscriptSession(session: Partial<TranscriptSession>):
       .map(normalizeSegment)
       .filter((segment): segment is TranscriptSegment => segment !== null)
     : undefined
+  const askHistory = Array.isArray(session.askHistory)
+    ? session.askHistory
+      .map(normalizeAskTurn)
+      .filter((turn): turn is TranscriptAskTurn => turn !== null)
+    : undefined
   const status = session.status === 'recording' || session.status === 'interrupted' || session.status === 'completed'
     ? session.status
     : DEFAULT_SESSION_STATUS
@@ -268,6 +326,7 @@ export function normalizeTranscriptSession(session: Partial<TranscriptSession>):
     segments: segments ?? [],
     sourceMeta: normalizeSourceMeta(session.sourceMeta),
     postProcess: normalizePostProcess(session.postProcess),
+    askHistory: askHistory && askHistory.length > 0 ? askHistory : undefined,
     providerId: getString(session.providerId),
     status,
     lastPersistedAt: getNumber(session.lastPersistedAt) ?? updatedAt,

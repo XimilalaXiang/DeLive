@@ -1,13 +1,14 @@
 import { create } from 'zustand'
 import type {
   RecordingState,
+  TranscriptAskTurn,
   TranscriptPostProcess,
   TranscriptSegment,
   TranscriptSession,
   TranscriptSpeaker,
 } from '../types'
 import type { TranscriptToken } from '../types/asr'
-import { generateSessionBriefing } from '../services/aiPostProcess'
+import { askQuestionForSession, generateSessionBriefing } from '../services/aiPostProcess'
 import { sessionRepository } from '../utils/sessionRepository'
 import { formatTime } from '../utils/storage'
 import {
@@ -37,6 +38,7 @@ import {
 } from '../utils/transcriptState'
 import { useSettingsStore } from './settingsStore'
 import { useUIStore } from './uiStore'
+import { generateId } from '../utils/storageUtils'
 
 const SESSION_AUTOSAVE_DELAY_MS = 1200
 let sessionAutosaveTimer: ReturnType<typeof setTimeout> | null = null
@@ -85,6 +87,7 @@ export interface SessionState {
   updateSessionTitle: (id: string, title: string) => void
   updateSessionSpeakers: (sessionId: string, speakers: TranscriptSpeaker[]) => void
   updateSessionPostProcess: (sessionId: string, patch: Partial<TranscriptPostProcess>) => void
+  askSessionQuestion: (sessionId: string, question: string) => Promise<TranscriptAskTurn>
   generateSessionPostProcess: (
     sessionId: string,
     options?: { overwrite?: boolean },
@@ -193,6 +196,20 @@ export const useSessionStore = create<SessionState>((set, get) => {
       sessions,
       currentPostProcess: nextState.currentPostProcess,
       recoverySession: nextState.recoverySession,
+    })
+  }
+
+  const replaceSessionAskHistory = (
+    sessionId: string,
+    askHistory: TranscriptAskTurn[],
+  ) => {
+    const { recoverySession } = get()
+    const sessions = sessionRepository.updateMetadata(sessionId, { askHistory })
+    set({
+      sessions,
+      recoverySession: recoverySession?.id === sessionId
+        ? { ...recoverySession, askHistory }
+        : recoverySession,
     })
   }
 
@@ -367,6 +384,67 @@ export const useSessionStore = create<SessionState>((set, get) => {
         currentPostProcess: nextState.currentPostProcess,
         recoverySession: nextState.recoverySession,
       })
+    },
+    askSessionQuestion: async (sessionId, question) => {
+      const normalizedQuestion = question.trim()
+      if (!normalizedQuestion) {
+        throw new Error('请输入问题')
+      }
+
+      const session = get().sessions.find((item) => item.id === sessionId)
+      if (!session) {
+        throw new Error('未找到要提问的会话')
+      }
+
+      const pendingTurn: TranscriptAskTurn = {
+        id: generateId(),
+        question: normalizedQuestion,
+        createdAt: Date.now(),
+        status: 'pending',
+      }
+
+      replaceSessionAskHistory(sessionId, [...(session.askHistory || []), pendingTurn])
+
+      try {
+        const result = await askQuestionForSession(
+          {
+            ...session,
+            askHistory: [...(session.askHistory || []), pendingTurn],
+          },
+          normalizedQuestion,
+          useSettingsStore.getState().settings,
+        )
+
+        const latestSession = get().sessions.find((item) => item.id === sessionId)
+        const nextTurn: TranscriptAskTurn = {
+          ...pendingTurn,
+          answer: result.answer,
+          citations: result.citations,
+          answeredAt: Date.now(),
+          model: result.model,
+          status: 'success',
+          error: undefined,
+        }
+        const nextHistory = (latestSession?.askHistory || [pendingTurn]).map((turn) => (
+          turn.id === pendingTurn.id ? nextTurn : turn
+        ))
+        replaceSessionAskHistory(sessionId, nextHistory)
+        return nextTurn
+      } catch (error) {
+        const latestSession = get().sessions.find((item) => item.id === sessionId)
+        const message = error instanceof Error ? error.message : '会话问答失败'
+        const nextTurn: TranscriptAskTurn = {
+          ...pendingTurn,
+          answeredAt: Date.now(),
+          status: 'error',
+          error: message,
+        }
+        const nextHistory = (latestSession?.askHistory || [pendingTurn]).map((turn) => (
+          turn.id === pendingTurn.id ? nextTurn : turn
+        ))
+        replaceSessionAskHistory(sessionId, nextHistory)
+        throw error
+      }
     },
     generateSessionPostProcess: async (sessionId, options) => {
       const session = get().sessions.find((item) => item.id === sessionId)
