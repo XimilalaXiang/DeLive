@@ -4,6 +4,7 @@
 > 当前判断: DeLive 下一阶段不应继续把重心放在“更多转录入口”，而应优先把产品升级为 `local-first 音频智能工作台`
 > 本版原则: `AI 优先`、`会后价值优先`、`先把已有 transcript 变成可复用知识`
 > 明确延后: 文件转录、批量转录、Watch Folder、热词替换，不作为当前第一波重点
+> 同步状态: `P0 #1/#2/#3` 与 `P1 #4` 已落地首版闭环
 
 ## 这份文档怎么写
 
@@ -65,10 +66,10 @@
 
 ### 1. AI Post-Process 任务流
 
-- [ ] 建立统一的 AI 后处理任务入口
-- [ ] 支持对单个 session 触发 AI 分析
-- [ ] 支持写回 `postProcess`
-- [ ] 支持重新生成与覆盖策略
+- [x] 建立统一的 AI 后处理任务入口
+- [x] 支持对单个 session 触发 AI 分析
+- [x] 支持写回 `postProcess`
+- [x] 支持重新生成与覆盖策略
 
 为什么现在做：
 
@@ -89,11 +90,11 @@
 
 ### 2. Session Briefing UI
 
-- [ ] 在预览弹窗中展示 `summary`
-- [ ] 展示 `action items`
-- [ ] 展示 `chapters`
-- [ ] 展示 `keywords`
-- [ ] 支持手动刷新 / 重跑
+- [x] 在预览弹窗中展示 `summary`
+- [x] 展示 `action items`
+- [x] 展示 `chapters`
+- [x] 展示 `keywords`
+- [x] 支持手动刷新 / 重跑
 
 为什么现在做：
 
@@ -111,9 +112,9 @@
 
 ### 3. 自动标题与自动标签建议
 
-- [ ] AI 自动生成 session title
-- [ ] AI 推荐标签
-- [ ] 支持一键接受或手动改写
+- [x] AI 自动生成 session title
+- [x] AI 推荐标签
+- [x] 支持一键接受或手动改写
 
 为什么现在做：
 
@@ -134,9 +135,9 @@
 
 ### 4. Ask This Session
 
-- [ ] 支持对单个 session 提问
-- [ ] 支持回答时引用 transcript 片段
-- [ ] 支持问题历史
+- [x] 支持对单个 session 提问
+- [x] 支持回答时引用 transcript 片段
+- [x] 支持问题历史
 
 为什么现在做：
 
