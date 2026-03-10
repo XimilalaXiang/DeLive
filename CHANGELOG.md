@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.3] - 2026-03-10
+
+### Added / 新增
+- 🤖 Added AI post-process settings for OpenAI-compatible briefing generation, including configurable base URL, model, optional API key, and output language
+- 🤖 新增 AI 后处理设置，支持配置 OpenAI-compatible briefing 生成的 Base URL、模型、可选 API Key 与输出语言
+- ✨ Added session-level AI briefing flow with structured `summary`, `actionItems`, `keywords`, and `chapters` persisted into `postProcess`
+- ✨ 新增会话级 AI briefing 工作流，结构化生成 `summary`、`actionItems`、`keywords` 与 `chapters`，并写回 `postProcess`
+- 🧪 Added AI post-process parser coverage and post-process lifecycle tests, increasing frontend coverage from 176 to 180 tests
+- 🧪 新增 AI 后处理解析测试与 post-process 生命周期测试，前端测试总数从 176 提升到 180
+
+### Changed / 变更
+- 🪟 Updated the history preview modal to surface AI briefing cards and allow one-click generate / regenerate actions alongside transcript review
+- 🪟 更新历史预览弹窗，新增 AI briefing 卡片，并支持在查看 transcript 时一键生成 / 重新生成
+- 🔐 Extended safeStorage and backup settings handling to cover AI post-process credentials and configuration
+- 🔐 扩展 safeStorage 与备份设置处理链路，覆盖 AI 后处理凭据与配置
+
+---
+
 ## [1.4.2] - 2026-03-08
 
 ### Added / 新增
