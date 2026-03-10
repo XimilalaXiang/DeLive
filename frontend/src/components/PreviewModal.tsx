@@ -62,6 +62,9 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
   const [questionDraft, setQuestionDraft] = useState('')
   const [activeConversationId, setActiveConversationId] = useState<string>('default')
   const askMessagesEndRef = useRef<HTMLDivElement>(null)
+  const overviewRef = useRef<HTMLDivElement>(null)
+  const askRef = useRef<HTMLDivElement>(null)
+  const transcriptRef = useRef<HTMLDivElement>(null)
   const translatedText = session?.translatedTranscript?.text?.trim() || ''
   const postProcess = session?.postProcess
   const askHistory = useMemo(() => session?.askHistory || [], [session?.askHistory])
@@ -225,6 +228,16 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
   }
 
   const askSuggestions = t.preview.askSuggestions || []
+  const scrollToSection = (section: 'overview' | 'ask' | 'transcript') => {
+    const target = (
+      section === 'overview'
+        ? overviewRef.current
+        : section === 'ask'
+          ? askRef.current
+          : transcriptRef.current
+    )
+    target?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
   const getConversationLabel = (
     conversationId: string,
@@ -320,9 +333,38 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
           </button>
         </div>
 
+        <div className="border-b border-border bg-background/70 px-6 py-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => scrollToSection('overview')}
+              className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/80 px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              {t.preview.aiBriefing}
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToSection('ask')}
+              className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/80 px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+            >
+              <MessageSquareQuote className="h-3.5 w-3.5" />
+              {t.preview.askThisSession}
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToSection('transcript')}
+              className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/80 px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+            >
+              <FileText className="h-3.5 w-3.5" />
+              {t.transcript.title}
+            </button>
+          </div>
+        </div>
+
         {/* 内容区域 */}
         <div className="flex-1 overflow-y-auto p-6 bg-background/50">
-          <div className="not-prose mb-6 rounded-xl border border-border bg-card/70 p-4 space-y-4">
+          <div ref={overviewRef} className="not-prose mb-6 rounded-xl border border-border bg-card/70 p-4 space-y-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-1">
                 <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-primary">
@@ -506,7 +548,7 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
 
           <SessionMindMapCard session={session} />
 
-          <div className="not-prose mb-6 rounded-xl border border-border bg-card/70 p-4 space-y-4">
+          <div ref={askRef} className="not-prose mb-6 rounded-xl border border-border bg-card/70 p-4 space-y-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-1">
                 <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-primary">
@@ -713,7 +755,7 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
           </div>
 
           {session.transcript || translatedText ? (
-            <div className="prose prose-sm dark:prose-invert max-w-none">
+            <div ref={transcriptRef} className="prose prose-sm dark:prose-invert max-w-none">
               {sessionSpeakers.length > 0 && (
                 <div className="not-prose mb-6 rounded-xl border border-border bg-card/70 p-4 space-y-3">
                   <div className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">

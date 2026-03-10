@@ -5,6 +5,7 @@ import { useTagStore } from '../stores/tagStore'
 import { useSessionStore } from '../stores/sessionStore'
 import { TAG_COLORS } from '../types'
 import type { Tag } from '../types'
+import { ActionDialog } from './ActionDialog'
 
 interface TagSelectorProps {
   sessionId: string
@@ -21,6 +22,7 @@ export function TagSelector({ sessionId, sessionTagIds, compact = false }: TagSe
   const [isManaging, setIsManaging] = useState(false)
   const [newTagName, setNewTagName] = useState('')
   const [selectedColor, setSelectedColor] = useState<string>(TAG_COLORS[0].name)
+  const [pendingDeleteTag, setPendingDeleteTag] = useState<{ id: string; name: string } | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   const toggleTag = (tagId: string) => {
@@ -41,9 +43,7 @@ export function TagSelector({ sessionId, sessionTagIds, compact = false }: TagSe
 
   const handleDeleteTag = (e: React.MouseEvent, tagId: string, tagName: string) => {
     e.stopPropagation()
-    if (confirm(t.tag.deleteConfirm(tagName))) {
-      deleteTag(tagId)
-    }
+    setPendingDeleteTag({ id: tagId, name: tagName })
   }
 
   const getTagColor = (colorName: string) => {
@@ -247,6 +247,29 @@ export function TagSelector({ sessionId, sessionTagIds, compact = false }: TagSe
           </div>
         </>
       )}
+      <ActionDialog
+        open={pendingDeleteTag !== null}
+        title={t.common.delete}
+        description={pendingDeleteTag ? t.tag.deleteConfirm(pendingDeleteTag.name) : ''}
+        onClose={() => setPendingDeleteTag(null)}
+        actions={[
+          {
+            label: t.common.cancel,
+            onClick: () => setPendingDeleteTag(null),
+            variant: 'secondary',
+          },
+          {
+            label: t.common.delete,
+            onClick: () => {
+              if (pendingDeleteTag) {
+                deleteTag(pendingDeleteTag.id)
+              }
+              setPendingDeleteTag(null)
+            },
+            variant: 'danger',
+          },
+        ]}
+      />
     </div>
   )
 }
@@ -301,6 +324,7 @@ export function TagManager() {
   const { tags, deleteTag, updateTag } = useTagStore()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingName, setEditingName] = useState('')
+  const [pendingDeleteTag, setPendingDeleteTag] = useState<{ id: string; name: string } | null>(null)
 
   const getTagColor = (colorName: string) => {
     return TAG_COLORS.find(c => c.name === colorName) || TAG_COLORS[0]
@@ -328,58 +352,79 @@ export function TagManager() {
   }
 
   return (
-    <div className="space-y-2">
-      {tags.map(tag => {
-        const color = getTagColor(tag.color)
-        return (
-          <div 
-            key={tag.id}
-            className="flex items-center justify-between gap-2 p-2 rounded-lg
-                     bg-muted/50 hover:bg-muted transition-colors"
-          >
-            {editingId === tag.id ? (
-              <input
-                type="text"
-                value={editingName}
-                onChange={e => setEditingName(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') saveEdit()
-                  if (e.key === 'Escape') setEditingId(null)
-                }}
-                onBlur={saveEdit}
-                className="flex-1 px-2 py-1 text-sm border border-input rounded
-                         bg-background focus:outline-none focus:ring-1 focus:ring-primary"
-                autoFocus
-              />
-            ) : (
-              <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
-                              ${color.bg} ${color.text}`}>
-                {tag.name}
-              </span>
-            )}
-            <div className="flex items-center gap-1">
-              {editingId !== tag.id && (
-                <button
-                  onClick={() => startEditing(tag)}
-                  className="p-1 text-muted-foreground hover:text-foreground"
-                >
-                  {t.common.edit}
-                </button>
+    <>
+      <div className="space-y-2">
+        {tags.map(tag => {
+          const color = getTagColor(tag.color)
+          return (
+            <div 
+              key={tag.id}
+              className="flex items-center justify-between gap-2 p-2 rounded-lg
+                       bg-muted/50 hover:bg-muted transition-colors"
+            >
+              {editingId === tag.id ? (
+                <input
+                  type="text"
+                  value={editingName}
+                  onChange={e => setEditingName(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') saveEdit()
+                    if (e.key === 'Escape') setEditingId(null)
+                  }}
+                  onBlur={saveEdit}
+                  className="flex-1 px-2 py-1 text-sm border border-input rounded
+                           bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                  autoFocus
+                />
+              ) : (
+                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                                ${color.bg} ${color.text}`}>
+                  {tag.name}
+                </span>
               )}
-              <button
-                onClick={() => {
-                  if (confirm(t.tag.deleteConfirm(tag.name))) {
-                    deleteTag(tag.id)
-                  }
-                }}
-                className="p-1 text-muted-foreground hover:text-destructive"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-1">
+                {editingId !== tag.id && (
+                  <button
+                    onClick={() => startEditing(tag)}
+                    className="p-1 text-muted-foreground hover:text-foreground"
+                  >
+                    {t.common.edit}
+                  </button>
+                )}
+                <button
+                  onClick={() => setPendingDeleteTag({ id: tag.id, name: tag.name })}
+                  className="p-1 text-muted-foreground hover:text-destructive"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
-          </div>
-        )
-      })}
-    </div>
+          )
+        })}
+      </div>
+      <ActionDialog
+        open={pendingDeleteTag !== null}
+        title={t.common.delete}
+        description={pendingDeleteTag ? t.tag.deleteConfirm(pendingDeleteTag.name) : ''}
+        onClose={() => setPendingDeleteTag(null)}
+        actions={[
+          {
+            label: t.common.cancel,
+            onClick: () => setPendingDeleteTag(null),
+            variant: 'secondary',
+          },
+          {
+            label: t.common.delete,
+            onClick: () => {
+              if (pendingDeleteTag) {
+                deleteTag(pendingDeleteTag.id)
+              }
+              setPendingDeleteTag(null)
+            },
+            variant: 'danger',
+          },
+        ]}
+      />
+    </>
   )
 }

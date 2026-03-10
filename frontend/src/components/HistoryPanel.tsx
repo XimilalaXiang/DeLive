@@ -6,6 +6,7 @@ import { useTagStore } from '../stores/tagStore'
 import { exportToTxt } from '../utils/storage'
 import { downloadSubtitle } from '../utils/subtitleExport'
 import { PreviewModal } from './PreviewModal'
+import { ActionDialog } from './ActionDialog'
 import { TagSelector, TagFilter } from './TagSelector'
 import type { TranscriptSession } from '../types'
 
@@ -28,6 +29,7 @@ export function HistoryPanel({
   const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set())
   const [previewSessionId, setPreviewSessionId] = useState<string | null>(null)
   const [searchInput, setSearchInput] = useState(searchQuery) // 本地输入状态
+  const [pendingDeleteSession, setPendingDeleteSession] = useState<TranscriptSession | null>(null)
   const previewSession = useMemo(
     () => sessions.find((session) => session.id === previewSessionId) || null,
     [previewSessionId, sessions],
@@ -115,9 +117,8 @@ export function HistoryPanel({
 
   const handleDelete = (e: React.MouseEvent, id: string) => {
     e.stopPropagation()
-    if (confirm(t.history.deleteConfirm)) {
-      deleteSession(id)
-    }
+    const session = sessions.find((item) => item.id === id) || null
+    setPendingDeleteSession(session)
   }
 
   const handleExport = (e: React.MouseEvent, session: TranscriptSession) => {
@@ -387,6 +388,29 @@ export function HistoryPanel({
       <PreviewModal 
         session={previewSession} 
         onClose={() => setPreviewSessionId(null)} 
+      />
+      <ActionDialog
+        open={pendingDeleteSession !== null}
+        title={t.common.delete}
+        description={t.history.deleteConfirm}
+        onClose={() => setPendingDeleteSession(null)}
+        actions={[
+          {
+            label: t.common.cancel,
+            onClick: () => setPendingDeleteSession(null),
+            variant: 'secondary',
+          },
+          {
+            label: t.common.delete,
+            onClick: () => {
+              if (pendingDeleteSession) {
+                deleteSession(pendingDeleteSession.id)
+              }
+              setPendingDeleteSession(null)
+            },
+            variant: 'danger',
+          },
+        ]}
       />
     </>
   )

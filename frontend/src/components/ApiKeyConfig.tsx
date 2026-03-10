@@ -10,9 +10,11 @@ import {
   validateBackupData,
   importDataOverwrite,
   importDataMerge,
+  type BackupData,
 } from '../utils/storage'
 import { GeneralSettingsPanel } from './settings/GeneralSettingsPanel'
 import { ServiceSettingsPanel } from './settings/ServiceSettingsPanel'
+import { ActionDialog } from './ActionDialog'
 import type { ASRProviderInfo, ProviderConfigData } from '../types'
 import { getMissingRequiredConfigLabels } from '../utils/providerConfig'
 import {
@@ -57,6 +59,7 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
   )
   
   const [importMessage, setImportMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [pendingImportData, setPendingImportData] = useState<{ data: BackupData } | null>(null)
   const [autoLaunch, setAutoLaunch] = useState(false)
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle')
   const [testMessage, setTestMessage] = useState('')
@@ -255,13 +258,17 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
       if (key) localStorageKeys.push(key)
     }
 
-    const result = await window.electronAPI.exportDiagnostics({ settings: settingsData, localStorageKeys })
-    if (result.success) {
-      alert(t.settings.diagnosticsExported)
-    } else if (result.reason !== 'cancelled') {
-      alert(`${t.settings.diagnosticsExportFailed}: ${result.reason}`)
-    }
+  const result = await window.electronAPI.exportDiagnostics({ settings: settingsData, localStorageKeys })
+  if (result.success) {
+      setImportMessage({ type: 'success', text: t.settings.diagnosticsExported })
+      setTimeout(() => setImportMessage(null), 3000)
+  } else if (result.reason !== 'cancelled') {
+      setImportMessage({
+        type: 'error',
+        text: `${t.settings.diagnosticsExportFailed}: ${result.reason}`,
+      })
   }
+}
 
   // 处理文件导入
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -283,28 +290,7 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
         return
       }
 
-      // 询问导入模式
-      const mode = confirm(t.settings.importConfirm(data.sessions.length, data.tags.length))
-
-      if (mode) {
-        // 覆盖模式
-        const result = await importDataOverwrite(data)
-        setImportMessage({ 
-          type: 'success', 
-          text: t.settings.importedOverwrite(result.sessions, result.tags)
-        })
-      } else {
-        // 合并模式
-        const result = await importDataMerge(data)
-        setImportMessage({ 
-          type: 'success', 
-          text: t.settings.importedMerge(result.newSessions, result.newTags)
-        })
-      }
-
-      // 刷新store中的数据
-      await loadSessions()
-      loadTags()
+      setPendingImportData({ data })
     } catch (error) {
       const message = error instanceof SyntaxError
         ? `${t.settings.invalidBackupFile}: invalid JSON`
@@ -317,6 +303,36 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
     // 清空文件输入，允许再次选择同一文件
     e.target.value = ''
   }
+
+  const handleApplyImport = useCallback(async (mode: 'overwrite' | 'merge') => {
+    if (!pendingImportData) return
+
+    try {
+      if (mode === 'overwrite') {
+        const result = await importDataOverwrite(pendingImportData.data)
+        setImportMessage({
+          type: 'success',
+          text: t.settings.importedOverwrite(result.sessions, result.tags),
+        })
+      } else {
+        const result = await importDataMerge(pendingImportData.data)
+        setImportMessage({
+          type: 'success',
+          text: t.settings.importedMerge(result.newSessions, result.newTags),
+        })
+      }
+
+      await loadSessions()
+      loadTags()
+    } catch (error) {
+      setImportMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : t.settings.importFailed,
+      })
+    } finally {
+      setPendingImportData(null)
+    }
+  }, [loadSessions, loadTags, pendingImportData, t.settings])
 
   useEffect(() => {
     if (!isOpen) return undefined
@@ -479,6 +495,32 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
             {t.common.save}
           </button>
         </div>
+        <ActionDialog
+          open={pendingImportData !== null}
+          title={language === 'zh' ? '选择导入模式' : 'Choose import mode'}
+          description={pendingImportData
+            ? t.settings.importConfirm(pendingImportData.data.sessions.length, pendingImportData.data.tags.length)
+            : ''
+          }
+          onClose={() => setPendingImportData(null)}
+          actions={[
+            {
+              label: t.common.cancel,
+              onClick: () => setPendingImportData(null),
+              variant: 'secondary',
+            },
+            {
+              label: language === 'zh' ? '合并导入' : 'Merge import',
+              onClick: () => void handleApplyImport('merge'),
+              variant: 'secondary',
+            },
+            {
+              label: language === 'zh' ? '覆盖导入' : 'Overwrite import',
+              onClick: () => void handleApplyImport('overwrite'),
+              variant: 'primary',
+            },
+          ]}
+        />
       </div>
     </div>
   )
