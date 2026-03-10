@@ -27,9 +27,29 @@ export class VolcProvider extends BaseASRProvider {
     supportsStreaming: true,
     capabilities: {
       audioInputMode: 'pcm16',
+      audioProfile: {
+        payloadFormat: 'pcm16',
+        sampleRateHz: 16000,
+        channels: 1,
+        preferredChunkMs: 100,
+      },
       transport: {
         type: 'realtime',
         captureRestartStrategy: 'reuse-session',
+      },
+      prompting: {
+        supportsLanguageHints: true,
+      },
+      workloads: {
+        liveCapture: {
+          availability: 'implemented',
+          executionMode: 'realtime-stream',
+          inputSources: ['system-audio'],
+          acceptedFileKinds: ['audio'],
+        },
+        fileTranscription: {
+          availability: 'unsupported',
+        },
       },
       supportsConfigTest: true,
     },

@@ -22,10 +22,14 @@ export {
 } from './secretStorage'
 
 export {
+  CURRENT_BACKUP_SCHEMA_VERSION,
+  CURRENT_BACKUP_VERSION,
   exportAllData,
+  getBackupValidationErrors,
   importDataMerge,
   importDataOverwrite,
   type BackupData,
+  upgradeBackupData,
   validateBackupData,
 } from './backupStorage'
 

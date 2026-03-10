@@ -1,41 +1,42 @@
-/**
- * CaptureManager — 音频采集生命周期管理
- *
- * 负责：getDisplayMedia 请求、MediaRecorder / AudioProcessor 创建与销毁、
- * 音轨结束检测、音频设备变更后的自动重启。
- *
- * 不涉及 ASR Provider 或 UI 状态 —— 仅管理"从桌面获取音频数据"这一条链路。
- */
-
 import { AudioProcessor } from '../utils/audioProcessor'
-import type { AudioInputMode } from '../types/asr'
+import type { ASRAudioProfileCapabilities, ASRProviderCapabilities } from '../types/asr'
 
 export interface CaptureCallbacks {
-  /** 收到一段可发送给 Provider 的音频数据 */
   onAudioData: (data: Blob | ArrayBuffer) => void
-  /** 用户主动停止共享（音轨 ended） */
   onTrackEnded: () => void
-  /** 设备变化需要重新采集 */
   onDeviceChange: () => void
 }
 
-function createCompatibleMediaRecorder(stream: MediaStream): MediaRecorder {
-  const preferredMimeTypes = [
+type CapturePipelineCapabilities = Pick<ASRProviderCapabilities, 'audioInputMode' | 'audioProfile'>
+
+function resolvePreferredMimeTypes(profile?: ASRAudioProfileCapabilities): string[] {
+  if (profile?.payloadFormat === 'wav') {
+    return ['audio/wav', 'audio/webm;codecs=opus', 'audio/webm', 'audio/mp4']
+  }
+
+  return [
     'audio/webm;codecs=opus',
     'audio/webm',
     'audio/mp4',
   ]
+}
+
+function createCompatibleMediaRecorder(
+  stream: MediaStream,
+  profile?: ASRAudioProfileCapabilities,
+): MediaRecorder {
+  const preferredMimeTypes = resolvePreferredMimeTypes(profile)
 
   if (typeof MediaRecorder.isTypeSupported === 'function') {
     for (const mimeType of preferredMimeTypes) {
       if (MediaRecorder.isTypeSupported(mimeType)) {
-        console.log(`[CaptureManager] 使用 MediaRecorder 编码格式: ${mimeType}`)
+        console.log(`[CaptureManager] Using MediaRecorder format: ${mimeType}`)
         return new MediaRecorder(stream, { mimeType })
       }
     }
   }
 
-  console.log('[CaptureManager] 未命中预设编码格式，使用浏览器默认配置')
+  console.log('[CaptureManager] Falling back to browser default MediaRecorder config')
   return new MediaRecorder(stream)
 }
 
@@ -46,12 +47,8 @@ export class CaptureManager {
   private deviceChangeCleanup: (() => void) | null = null
   private callbacks: CaptureCallbacks | null = null
 
-  /**
-   * 请求桌面音频并启动采集管道。
-   * @returns 获取到的 MediaStream（仅音频轨道）
-   */
   async start(
-    audioInputMode: AudioInputMode,
+    capabilities: CapturePipelineCapabilities,
     callbacks: CaptureCallbacks,
   ): Promise<MediaStream> {
     this.callbacks = callbacks
@@ -59,32 +56,26 @@ export class CaptureManager {
     const stream = await this.requestDisplayAudio()
     this.mediaStream = stream
 
-    await this.startPipeline(audioInputMode, stream)
+    await this.startPipeline(capabilities, stream)
     this.listenDeviceChanges()
 
     return stream
   }
 
-  /**
-   * 仅重启音频管道（设备变化后复用）：
-   * 关闭旧流 → 重新 getDisplayMedia → 重建管道。
-   * 不触碰 Provider 连接。
-   */
-  async restartPipeline(audioInputMode: AudioInputMode): Promise<MediaStream> {
+  async restartPipeline(capabilities: CapturePipelineCapabilities): Promise<MediaStream> {
     this.stopPipeline()
     this.stopStream()
 
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await new Promise((resolve) => setTimeout(resolve, 1000))
 
     const stream = await this.requestDisplayAudio()
     this.mediaStream = stream
 
-    await this.startPipeline(audioInputMode, stream)
+    await this.startPipeline(capabilities, stream)
 
     return stream
   }
 
-  /** 完全停止：管道 + 流 + 设备监听 */
   stop(): void {
     this.removeDeviceListener()
     this.stopPipeline()
@@ -96,10 +87,8 @@ export class CaptureManager {
     return this.mediaStream
   }
 
-  // ── 内部实现 ──────────────────────────────────────────
-
   private async requestDisplayAudio(): Promise<MediaStream> {
-    console.log('[CaptureManager] 请求屏幕共享...')
+    console.log('[CaptureManager] Requesting screen share...')
     const displayStream = await navigator.mediaDevices.getDisplayMedia({
       video: true,
       audio: {
@@ -110,19 +99,18 @@ export class CaptureManager {
     })
 
     const audioTracks = displayStream.getAudioTracks()
-    console.log('[CaptureManager] 音频轨道数量:', audioTracks.length)
+    console.log('[CaptureManager] Audio track count:', audioTracks.length)
 
     if (audioTracks.length === 0) {
-      displayStream.getTracks().forEach(track => track.stop())
+      displayStream.getTracks().forEach((track) => track.stop())
       throw new Error('未能获取系统音频。请确保在选择共享时勾选了"共享音频"选项。')
     }
 
-    displayStream.getVideoTracks().forEach(track => track.stop())
+    displayStream.getVideoTracks().forEach((track) => track.stop())
 
     const audioStream = new MediaStream(audioTracks)
-
     audioTracks[0].onended = () => {
-      console.log('[CaptureManager] 音频轨道结束（用户停止共享）')
+      console.log('[CaptureManager] Audio track ended')
       this.callbacks?.onTrackEnded()
     }
 
@@ -130,12 +118,17 @@ export class CaptureManager {
   }
 
   private async startPipeline(
-    audioInputMode: AudioInputMode,
+    capabilities: CapturePipelineCapabilities,
     stream: MediaStream,
   ): Promise<void> {
+    const { audioInputMode, audioProfile } = capabilities
+
     if (audioInputMode === 'pcm16') {
-      console.log('[CaptureManager] 使用 AudioProcessor (PCM16)')
-      const processor = new AudioProcessor({ sampleRate: 16000, channels: 1 })
+      console.log('[CaptureManager] Using AudioProcessor (PCM16)')
+      const processor = new AudioProcessor({
+        sampleRate: audioProfile?.sampleRateHz ?? 16000,
+        channels: audioProfile?.channels ?? 1,
+      })
       this.audioProcessor = processor
       await processor.start(stream, (pcmData) => {
         this.callbacks?.onAudioData(pcmData)
@@ -143,8 +136,8 @@ export class CaptureManager {
       return
     }
 
-    console.log('[CaptureManager] 使用 MediaRecorder')
-    const recorder = createCompatibleMediaRecorder(stream)
+    console.log('[CaptureManager] Using MediaRecorder')
+    const recorder = createCompatibleMediaRecorder(stream, audioProfile)
     this.mediaRecorder = recorder
     recorder.ondataavailable = (event) => {
       if (event.data.size > 0) {
@@ -152,10 +145,10 @@ export class CaptureManager {
       }
     }
     recorder.onerror = (event) => {
-      console.error('[CaptureManager] MediaRecorder 错误:', event)
+      console.error('[CaptureManager] MediaRecorder error:', event)
     }
-    recorder.start(100)
-    console.log('[CaptureManager] MediaRecorder 已启动')
+    recorder.start(audioProfile?.preferredChunkMs ?? 100)
+    console.log('[CaptureManager] MediaRecorder started')
   }
 
   private stopPipeline(): void {
@@ -171,7 +164,7 @@ export class CaptureManager {
 
   private stopStream(): void {
     if (this.mediaStream) {
-      this.mediaStream.getTracks().forEach(track => track.stop())
+      this.mediaStream.getTracks().forEach((track) => track.stop())
       this.mediaStream = null
     }
   }
@@ -179,16 +172,21 @@ export class CaptureManager {
   private listenDeviceChanges(): void {
     let timer: ReturnType<typeof setTimeout> | null = null
     const handler = () => {
-      console.log('[CaptureManager] 检测到音频设备变化')
-      if (timer) clearTimeout(timer)
+      console.log('[CaptureManager] Detected audio device change')
+      if (timer) {
+        clearTimeout(timer)
+      }
       timer = setTimeout(() => {
         this.callbacks?.onDeviceChange()
       }, 1500)
     }
+
     navigator.mediaDevices.addEventListener('devicechange', handler)
     this.deviceChangeCleanup = () => {
       navigator.mediaDevices.removeEventListener('devicechange', handler)
-      if (timer) clearTimeout(timer)
+      if (timer) {
+        clearTimeout(timer)
+      }
     }
   }
 

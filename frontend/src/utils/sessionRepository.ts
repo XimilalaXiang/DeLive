@@ -1,59 +1,90 @@
-import type {
-  TranscriptSession,
-  TranscriptSessionStatus,
-  TranscriptTokenData,
-  TranscriptSpeaker,
-  TranscriptSegment,
-  TranscriptSourceMeta,
-  TranscriptTranslationData,
-} from '../types'
-import { getSessions, saveSessions } from './storage'
+import type { TranscriptSession } from '../types'
+import {
+  deleteSessionById,
+  getSessions,
+  saveSessions,
+  upsertSession,
+  upsertSessions,
+} from './sessionStorage'
+import {
+  normalizeTranscriptSession,
+  upgradeTranscriptSessions,
+} from './sessionSchema'
+import type { TranscriptPersistenceSnapshot } from './sessionSnapshot'
+import { hasPostProcessContent } from './transcriptState'
 
-export interface SessionProgressSnapshot {
-  transcript: string
-  tokens?: TranscriptTokenData[]
-  providerId?: string
-  speakers?: TranscriptSpeaker[]
-  segments?: TranscriptSegment[]
-  sourceMeta?: TranscriptSourceMeta
-  translatedTranscript?: TranscriptTranslationData
-}
+export type SessionProgressSnapshot = TranscriptPersistenceSnapshot
 
 export interface SessionLaunchState {
   sessions: TranscriptSession[]
   recoverableSession: TranscriptSession | null
 }
 
-const DEFAULT_STATUS: TranscriptSessionStatus = 'completed'
-const CURRENT_SESSION_SCHEMA_VERSION = 3
 let cachedSessions: TranscriptSession[] = []
 let cacheReady = false
 
 function normalizeSession(session: TranscriptSession): TranscriptSession {
-  return {
-    ...session,
-    schemaVersion: session.schemaVersion ?? CURRENT_SESSION_SCHEMA_VERSION,
-    status: session.status ?? DEFAULT_STATUS,
-    tagIds: session.tagIds ?? [],
-    speakers: session.speakers ?? [],
-    segments: session.segments ?? [],
-    lastPersistedAt: session.lastPersistedAt ?? session.updatedAt ?? session.createdAt,
-  }
+  return normalizeTranscriptSession(session)
 }
 
 function getCachedSessions(): TranscriptSession[] {
   return cachedSessions.map(normalizeSession)
 }
 
-function persistSessions(sessions: TranscriptSession[]): TranscriptSession[] {
+function updateCachedSessions(sessions: TranscriptSession[]): TranscriptSession[] {
   cachedSessions = sessions.map(normalizeSession)
   cacheReady = true
+  return cachedSessions
+}
 
-  void saveSessions(cachedSessions).catch((error) => {
+function persistSessions(sessions: TranscriptSession[]): TranscriptSession[] {
+  const nextSessions = updateCachedSessions(sessions)
+
+  void saveSessions(nextSessions).catch((error) => {
     console.error('[sessionRepository] Failed to persist sessions:', error)
   })
 
-  return cachedSessions
+  return nextSessions
+}
+
+function persistSingleSession(sessionId: string, sessions: TranscriptSession[]): TranscriptSession[] {
+  const nextSessions = updateCachedSessions(sessions)
+  const targetSession = nextSessions.find((session) => session.id === sessionId)
+
+  if (!targetSession) {
+    return nextSessions
+  }
+
+  void upsertSession(targetSession).catch((error) => {
+    console.error('[sessionRepository] Failed to persist session:', error)
+  })
+
+  return nextSessions
+}
+
+function persistSessionBatch(sessionIds: string[], sessions: TranscriptSession[]): TranscriptSession[] {
+  const nextSessions = updateCachedSessions(sessions)
+  const targets = nextSessions.filter((session) => sessionIds.includes(session.id))
+
+  if (targets.length === 0) {
+    return nextSessions
+  }
+
+  void upsertSessions(targets).catch((error) => {
+    console.error('[sessionRepository] Failed to persist session batch:', error)
+  })
+
+  return nextSessions
+}
+
+function persistSessionDeletion(sessionId: string, sessions: TranscriptSession[]): TranscriptSession[] {
+  const nextSessions = updateCachedSessions(sessions)
+
+  void deleteSessionById(sessionId).catch((error) => {
+    console.error('[sessionRepository] Failed to delete session:', error)
+  })
+
+  return nextSessions
 }
 
 function updateSessionCollection(
@@ -79,10 +110,12 @@ function updateSessionCollection(
 
 export const sessionRepository = {
   async loadForLaunch(): Promise<SessionLaunchState> {
-    let sessions = (await getSessions()).map(normalizeSession)
+    const loadedSessions = await getSessions()
+    const upgraded = upgradeTranscriptSessions(loadedSessions)
+    let sessions = upgraded.sessions.map(normalizeSession)
     cachedSessions = sessions
     cacheReady = true
-    let mutated = false
+    const interruptedSessionIds: string[] = []
     const now = Date.now()
 
     sessions = sessions.map((session) => {
@@ -90,7 +123,7 @@ export const sessionRepository = {
         return session
       }
 
-      mutated = true
+      interruptedSessionIds.push(session.id)
       return {
         ...session,
         status: 'interrupted',
@@ -100,8 +133,15 @@ export const sessionRepository = {
       }
     })
 
-    if (mutated) {
-      persistSessions(sessions)
+    const sessionIdsToPersist = upgraded.changed
+      ? Array.from(new Set([
+        ...sessions.map((session) => session.id),
+        ...interruptedSessionIds,
+      ]))
+      : interruptedSessionIds
+
+    if (sessionIdsToPersist.length > 0) {
+      sessions = persistSessionBatch(sessionIdsToPersist, sessions)
     }
 
     const recoverableSession = sessions.find((session) => {
@@ -109,7 +149,12 @@ export const sessionRepository = {
         return false
       }
 
-      return Boolean(session.transcript || session.tokens?.length || session.translatedTranscript?.text)
+      return Boolean(
+        session.transcript
+        || session.tokens?.length
+        || session.translatedTranscript?.text
+        || hasPostProcessContent(session.postProcess),
+      )
     }) || null
 
     return { sessions, recoverableSession }
@@ -126,12 +171,12 @@ export const sessionRepository = {
 
     const baseSessions = cacheReady ? getCachedSessions() : []
     const sessions = [draftSession, ...baseSessions]
-    return persistSessions(sessions)
+    return persistSingleSession(draftSession.id, sessions)
   },
 
   updateMetadata(sessionId: string, updates: Partial<TranscriptSession>): TranscriptSession[] {
     const sessions = updateSessionCollection(getCachedSessions(), sessionId, updates)
-    return persistSessions(sessions)
+    return persistSingleSession(sessionId, sessions)
   },
 
   saveProgress(sessionId: string, snapshot: SessionProgressSnapshot): TranscriptSession[] {
@@ -144,11 +189,12 @@ export const sessionRepository = {
       segments: snapshot.segments,
       sourceMeta: snapshot.sourceMeta,
       translatedTranscript: snapshot.translatedTranscript,
+      postProcess: snapshot.postProcess,
       status: 'recording',
       lastPersistedAt: now,
     })
 
-    return persistSessions(sessions)
+    return persistSingleSession(sessionId, sessions)
   },
 
   completeSession(sessionId: string, snapshot: SessionProgressSnapshot): TranscriptSession[] {
@@ -161,11 +207,12 @@ export const sessionRepository = {
       segments: snapshot.segments,
       sourceMeta: snapshot.sourceMeta,
       translatedTranscript: snapshot.translatedTranscript,
+      postProcess: snapshot.postProcess,
       status: 'completed',
       lastPersistedAt: now,
     })
 
-    return persistSessions(sessions)
+    return persistSingleSession(sessionId, sessions)
   },
 
   acknowledgeInterrupted(sessionId: string): TranscriptSession[] {
@@ -173,7 +220,7 @@ export const sessionRepository = {
       status: 'completed',
     })
 
-    return persistSessions(sessions)
+    return persistSingleSession(sessionId, sessions)
   },
 
   replaceAllSessions(sessions: TranscriptSession[]): TranscriptSession[] {
@@ -182,6 +229,6 @@ export const sessionRepository = {
 
   deleteSession(sessionId: string): TranscriptSession[] {
     const sessions = getCachedSessions().filter((session) => session.id !== sessionId)
-    return persistSessions(sessions)
+    return persistSessionDeletion(sessionId, sessions)
   },
 }

@@ -4,7 +4,13 @@ import { useUIStore } from '../stores/uiStore'
 import { useSettingsStore } from '../stores/settingsStore'
 import { useSessionStore } from '../stores/sessionStore'
 import { useTagStore } from '../stores/tagStore'
-import { exportAllData, validateBackupData, importDataOverwrite, importDataMerge } from '../utils/storage'
+import {
+  exportAllData,
+  getBackupValidationErrors,
+  validateBackupData,
+  importDataOverwrite,
+  importDataMerge,
+} from '../utils/storage'
 import { GeneralSettingsPanel } from './settings/GeneralSettingsPanel'
 import { ServiceSettingsPanel } from './settings/ServiceSettingsPanel'
 import type { ASRProviderInfo, ProviderConfigData } from '../types'
@@ -254,8 +260,14 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
       const text = await file.text()
       const data = JSON.parse(text)
       
+      const validationErrors = getBackupValidationErrors(data)
       if (!validateBackupData(data)) {
-        setImportMessage({ type: 'error', text: t.settings.invalidBackupFile })
+        setImportMessage({
+          type: 'error',
+          text: validationErrors.length > 0
+            ? `${t.settings.invalidBackupFile}: ${validationErrors[0]}`
+            : t.settings.invalidBackupFile,
+        })
         return
       }
 
@@ -281,8 +293,13 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
       // 刷新store中的数据
       await loadSessions()
       loadTags()
-    } catch {
-      setImportMessage({ type: 'error', text: t.settings.importFailed })
+    } catch (error) {
+      const message = error instanceof SyntaxError
+        ? `${t.settings.invalidBackupFile}: invalid JSON`
+        : error instanceof Error
+          ? error.message
+          : t.settings.importFailed
+      setImportMessage({ type: 'error', text: message })
     }
 
     // 清空文件输入，允许再次选择同一文件

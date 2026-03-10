@@ -7,8 +7,9 @@ export const STORAGE_KEYS = {
 } as const
 
 export const DB_NAME = 'delive-app'
-export const DB_VERSION = 2
+export const DB_VERSION = 3
 export const SESSION_STORE = 'sessions'
+export const SESSION_UPDATED_AT_INDEX = 'updatedAt'
 export const META_STORE = 'meta'
 export const SETTINGS_STORE = 'settings'
 export const TAGS_STORE = 'tags'
@@ -74,7 +75,13 @@ export function openAppDatabase(): Promise<IDBDatabase> {
         const db = request.result
 
         if (!db.objectStoreNames.contains(SESSION_STORE)) {
-          db.createObjectStore(SESSION_STORE, { keyPath: 'id' })
+          const sessionStore = db.createObjectStore(SESSION_STORE, { keyPath: 'id' })
+          sessionStore.createIndex(SESSION_UPDATED_AT_INDEX, 'updatedAt', { unique: false })
+        } else {
+          const sessionStore = request.transaction?.objectStore(SESSION_STORE)
+          if (sessionStore && !sessionStore.indexNames.contains(SESSION_UPDATED_AT_INDEX)) {
+            sessionStore.createIndex(SESSION_UPDATED_AT_INDEX, 'updatedAt', { unique: false })
+          }
         }
 
         if (!db.objectStoreNames.contains(META_STORE)) {

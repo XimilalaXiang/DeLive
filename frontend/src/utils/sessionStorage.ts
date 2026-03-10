@@ -6,6 +6,7 @@ import {
   openAppDatabase,
   removeLocalStorageItem,
   SESSION_STORE,
+  SESSION_UPDATED_AT_INDEX,
   setMetaValue,
   STORAGE_KEYS,
   supportsIndexedDb,
@@ -32,6 +33,25 @@ function clearLegacySessionsFromLocalStorage(): void {
   )
 }
 
+function upsertLegacySessionInLocalStorage(session: TranscriptSession): void {
+  const sessions = getLegacySessionsFromLocalStorage()
+  const index = sessions.findIndex((item) => item.id === session.id)
+
+  if (index === -1) {
+    sessions.unshift(session)
+  } else {
+    sessions[index] = session
+  }
+
+  saveLegacySessionsToLocalStorage(sortSessions(sessions))
+}
+
+function deleteLegacySessionFromLocalStorage(id: string): void {
+  saveLegacySessionsToLocalStorage(
+    sortSessions(getLegacySessionsFromLocalStorage().filter((session) => session.id !== id)),
+  )
+}
+
 function sortSessions(sessions: TranscriptSession[]): TranscriptSession[] {
   return [...sessions].sort((left, right) => {
     const leftTs = Math.max(left.createdAt || 0, left.updatedAt || 0)
@@ -42,13 +62,25 @@ function sortSessions(sessions: TranscriptSession[]): TranscriptSession[] {
 
 async function readSessionsFromIndexedDb(): Promise<TranscriptSession[]> {
   const db = await openAppDatabase()
-  const sessions = await createTransaction<TranscriptSession[]>(db, SESSION_STORE, 'readonly', (store, resolve, reject) => {
-    const request = store.getAll()
-    request.onerror = () => reject(request.error ?? new Error('Failed to read sessions from IndexedDB'))
-    request.onsuccess = () => resolve((request.result as TranscriptSession[]) || [])
-  })
+  return createTransaction<TranscriptSession[]>(db, SESSION_STORE, 'readonly', (store, resolve, reject) => {
+    const sessions: TranscriptSession[] = []
+    const source = store.indexNames.contains(SESSION_UPDATED_AT_INDEX)
+      ? store.index(SESSION_UPDATED_AT_INDEX)
+      : store
+    const request = source.openCursor(null, 'prev')
 
-  return sortSessions(sessions)
+    request.onerror = () => reject(request.error ?? new Error('Failed to read sessions from IndexedDB'))
+    request.onsuccess = () => {
+      const cursor = request.result
+      if (!cursor) {
+        resolve(source === store ? sortSessions(sessions) : sessions)
+        return
+      }
+
+      sessions.push(cursor.value as TranscriptSession)
+      cursor.continue()
+    }
+  })
 }
 
 async function replaceSessionsInIndexedDb(sessions: TranscriptSession[]): Promise<void> {
@@ -69,6 +101,45 @@ async function replaceSessionsInIndexedDb(sessions: TranscriptSession[]): Promis
 
     transaction.onerror = () => reject(transaction.error ?? new Error('Failed to replace IndexedDB sessions'))
     transaction.oncomplete = () => resolve()
+  })
+}
+
+async function upsertSessionInIndexedDb(session: TranscriptSession): Promise<void> {
+  const db = await openAppDatabase()
+  await createTransaction<void>(db, SESSION_STORE, 'readwrite', (store, resolve, reject) => {
+    const request = store.put(session)
+    request.onerror = () => reject(request.error ?? new Error('Failed to upsert session in IndexedDB'))
+    request.onsuccess = () => resolve()
+  })
+}
+
+async function upsertSessionsInIndexedDb(sessions: TranscriptSession[]): Promise<void> {
+  if (sessions.length === 0) {
+    return
+  }
+
+  const db = await openAppDatabase()
+  const sortedSessions = sortSessions(sessions)
+
+  await new Promise<void>((resolve, reject) => {
+    const transaction = db.transaction(SESSION_STORE, 'readwrite')
+    const store = transaction.objectStore(SESSION_STORE)
+
+    for (const session of sortedSessions) {
+      store.put(session)
+    }
+
+    transaction.onerror = () => reject(transaction.error ?? new Error('Failed to upsert sessions in IndexedDB'))
+    transaction.oncomplete = () => resolve()
+  })
+}
+
+async function deleteSessionFromIndexedDb(id: string): Promise<void> {
+  const db = await openAppDatabase()
+  await createTransaction<void>(db, SESSION_STORE, 'readwrite', (store, resolve, reject) => {
+    const request = store.delete(id)
+    request.onerror = () => reject(request.error ?? new Error('Failed to delete session from IndexedDB'))
+    request.onsuccess = () => resolve()
   })
 }
 
@@ -122,10 +193,59 @@ export async function saveSessions(sessions: TranscriptSession[]): Promise<void>
   }
 }
 
+export async function upsertSession(session: TranscriptSession): Promise<void> {
+  if (!supportsIndexedDb()) {
+    upsertLegacySessionInLocalStorage(session)
+    return
+  }
+
+  try {
+    await ensureSessionMigration()
+    await upsertSessionInIndexedDb(session)
+  } catch (error) {
+    console.error('Failed to upsert session in IndexedDB, falling back to localStorage:', error)
+    upsertLegacySessionInLocalStorage(session)
+  }
+}
+
+export async function upsertSessions(sessions: TranscriptSession[]): Promise<void> {
+  const sortedSessions = sortSessions(sessions)
+
+  if (!supportsIndexedDb()) {
+    for (const session of sortedSessions) {
+      upsertLegacySessionInLocalStorage(session)
+    }
+    return
+  }
+
+  try {
+    await ensureSessionMigration()
+    await upsertSessionsInIndexedDb(sortedSessions)
+  } catch (error) {
+    console.error('Failed to upsert sessions in IndexedDB, falling back to localStorage:', error)
+    for (const session of sortedSessions) {
+      upsertLegacySessionInLocalStorage(session)
+    }
+  }
+}
+
+export async function deleteSessionById(id: string): Promise<void> {
+  if (!supportsIndexedDb()) {
+    deleteLegacySessionFromLocalStorage(id)
+    return
+  }
+
+  try {
+    await ensureSessionMigration()
+    await deleteSessionFromIndexedDb(id)
+  } catch (error) {
+    console.error('Failed to delete session from IndexedDB, falling back to localStorage:', error)
+    deleteLegacySessionFromLocalStorage(id)
+  }
+}
+
 export async function addSession(session: TranscriptSession): Promise<void> {
-  const sessions = await getSessions()
-  sessions.unshift(session)
-  await saveSessions(sessions)
+  await upsertSession(session)
 }
 
 export async function updateSession(
@@ -135,12 +255,10 @@ export async function updateSession(
   const sessions = await getSessions()
   const index = sessions.findIndex((session) => session.id === id)
   if (index !== -1) {
-    sessions[index] = { ...sessions[index], ...updates, updatedAt: Date.now() }
-    await saveSessions(sessions)
+    await upsertSession({ ...sessions[index], ...updates, updatedAt: Date.now() })
   }
 }
 
 export async function deleteSession(id: string): Promise<void> {
-  const sessions = await getSessions()
-  await saveSessions(sessions.filter((session) => session.id !== id))
+  await deleteSessionById(id)
 }

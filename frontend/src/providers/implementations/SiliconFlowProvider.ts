@@ -26,9 +26,32 @@ export class SiliconFlowProvider extends WindowedBatchTranscriptionProvider<Arra
     supportsStreaming: false,
     capabilities: {
       audioInputMode: 'pcm16',
+      audioProfile: {
+        payloadFormat: 'pcm16',
+        sampleRateHz: 16000,
+        channels: 1,
+        preferredChunkMs: 1500,
+      },
       transport: {
         type: 'full-session-retranscription',
         captureRestartStrategy: 'reuse-session',
+      },
+      prompting: {
+        supportsLanguageHints: true,
+      },
+      workloads: {
+        liveCapture: {
+          availability: 'implemented',
+          executionMode: 'windowed-batch',
+          inputSources: ['system-audio'],
+          acceptedFileKinds: ['audio'],
+        },
+        fileTranscription: {
+          availability: 'compatible',
+          executionMode: 'single-request',
+          inputSources: ['file'],
+          acceptedFileKinds: ['audio', 'video'],
+        },
       },
       supportsConfigTest: true,
     },

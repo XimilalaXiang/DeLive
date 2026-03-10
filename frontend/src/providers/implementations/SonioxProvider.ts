@@ -29,9 +29,31 @@ export class SonioxProvider extends BaseASRProvider {
     supportsStreaming: true,
     capabilities: {
       audioInputMode: 'media-recorder',
+      audioProfile: {
+        payloadFormat: 'webm-opus',
+        preferredChunkMs: 100,
+      },
       transport: {
         type: 'realtime',
         captureRestartStrategy: 'reconnect-session',
+      },
+      prompting: {
+        supportsLanguageHints: true,
+      },
+      timestamps: {
+        supportsTokenTimestamps: true,
+        supportsSegmentTimestamps: true,
+      },
+      workloads: {
+        liveCapture: {
+          availability: 'implemented',
+          executionMode: 'realtime-stream',
+          inputSources: ['system-audio'],
+          acceptedFileKinds: ['audio'],
+        },
+        fileTranscription: {
+          availability: 'unsupported',
+        },
       },
       prefersTokenEvents: true,
       supportsConfigTest: true,

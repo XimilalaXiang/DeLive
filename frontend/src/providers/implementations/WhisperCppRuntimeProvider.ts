@@ -23,9 +23,32 @@ export class WhisperCppRuntimeProvider extends WindowedBatchTranscriptionProvide
     supportsStreaming: false,
     capabilities: {
       audioInputMode: 'pcm16',
+      audioProfile: {
+        payloadFormat: 'pcm16',
+        sampleRateHz: 16000,
+        channels: 1,
+        preferredChunkMs: 1500,
+      },
       transport: {
         type: 'local-runtime',
         captureRestartStrategy: 'reuse-session',
+      },
+      prompting: {
+        supportsLanguageHints: true,
+      },
+      workloads: {
+        liveCapture: {
+          availability: 'implemented',
+          executionMode: 'local-runtime',
+          inputSources: ['system-audio'],
+          acceptedFileKinds: ['audio'],
+        },
+        fileTranscription: {
+          availability: 'compatible',
+          executionMode: 'local-runtime',
+          inputSources: ['file'],
+          acceptedFileKinds: ['audio', 'video'],
+        },
       },
       supportsConfigTest: true,
       local: {

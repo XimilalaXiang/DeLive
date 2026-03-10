@@ -27,9 +27,30 @@ export class LocalOpenAIProvider extends WindowedBatchTranscriptionProvider<Blob
     supportsStreaming: false,
     capabilities: {
       audioInputMode: 'media-recorder',
+      audioProfile: {
+        payloadFormat: 'webm-opus',
+        preferredChunkMs: 100,
+      },
       transport: {
         type: 'full-session-retranscription',
         captureRestartStrategy: 'reuse-session',
+      },
+      prompting: {
+        supportsLanguageHints: true,
+      },
+      workloads: {
+        liveCapture: {
+          availability: 'implemented',
+          executionMode: 'windowed-batch',
+          inputSources: ['system-audio'],
+          acceptedFileKinds: ['audio'],
+        },
+        fileTranscription: {
+          availability: 'compatible',
+          executionMode: 'single-request',
+          inputSources: ['file'],
+          acceptedFileKinds: ['audio', 'video'],
+        },
       },
       supportsConfigTest: true,
       local: {

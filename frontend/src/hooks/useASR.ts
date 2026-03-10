@@ -30,7 +30,7 @@ export function useASR(options: UseASROptions = {}) {
 
   const { settings } = useSettingsStore()
   const {
-    processTokens,
+    applyTranscriptEvent,
     setRecordingState,
     startNewSession,
     endCurrentSession,
@@ -70,7 +70,7 @@ export function useASR(options: UseASROptions = {}) {
 
   const buildProviderCallbacks = useCallback(() => ({
     onTokens(tokens: import('../types/asr').TranscriptToken[]) {
-      processTokens(tokens)
+      applyTranscriptEvent({ type: 'tokens', tokens })
 
       const s = useSessionStore.getState()
       captionRef.current.update(
@@ -82,8 +82,8 @@ export function useASR(options: UseASROptions = {}) {
     },
 
     onPartial(text: string) {
+      applyTranscriptEvent({ type: 'partial-text', text })
       const s = useSessionStore.getState()
-      s.setTranscript(s.finalTranscript, text)
       captionRef.current.update(
         s.finalTranscript,
         text,
@@ -93,7 +93,7 @@ export function useASR(options: UseASROptions = {}) {
     },
 
     onFinal(text: string) {
-      processTokens([{ text, isFinal: true }])
+      applyTranscriptEvent({ type: 'final-text', text })
       const s = useSessionStore.getState()
       captionRef.current.update(
         s.finalTranscript,
@@ -111,7 +111,7 @@ export function useASR(options: UseASROptions = {}) {
     onFinished() {
       options.onFinished?.()
     },
-  }), [processTokens, options])
+  }), [applyTranscriptEvent, options])
 
   // ── 设备变化后自动重启采集 ─────────────────────────
 
@@ -136,7 +136,7 @@ export function useASR(options: UseASROptions = {}) {
       }
 
       const stream = await captureRef.current.restartPipeline(
-        setup.providerInfo.capabilities.audioInputMode,
+        setup.providerInfo.capabilities,
       )
 
       if (needReconnect || !psm.currentProvider) {
@@ -188,7 +188,7 @@ export function useASR(options: UseASROptions = {}) {
 
       const capture = captureRef.current
       await capture.start(
-        setup.providerInfo.capabilities.audioInputMode,
+        setup.providerInfo.capabilities,
         {
           onAudioData: (data) => psm.sendAudio(data),
           onTrackEnded: () => void stopRecordingRef.current(),
