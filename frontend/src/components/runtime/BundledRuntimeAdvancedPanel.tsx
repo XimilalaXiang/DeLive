@@ -135,13 +135,13 @@ export function BundledRuntimeAdvancedPanel({
           </button>
 
           <div className="space-y-2 rounded-md border border-border/60 bg-background/50 p-3">
-            <div className="text-[11px] font-medium text-foreground">第 1 步：获取 runtime binary</div>
+            <div className="text-xs font-medium text-foreground">第 1 步：获取 runtime binary</div>
             <div className="flex flex-wrap gap-2">
               <a
                 href={releasesUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-[11px] font-medium hover:bg-accent"
+                className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-xs font-medium hover:bg-accent"
               >
                 打开官方 Releases
               </a>
@@ -149,24 +149,24 @@ export function BundledRuntimeAdvancedPanel({
                 href={serverDocsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-[11px] font-medium hover:bg-accent"
+                className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-xs font-medium hover:bg-accent"
               >
                 打开 Server 文档
               </a>
               <button
                 type="button"
                 onClick={onLoadOfficialBinaryPresets}
-                className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-[11px] font-medium hover:bg-accent"
+                className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-xs font-medium hover:bg-accent"
               >
                 加载官方 Binary 预设
               </button>
             </div>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Binary 建议从官方 Releases 获取；模型可直接使用下面的官方预设。
             </p>
             {releaseAssets.length > 0 && (
               <div className="space-y-2">
-                <div className="text-[10px] text-muted-foreground">
+                <div className="text-xs text-muted-foreground">
                   当前 release: {releaseTag}
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -175,7 +175,7 @@ export function BundledRuntimeAdvancedPanel({
                       key={asset.url}
                       type="button"
                       onClick={() => onBinaryDownloadUrlChange(asset.url)}
-                      className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-[10px] font-medium hover:bg-accent"
+                      className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-xs font-medium hover:bg-accent"
                       title={asset.url}
                     >
                       {asset.name}
@@ -214,21 +214,21 @@ export function BundledRuntimeAdvancedPanel({
           </button>
 
           <div className="space-y-2 rounded-md border border-border/60 bg-background/50 p-3">
-            <div className="text-[11px] font-medium text-foreground">第 2 步：获取模型文件</div>
+            <div className="text-xs font-medium text-foreground">第 2 步：获取模型文件</div>
             <div className="flex flex-wrap gap-2">
               {modelPresets.map((preset) => (
                 <button
                   key={preset.id}
                   type="button"
                   onClick={() => onModelDownloadUrlChange(preset.url)}
-                  className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-[11px] font-medium hover:bg-accent"
+                  className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-xs font-medium hover:bg-accent"
                   title={preset.description}
                 >
                   {preset.label}
                 </button>
               ))}
             </div>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               先点一个预设填入 URL，再点击“下载模型到 runtime 目录”。
             </p>
           </div>

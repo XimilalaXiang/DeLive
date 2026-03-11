@@ -152,7 +152,7 @@ export function LocalModelSetupGuide({
   return (
     <div className="space-y-3 rounded-lg border border-border/70 bg-muted/20 p-3">
       <div className="text-xs font-medium text-foreground">本地模型引导</div>
-      <p className="text-[11px] text-muted-foreground">
+      <p className="text-xs text-muted-foreground">
         当前路径属于本地服务型 Provider。按顺序执行：检测服务、检测模型；若服务支持安装，则可直接一键拉取。
       </p>
 
@@ -178,10 +178,10 @@ export function LocalModelSetupGuide({
 
       {detectStatus !== 'idle' && (
         <div
-          className={`flex items-center gap-2 rounded-md px-2.5 py-2 text-[11px] ${
+          className={`flex items-center gap-2 rounded-md px-2.5 py-2 text-xs ${
             detectStatus === 'error'
-              ? 'bg-red-500/10 text-red-600 dark:text-red-400'
-              : 'bg-green-500/10 text-green-700 dark:text-green-400'
+              ? 'bg-destructive/10 text-destructive dark:text-destructive'
+              : 'bg-success/10 text-success dark:text-success'
           }`}
         >
           {detectStatus === 'error' ? <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" /> : <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" />}
@@ -191,13 +191,13 @@ export function LocalModelSetupGuide({
 
       {installedModels.length > 0 && (
         <div className="space-y-1.5">
-          <div className="text-[11px] text-muted-foreground">已发现模型（点击可回填）</div>
+          <div className="text-xs text-muted-foreground">已发现模型（点击可回填）</div>
           <div className="flex flex-wrap gap-1.5">
             {installedModels.slice(0, 8).map((item) => (
               <button
                 key={item}
                 onClick={() => onModelChange(item)}
-                className={`rounded-full border px-2 py-1 text-[10px] transition-colors ${
+                className={`rounded-full border px-2 py-1 text-xs transition-colors ${
                   item === modelName
                     ? 'border-primary/60 bg-primary/10 text-primary'
                     : 'border-border bg-background text-muted-foreground hover:text-foreground'
@@ -212,10 +212,10 @@ export function LocalModelSetupGuide({
 
       {modelName && modelStatus !== 'idle' && modelStatus !== 'checking' && (
         <div
-          className={`rounded-md px-2.5 py-2 text-[11px] ${
+          className={`rounded-md px-2.5 py-2 text-xs ${
             modelCheckResult === 'installed'
-              ? 'bg-green-500/10 text-green-700 dark:text-green-400'
-              : 'bg-amber-500/10 text-amber-700 dark:text-amber-400'
+              ? 'bg-success/10 text-success dark:text-success'
+              : 'bg-warning/10 text-warning dark:text-warning'
           }`}
         >
           {modelCheckResult === 'installed'
@@ -237,10 +237,10 @@ export function LocalModelSetupGuide({
 
           {(pullMessage || pullPercent) && (
             <div
-              className={`rounded-md px-2.5 py-2 text-[11px] ${
+              className={`rounded-md px-2.5 py-2 text-xs ${
                 pullStatus === 'error'
-                  ? 'bg-red-500/10 text-red-600 dark:text-red-400'
-                  : 'bg-blue-500/10 text-blue-700 dark:text-blue-400'
+                  ? 'bg-destructive/10 text-destructive dark:text-destructive'
+                  : 'bg-info/10 text-info dark:text-info'
               }`}
             >
               <span>{pullMessage || '处理中...'}</span>

@@ -50,22 +50,22 @@ export function ProviderSelector({ onSelect }: ProviderSelectorProps) {
       case 'realtime':
         return {
           label: t.provider?.transportRealtime || t.provider?.streaming || 'Realtime',
-          className: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400',
+          className: 'bg-success/20 dark:bg-success/20 text-success dark:text-success',
         }
       case 'chunked-upload':
         return {
           label: t.provider?.transportChunkedUpload || 'Chunked Upload',
-          className: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400',
+          className: 'bg-info/20 dark:bg-info/20 text-info dark:text-info',
         }
       case 'full-session-retranscription':
         return {
           label: t.provider?.transportRetranscription || 'Session Replay',
-          className: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400',
+          className: 'bg-warning/20 dark:bg-warning/20 text-warning dark:text-warning',
         }
       case 'local-runtime':
         return {
           label: t.provider?.transportLocalRuntime || 'Local Runtime',
-          className: 'bg-cyan-100 dark:bg-cyan-900/40 text-cyan-700 dark:text-cyan-400',
+          className: 'bg-info/20 dark:bg-info/20 text-info dark:text-info',
         }
       default:
         return null
@@ -97,8 +97,8 @@ export function ProviderSelector({ onSelect }: ProviderSelectorProps) {
         <div className={`
           flex items-center justify-center w-10 h-10 rounded-xl
           ${provider.type === 'cloud' 
-            ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400' 
-            : 'bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400'
+            ? 'bg-info/20 dark:bg-info/20 text-info dark:text-info' 
+            : 'bg-success/20 dark:bg-success/20 text-success dark:text-success'
           }
         `}>
           {provider.type === 'cloud' ? (
@@ -112,7 +112,7 @@ export function ProviderSelector({ onSelect }: ProviderSelectorProps) {
           <div className="flex items-center gap-2">
             <span className="font-semibold text-sm">{provider.name}</span>
             {transportBadge && (
-              <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded-full ${transportBadge.className}`}>
+              <span className={`px-1.5 py-0.5 text-xs font-medium rounded-full ${transportBadge.className}`}>
                 {transportBadge.label}
               </span>
             )}
@@ -124,7 +124,7 @@ export function ProviderSelector({ onSelect }: ProviderSelectorProps) {
 
         <div className="flex items-center gap-2">
           {!hasConfig && (
-            <span className="px-2 py-1 text-[10px] font-medium rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400">
+            <span className="px-2 py-1 text-xs font-medium rounded-full bg-warning/20 dark:bg-warning/20 text-warning dark:text-warning">
               {t.provider?.needConfig || '需配置'}
             </span>
           )}
@@ -179,7 +179,7 @@ export function ProviderSelector({ onSelect }: ProviderSelectorProps) {
               {cloudProviders.length > 0 && (
                 <div className="mb-3">
                   <div className="flex items-center gap-2 px-3 py-2">
-                    <Cloud className="w-4 h-4 text-blue-500" />
+                    <Cloud className="w-4 h-4 text-info" />
                     <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       {t.provider?.cloudProviders || '云端服务'}
                     </span>
@@ -194,7 +194,7 @@ export function ProviderSelector({ onSelect }: ProviderSelectorProps) {
               {localProviders.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 px-3 py-2 border-t border-border mt-2 pt-3">
-                    <HardDrive className="w-4 h-4 text-green-500" />
+                    <HardDrive className="w-4 h-4 text-success" />
                     <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       {t.provider?.localProviders || '本地模型'}
                     </span>
@@ -227,8 +227,8 @@ export function ProviderSelector({ onSelect }: ProviderSelectorProps) {
         <div className={`
           flex items-center justify-center w-10 h-10 rounded-xl
           ${currentProvider?.type === 'cloud' 
-            ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400' 
-            : 'bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400'
+            ? 'bg-info/20 dark:bg-info/20 text-info dark:text-info' 
+            : 'bg-success/20 dark:bg-success/20 text-success dark:text-success'
           }
         `}>
           {currentProvider?.type === 'cloud' ? (

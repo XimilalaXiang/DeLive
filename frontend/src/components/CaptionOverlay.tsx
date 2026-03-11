@@ -247,8 +247,8 @@ export function CaptionOverlay() {
               w-7 h-7 rounded-md
               transition-all duration-200
               ${isDraggable
-                ? 'bg-blue-500 text-white shadow-lg hover:bg-blue-600'
-                : 'bg-black/60 text-white/80 hover:bg-black/80 hover:text-white'
+                ? 'bg-primary text-primary-foreground shadow-lg hover:opacity-90'
+                : 'bg-muted/80 text-muted-foreground hover:bg-muted hover:text-foreground'
               }
             `}
             onClick={handleToggleLock}
@@ -265,7 +265,7 @@ export function CaptionOverlay() {
           </button>
 
           <button
-            className="flex items-center justify-center w-7 h-7 rounded-md bg-black/60 text-white/80 hover:bg-black/80 hover:text-white transition-all duration-200"
+            className="flex items-center justify-center w-7 h-7 rounded-md bg-muted/80 text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200"
             onClick={handleClose}
             title="关闭字幕"
             style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
@@ -277,7 +277,7 @@ export function CaptionOverlay() {
 
       {/* 拖拽模式指示器 */}
       {isDraggable && (
-        <div className="absolute top-2 left-2 flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500 text-white text-xs font-medium shadow-lg z-10">
+        <div className="absolute top-2 left-2 flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium shadow-lg z-10">
           <Move className="w-3 h-3" />
           <span>拖拽调整位置</span>
         </div>
@@ -289,7 +289,7 @@ export function CaptionOverlay() {
         className={`
           px-6 py-3 transition-opacity duration-200 relative
           ${showPlaceholder ? 'opacity-0' : 'opacity-100'}
-          ${isDraggable ? 'border-2 border-dashed border-blue-400' : ''}
+          ${isDraggable ? 'border-2 border-dashed border-primary' : ''}
         `}
         style={{
           backgroundColor: style.backgroundColor,
@@ -331,7 +331,7 @@ export function CaptionOverlay() {
 
         {shouldShowSource && shouldShowTranslated && (
           <div
-            className="my-2 border-t border-white/20"
+            className="my-2 border-t border-current/20"
             style={{ opacity: 0.7 }}
           />
         )}

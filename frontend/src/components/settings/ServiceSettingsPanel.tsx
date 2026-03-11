@@ -73,7 +73,7 @@ export function ServiceSettingsPanel({
     }
 
     return (
-      <p className="text-[10px] text-muted-foreground">
+      <p className="text-xs text-muted-foreground">
         {description}
         {description && shouldShowDocsLink ? ' ' : ''}
         {shouldShowDocsLink && (
@@ -103,14 +103,14 @@ export function ServiceSettingsPanel({
                 {field.label}
               </label>
               {field.description && (
-                <p className="text-[10px] text-muted-foreground">{field.description}</p>
+                <p className="text-xs text-muted-foreground">{field.description}</p>
               )}
             </div>
             <button
               type="button"
               onClick={() => updateFormField(field.key, !getBooleanFieldValue(field.key))}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                getBooleanFieldValue(field.key) ? 'bg-green-500' : 'bg-gray-400 dark:bg-gray-600'
+                getBooleanFieldValue(field.key) ? 'bg-success' : 'bg-gray-400 dark:bg-gray-600'
               }`}
             >
               <span
@@ -203,9 +203,9 @@ export function ServiceSettingsPanel({
             ${testStatus === 'testing'
               ? 'bg-muted text-muted-foreground cursor-not-allowed'
               : testStatus === 'success'
-              ? 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/30'
+              ? 'bg-success/10 text-success dark:text-success border border-success/30'
               : testStatus === 'error'
-              ? 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/30'
+              ? 'bg-destructive/10 text-destructive dark:text-destructive border border-destructive/30'
               : 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20'
             }
           `}
@@ -237,8 +237,8 @@ export function ServiceSettingsPanel({
           <div className={`
             flex items-center gap-2 p-3 rounded-lg text-xs
             ${testStatus === 'success'
-              ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400'
-              : 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400'
+              ? 'bg-success/10 text-success dark:bg-success/10 dark:text-success'
+              : 'bg-destructive/10 text-destructive dark:bg-destructive/10 dark:text-destructive'
             }
           `}>
             {testStatus === 'success' ? (
@@ -283,7 +283,7 @@ export function ServiceSettingsPanel({
               {t.settings?.asrProvider || '语音识别服务'}
             </label>
             <ProviderSelector />
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               {t.settings?.asrProviderDesc || '选择语音识别服务提供商，不同提供商有不同的特性和价格'}
             </p>
           </div>
@@ -340,7 +340,7 @@ export function ServiceSettingsPanel({
               placeholder={t.settings.languageHintsPlaceholder}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             />
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               {t.settings.languageHintsDesc}
             </p>
           </div>

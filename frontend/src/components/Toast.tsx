@@ -37,7 +37,7 @@ export function Toast({ toast, onClose }: ToastProps) {
       {toast.type === 'error' ? (
         <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0" />
       ) : (
-        <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+        <CheckCircle className="w-5 h-5 text-success flex-shrink-0" />
       )}
       <span className={`text-sm font-medium flex-1 ${toast.type === 'error' ? 'text-destructive' : ''}`}>
         {toast.message}

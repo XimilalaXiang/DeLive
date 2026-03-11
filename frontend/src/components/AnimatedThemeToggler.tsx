@@ -75,8 +75,8 @@ export const AnimatedThemeToggler = ({
         text-muted-foreground hover:bg-accent hover:text-accent-foreground
         ${className}
       `}
-      aria-label={isDark ? '切换到浅色模式' : '切换到深色模式'}
-      title={isDark ? '切换到浅色模式' : '切换到深色模式'}
+      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
     >
       {isDark ? (
         <Sun className="w-5 h-5" />

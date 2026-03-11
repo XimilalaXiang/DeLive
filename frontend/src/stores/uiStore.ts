@@ -42,6 +42,8 @@ const applyTheme = (resolvedTheme: ResolvedTheme) => {
   }
 }
 
+export type WorkspaceView = 'live' | 'review' | 'settings'
+
 export interface UIState {
   language: Language
   t: Translations
@@ -53,6 +55,12 @@ export interface UIState {
   setTheme: (theme: Theme) => void
   setColorTheme: (colorTheme: ColorThemeId) => void
   initTheme: () => void
+
+  currentView: WorkspaceView
+  reviewSessionId: string | null
+  setView: (view: WorkspaceView, reviewSessionId?: string | null) => void
+  openReview: (sessionId: string) => void
+  backToLive: () => void
 }
 
 export const useUIStore = create<UIState>((set, get) => ({
@@ -78,6 +86,12 @@ export const useUIStore = create<UIState>((set, get) => ({
     applyColorThemeToDOM(colorTheme, get().resolvedTheme === 'dark')
     set({ colorTheme })
   },
+  currentView: 'live',
+  reviewSessionId: null,
+  setView: (view, reviewSessionId = null) => set({ currentView: view, reviewSessionId }),
+  openReview: (sessionId) => set({ currentView: 'review', reviewSessionId: sessionId }),
+  backToLive: () => set({ currentView: 'live', reviewSessionId: null }),
+
   initTheme: () => {
     const savedTheme = getSavedTheme()
     const resolved = resolveTheme(savedTheme)

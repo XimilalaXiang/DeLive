@@ -48,6 +48,18 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        info: {
+          DEFAULT: "hsl(var(--info))",
+          foreground: "hsl(var(--info-foreground))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -65,7 +77,7 @@ export default {
         },
       },
       animation: {
-        'reveal-up': 'reveal-up 500ms cubic-bezier(0.22, 1, 0.36, 1) both',
+        'reveal-up': 'reveal-up 250ms cubic-bezier(0.22, 1, 0.36, 1) both',
       },
     },
   },

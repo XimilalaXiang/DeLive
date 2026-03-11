@@ -3,6 +3,40 @@
  * 确保窗口完全透明
  */
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Design tokens for caption overlay UI chrome (cyan dark default) */
+:root {
+  --radius: 1rem;
+  --background: 210 20% 7%;
+  --foreground: 190 15% 96%;
+  --primary: 186 83% 54%;
+  --primary-foreground: 210 20% 7%;
+  --secondary: 205 18% 15%;
+  --secondary-foreground: 190 15% 96%;
+  --muted: 205 18% 15%;
+  --muted-foreground: 200 10% 60%;
+  --border: 205 16% 18%;
+  --ring: 186 83% 54%;
+  --card: 210 18% 10%;
+  --card-foreground: 190 15% 96%;
+  --accent: 205 18% 15%;
+  --accent-foreground: 190 15% 96%;
+  --destructive: 0 63% 31%;
+  --destructive-foreground: 0 0% 98%;
+  --input: 205 16% 18%;
+  --popover: 210 18% 10%;
+  --popover-foreground: 190 15% 96%;
+  --warning: 38 92% 50%;
+  --warning-foreground: 38 20% 10%;
+  --success: 142 71% 45%;
+  --success-foreground: 142 20% 10%;
+  --info: 199 89% 48%;
+  --info-foreground: 199 20% 10%;
+}
+
 *, *::before, *::after {
   margin: 0;
   padding: 0;

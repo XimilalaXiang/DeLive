@@ -1,11 +1,9 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { History, Calendar, Pencil, Trash2, Check, X, ChevronDown, ChevronRight, Search, FileText, Sparkles } from 'lucide-react'
 import { useUIStore } from '../stores/uiStore'
 import { useSessionStore } from '../stores/sessionStore'
 import { useTagStore } from '../stores/tagStore'
 import { exportToTxt } from '../utils/storage'
-import { downloadSubtitle } from '../utils/subtitleExport'
-import { PreviewModal } from './PreviewModal'
 import { ActionDialog } from './ActionDialog'
 import { TagSelector, TagFilter } from './TagSelector'
 import type { TranscriptSession } from '../types'
@@ -21,30 +19,35 @@ export function HistoryPanel({
   className = '',
   contentHeightClassName,
 }: HistoryPanelProps) {
-  const { t, language } = useUIStore()
+  const { t, language, openReview } = useUIStore()
   const { sessions, updateSessionTitle, deleteSession } = useSessionStore()
   const { tags, selectedTagIds, searchQuery, setSearchQuery } = useTagStore()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingTitle, setEditingTitle] = useState('')
   const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set())
-  const [previewSessionId, setPreviewSessionId] = useState<string | null>(null)
-  const [searchInput, setSearchInput] = useState(searchQuery) // 本地输入状态
+  const [inputValue, setInputValue] = useState(searchQuery)
   const [pendingDeleteSession, setPendingDeleteSession] = useState<TranscriptSession | null>(null)
-  const previewSession = useMemo(
-    () => sessions.find((session) => session.id === previewSessionId) || null,
-    [previewSessionId, sessions],
-  )
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // 按回车执行搜索
-  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      setSearchQuery(searchInput.trim())
+  // Sync input when searchQuery changes externally (e.g. from another panel)
+  useEffect(() => {
+    setInputValue(searchQuery)
+  }, [searchQuery])
+
+  // Debounce setSearchQuery by 200ms for instant search
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      setSearchQuery(inputValue.trim())
+      debounceRef.current = null
+    }, 200)
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-  }
+  }, [inputValue, setSearchQuery])
 
-  // 清除搜索
   const clearSearch = () => {
-    setSearchInput('')
+    setInputValue('')
     setSearchQuery('')
   }
 
@@ -172,19 +175,9 @@ export function HistoryPanel({
     exportToTxt(session, tags)
   }
 
-  const handleExportSrt = (e: React.MouseEvent, session: TranscriptSession) => {
-    e.stopPropagation()
-    downloadSubtitle(session, 'srt')
-  }
-
-  const handleExportVtt = (e: React.MouseEvent, session: TranscriptSession) => {
-    e.stopPropagation()
-    downloadSubtitle(session, 'vtt')
-  }
-
   const handlePreview = (session: TranscriptSession) => {
-    if (editingId) return // 编辑中不触发预览
-    setPreviewSessionId(session.id)
+    if (editingId) return
+    openReview(session.id)
   }
 
   const formatDateDisplay = (dateStr: string) => {
@@ -224,7 +217,7 @@ export function HistoryPanel({
         <div className={`space-y-3 border-b border-border/70 bg-muted/20 ${isRail ? 'px-5 py-4' : 'px-6 py-4'}`}>
           <div className="flex items-center justify-between gap-3">
             <div className="space-y-1">
-              <div className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary/80">
+              <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">
                 <History className="h-3.5 w-3.5" />
                 {isRail ? railCopy.title : t.history.title}
               </div>
@@ -245,17 +238,16 @@ export function HistoryPanel({
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              onKeyDown={handleSearchKeyDown}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
               placeholder={t.history.searchPlaceholder}
               className="w-full h-9 pl-9 pr-8 text-sm rounded-md border border-input bg-background
                        placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1"
             />
-            {(searchInput || searchQuery) && (
+            {(inputValue || searchQuery) && (
               <button
                 onClick={clearSearch}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground rounded"
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 min-h-8 min-w-8 flex items-center justify-center text-muted-foreground hover:text-foreground rounded"
                 aria-label="Clear search"
               >
                 <X className="w-3.5 h-3.5" />
@@ -344,13 +336,15 @@ export function HistoryPanel({
                                 />
                                 <button
                                   onClick={saveTitle}
-                                  className="p-1.5 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded transition-colors"
+                                  className="h-8 w-8 min-h-8 min-w-8 flex items-center justify-center text-success hover:bg-success/10 dark:hover:bg-success/10 rounded transition-colors"
+                                  aria-label="Save title"
                                 >
                                   <Check className="w-4 h-4" />
                                 </button>
                                 <button
                                   onClick={cancelEditing}
-                                  className="p-1.5 text-muted-foreground hover:bg-muted rounded transition-colors"
+                                  className="h-8 w-8 min-h-8 min-w-8 flex items-center justify-center text-muted-foreground hover:bg-muted rounded transition-colors"
+                                  aria-label="Cancel editing"
                                 >
                                   <X className="w-4 h-4" />
                                 </button>
@@ -361,7 +355,7 @@ export function HistoryPanel({
                                   {session.title}
                                 </span>
                                 {session.providerId && (
-                                  <span className="hidden rounded-full border border-border/70 bg-background/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground md:inline-flex">
+                                  <span className="hidden rounded-full border border-border/70 bg-background/80 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground md:inline-flex">
                                     {session.providerId}
                                   </span>
                                 )}
@@ -370,36 +364,25 @@ export function HistoryPanel({
                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                                   <button
                                     onClick={(e) => startEditing(e, session)}
-                                    className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-background rounded-md transition-all shadow-sm border border-transparent hover:border-border"
+                                    className="h-8 w-8 min-h-8 min-w-8 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background rounded-md transition-all shadow-sm border border-transparent hover:border-border"
                                     title={t.history.editTitle}
+                                    aria-label="Edit title"
                                   >
                                     <Pencil className="w-3.5 h-3.5" />
                                   </button>
                                   <button
                                     onClick={(e) => handleExport(e, session)}
-                                    className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-background rounded-md transition-all shadow-sm border border-transparent hover:border-border"
+                                    className="h-8 w-8 min-h-8 min-w-8 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background rounded-md transition-all shadow-sm border border-transparent hover:border-border"
                                     title={t.history.exportTxt}
+                                    aria-label="Export as TXT"
                                   >
                                     <FileText className="w-3.5 h-3.5" />
                                   </button>
                                   <button
-                                    onClick={(e) => handleExportSrt(e, session)}
-                                    className="px-2 py-1 text-[10px] font-semibold text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md transition-all shadow-sm border border-transparent hover:border-primary/30"
-                                    title={t.history?.exportSrt || 'Export SRT'}
-                                  >
-                                    SRT
-                                  </button>
-                                  <button
-                                    onClick={(e) => handleExportVtt(e, session)}
-                                    className="px-2 py-1 text-[10px] font-semibold text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md transition-all shadow-sm border border-transparent hover:border-primary/30"
-                                    title={t.history?.exportVtt || 'Export VTT'}
-                                  >
-                                    VTT
-                                  </button>
-                                  <button
                                     onClick={(e) => handleDelete(e, session.id)}
-                                    className="p-1.5 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md transition-all shadow-sm border border-transparent hover:border-red-200 dark:hover:border-red-900"
+                                    className="h-8 w-8 min-h-8 min-w-8 flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/10 rounded-md transition-all shadow-sm border border-transparent hover:border-destructive/30 dark:hover:border-destructive/30"
                                     title={t.common.delete}
+                                    aria-label="Delete session"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
                                   </button>
@@ -420,7 +403,7 @@ export function HistoryPanel({
                                     compact
                                   />
                                   {session.postProcess?.summary && (
-                                    <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                                    <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-primary">
                                       <Sparkles className="h-3 w-3" />
                                       AI
                                     </span>
@@ -446,11 +429,6 @@ export function HistoryPanel({
         </div>
       </div>
 
-      {/* 预览弹窗 */}
-      <PreviewModal 
-        session={previewSession} 
-        onClose={() => setPreviewSessionId(null)} 
-      />
       <ActionDialog
         open={pendingDeleteSession !== null}
         title={t.common.delete}

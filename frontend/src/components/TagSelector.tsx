@@ -62,7 +62,7 @@ export function TagSelector({ sessionId, sessionTagIds, compact = false }: TagSe
             <span
               key={tag.id}
               className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium border
-                        ${color.bg} ${color.text} ${compact ? 'text-[10px]' : ''} border-transparent bg-opacity-90`}
+                        ${color.bg} ${color.text} ${compact ? 'text-xs' : ''} border-transparent bg-opacity-90`}
             >
               {tag.name}
             </span>
@@ -77,7 +77,7 @@ export function TagSelector({ sessionId, sessionTagIds, compact = false }: TagSe
           }}
           className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs
                     text-muted-foreground hover:text-foreground hover:bg-muted
-                    transition-colors ${compact ? 'text-[10px]' : ''}`}
+                    transition-colors ${compact ? 'text-xs' : ''}`}
         >
           <TagIcon className="w-3 h-3" />
           {!compact && <span>{t.tag.tags}</span>}

@@ -34,6 +34,7 @@ import { SessionMindMapCard } from './SessionMindMapCard'
 interface PreviewModalProps {
   session: TranscriptSession | null
   onClose: () => void
+  mode?: 'modal' | 'view'
 }
 
 function getSpeakerLabel(
@@ -47,7 +48,8 @@ function getSpeakerLabel(
   return speakerNameMap[speakerId] || speakerId
 }
 
-export function PreviewModal({ session, onClose }: PreviewModalProps) {
+export function PreviewModal({ session, onClose, mode = 'modal' }: PreviewModalProps) {
+  const isViewMode = mode === 'view'
   const { t } = useUIStore()
   const settings = useSettingsStore((state) => state.settings)
   const updateSessionSpeakers = useSessionStore((state) => state.updateSessionSpeakers)
@@ -281,24 +283,14 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
 
   if (!session) return null
 
-  // 点击背景关闭
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       onClose()
     }
   }
 
-  return (
-    <div 
-      className="fixed inset-0 bg-black/50 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200"
-      onClick={handleBackdropClick}
-    >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="session-review-title"
-        className="bg-card text-card-foreground border border-border rounded-2xl shadow-2xl dark:ring-1 dark:ring-white/[0.08] w-full max-w-[min(88rem,calc(100vw-2rem))] h-[min(92vh,58rem)] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
-      >
+  const containerContent = (
+    <>
         {/* 头部 */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/30">
           <div className="flex items-center gap-3 min-w-0">
@@ -318,7 +310,7 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
                   <Clock className="w-3 h-3" />
                   {session.time}
                 </span>
-                <span className="rounded-full border border-border/70 bg-background/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                <span className="rounded-full border border-border/70 bg-background/80 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-primary">
                   Review Desk
                 </span>
               </div>
@@ -377,7 +369,7 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
                   </p>
                 )}
                 {postProcess?.status === 'error' && postProcess.error && (
-                  <p className="text-xs text-red-600 dark:text-red-400">
+                  <p className="text-xs text-destructive dark:text-destructive">
                     {postProcess.error}
                   </p>
                 )}
@@ -482,14 +474,14 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
                     </div>
                     {postProcess?.tagSuggestions && postProcess.tagSuggestions.length > 0 && (
                       <div className="space-y-2">
-                        <div className="text-[11px] font-medium text-muted-foreground">
+                        <div className="text-xs font-medium text-muted-foreground">
                           {t.preview.aiTagSuggestions}
                         </div>
                         <div className="flex flex-wrap gap-2">
                           {postProcess.tagSuggestions.map((tag) => (
                             <span
                               key={tag}
-                              className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-300"
+                              className="rounded-full border border-success/30 bg-success/10 px-3 py-1 text-xs font-medium text-success dark:border-success/20 dark:bg-success/10 dark:text-success"
                             >
                               {tag}
                             </span>
@@ -499,7 +491,7 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
                     )}
                     {postProcess?.keywords && postProcess.keywords.length > 0 && (
                       <div className="space-y-2">
-                        <div className="text-[11px] font-medium text-muted-foreground">
+                        <div className="text-xs font-medium text-muted-foreground">
                           {t.preview.aiKeywords}
                         </div>
                         <div className="flex flex-wrap gap-2">
@@ -619,7 +611,7 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
                       <div key={turn.id} className="space-y-3">
                         <div className="flex justify-end">
                           <div className="max-w-[88%] rounded-2xl rounded-br-md bg-primary px-4 py-3 text-sm font-medium leading-relaxed text-primary-foreground shadow-sm">
-                            <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-primary-foreground/70">
+                            <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-primary-foreground/70">
                               {t.preview.askQuestion}
                             </div>
                             <p className="whitespace-pre-wrap">
@@ -630,7 +622,7 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
 
                         <div className="flex justify-start">
                           <div className="max-w-[92%] rounded-2xl rounded-bl-md border border-border bg-card px-4 py-3 shadow-sm">
-                            <div className="mb-2 inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                            <div className="mb-2 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-primary">
                               <MessageSquareQuote className="w-3.5 h-3.5" />
                               {t.preview.askAnswer}
                             </div>
@@ -640,7 +632,7 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
                                 {t.preview.askSending}
                               </div>
                             ) : turn.status === 'error' ? (
-                              <p className="text-sm leading-relaxed text-red-600 dark:text-red-400 whitespace-pre-wrap">
+                              <p className="text-sm leading-relaxed text-destructive dark:text-destructive whitespace-pre-wrap">
                                 {turn.error || t.preview.askErrorFallback}
                               </p>
                             ) : (
@@ -651,7 +643,7 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
 
                             {turn.citations && turn.citations.length > 0 && (
                               <div className="mt-3 space-y-2 border-t border-border/70 pt-3">
-                                <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                                <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                                   {t.preview.askReferences}
                                 </div>
                                 <div className="grid gap-2">
@@ -660,7 +652,7 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
                                       key={`${citation.quote}-${index}`}
                                       className="rounded-xl border border-border bg-background/70 px-3 py-2"
                                     >
-                                      <div className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                                      <div className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                                         <Quote className="w-3 h-3" />
                                         {citation.speakerLabel || t.preview.askReferenceFallback}
                                       </div>
@@ -724,7 +716,7 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
                     className="min-h-[88px] w-full rounded-xl border border-input bg-background px-3 py-3 text-sm leading-relaxed ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   />
                   <div className="flex items-center justify-between gap-3">
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       {t.preview.askShortcut}
                     </p>
                     <button
@@ -782,7 +774,7 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
                           />
                           <button
                             onClick={saveSpeakerName}
-                            className="p-1.5 rounded-md text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 transition-colors"
+                            className="p-1.5 rounded-md text-success hover:bg-success/10 dark:hover:bg-success/10 transition-colors"
                             title={t.common.save}
                           >
                             <Check className="w-4 h-4" />
@@ -838,7 +830,7 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
                 <div className="my-4 h-px bg-border" />
               )}
               {translatedText && (
-                <p className="text-base leading-relaxed whitespace-pre-wrap text-sky-700 dark:text-sky-300">
+                <p className="text-base leading-relaxed whitespace-pre-wrap text-info dark:text-info">
                   {translatedText}
                 </p>
               )}
@@ -897,6 +889,29 @@ export function PreviewModal({ session, onClose }: PreviewModalProps) {
             )}
           </div>
         </div>
+    </>
+  )
+
+  if (isViewMode) {
+    return (
+      <div className="flex h-full flex-col overflow-hidden bg-card text-card-foreground">
+        {containerContent}
+      </div>
+    )
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm dark:bg-black/60 animate-in fade-in duration-200"
+      onClick={handleBackdropClick}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="session-review-title"
+        className="flex h-[min(92vh,58rem)] w-full max-w-[min(88rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-2xl dark:ring-1 dark:ring-white/[0.08] animate-in zoom-in-95 duration-200"
+      >
+        {containerContent}
       </div>
     </div>
   )

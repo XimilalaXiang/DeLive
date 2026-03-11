@@ -188,7 +188,7 @@ export function SessionMindMapCard({ session }: SessionMindMapCardProps) {
             </p>
           )}
           {session.mindMap?.status === 'error' && session.mindMap.error && (
-            <p className="text-xs text-red-600 dark:text-red-400">
+            <p className="text-xs text-destructive dark:text-destructive">
               {session.mindMap.error}
             </p>
           )}
@@ -269,7 +269,7 @@ export function SessionMindMapCard({ session }: SessionMindMapCardProps) {
       </div>
 
       {actionError && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300">
+        <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive dark:border-destructive/20 dark:bg-destructive/10 dark:text-destructive">
           {actionError}
         </div>
       )}
@@ -313,7 +313,7 @@ export function SessionMindMapCard({ session }: SessionMindMapCardProps) {
             )}
 
             {renderError && (
-              <div className="absolute inset-x-3 bottom-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+              <div className="absolute inset-x-3 bottom-3 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
                 {renderError}
               </div>
             )}

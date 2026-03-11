@@ -33,6 +33,12 @@ export interface ThemeTokens {
   border: string
   input: string
   ring: string
+  warning: string
+  warningForeground: string
+  success: string
+  successForeground: string
+  info: string
+  infoForeground: string
 }
 
 export interface ColorTheme {
@@ -73,6 +79,12 @@ const cyan: ColorTheme = {
     border: '200 13% 91%',
     input: '200 13% 91%',
     ring: '192 91% 37%',
+    warning: '38 92% 50%',
+    warningForeground: '0 0% 100%',
+    success: '142 71% 45%',
+    successForeground: '0 0% 100%',
+    info: '199 89% 48%',
+    infoForeground: '0 0% 100%',
   },
   dark: {
     background: '210 20% 7%',
@@ -94,6 +106,12 @@ const cyan: ColorTheme = {
     border: '205 16% 18%',
     input: '205 16% 18%',
     ring: '186 83% 54%',
+    warning: '38 92% 50%',
+    warningForeground: '38 20% 10%',
+    success: '142 71% 45%',
+    successForeground: '142 20% 10%',
+    info: '199 89% 48%',
+    infoForeground: '199 20% 10%',
   },
 }
 
@@ -126,6 +144,12 @@ const violet: ColorTheme = {
     border: '250 12% 90%',
     input: '250 12% 90%',
     ring: '244 96% 68%',
+    warning: '38 92% 50%',
+    warningForeground: '0 0% 100%',
+    success: '142 71% 45%',
+    successForeground: '0 0% 100%',
+    info: '199 89% 48%',
+    infoForeground: '0 0% 100%',
   },
   dark: {
     background: '255 18% 6%',
@@ -147,6 +171,12 @@ const violet: ColorTheme = {
     border: '255 13% 18%',
     input: '255 13% 18%',
     ring: '250 90% 72%',
+    warning: '38 92% 50%',
+    warningForeground: '38 20% 10%',
+    success: '142 71% 45%',
+    successForeground: '142 20% 10%',
+    info: '199 89% 48%',
+    infoForeground: '199 20% 10%',
   },
 }
 
@@ -179,6 +209,12 @@ const rose: ColorTheme = {
     border: '350 14% 90%',
     input: '350 14% 90%',
     ring: '347 77% 50%',
+    warning: '38 92% 50%',
+    warningForeground: '0 0% 100%',
+    success: '142 71% 45%',
+    successForeground: '0 0% 100%',
+    info: '199 89% 48%',
+    infoForeground: '0 0% 100%',
   },
   dark: {
     background: '345 18% 6%',
@@ -200,6 +236,12 @@ const rose: ColorTheme = {
     border: '345 13% 18%',
     input: '345 13% 18%',
     ring: '347 87% 62%',
+    warning: '38 92% 50%',
+    warningForeground: '38 20% 10%',
+    success: '142 71% 45%',
+    successForeground: '142 20% 10%',
+    info: '199 89% 48%',
+    infoForeground: '199 20% 10%',
   },
 }
 
@@ -232,6 +274,12 @@ const green: ColorTheme = {
     border: '145 12% 89%',
     input: '145 12% 89%',
     ring: '160 84% 39%',
+    warning: '38 92% 50%',
+    warningForeground: '0 0% 100%',
+    success: '142 71% 45%',
+    successForeground: '0 0% 100%',
+    info: '199 89% 48%',
+    infoForeground: '0 0% 100%',
   },
   dark: {
     background: '155 18% 6%',
@@ -253,6 +301,12 @@ const green: ColorTheme = {
     border: '155 12% 17%',
     input: '155 12% 17%',
     ring: '160 67% 52%',
+    warning: '38 92% 50%',
+    warningForeground: '38 20% 10%',
+    success: '142 71% 45%',
+    successForeground: '142 20% 10%',
+    info: '199 89% 48%',
+    infoForeground: '199 20% 10%',
   },
 }
 
@@ -285,6 +339,12 @@ const amber: ColorTheme = {
     border: '36 14% 89%',
     input: '36 14% 89%',
     ring: '38 92% 50%',
+    warning: '38 92% 50%',
+    warningForeground: '0 0% 100%',
+    success: '142 71% 45%',
+    successForeground: '0 0% 100%',
+    info: '199 89% 48%',
+    infoForeground: '0 0% 100%',
   },
   dark: {
     background: '30 18% 6%',
@@ -306,11 +366,19 @@ const amber: ColorTheme = {
     border: '30 12% 17%',
     input: '30 12% 17%',
     ring: '38 92% 56%',
+    warning: '38 92% 50%',
+    warningForeground: '38 20% 10%',
+    success: '142 71% 45%',
+    successForeground: '142 20% 10%',
+    info: '199 89% 48%',
+    infoForeground: '199 20% 10%',
   },
 }
 
 // ─────────────────────────────────────────────
 // Registry
+// Brand theme — Cyan is the primary brand identity
+// Other themes are user accent preferences
 // ─────────────────────────────────────────────
 export const colorThemes: ColorTheme[] = [cyan, violet, rose, green, amber]
 
@@ -341,6 +409,12 @@ const TOKEN_TO_VAR: Record<keyof ThemeTokens, string> = {
   border: '--border',
   input: '--input',
   ring: '--ring',
+  warning: '--warning',
+  warningForeground: '--warning-foreground',
+  success: '--success',
+  successForeground: '--success-foreground',
+  info: '--info',
+  infoForeground: '--info-foreground',
 }
 
 /** Apply a complete color theme to the document root */

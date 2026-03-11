@@ -10,6 +10,7 @@ import {
   Power,
   RefreshCw,
   Sparkles,
+  Star,
   Upload,
 } from 'lucide-react'
 import type { Language, Translations } from '../../i18n'
@@ -81,7 +82,7 @@ export function GeneralSettingsPanel({
           <Globe className="w-3.5 h-3.5 text-muted-foreground" />
           {t.settings.interfaceLanguage}
         </label>
-        <p className="text-[10px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           {t.settings.interfaceLanguageDesc}
         </p>
         <div className="flex gap-2">
@@ -89,7 +90,7 @@ export function GeneralSettingsPanel({
             onClick={() => setLanguage('zh')}
             className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all
                       ${language === 'zh'
-                        ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-2 border-green-500 ring-2 ring-green-500/20'
+                        ? 'bg-success/10 text-success dark:text-success border-2 border-success ring-2 ring-success/20'
                         : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
                       }`}
           >
@@ -99,7 +100,7 @@ export function GeneralSettingsPanel({
             onClick={() => setLanguage('en')}
             className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all
                       ${language === 'en'
-                        ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-2 border-green-500 ring-2 ring-green-500/20'
+                        ? 'bg-success/10 text-success dark:text-success border-2 border-success ring-2 ring-success/20'
                         : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
                       }`}
           >
@@ -113,7 +114,7 @@ export function GeneralSettingsPanel({
           <Palette className="w-3.5 h-3.5 text-muted-foreground" />
           {t.settings?.colorTheme || '主题配色'}
         </label>
-        <p className="text-[10px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           {t.settings?.colorThemeDesc || '选择应用的主色调'}
         </p>
         <div className="flex gap-3 justify-start">
@@ -140,10 +141,15 @@ export function GeneralSettingsPanel({
                 <span className="absolute bottom-0 left-0 right-0 h-[40%]" style={{ backgroundColor: theme.preview }} />
                 <span className="absolute top-1.5 left-1.5 w-2 h-2 rounded-full" style={{ backgroundColor: theme.preview, opacity: 0.6 }} />
               </span>
-              <span className={`text-[10px] font-medium ${
+              <span className={`text-xs font-medium flex items-center justify-center gap-1 ${
                 colorTheme === theme.id ? 'text-primary' : 'text-muted-foreground'
               }`}>
                 {t.settings?.[theme.labelKey as keyof typeof t.settings] as string || theme.id}
+                {theme.id === 'cyan' && (
+                  <span title={language === 'zh' ? '品牌推荐' : 'Recommended'}>
+                    <Star className="w-3 h-3 fill-primary text-primary" />
+                  </span>
+                )}
               </span>
             </button>
           ))}
@@ -155,19 +161,19 @@ export function GeneralSettingsPanel({
           <Sparkles className="w-3.5 h-3.5 text-muted-foreground" />
           {t.settings.aiPostProcessTitle}
         </label>
-        <p className="text-[10px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           {t.settings.aiPostProcessDesc}
         </p>
 
         <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
           <div>
             <p className="text-sm font-medium">{t.settings.aiPostProcessEnable}</p>
-            <p className="text-[10px] text-muted-foreground">{t.settings.aiPostProcessEnableDesc}</p>
+            <p className="text-xs text-muted-foreground">{t.settings.aiPostProcessEnableDesc}</p>
           </div>
           <button
             onClick={() => updateAiPostProcessConfig({ enabled: !aiConfig.enabled })}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              aiConfig.enabled ? 'bg-green-500' : 'bg-gray-400 dark:bg-gray-600'
+              aiConfig.enabled ? 'bg-success' : 'bg-gray-400 dark:bg-gray-600'
             }`}
           >
             <span
@@ -212,7 +218,7 @@ export function GeneralSettingsPanel({
             placeholder={t.settings.aiApiKeyPlaceholder}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           />
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             {t.settings.aiApiKeyDesc}
           </p>
         </div>
@@ -224,7 +230,7 @@ export function GeneralSettingsPanel({
               onClick={() => updateAiPostProcessConfig({ promptLanguage: 'zh' })}
               className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all ${
                 (aiConfig.promptLanguage || 'zh') === 'zh'
-                  ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-2 border-green-500 ring-2 ring-green-500/20'
+                  ? 'bg-success/10 text-success dark:text-success border-2 border-success ring-2 ring-success/20'
                   : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
               }`}
             >
@@ -234,7 +240,7 @@ export function GeneralSettingsPanel({
               onClick={() => updateAiPostProcessConfig({ promptLanguage: 'en' })}
               className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all ${
                 (aiConfig.promptLanguage || 'zh') === 'en'
-                  ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-2 border-green-500 ring-2 ring-green-500/20'
+                  ? 'bg-success/10 text-success dark:text-success border-2 border-success ring-2 ring-success/20'
                   : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
               }`}
             >
@@ -249,7 +255,7 @@ export function GeneralSettingsPanel({
           <Download className="w-3.5 h-3.5 text-muted-foreground" />
           {t.settings.dataManagement}
         </label>
-        <p className="text-[10px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           {t.settings.dataManagementDesc}
         </p>
         <div className="flex gap-2">
@@ -283,8 +289,8 @@ export function GeneralSettingsPanel({
         {importMessage && (
           <div className={`flex items-center gap-2 p-2 rounded-md text-xs ${
             importMessage.type === 'success'
-              ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400'
-              : 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400'
+              ? 'bg-success/10 text-success dark:bg-success/10 dark:text-success'
+              : 'bg-destructive/10 text-destructive dark:bg-destructive/10 dark:text-destructive'
           }`}>
             {importMessage.type === 'success' ? (
               <Check className="w-3.5 h-3.5" />
@@ -307,12 +313,12 @@ export function GeneralSettingsPanel({
               <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
                 <div>
                   <p className="text-sm font-medium">{t.settings.autoLaunch}</p>
-                  <p className="text-[10px] text-muted-foreground">{t.settings.autoLaunchDesc}</p>
+                  <p className="text-xs text-muted-foreground">{t.settings.autoLaunchDesc}</p>
                 </div>
                 <button
                   onClick={() => void handleAutoLaunchChange(!autoLaunch)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors
-                            ${autoLaunch ? 'bg-green-500' : 'bg-gray-400 dark:bg-gray-600'}`}
+                            ${autoLaunch ? 'bg-success' : 'bg-gray-400 dark:bg-gray-600'}`}
                 >
                   <span
                     className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform
@@ -335,7 +341,7 @@ export function GeneralSettingsPanel({
                   <p className="text-sm font-medium">
                     {language === 'zh' ? '启动时自动检查更新' : 'Auto-check on startup'}
                   </p>
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {language === 'zh' ? '每次启动应用时自动检查是否有新版本' : 'Automatically check for updates when app starts'}
                   </p>
                 </div>
@@ -345,7 +351,7 @@ export function GeneralSettingsPanel({
                     updateSettings({ autoCheckUpdate: newValue })
                   }}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors
-                            ${settings.autoCheckUpdate !== false ? 'bg-green-500' : 'bg-gray-400 dark:bg-gray-600'}`}
+                            ${settings.autoCheckUpdate !== false ? 'bg-success' : 'bg-gray-400 dark:bg-gray-600'}`}
                 >
                   <span
                     className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform
@@ -359,7 +365,7 @@ export function GeneralSettingsPanel({
                   <p className="text-sm font-medium">
                     {language === 'zh' ? '当前版本' : 'Current Version'}: {appVersion || '-'}
                   </p>
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {updateStatus === 'checking'
                       ? (t.update?.checking || '正在检查更新...')
                       : updateStatus === 'not-available'
@@ -377,9 +383,9 @@ export function GeneralSettingsPanel({
                             ${updateStatus === 'checking'
                               ? 'bg-muted text-muted-foreground cursor-not-allowed'
                               : updateStatus === 'not-available'
-                              ? 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/50'
+                              ? 'bg-success/10 text-success dark:text-success border border-success/50'
                               : updateStatus === 'error'
-                              ? 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/50'
+                              ? 'bg-destructive/10 text-destructive dark:text-destructive border border-destructive/50'
                               : 'bg-primary text-primary-foreground hover:bg-primary/90'
                             }`}
                 >
@@ -409,7 +415,7 @@ export function GeneralSettingsPanel({
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
               <div>
                 <p className="text-sm font-medium">{t.settings.exportDiagnostics}</p>
-                <p className="text-[10px] text-muted-foreground">{t.settings.exportDiagnosticsDesc}</p>
+                <p className="text-xs text-muted-foreground">{t.settings.exportDiagnosticsDesc}</p>
               </div>
               <button
                 onClick={() => void handleExportDiagnostics()}

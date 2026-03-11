@@ -29,9 +29,11 @@ import { getDefaultSettings } from '../utils/storageShared'
 interface ApiKeyConfigProps {
   isOpen: boolean
   onClose: () => void
+  mode?: 'modal' | 'view'
 }
 
-export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
+export function ApiKeyConfig({ isOpen, onClose, mode = 'modal' }: ApiKeyConfigProps) {
+  const isViewMode = mode === 'view'
   const { t, language, setLanguage, colorTheme, setColorTheme } = useUIStore()
   const {
     settings,
@@ -347,16 +349,10 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, onClose])
 
-  if (!isOpen) return null
+  if (!isOpen && !isViewMode) return null
 
-  return (
-    <div className="fixed inset-0 bg-black/50 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="settings-dialog-title"
-        className="bg-card text-card-foreground border border-border rounded-2xl shadow-2xl w-full max-w-[min(78rem,calc(100vw-2rem))] mx-4 overflow-hidden animate-in zoom-in-95 duration-200 h-[min(92vh,58rem)] flex flex-col dark:ring-1 dark:ring-white/[0.08]"
-      >
+  const settingsContent = (
+    <>
         {/* 头部 */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/30 flex-shrink-0">
           <div className="flex items-center gap-3">
@@ -521,6 +517,26 @@ export function ApiKeyConfig({ isOpen, onClose }: ApiKeyConfigProps) {
             },
           ]}
         />
+    </>
+  )
+
+  if (isViewMode) {
+    return (
+      <div className="flex h-full flex-col overflow-hidden bg-card text-card-foreground">
+        {settingsContent}
+      </div>
+    )
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm dark:bg-black/60 animate-in fade-in duration-200">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="settings-dialog-title"
+        className="mx-4 flex h-[min(92vh,58rem)] w-full max-w-[min(78rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-2xl dark:ring-1 dark:ring-white/[0.08] animate-in zoom-in-95 duration-200"
+      >
+        {settingsContent}
       </div>
     </div>
   )

@@ -72,6 +72,7 @@ export function TitleBar() {
             onClick={handleMinimize}
             className="h-8 w-12 flex items-center justify-center hover:bg-muted/80 transition-colors"
             title={t.titleBar.minimize}
+            aria-label="Minimize window"
           >
             <Minus className="w-4 h-4 text-muted-foreground" />
           </button>
@@ -81,6 +82,7 @@ export function TitleBar() {
             onClick={handleMaximize}
             className="h-8 w-12 flex items-center justify-center hover:bg-muted/80 transition-colors"
             title={isMaximized ? t.titleBar.restore : t.titleBar.maximize}
+            aria-label={isMaximized ? 'Restore window' : 'Maximize window'}
           >
             {isMaximized ? (
               <Maximize2 className="w-3.5 h-3.5 text-muted-foreground" />
@@ -92,10 +94,11 @@ export function TitleBar() {
           {/* 关闭 */}
           <button
             onClick={handleClose}
-            className="h-8 w-12 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors group"
+            className="h-8 w-12 flex items-center justify-center hover:bg-destructive hover:text-destructive-foreground transition-colors group"
             title={t.titleBar.close}
+            aria-label="Close window"
           >
-            <X className="w-4 h-4 text-muted-foreground group-hover:text-white" />
+            <X className="w-4 h-4 text-muted-foreground group-hover:text-destructive-foreground" />
           </button>
         </div>
       )}

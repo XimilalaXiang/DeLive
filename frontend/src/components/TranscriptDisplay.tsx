@@ -96,14 +96,14 @@ export function TranscriptDisplay({
       {/* 头部 */}
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border/70 bg-muted/25 px-6 py-5">
         <div className="space-y-3">
-          <div className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary/80">
+          <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">
             <Activity className="h-3.5 w-3.5" />
             {t.transcript.title}
           </div>
           <div className="flex flex-wrap gap-2">
             <span className="workspace-badge">
               {providerName}
-              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+              <span className="rounded-full bg-muted px-2 py-0.5 text-xs uppercase tracking-wide text-muted-foreground">
                 {providerModeLabel}
               </span>
             </span>
@@ -113,7 +113,7 @@ export function TranscriptDisplay({
               </span>
             )}
             {showTranslated && (
-              <span className="workspace-badge text-sky-700 dark:text-sky-300">
+              <span className="workspace-badge text-info dark:text-info">
                 {t.transcript.translated || 'Translated'}
               </span>
             )}
@@ -197,7 +197,7 @@ export function TranscriptDisplay({
                         className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-muted/60 dark:bg-muted/40 border border-border/50 transition-colors hover:bg-muted"
                       >
                         <Icon className="w-3.5 h-3.5 text-primary/60 flex-shrink-0" />
-                        <span className="text-[11px] text-muted-foreground leading-tight">
+                        <span className="text-xs text-muted-foreground leading-tight">
                           {t.transcript.noContentTips[index]}
                         </span>
                       </div>
@@ -287,7 +287,7 @@ export function TranscriptDisplay({
               {t.transcript.transcribed} {(finalTranscript.length + nonFinalTranscript.length)} {t.common.characters}
             </span>
             {translatedText && (
-              <span className="text-sky-600 dark:text-sky-400">
+              <span className="text-info dark:text-info">
                 {t.transcript.translated || '已翻译'} {translatedText.length}
               </span>
             )}
@@ -298,7 +298,7 @@ export function TranscriptDisplay({
             )}
           </div>
           {isRecording && (
-            <div className="flex items-center gap-1.5 text-green-600 dark:text-green-400">
+            <div className="flex items-center gap-1.5 text-success dark:text-success">
               <div className="w-1.5 h-1.5 bg-current rounded-full animate-pulse"></div>
               <span className="font-medium">{t.transcript.liveUpdating}</span>
             </div>

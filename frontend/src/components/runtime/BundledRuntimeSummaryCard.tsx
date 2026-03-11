@@ -35,9 +35,9 @@ interface BundledRuntimeSummaryCardProps {
 function StepBadge({ done, label }: { done: boolean; label: string }) {
   return (
     <div
-      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] ${
+      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs ${
         done
-          ? 'border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-400'
+          ? 'border-success/30 bg-success/10 text-success dark:text-success'
           : 'border-border bg-background text-muted-foreground'
       }`}
     >
@@ -49,12 +49,12 @@ function StepBadge({ done, label }: { done: boolean; label: string }) {
 
 function getStatusTone(snapshot: RuntimeSnapshotLike | null, statusState: 'idle' | 'loading' | 'error'): string {
   if (snapshot?.status === 'running') {
-    return 'bg-green-500/10 text-green-700 dark:text-green-400'
+    return 'bg-success/10 text-success dark:text-success'
   }
   if (snapshot?.status === 'error' || statusState === 'error') {
-    return 'bg-red-500/10 text-red-600 dark:text-red-400'
+    return 'bg-destructive/10 text-destructive dark:text-destructive'
   }
-  return 'bg-blue-500/10 text-blue-700 dark:text-blue-400'
+  return 'bg-info/10 text-info dark:text-info'
 }
 
 export function BundledRuntimeSummaryCard({
@@ -86,7 +86,7 @@ export function BundledRuntimeSummaryCard({
         </div>
         <div className="space-y-1">
           <div className="text-[12px] font-medium text-foreground">{nextStep.title}</div>
-          <p className="text-[11px] text-muted-foreground">{nextStep.description}</p>
+          <p className="text-xs text-muted-foreground">{nextStep.description}</p>
         </div>
         <button
           type="button"
@@ -97,13 +97,13 @@ export function BundledRuntimeSummaryCard({
           <Wand2 className="h-3.5 w-3.5" />
           {primaryActionLabel}
         </button>
-        <p className="text-[10px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           推荐默认值：官方 CPU 版 binary、Base 模型、端口 8177。
           {!hasRecommendedBinaryAsset ? ' 当前还未拿到推荐 binary 资产，将先尝试加载官方预设。' : ''}
         </p>
       </div>
 
-      <div className={`flex items-center gap-2 rounded-md px-2.5 py-2 text-[11px] ${statusTone}`}>
+      <div className={`flex items-center gap-2 rounded-md px-2.5 py-2 text-xs ${statusTone}`}>
         {snapshot?.status === 'running'
           ? <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" />
           : snapshot?.status === 'error' || statusState === 'error'
@@ -114,12 +114,12 @@ export function BundledRuntimeSummaryCard({
 
       {testMessage && (
         <div
-          className={`flex items-center gap-2 rounded-md px-2.5 py-2 text-[11px] ${
+          className={`flex items-center gap-2 rounded-md px-2.5 py-2 text-xs ${
             testStatus === 'success'
-              ? 'bg-green-500/10 text-green-700 dark:text-green-400'
+              ? 'bg-success/10 text-success dark:text-success'
               : testStatus === 'error'
-              ? 'bg-red-500/10 text-red-600 dark:text-red-400'
-              : 'bg-blue-500/10 text-blue-700 dark:text-blue-400'
+              ? 'bg-destructive/10 text-destructive dark:text-destructive'
+              : 'bg-info/10 text-info dark:text-info'
           }`}
         >
           {testStatus === 'success'
@@ -132,7 +132,7 @@ export function BundledRuntimeSummaryCard({
       )}
 
       {snapshot && (
-        <div className="space-y-1 text-[11px] text-muted-foreground">
+        <div className="space-y-1 text-xs text-muted-foreground">
           <div>Runtime: {snapshot.displayName}</div>
           <div>状态: {snapshot.status}</div>
           <div>二进制: {snapshot.binaryPath || '未发现'}</div>
@@ -144,13 +144,13 @@ export function BundledRuntimeSummaryCard({
 
       {modelFiles.length > 0 && (
         <div className="space-y-1.5">
-          <div className="text-[11px] text-muted-foreground">runtime 目录中的模型（点击回填）</div>
+          <div className="text-xs text-muted-foreground">runtime 目录中的模型（点击回填）</div>
           <div className="flex flex-wrap gap-1.5">
             {modelFiles.map((filePath) => (
               <button
                 key={filePath}
                 onClick={() => onSelectModelPath(filePath)}
-                className={`rounded-full border px-2 py-1 text-[10px] transition-colors ${
+                className={`rounded-full border px-2 py-1 text-xs transition-colors ${
                   configuredModelPath === filePath
                     ? 'border-primary/60 bg-primary/10 text-primary'
                     : 'border-border bg-background text-muted-foreground hover:text-foreground'

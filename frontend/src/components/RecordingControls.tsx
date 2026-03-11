@@ -4,6 +4,7 @@ import { useSettingsStore } from '../stores/settingsStore'
 import { useSessionStore } from '../stores/sessionStore'
 import { useASR } from '../hooks/useASR'
 import { buildProviderConnectConfig, isProviderConfigured } from '../utils/providerConfig'
+import { StatusIndicator } from './ui'
 
 interface RecordingControlsProps {
   onError: (message: string) => void
@@ -18,8 +19,7 @@ export function RecordingControls({ onError }: RecordingControlsProps) {
     onStarted: () => console.log('[UI] Recording started'),
     onFinished: () => console.log('[UI] Recording finished'),
   })
-  
-  // 获取当前提供商的配置
+
   const currentVendor = settings.currentVendor || 'soniox'
   const currentProvider = availableProviders.find(p => p.id === currentVendor)
   const currentConfig = settings.providerConfigs?.[currentVendor]
@@ -45,81 +45,64 @@ export function RecordingControls({ onError }: RecordingControlsProps) {
   }
 
   return (
-    <div className="flex flex-col items-center gap-6 w-full max-w-md mx-auto">
-      <div className="relative group">
-        {/* Glow effect */}
-        <div className={`
-          absolute -inset-1 rounded-full blur transition duration-1000 group-hover:duration-200
-          ${isRecording 
-            ? 'bg-gradient-to-r from-red-500 to-orange-500 opacity-40 animate-pulse' 
-            : 'bg-primary opacity-25 group-hover:opacity-50 animate-glow-pulse'
+    <div className="flex items-center gap-4">
+      <button
+        onClick={handleClick}
+        disabled={isLoading}
+        className={`
+          relative flex shrink-0 items-center gap-2.5 rounded-full px-5 py-2.5
+          text-sm font-medium tracking-wide shadow-md
+          transition-all duration-200
+          disabled:opacity-80 disabled:cursor-not-allowed
+          active:scale-[0.97]
+          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
+          ${isRecording
+            ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90 ring-2 ring-destructive/20'
+            : 'bg-primary text-primary-foreground hover:bg-primary/90 ring-2 ring-primary/20'
           }
-        `}></div>
-        
-        <button
-          onClick={handleClick}
-          disabled={isLoading}
-          className={`
-            relative flex items-center gap-3 px-8 py-4 rounded-full font-medium text-base tracking-wide
-            transition-all duration-300 shadow-xl
-            disabled:opacity-80 disabled:cursor-not-allowed
-            ${isRecording 
-              ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90 ring-4 ring-destructive/20 active:scale-[0.97]' 
-              : 'bg-primary text-primary-foreground hover:bg-primary/90 ring-4 ring-primary/20 hover:ring-primary/30 active:scale-[0.97]'
-            }
-          `}
-        >
-          {isStarting ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              <span>{t.recording.starting}</span>
-            </>
-          ) : isStopping ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              <span>{t.recording.stopping}</span>
-            </>
-          ) : isRecording ? (
-            <>
-              <Square className="w-5 h-5 fill-current" />
-              <span>{t.recording.stopRecording}</span>
-            </>
-          ) : (
-            <>
-              <Mic className="w-5 h-5" />
-              <span>{t.recording.startRecording}</span>
-            </>
-          )}
-        </button>
-      </div>
+        `}
+      >
+        {isStarting ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>{t.recording.starting}</span>
+          </>
+        ) : isStopping ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>{t.recording.stopping}</span>
+          </>
+        ) : isRecording ? (
+          <>
+            <Square className="h-4 w-4 fill-current" />
+            <span>{t.recording.stopRecording}</span>
+          </>
+        ) : (
+          <>
+            <Mic className="h-4 w-4" />
+            <span>{t.recording.startRecording}</span>
+          </>
+        )}
+      </button>
 
-      {/* 状态提示 */}
-      <div className="text-center h-12 flex flex-col justify-center">
+      <div className="min-w-0 flex-1 text-sm">
         {isStarting && (
-          <p className="text-sm font-medium text-amber-600 dark:text-amber-400 animate-in fade-in slide-in-from-bottom-1">
-            {t.recording.selectSource} <strong className="underline decoration-2 underline-offset-2">{t.recording.shareAudio}</strong>
+          <p className="flex items-center gap-2 text-warning">
+            <StatusIndicator status="starting" />
+            {t.recording.selectSource}
           </p>
         )}
         {isRecording && (
-          <div className="space-y-1 animate-in fade-in slide-in-from-bottom-1">
-            <div className="flex items-center justify-center gap-2 text-sm text-green-600 dark:text-green-400 font-medium">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-              </span>
-              {t.recording.capturingAudio}
-            </div>
+          <div className="flex items-center gap-2 text-success">
+            <StatusIndicator status="recording" />
+            <span className="font-medium">{t.recording.capturingAudio}</span>
             {!currentTranscript && (
-              <p className="text-xs text-muted-foreground">
-                {t.recording.waitingForAudio}
-              </p>
+              <span className="text-xs text-muted-foreground">{t.recording.waitingForAudio}</span>
             )}
           </div>
         )}
         {isIdle && !hasApiKey && (
-          <p className="text-sm text-amber-600 dark:text-amber-400 animate-in fade-in">
-            {t.recording.clickToConfigureApi}
-          </p>
+          <p className="text-warning">{t.recording.clickToConfigureApi}</p>
         )}
       </div>
     </div>

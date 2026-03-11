@@ -461,7 +461,7 @@ export function BundledRuntimeSetupGuide({
   return (
     <div className="space-y-3 rounded-lg border border-border/70 bg-muted/20 p-3">
       <div className="text-xs font-medium text-foreground">Bundled Runtime 引导</div>
-      <p className="text-[11px] text-muted-foreground">
+      <p className="text-xs text-muted-foreground">
         当前 provider 走随应用打包的本地 runtime 路径。推荐顺序是：准备 binary、准备模型、启动 runtime、再测试配置或开始录制。
       </p>
 
@@ -510,8 +510,8 @@ export function BundledRuntimeSetupGuide({
       />
 
       <div className="space-y-2 rounded-md border border-border/60 bg-background/50 p-3">
-        <div className="text-[11px] font-medium text-foreground">第 3 步：启动并验证 runtime</div>
-        <p className="text-[10px] text-muted-foreground">
+        <div className="text-xs font-medium text-foreground">第 3 步：启动并验证 runtime</div>
+        <p className="text-xs text-muted-foreground">
           当 binary 和模型都准备好之后，启动 runtime；运行成功后即可点击“测试配置”或直接开始录制。
         </p>
       </div>

@@ -21,11 +21,11 @@ import type { CaptionStyle } from '../types'
 
 // 预设颜色
 const presetColors = [
-  { name: '白色', value: '#ffffff' },
-  { name: '黄色', value: '#ffd700' },
-  { name: '绿色', value: '#00ff00' },
-  { name: '青色', value: '#00ffff' },
-  { name: '粉色', value: '#ff69b4' },
+  { name: '白色', value: '#ffffff', ariaLabel: 'White' },
+  { name: '黄色', value: '#ffd700', ariaLabel: 'Yellow' },
+  { name: '绿色', value: '#00ff00', ariaLabel: 'Green' },
+  { name: '青色', value: '#00ffff', ariaLabel: 'Cyan' },
+  { name: '粉色', value: '#ff69b4', ariaLabel: 'Pink' },
 ]
 
 // 预设背景
@@ -168,6 +168,7 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
               onClick={handleResetPosition}
               className="p-2 rounded-lg bg-muted text-muted-foreground hover:bg-accent transition-all duration-200 active:scale-[0.97]"
               title={t.caption?.resetPosition}
+              aria-label="Reset caption position"
             >
               <RotateCcw className="w-4 h-4" />
             </button>
@@ -183,6 +184,7 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
                 }
               `}
               title={t.caption?.settings}
+              aria-label="Caption settings"
             >
               <Settings className="w-4 h-4" />
             </button>
@@ -410,6 +412,7 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
                         backgroundColor: color.value,
                       }}
                       title={color.name}
+                      aria-label={`Select ${color.ariaLabel} text color`}
                     />
                   ))}
                 </div>
@@ -459,6 +462,7 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
                       : 'bg-muted-foreground/30 ring-transparent'
                     }
                   `}
+                  aria-label={style.textShadow ? 'Disable text shadow' : 'Enable text shadow'}
                 >
                   <span
                     className={`

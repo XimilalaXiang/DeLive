@@ -157,9 +157,9 @@ export function UpdateNotification() {
       <div className={`
         rounded-lg shadow-lg border p-4 backdrop-blur-sm
         ${status === 'error' 
-          ? 'bg-red-50/95 dark:bg-red-900/30 border-red-200 dark:border-red-800' 
+          ? 'bg-destructive/10 dark:bg-destructive/10 border-destructive/30 dark:border-destructive/30' 
           : status === 'downloaded'
-          ? 'bg-green-50/95 dark:bg-green-900/30 border-green-200 dark:border-green-800'
+          ? 'bg-success/10 dark:bg-success/10 border-success/30 dark:border-success/30'
           : 'bg-background/95 border-border'
         }
       `}>
@@ -204,7 +204,7 @@ export function UpdateNotification() {
         {/* 没有可用更新 */}
         {status === 'not-available' && (
           <div className="flex items-center gap-3">
-            <CheckCircle className="w-5 h-5 text-green-500" />
+            <CheckCircle className="w-5 h-5 text-success" />
             <span className="text-sm">{t.update?.upToDate || '已是最新版本'}</span>
           </div>
         )}
@@ -235,8 +235,8 @@ export function UpdateNotification() {
         {status === 'downloaded' && updateInfo && (
           <div className="space-y-3 pr-6">
             <div className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-green-500" />
-              <span className="font-medium text-green-700 dark:text-green-400">
+              <CheckCircle className="w-5 h-5 text-success" />
+              <span className="font-medium text-success dark:text-success">
                 {t.update?.downloaded || '更新已下载完成'}
               </span>
             </div>
@@ -245,7 +245,7 @@ export function UpdateNotification() {
             </p>
             <button
               onClick={handleInstall}
-              className="w-full inline-flex items-center justify-center gap-2 h-9 px-4 text-sm font-medium rounded-md bg-green-500 text-white hover:bg-green-600 transition-colors"
+              className="w-full inline-flex items-center justify-center gap-2 h-9 px-4 text-sm font-medium rounded-md bg-success text-success-foreground hover:bg-success/90 transition-colors"
             >
               <RefreshCw className="w-4 h-4" />
               {t.update?.installNow || '立即安装并重启'}
@@ -257,17 +257,17 @@ export function UpdateNotification() {
         {status === 'error' && (
           <div className="space-y-3 pr-6">
             <div className="flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-red-500" />
-              <span className="font-medium text-red-700 dark:text-red-400">
+              <AlertCircle className="w-5 h-5 text-destructive" />
+              <span className="font-medium text-destructive dark:text-destructive">
                 {t.update?.error || '更新失败'}
               </span>
             </div>
             {error && (
-              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+              <p className="text-sm text-destructive dark:text-destructive">{error}</p>
             )}
             <button
               onClick={handleCheckUpdate}
-              className="w-full inline-flex items-center justify-center gap-2 h-9 px-4 text-sm font-medium rounded-md bg-red-500 text-white hover:bg-red-600 transition-colors"
+              className="w-full inline-flex items-center justify-center gap-2 h-9 px-4 text-sm font-medium rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
             >
               <RefreshCw className="w-4 h-4" />
               {t.update?.retry || '重试'}

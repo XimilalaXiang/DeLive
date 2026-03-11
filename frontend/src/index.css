@@ -2,22 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===== CSS 变量 — 从 Tailwind HSL tokens 派生 ===== */
+/* ===== CSS 变量 ===== */
 :root {
   --radius: 1rem;
-  --bg-primary: hsl(var(--background));
-  --bg-secondary: hsl(var(--card));
-  --bg-tertiary: hsl(var(--muted));
-  --border-primary: hsl(var(--border));
-  --border-secondary: hsl(var(--input));
-  --text-primary: hsl(var(--foreground));
-  --text-secondary: hsl(var(--card-foreground));
-  --text-tertiary: hsl(var(--muted-foreground));
-  --text-muted: hsl(var(--muted-foreground));
-  --scrollbar-track: hsl(var(--muted));
-  --scrollbar-thumb: hsl(var(--border));
-  --scrollbar-thumb-hover: hsl(var(--muted-foreground));
-  --primary-glow: hsl(var(--primary) / 0.06);
 }
 
 /* ===== 全局品牌选中色 — 跟随主题 ===== */
@@ -49,9 +36,9 @@ body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--bg-primary);
-  background-image: radial-gradient(ellipse 80% 50% at 50% -20%, var(--primary-glow), transparent);
-  color: var(--text-primary);
+  background-color: hsl(var(--background));
+  background-image: radial-gradient(ellipse 80% 50% at 50% -20%, hsl(var(--primary) / 0.06), transparent);
+  color: hsl(var(--foreground));
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -65,7 +52,7 @@ body {
   }
 
   .workspace-kicker {
-    @apply text-[11px] font-semibold uppercase tracking-[0.24em] text-primary/80;
+    @apply text-xs font-semibold uppercase tracking-[0.2em] text-primary/80;
   }
 
   .workspace-heading {
@@ -88,18 +75,18 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
+  background: hsl(var(--muted));
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
+  background: hsl(var(--border));
   border-radius: 3px;
   transition: background 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
+  background: hsl(var(--muted-foreground));
 }
 
 /* 隐藏滚动条但保留功能 */
@@ -129,18 +116,18 @@ body {
 }
 
 .animate-reveal-up {
-  animation: reveal-up 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: reveal-up 250ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .animate-reveal-fade {
-  animation: reveal-fade 400ms ease-out both;
+  animation: reveal-fade 200ms ease-out both;
 }
 
-/* Staggered delays */
-.delay-1 { animation-delay: 80ms; }
-.delay-2 { animation-delay: 160ms; }
-.delay-3 { animation-delay: 240ms; }
-.delay-4 { animation-delay: 320ms; }
+/* Staggered delays — 40ms per item */
+.delay-1 { animation-delay: 40ms; }
+.delay-2 { animation-delay: 80ms; }
+.delay-3 { animation-delay: 120ms; }
+.delay-4 { animation-delay: 160ms; }
 
 /* ===== 录制脉冲动画 ===== */
 @keyframes pulse-recording {
@@ -172,11 +159,11 @@ body {
 
 /* ===== 转录文字样式 ===== */
 .transcript-final {
-  color: var(--text-primary);
+  color: hsl(var(--foreground));
 }
 
 .transcript-nonfinal {
-  color: var(--text-muted);
+  color: hsl(var(--muted-foreground));
 }
 
 /* ===== 自定义滑块样式 (CaptionControls) ===== */
@@ -184,12 +171,12 @@ body {
   -webkit-appearance: none;
   width: 20px;
   height: 20px;
-  background: #ffffff;
+  background: hsl(var(--background));
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-  border: 2px solid #e5e5e5;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 2px 6px hsl(var(--foreground) / 0.15);
+  border: 2px solid hsl(var(--border));
+  transition: transform 150ms ease, box-shadow 150ms ease;
 }
 
 .custom-range-slider::-webkit-slider-thumb:hover {
@@ -200,12 +187,12 @@ body {
 .custom-range-slider::-moz-range-thumb {
   width: 20px;
   height: 20px;
-  background: #ffffff;
+  background: hsl(var(--background));
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-  border: 2px solid #e5e5e5;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 2px 6px hsl(var(--foreground) / 0.15);
+  border: 2px solid hsl(var(--border));
+  transition: transform 150ms ease, box-shadow 150ms ease;
 }
 
 .custom-range-slider::-moz-range-thumb:hover {
@@ -223,9 +210,19 @@ body {
 
 /* ===== Reduce motion ===== */
 @media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
   .animate-reveal-up,
   .animate-reveal-fade,
-  .animate-glow-pulse {
+  .animate-glow-pulse,
+  .animate-pulse-recording {
     animation: none;
     opacity: 1;
     transform: none;
