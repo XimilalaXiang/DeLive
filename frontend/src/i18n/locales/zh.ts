@@ -235,6 +235,10 @@ export const zh = {
     mindMapMarkdownPlaceholder: '# 主题\n## 分支\n### 要点',
     mindMapNoTranscript: '当前会话没有可用于生成思维导图的转录内容',
     aiNotConfigured: '请先到设置 > 通用设置 中启用并配置 AI 后处理',
+    tabOverview: '概览',
+    tabChat: '对话',
+    tabMindMap: '思维导图',
+    tabTranscript: '转录文本',
   },
 
   // 源选择器

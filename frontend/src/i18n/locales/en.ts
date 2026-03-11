@@ -237,6 +237,10 @@ export const en: Translations = {
     mindMapMarkdownPlaceholder: '# Topic\n## Branch\n### Point',
     mindMapNoTranscript: 'This session has no transcript available for mind map generation.',
     aiNotConfigured: 'Enable and configure AI post-process in Settings > General first.',
+    tabOverview: 'Overview',
+    tabChat: 'Chat',
+    tabMindMap: 'Mind Map',
+    tabTranscript: 'Transcript',
   },
 
   // Source picker
