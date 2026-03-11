@@ -1,15 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
   Copy,
   Download,
   FileText,
   Loader2,
+  Maximize2,
+  Minimize2,
   Network,
   RefreshCw,
   Save,
   ChevronDown,
   PanelLeftClose,
   PanelLeftOpen,
+  X,
 } from 'lucide-react'
 import type { TranscriptSession } from '../../types'
 import { useSettingsStore } from '../../stores/settingsStore'
@@ -46,7 +50,11 @@ export function MindMapTab({ session }: MindMapTabProps) {
   const [renderError, setRenderError] = useState<string | null>(null)
   const [showEditor, setShowEditor] = useState(false)
   const [showExportMenu, setShowExportMenu] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
   const svgRef = useRef<SVGSVGElement | null>(null)
+  const fullscreenSvgRef = useRef<SVGSVGElement | null>(null)
+  const fullscreenTransformerRef = useRef<MarkmapTransformerLike | null>(null)
+  const fullscreenMarkmapRef = useRef<MarkmapInstanceLike | null>(null)
   const transformerRef = useRef<MarkmapTransformerLike | null>(null)
   const markmapRef = useRef<MarkmapInstanceLike | null>(null)
 
@@ -109,6 +117,62 @@ export function MindMapTab({ session }: MindMapTabProps) {
     markmapRef.current?.destroy()
     markmapRef.current = null
   }, [])
+
+  // Render mind map in fullscreen SVG
+  useEffect(() => {
+    if (!isFullscreen) {
+      fullscreenMarkmapRef.current?.destroy()
+      fullscreenMarkmapRef.current = null
+      fullscreenTransformerRef.current = null
+      return
+    }
+
+    const svg = fullscreenSvgRef.current
+    if (!svg || !draftMarkdown.trim()) return
+
+    let cancelled = false
+
+    void (async () => {
+      try {
+        if (!fullscreenTransformerRef.current || !fullscreenMarkmapRef.current) {
+          const [{ Transformer }, { Markmap }] = await Promise.all([
+            import('markmap-lib'),
+            import('markmap-view'),
+          ])
+          if (cancelled || !fullscreenSvgRef.current) return
+
+          fullscreenTransformerRef.current = new Transformer()
+          fullscreenMarkmapRef.current = Markmap.create(fullscreenSvgRef.current, {
+            autoFit: true,
+            fitRatio: 0.95,
+            maxWidth: 300,
+            initialExpandLevel: 4,
+            paddingX: 16,
+            spacingVertical: 8,
+            embedGlobalCSS: true,
+          }) as MarkmapInstanceLike
+        }
+
+        const { root } = fullscreenTransformerRef.current.transform(draftMarkdown)
+        await fullscreenMarkmapRef.current.setData(root)
+        await fullscreenMarkmapRef.current.fit()
+      } catch {
+        // Fullscreen render errors are non-critical
+      }
+    })()
+
+    return () => { cancelled = true }
+  }, [isFullscreen, draftMarkdown])
+
+  // Escape to exit fullscreen
+  useEffect(() => {
+    if (!isFullscreen) return
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsFullscreen(false)
+    }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [isFullscreen])
 
   const aiConfigured = isAiPostProcessConfigured(settings)
   const generating = session.mindMap?.status === 'pending'
@@ -260,6 +324,18 @@ export function MindMapTab({ session }: MindMapTabProps) {
           </>
         )}
 
+        {hasMindMap && (
+          <>
+            <div className="h-5 w-px bg-border" />
+            <button
+              onClick={() => setIsFullscreen(true)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+            >
+              <Maximize2 className="w-4 h-4" />
+            </button>
+          </>
+        )}
+
         {!aiConfigured && (
           <p className="ml-2 text-xs text-muted-foreground">{t.preview.aiNotConfigured}</p>
         )}
@@ -318,6 +394,29 @@ export function MindMapTab({ session }: MindMapTabProps) {
           )}
         </div>
       </div>
+
+      {/* Fullscreen overlay */}
+      {isFullscreen && createPortal(
+        <div className="fixed inset-0 z-[100] flex flex-col bg-background">
+          <div className="flex items-center justify-between border-b border-border px-5 py-3">
+            <div className="inline-flex items-center gap-2 text-sm font-semibold text-foreground">
+              <Network className="w-4 h-4 text-primary" />
+              {t.preview.mindMapTitle}
+            </div>
+            <button
+              onClick={() => setIsFullscreen(false)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+            >
+              <Minimize2 className="w-4 h-4" />
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="flex-1 relative overflow-hidden bg-background/40 dark:bg-muted/20">
+            <svg ref={fullscreenSvgRef} className="h-full w-full" />
+          </div>
+        </div>,
+        document.body,
+      )}
     </div>
   )
 }

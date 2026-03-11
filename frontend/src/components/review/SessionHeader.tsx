@@ -7,6 +7,8 @@ import {
   FileText,
   Subtitles,
   ChevronDown,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react'
 import type { TranscriptSession } from '../../types'
 import { exportToTxt } from '../../utils/storage'
@@ -16,9 +18,16 @@ import { useUIStore } from '../../stores/uiStore'
 interface SessionHeaderProps {
   session: TranscriptSession
   onClose: () => void
+  sidebarCollapsed?: boolean
+  onToggleSidebar?: () => void
 }
 
-export function SessionHeader({ session, onClose }: SessionHeaderProps) {
+export function SessionHeader({
+  session,
+  onClose,
+  sidebarCollapsed,
+  onToggleSidebar,
+}: SessionHeaderProps) {
   const { t } = useUIStore()
   const [showExportMenu, setShowExportMenu] = useState(false)
   const exportMenuRef = useRef<HTMLDivElement>(null)
@@ -43,6 +52,19 @@ export function SessionHeader({ session, onClose }: SessionHeaderProps) {
   return (
     <div className="flex items-center justify-between px-6 py-3.5 border-b border-border bg-muted/30">
       <div className="flex items-center gap-3 min-w-0">
+        {onToggleSidebar && (
+          <button
+            onClick={onToggleSidebar}
+            className="hidden lg:inline-flex items-center justify-center h-8 w-8 shrink-0 rounded-lg border border-border bg-background text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            aria-label={sidebarCollapsed ? 'Show session library' : 'Hide session library'}
+          >
+            {sidebarCollapsed ? (
+              <PanelLeftOpen className="w-4 h-4" />
+            ) : (
+              <PanelLeftClose className="w-4 h-4" />
+            )}
+          </button>
+        )}
         <div className="p-2 bg-primary/10 rounded-lg flex-shrink-0 border border-primary/20">
           <FileText className="w-5 h-5 text-primary" />
         </div>

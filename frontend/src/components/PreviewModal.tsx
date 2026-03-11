@@ -14,14 +14,22 @@ interface PreviewModalProps {
   session: TranscriptSession | null
   onClose: () => void
   mode?: 'modal' | 'view'
+  sidebarCollapsed?: boolean
+  onToggleSidebar?: () => void
 }
 
-export function PreviewModal({ session, onClose, mode = 'modal' }: PreviewModalProps) {
+export function PreviewModal({
+  session,
+  onClose,
+  mode = 'modal',
+  sidebarCollapsed,
+  onToggleSidebar,
+}: PreviewModalProps) {
   const isViewMode = mode === 'view'
-  const [activeTab, setActiveTab] = useState<ReviewTab>('overview')
+  const [activeTab, setActiveTab] = useState<ReviewTab>('transcript')
 
   useEffect(() => {
-    setActiveTab('overview')
+    setActiveTab('transcript')
   }, [session?.id])
 
   useEffect(() => {
@@ -33,7 +41,7 @@ export function PreviewModal({ session, onClose, mode = 'modal' }: PreviewModalP
       }
       if ((event.ctrlKey || event.metaKey) && event.key >= '1' && event.key <= '4') {
         event.preventDefault()
-        const tabs: ReviewTab[] = ['overview', 'chat', 'mindmap', 'transcript']
+        const tabs: ReviewTab[] = ['transcript', 'overview', 'chat', 'mindmap']
         const index = parseInt(event.key, 10) - 1
         if (index >= 0 && index < tabs.length) {
           setActiveTab(tabs[index])
@@ -64,13 +72,18 @@ export function PreviewModal({ session, onClose, mode = 'modal' }: PreviewModalP
       case 'transcript':
         return <TranscriptTab session={session} />
       default:
-        return <OverviewTab session={session} />
+        return <TranscriptTab session={session} />
     }
   })()
 
   const containerContent = (
     <>
-      <SessionHeader session={session} onClose={onClose} />
+      <SessionHeader
+        session={session}
+        onClose={onClose}
+        sidebarCollapsed={sidebarCollapsed}
+        onToggleSidebar={onToggleSidebar}
+      />
       <SessionTabBar activeTab={activeTab} onTabChange={setActiveTab} />
       <div className="flex-1 overflow-hidden">
         {tabContent}
