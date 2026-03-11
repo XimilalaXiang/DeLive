@@ -260,7 +260,7 @@ function App() {
 
       {/* Live 视图始终挂载，切走时隐藏，避免转录中断 */}
       <main
-        className={`container mx-auto max-w-4xl px-4 pb-8 pt-4 sm:px-6 ${
+        className={`container mx-auto max-w-5xl px-4 pb-8 pt-4 sm:px-6 ${
           currentView === 'live' ? 'flex-1' : 'hidden'
         }`}
       >
@@ -306,7 +306,7 @@ function App() {
           )}
 
           <div className="animate-reveal-up delay-1">
-            <TranscriptDisplay contentHeightClassName="h-[min(60vh,48rem)] min-h-[32rem]" />
+            <TranscriptDisplay contentHeightClassName="h-[min(50vh,36rem)] min-h-[24rem]" />
           </div>
 
           <div className="workspace-panel p-5 animate-reveal-up delay-2">

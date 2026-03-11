@@ -104,6 +104,7 @@ export interface SessionState {
     options?: { overwrite?: boolean },
   ) => Promise<TranscriptPostProcess>
   deleteSession: (id: string) => void
+  deleteSessionConversation: (sessionId: string, conversationId: string) => void
   updateSessionTags: (sessionId: string, tagIds: string[]) => void
   replaceAllSessions: (sessions: TranscriptSession[]) => TranscriptSession[]
 
@@ -577,6 +578,14 @@ export const useSessionStore = create<SessionState>((set, get) => {
         sessions,
         recoverySession: nextState.recoverySession,
       })
+    },
+    deleteSessionConversation: (sessionId, conversationId) => {
+      const session = get().sessions.find((s) => s.id === sessionId)
+      if (!session) return
+      const nextHistory = (session.askHistory || []).filter(
+        (turn) => (turn.conversationId || 'default') !== conversationId,
+      )
+      replaceSessionAskHistory(sessionId, nextHistory)
     },
     updateSessionTags: (sessionId, tagIds) => {
       const { sessions, recoverySession, currentSessionId, currentSpeakers, currentPostProcess } = get()

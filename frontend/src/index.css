@@ -253,6 +253,18 @@ body {
   transform: scale(0.97);
 }
 
+/* ===== Markmap dark mode ===== */
+.dark .markmap-container svg {
+  color: hsl(var(--foreground));
+}
+.dark .markmap-container svg text,
+.dark .markmap-container svg tspan {
+  fill: hsl(var(--foreground)) !important;
+}
+.dark .markmap-container svg foreignObject div {
+  color: hsl(var(--foreground)) !important;
+}
+
 /* ===== Reduce motion ===== */
 @media (prefers-reduced-motion: reduce) {
   *,

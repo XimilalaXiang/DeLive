@@ -25,6 +25,7 @@ export function HistoryPanel({
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingTitle, setEditingTitle] = useState('')
   const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set())
+  const [collapsedDates, setCollapsedDates] = useState<Set<string>>(new Set())
   const [inputValue, setInputValue] = useState(searchQuery)
   const [pendingDeleteSession, setPendingDeleteSession] = useState<TranscriptSession | null>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -135,14 +136,28 @@ export function HistoryPanel({
     return Object.entries(groups).sort((a, b) => b[0].localeCompare(a[0]))
   }, [filteredSessions])
 
+  const today = new Date().toISOString().split('T')[0]
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
+
   const toggleDate = (date: string) => {
-    const newExpanded = new Set(expandedDates)
-    if (newExpanded.has(date)) {
-      newExpanded.delete(date)
+    const isDefault = date === today || date === yesterday
+    if (isDefault) {
+      const next = new Set(collapsedDates)
+      if (next.has(date)) {
+        next.delete(date)
+      } else {
+        next.add(date)
+      }
+      setCollapsedDates(next)
     } else {
-      newExpanded.add(date)
+      const next = new Set(expandedDates)
+      if (next.has(date)) {
+        next.delete(date)
+      } else {
+        next.add(date)
+      }
+      setExpandedDates(next)
     }
-    setExpandedDates(newExpanded)
   }
 
   const startEditing = (e: React.MouseEvent, session: TranscriptSession) => {
@@ -193,11 +208,11 @@ export function HistoryPanel({
     return dateStr
   }
 
-  // 默认展开今天和昨天
-  const today = new Date().toISOString().split('T')[0]
-  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
-  const isExpanded = (date: string) => 
-    expandedDates.has(date) || date === today || date === yesterday
+  const isExpanded = (date: string) => {
+    const isDefault = date === today || date === yesterday
+    if (isDefault) return !collapsedDates.has(date)
+    return expandedDates.has(date)
+  }
   const isRail = variant === 'rail'
   const resolvedContentHeightClassName = contentHeightClassName || (isRail ? 'h-[min(62vh,44rem)]' : 'max-h-[400px]')
   const railCopy = language === 'zh'
@@ -351,17 +366,17 @@ export function HistoryPanel({
                               </div>
                             ) : (
                               <>
-                                <span className="flex-1 text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
+                                <span className="flex-1 min-w-0 text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
                                   {session.title}
                                 </span>
                                 {session.providerId && (
-                                  <span className="hidden rounded-full border border-border/70 bg-background/80 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground md:inline-flex">
+                                  <span className={`shrink-0 rounded-full border border-border/70 bg-background/80 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground ${isRail ? 'inline-flex' : 'hidden md:inline-flex'}`}>
                                     {session.providerId}
                                   </span>
                                 )}
 
-                                {/* 操作按钮 */}
-                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                                {/* 操作按钮 - hidden until hover, don't reserve space */}
+                                <div className="hidden items-center gap-1 group-hover:flex flex-shrink-0">
                                   <button
                                     onClick={(e) => startEditing(e, session)}
                                     className="h-8 w-8 min-h-8 min-w-8 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background rounded-md transition-all shadow-sm border border-transparent hover:border-border"
@@ -387,7 +402,7 @@ export function HistoryPanel({
                                     <Trash2 className="w-3.5 h-3.5" />
                                   </button>
                                 </div>
-                                <ChevronRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-muted-foreground group-hover:translate-x-0.5 transition-all" />
+                                <ChevronRight className="w-4 h-4 shrink-0 text-muted-foreground/30 group-hover:text-muted-foreground group-hover:translate-x-0.5 transition-all" />
                               </>
                             )}
                           </div>

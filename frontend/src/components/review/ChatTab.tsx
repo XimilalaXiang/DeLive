@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import {
   MessageSquareQuote,
   Send,
@@ -6,6 +6,7 @@ import {
   Quote,
   ArrowUpRight,
   Plus,
+  Trash2,
 } from 'lucide-react'
 import type { TranscriptSession } from '../../types'
 import { useUIStore } from '../../stores/uiStore'
@@ -22,8 +23,10 @@ export function ChatTab({ session }: ChatTabProps) {
   const { t } = useUIStore()
   const settings = useSettingsStore((state) => state.settings)
   const askSessionQuestion = useSessionStore((state) => state.askSessionQuestion)
+  const deleteSessionConversation = useSessionStore((state) => state.deleteSessionConversation)
   const [questionDraft, setQuestionDraft] = useState('')
   const [activeConversationId, setActiveConversationId] = useState<string>('default')
+  const [isNewThread, setIsNewThread] = useState(false)
   const askMessagesEndRef = useRef<HTMLDivElement>(null)
 
   const askHistory = useMemo(() => session.askHistory || [], [session.askHistory])
@@ -33,6 +36,7 @@ export function ChatTab({ session }: ChatTabProps) {
   useEffect(() => {
     setQuestionDraft('')
     setActiveConversationId('default')
+    setIsNewThread(false)
   }, [session.id])
 
   const askConversations = useMemo(() => {
@@ -61,14 +65,23 @@ export function ChatTab({ session }: ChatTabProps) {
     ? displayedAskHistory[displayedAskHistory.length - 1]?.status
     : undefined
 
+  // Only auto-select first conversation when not in a user-initiated new thread
   useEffect(() => {
+    if (isNewThread) return
     if (hasActiveConversation) return
     if (askConversations.length > 0) {
       setActiveConversationId(askConversations[0].id)
       return
     }
     setActiveConversationId('default')
-  }, [activeConversationId, askConversations, hasActiveConversation])
+  }, [activeConversationId, askConversations, hasActiveConversation, isNewThread])
+
+  // When the new thread gets its first message, it becomes a real conversation
+  useEffect(() => {
+    if (isNewThread && hasActiveConversation) {
+      setIsNewThread(false)
+    }
+  }, [isNewThread, hasActiveConversation])
 
   useEffect(() => {
     askMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -87,9 +100,25 @@ export function ChatTab({ session }: ChatTabProps) {
   }
 
   const handleStartNewConversation = () => {
-    setActiveConversationId(generateId())
+    const newId = generateId()
+    setActiveConversationId(newId)
+    setIsNewThread(true)
     setQuestionDraft('')
   }
+
+  const handleSelectConversation = useCallback((id: string) => {
+    setActiveConversationId(id)
+    setIsNewThread(false)
+  }, [])
+
+  const handleDeleteConversation = useCallback((e: React.MouseEvent, conversationId: string) => {
+    e.stopPropagation()
+    deleteSessionConversation(session.id, conversationId)
+    if (activeConversationId === conversationId) {
+      setActiveConversationId('default')
+      setIsNewThread(false)
+    }
+  }, [session.id, activeConversationId, deleteSessionConversation])
 
   const getConversationLabel = (
     conversationId: string,
@@ -107,6 +136,7 @@ export function ChatTab({ session }: ChatTabProps) {
   }
 
   const askSuggestions = t.preview.askSuggestions || []
+  const showNewThreadPill = isNewThread && !hasActiveConversation
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -114,22 +144,30 @@ export function ChatTab({ session }: ChatTabProps) {
       <div className="flex items-center gap-2 border-b border-border bg-muted/20 px-5 py-3">
         <div className="flex flex-1 flex-wrap items-center gap-2 overflow-hidden">
           {askConversations.map((conversation, index) => (
-            <button
-              key={conversation.id}
-              onClick={() => setActiveConversationId(conversation.id)}
-              className={`inline-flex max-w-[200px] items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-                conversation.id === activeConversationId
-                  ? 'border-primary/30 bg-primary/10 text-primary'
-                  : 'border-border bg-background text-muted-foreground hover:border-primary/20 hover:text-foreground'
-              }`}
-              title={conversation.firstTurn?.question}
-            >
-              <span className="truncate">
-                {getConversationLabel(conversation.id, conversation.firstTurn?.question, index)}
-              </span>
-            </button>
+            <div key={conversation.id} className="group/thread inline-flex items-center">
+              <button
+                onClick={() => handleSelectConversation(conversation.id)}
+                className={`inline-flex max-w-[200px] items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                  conversation.id === activeConversationId
+                    ? 'border-primary/30 bg-primary/10 text-primary'
+                    : 'border-border bg-background text-muted-foreground hover:border-primary/20 hover:text-foreground'
+                }`}
+                title={conversation.firstTurn?.question}
+              >
+                <span className="truncate">
+                  {getConversationLabel(conversation.id, conversation.firstTurn?.question, index)}
+                </span>
+              </button>
+              <button
+                onClick={(e) => handleDeleteConversation(e, conversation.id)}
+                className="ml-0.5 hidden h-5 w-5 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive group-hover/thread:inline-flex"
+                title={t.common.delete}
+              >
+                <Trash2 className="h-3 w-3" />
+              </button>
+            </div>
           ))}
-          {!hasActiveConversation && activeConversationId !== 'default' && (
+          {showNewThreadPill && (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
               {t.preview.askNewConversationLabel}
             </span>
@@ -226,7 +264,7 @@ export function ChatTab({ session }: ChatTabProps) {
             <div className="space-y-1">
               <p className="text-sm font-medium text-foreground">{t.preview.askEmpty}</p>
               <p className="text-xs text-muted-foreground">
-                {hasActiveConversation ? t.preview.askEmptyHint : t.preview.askNewConversationHint}
+                {showNewThreadPill ? t.preview.askNewConversationHint : t.preview.askEmptyHint}
               </p>
             </div>
             {askSuggestions.length > 0 && (

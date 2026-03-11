@@ -372,7 +372,7 @@ export function MindMapTab({ session }: MindMapTabProps) {
         )}
 
         {/* Mind map preview (takes remaining space) */}
-        <div className="flex-1 relative overflow-hidden bg-background/40 dark:bg-muted/20">
+        <div className="flex-1 relative overflow-hidden bg-background/40 dark:bg-muted/20 markmap-container">
           {hasMindMap ? (
             <svg ref={svgRef} className="h-full w-full" />
           ) : (
@@ -411,7 +411,7 @@ export function MindMapTab({ session }: MindMapTabProps) {
               <X className="w-4 h-4" />
             </button>
           </div>
-          <div className="flex-1 relative overflow-hidden bg-background/40 dark:bg-muted/20">
+          <div className="flex-1 relative overflow-hidden bg-background/40 dark:bg-muted/20 markmap-container">
             <svg ref={fullscreenSvgRef} className="h-full w-full" />
           </div>
         </div>,
