@@ -157,7 +157,7 @@ function App() {
   })()
 
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
+    <div className={`bg-background text-foreground transition-colors duration-300 ${currentView === 'live' ? 'min-h-screen' : 'flex h-screen flex-col overflow-hidden'}`}>
       <a
         href="#app-main"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[110] focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-foreground focus:shadow-lg"
@@ -165,9 +165,9 @@ function App() {
         Skip to main content
       </a>
       <TitleBar />
+      {isElectron && <div className="h-8 shrink-0" />}
 
-      {/* Compact header: brand + status badges + actions */}
-      <header className={`sticky z-40 w-full border-b border-border/60 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/75 ${isElectron ? 'top-8' : 'top-0'}`}>
+      <header className={`z-40 w-full shrink-0 border-b border-border/60 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/75 ${currentView === 'live' ? (isElectron ? 'sticky top-8' : 'sticky top-0') : ''}`}>
         <div className="container mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
