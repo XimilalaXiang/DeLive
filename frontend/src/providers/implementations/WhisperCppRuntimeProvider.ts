@@ -1,7 +1,7 @@
 import { WindowedBatchTranscriptionProvider } from '../windowedBatch'
 import type { ASRProviderInfo, ProviderConfig, ASRVendor } from '../../types/asr'
 import { createBundledRuntimeManager } from '../../utils/localRuntimeManager'
-import { getPcmChunkDurationMs } from '../../utils/rollingAudioBuffer'
+import { getPcmChunkDurationMs, isPcm16Silent } from '../../utils/rollingAudioBuffer'
 import { buildPcmWavBlob } from '../../utils/pcmWav'
 
 const WHISPER_CPP_RUNTIME_ID = 'whisper_cpp'
@@ -143,6 +143,7 @@ export class WhisperCppRuntimeProvider extends WindowedBatchTranscriptionProvide
 
   protected async resolveAudioChunk(data: Blob | ArrayBuffer) {
     const buffer = data instanceof Blob ? await data.arrayBuffer() : data
+    if (isPcm16Silent(buffer)) return null
     return {
       chunk: buffer,
       durationMs: getPcmChunkDurationMs(

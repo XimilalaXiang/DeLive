@@ -66,3 +66,19 @@ export function getPcmChunkDurationMs(
 export function getMediaRecorderChunkDurationMs(defaultChunkMs = 100): number {
   return defaultChunkMs
 }
+
+/**
+ * RMS energy check for PCM16 buffers.
+ * Returns true when the chunk is below the silence threshold,
+ * preventing whisper from hallucinating on quiet/paused audio.
+ */
+export function isPcm16Silent(buffer: ArrayBuffer, rmsThreshold = 0.005): boolean {
+  const samples = new Int16Array(buffer)
+  if (samples.length === 0) return true
+  let sumSq = 0
+  for (let i = 0; i < samples.length; i++) {
+    const normalized = samples[i] / 32768
+    sumSq += normalized * normalized
+  }
+  return Math.sqrt(sumSq / samples.length) < rmsThreshold
+}
