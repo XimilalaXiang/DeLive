@@ -12,6 +12,7 @@ import {
 import { BundledRuntimeSetupGuide } from '../BundledRuntimeSetupGuide'
 import { LocalModelSetupGuide } from '../LocalModelSetupGuide'
 import { ProviderSelector } from '../ProviderSelector'
+import { Switch } from '../ui'
 import type { Translations } from '../../i18n'
 import type { ASRProviderInfo, ProviderConfigData } from '../../types'
 import type { ProviderConfigField } from '../../types/asr'
@@ -106,19 +107,11 @@ export function ServiceSettingsPanel({
                 <p className="text-xs text-muted-foreground">{field.description}</p>
               )}
             </div>
-            <button
-              type="button"
-              onClick={() => updateFormField(field.key, !getBooleanFieldValue(field.key))}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                getBooleanFieldValue(field.key) ? 'bg-success' : 'bg-gray-400 dark:bg-gray-600'
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${
-                  getBooleanFieldValue(field.key) ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
+            <Switch
+              checked={getBooleanFieldValue(field.key)}
+              onChange={(val) => updateFormField(field.key, val)}
+              aria-label={field.label}
+            />
           </div>
         </div>
       )

@@ -57,7 +57,7 @@ export function RecordingControls({ onError }: RecordingControlsProps) {
           active:scale-[0.97]
           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
           ${isRecording
-            ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90 ring-2 ring-destructive/20'
+            ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90 ring-2 ring-destructive/20 animate-glow-pulse-destructive'
             : 'bg-primary text-primary-foreground hover:bg-primary/90 ring-2 ring-primary/20'
           }
         `}

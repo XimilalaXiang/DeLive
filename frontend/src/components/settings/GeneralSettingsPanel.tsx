@@ -1,8 +1,10 @@
-import type { ChangeEvent, Ref } from 'react'
+import { useState, type ChangeEvent, type Ref } from 'react'
 import {
   AlertCircle,
   Check,
   Download,
+  Eye,
+  EyeOff,
   Globe,
   Key,
   Loader2,
@@ -13,6 +15,7 @@ import {
   Star,
   Upload,
 } from 'lucide-react'
+import { Switch } from '../ui'
 import type { Language, Translations } from '../../i18n'
 import type { AiPostProcessConfig, AppSettings } from '../../types'
 import { colorThemes, type ColorThemeId } from '../../themes'
@@ -74,6 +77,7 @@ export function GeneralSettingsPanel({
   handleExportDiagnostics,
 }: GeneralSettingsPanelProps) {
   const aiConfig = aiPostProcessConfig
+  const [showAiApiKey, setShowAiApiKey] = useState(false)
 
   return (
     <>
@@ -90,7 +94,7 @@ export function GeneralSettingsPanel({
             onClick={() => setLanguage('zh')}
             className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all
                       ${language === 'zh'
-                        ? 'bg-success/10 text-success dark:text-success border-2 border-success ring-2 ring-success/20'
+                        ? 'bg-primary/10 text-primary border-2 border-primary ring-2 ring-primary/20'
                         : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
                       }`}
           >
@@ -100,7 +104,7 @@ export function GeneralSettingsPanel({
             onClick={() => setLanguage('en')}
             className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all
                       ${language === 'en'
-                        ? 'bg-success/10 text-success dark:text-success border-2 border-success ring-2 ring-success/20'
+                        ? 'bg-primary/10 text-primary border-2 border-primary ring-2 ring-primary/20'
                         : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
                       }`}
           >
@@ -170,18 +174,11 @@ export function GeneralSettingsPanel({
             <p className="text-sm font-medium">{t.settings.aiPostProcessEnable}</p>
             <p className="text-xs text-muted-foreground">{t.settings.aiPostProcessEnableDesc}</p>
           </div>
-          <button
-            onClick={() => updateAiPostProcessConfig({ enabled: !aiConfig.enabled })}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              aiConfig.enabled ? 'bg-success' : 'bg-gray-400 dark:bg-gray-600'
-            }`}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${
-                aiConfig.enabled ? 'translate-x-6' : 'translate-x-1'
-              }`}
-            />
-          </button>
+          <Switch
+            checked={!!aiConfig.enabled}
+            onChange={(val) => updateAiPostProcessConfig({ enabled: val })}
+            aria-label={t.settings.aiPostProcessEnable}
+          />
         </div>
 
         <div className="space-y-2">
@@ -211,13 +208,23 @@ export function GeneralSettingsPanel({
             <Key className="w-3.5 h-3.5" />
             {t.settings.aiApiKey}
           </label>
-          <input
-            type="password"
-            value={aiConfig.apiKey || ''}
-            onChange={(event) => updateAiPostProcessConfig({ apiKey: event.target.value })}
-            placeholder={t.settings.aiApiKeyPlaceholder}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          />
+          <div className="relative">
+            <input
+              type={showAiApiKey ? 'text' : 'password'}
+              value={aiConfig.apiKey || ''}
+              onChange={(event) => updateAiPostProcessConfig({ apiKey: event.target.value })}
+              placeholder={t.settings.aiApiKeyPlaceholder}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 pr-10 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            />
+            <button
+              type="button"
+              onClick={() => setShowAiApiKey(!showAiApiKey)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label={showAiApiKey ? 'Hide API key' : 'Show API key'}
+            >
+              {showAiApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
           <p className="text-xs text-muted-foreground">
             {t.settings.aiApiKeyDesc}
           </p>
@@ -230,7 +237,7 @@ export function GeneralSettingsPanel({
               onClick={() => updateAiPostProcessConfig({ promptLanguage: 'zh' })}
               className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all ${
                 (aiConfig.promptLanguage || 'zh') === 'zh'
-                  ? 'bg-success/10 text-success dark:text-success border-2 border-success ring-2 ring-success/20'
+                  ? 'bg-primary/10 text-primary border-2 border-primary ring-2 ring-primary/20'
                   : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
               }`}
             >
@@ -240,7 +247,7 @@ export function GeneralSettingsPanel({
               onClick={() => updateAiPostProcessConfig({ promptLanguage: 'en' })}
               className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all ${
                 (aiConfig.promptLanguage || 'zh') === 'en'
-                  ? 'bg-success/10 text-success dark:text-success border-2 border-success ring-2 ring-success/20'
+                  ? 'bg-primary/10 text-primary border-2 border-primary ring-2 ring-primary/20'
                   : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
               }`}
             >
@@ -315,16 +322,11 @@ export function GeneralSettingsPanel({
                   <p className="text-sm font-medium">{t.settings.autoLaunch}</p>
                   <p className="text-xs text-muted-foreground">{t.settings.autoLaunchDesc}</p>
                 </div>
-                <button
-                  onClick={() => void handleAutoLaunchChange(!autoLaunch)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors
-                            ${autoLaunch ? 'bg-success' : 'bg-gray-400 dark:bg-gray-600'}`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform
-                              ${autoLaunch ? 'translate-x-6' : 'translate-x-1'}`}
-                  />
-                </button>
+                <Switch
+                  checked={autoLaunch}
+                  onChange={(val) => void handleAutoLaunchChange(val)}
+                  aria-label={t.settings.autoLaunch}
+                />
               </div>
             </section>
           )}
@@ -345,19 +347,11 @@ export function GeneralSettingsPanel({
                     {language === 'zh' ? '每次启动应用时自动检查是否有新版本' : 'Automatically check for updates when app starts'}
                   </p>
                 </div>
-                <button
-                  onClick={() => {
-                    const newValue = settings.autoCheckUpdate === false ? true : false
-                    updateSettings({ autoCheckUpdate: newValue })
-                  }}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors
-                            ${settings.autoCheckUpdate !== false ? 'bg-success' : 'bg-gray-400 dark:bg-gray-600'}`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform
-                              ${settings.autoCheckUpdate !== false ? 'translate-x-6' : 'translate-x-1'}`}
-                  />
-                </button>
+                <Switch
+                  checked={settings.autoCheckUpdate !== false}
+                  onChange={(val) => updateSettings({ autoCheckUpdate: val })}
+                  aria-label={language === 'zh' ? '启动时自动检查更新' : 'Auto-check on startup'}
+                />
               </div>
 
               <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
@@ -383,9 +377,9 @@ export function GeneralSettingsPanel({
                             ${updateStatus === 'checking'
                               ? 'bg-muted text-muted-foreground cursor-not-allowed'
                               : updateStatus === 'not-available'
-                              ? 'bg-success/10 text-success dark:text-success border border-success/50'
+                              ? 'bg-success/10 text-success border border-success/50'
                               : updateStatus === 'error'
-                              ? 'bg-destructive/10 text-destructive dark:text-destructive border border-destructive/50'
+                              ? 'bg-destructive/10 text-destructive border border-destructive/50'
                               : 'bg-primary text-primary-foreground hover:bg-primary/90'
                             }`}
                 >

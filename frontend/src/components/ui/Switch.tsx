@@ -3,13 +3,16 @@ interface SwitchProps {
   onChange: (checked: boolean) => void
   disabled?: boolean
   className?: string
+  'aria-label'?: string
 }
 
-export function Switch({ checked, onChange, disabled, className = '' }: SwitchProps) {
+export function Switch({ checked, onChange, disabled, className = '', 'aria-label': ariaLabel }: SwitchProps) {
   return (
     <button
+      type="button"
       role="switch"
       aria-checked={checked}
+      aria-label={ariaLabel}
       disabled={disabled}
       onClick={() => onChange(!checked)}
       className={`
@@ -17,7 +20,7 @@ export function Switch({ checked, onChange, disabled, className = '' }: SwitchPr
         transition-colors duration-200 ring-offset-background
         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
         disabled:cursor-not-allowed disabled:opacity-50
-        ${checked ? 'bg-success' : 'bg-muted-foreground/30'}
+        ${checked ? 'bg-primary' : 'bg-muted-foreground/30'}
         ${className}
       `}
     >

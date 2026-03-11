@@ -1,11 +1,11 @@
 import { useMemo } from 'react'
-import { ArrowLeft } from 'lucide-react'
 import { useUIStore } from '../stores/uiStore'
 import { useSessionStore } from '../stores/sessionStore'
 import { PreviewModal } from './PreviewModal'
+import { HistoryPanel } from './HistoryPanel'
 
 export function ReviewDeskView() {
-  const { reviewSessionId, backToLive } = useUIStore()
+  const { reviewSessionId } = useUIStore()
   const sessions = useSessionStore((s) => s.sessions)
 
   const session = useMemo(
@@ -15,24 +15,31 @@ export function ReviewDeskView() {
 
   if (!session) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-4 text-muted-foreground">
-        <p className="text-sm">Session not found</p>
-        <button
-          onClick={backToLive}
-          className="inline-flex items-center gap-2 rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground hover:bg-secondary/80"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Live
-        </button>
+      <div className="h-full flex flex-col animate-view-enter">
+        <div className="container mx-auto max-w-5xl flex-1 px-4 py-4 sm:px-6">
+          <HistoryPanel variant="full" contentHeightClassName="h-[min(72vh,56rem)]" />
+        </div>
       </div>
     )
   }
 
   return (
-    <PreviewModal
-      session={session}
-      onClose={backToLive}
-      mode="view"
-    />
+    <div className="h-full flex animate-view-enter">
+      {/* 左侧列表 */}
+      <aside className="hidden lg:flex w-[380px] shrink-0 border-r border-border/60 overflow-hidden">
+        <div className="flex-1 overflow-y-auto p-3">
+          <HistoryPanel variant="rail" contentHeightClassName="h-[calc(100vh-8rem)]" />
+        </div>
+      </aside>
+
+      {/* 右侧详情 */}
+      <div className="flex-1 overflow-hidden">
+        <PreviewModal
+          session={session}
+          onClose={() => useUIStore.getState().setView('review')}
+          mode="view"
+        />
+      </div>
+    </div>
   )
 }

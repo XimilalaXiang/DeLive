@@ -123,6 +123,38 @@ body {
   animation: reveal-fade 200ms ease-out both;
 }
 
+/* ===== 视图切换过渡 ===== */
+@keyframes view-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-view-enter {
+  animation: view-enter 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ===== 视图切换过渡 ===== */
+.view-transition-enter {
+  animation: view-enter 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes view-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Staggered delays — 40ms per item */
 .delay-1 { animation-delay: 40ms; }
 .delay-2 { animation-delay: 80ms; }
@@ -153,8 +185,21 @@ body {
   }
 }
 
+@keyframes glow-pulse-destructive {
+  0%, 100% {
+    box-shadow: 0 0 8px 0 hsl(var(--destructive) / 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px 4px hsl(var(--destructive) / 0.2);
+  }
+}
+
 .animate-glow-pulse {
   animation: glow-pulse 2s ease-in-out infinite;
+}
+
+.animate-glow-pulse-destructive {
+  animation: glow-pulse-destructive 2s ease-in-out infinite;
 }
 
 /* ===== 转录文字样式 ===== */
@@ -222,7 +267,9 @@ body {
   .animate-reveal-up,
   .animate-reveal-fade,
   .animate-glow-pulse,
-  .animate-pulse-recording {
+  .animate-glow-pulse-destructive,
+  .animate-pulse-recording,
+  .animate-view-enter {
     animation: none;
     opacity: 1;
     transform: none;

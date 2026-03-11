@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { Settings, Check, X } from 'lucide-react'
+import { Button } from './ui'
 import { useUIStore } from '../stores/uiStore'
 import { useSettingsStore } from '../stores/settingsStore'
 import { useSessionStore } from '../stores/sessionStore'
@@ -71,16 +72,32 @@ export function ApiKeyConfig({ isOpen, onClose, mode = 'modal' }: ApiKeyConfigPr
   const fileInputRef = useRef<HTMLInputElement>(null)
   const supportsAutoLaunch = !!window.electronAPI?.supportsAutoLaunch
   const supportsAutoUpdate = !!window.electronAPI?.supportsAutoUpdate
+
+  const snapshotRef = useRef({ formState, languageHints, aiPostProcessConfig, currentVendor: settings.currentVendor })
   
   // 当提供商改变时更新表单
   useEffect(() => {
-    setFormState(buildProviderFormState(currentProvider, currentStoredConfig, settings))
-    setLanguageHints(formatStringArrayValue(currentStoredConfig?.languageHints, settings.languageHints || ['zh', 'en']))
-    setAiPostProcessConfig(settings.aiPostProcess || getDefaultSettings().aiPostProcess || {})
+    const newFormState = buildProviderFormState(currentProvider, currentStoredConfig, settings)
+    const newLanguageHints = formatStringArrayValue(currentStoredConfig?.languageHints, settings.languageHints || ['zh', 'en'])
+    const newAiConfig = settings.aiPostProcess || getDefaultSettings().aiPostProcess || {}
+    setFormState(newFormState)
+    setLanguageHints(newLanguageHints)
+    setAiPostProcessConfig(newAiConfig)
     setRevealedFields({})
     setTestStatus('idle')
     setTestMessage('')
+    snapshotRef.current = { formState: newFormState, languageHints: newLanguageHints, aiPostProcessConfig: newAiConfig, currentVendor: settings.currentVendor || 'soniox' }
   }, [currentProvider, currentStoredConfig, settings])
+
+  const isDirty = useMemo(() => {
+    const snap = snapshotRef.current
+    return (
+      JSON.stringify(formState) !== JSON.stringify(snap.formState) ||
+      languageHints !== snap.languageHints ||
+      JSON.stringify(aiPostProcessConfig) !== JSON.stringify(snap.aiPostProcessConfig) ||
+      (settings.currentVendor || 'soniox') !== snap.currentVendor
+    )
+  }, [formState, languageHints, aiPostProcessConfig, settings.currentVendor])
 
   // 加载开机自启动状态和应用版本（仅 Electron 环境）
   useEffect(() => {
@@ -374,8 +391,12 @@ export function ApiKeyConfig({ isOpen, onClose, mode = 'modal' }: ApiKeyConfigPr
         </div>
 
         {/* Tab bar */}
-        <div className="flex border-b border-border bg-muted/20 px-6 flex-shrink-0">
+        <div className="flex border-b border-border bg-muted/20 px-6 flex-shrink-0" role="tablist" aria-label="Settings sections">
           <button
+            role="tab"
+            aria-selected={activeTab === 'service'}
+            aria-controls="settings-panel-service"
+            id="settings-tab-service"
             onClick={() => setActiveTab('service')}
             className={`px-4 py-2.5 text-sm font-medium transition-colors relative ${
               activeTab === 'service'
@@ -389,6 +410,10 @@ export function ApiKeyConfig({ isOpen, onClose, mode = 'modal' }: ApiKeyConfigPr
             )}
           </button>
           <button
+            role="tab"
+            aria-selected={activeTab === 'general'}
+            aria-controls="settings-panel-general"
+            id="settings-tab-general"
             onClick={() => setActiveTab('general')}
             className={`px-4 py-2.5 text-sm font-medium transition-colors relative ${
               activeTab === 'general'
@@ -406,6 +431,7 @@ export function ApiKeyConfig({ isOpen, onClose, mode = 'modal' }: ApiKeyConfigPr
         {/* 内容 - 可滚动 */}
         <div className="p-6 space-y-6 overflow-y-auto flex-1">
           {activeTab === 'service' && (
+            <div id="settings-panel-service" role="tabpanel" aria-labelledby="settings-tab-service">
             <ServiceSettingsPanel
               t={t}
               currentProvider={currentProvider}
@@ -439,9 +465,11 @@ export function ApiKeyConfig({ isOpen, onClose, mode = 'modal' }: ApiKeyConfigPr
                 }
               }}
             />
+            </div>
           )}
 
           {activeTab === 'general' && (
+            <div id="settings-panel-general" role="tabpanel" aria-labelledby="settings-tab-general">
             <GeneralSettingsPanel
               t={t}
               language={language}
@@ -472,24 +500,24 @@ export function ApiKeyConfig({ isOpen, onClose, mode = 'modal' }: ApiKeyConfigPr
               handleCheckUpdate={handleCheckUpdate}
               handleExportDiagnostics={handleExportDiagnostics}
             />
+            </div>
           )}
         </div>
 
         {/* 底部按钮 */}
-        <div className="flex justify-end gap-3 px-6 py-4 bg-muted/30 border-t border-border flex-shrink-0">
-          <button
-            onClick={onClose}
-            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 press-scale"
-          >
+        <div className="flex items-center justify-end gap-3 px-6 py-4 bg-muted/30 border-t border-border flex-shrink-0">
+          {isDirty && (
+            <span className="mr-auto text-xs text-warning font-medium">
+              {language === 'zh' ? '有未保存的更改' : 'Unsaved changes'}
+            </span>
+          )}
+          <Button variant="secondary" onClick={onClose}>
             {t.common.cancel}
-          </button>
-          <button
-            onClick={() => void handleSave()}
-            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 gap-2 press-scale"
-          >
+          </Button>
+          <Button variant="primary" onClick={() => void handleSave()}>
             <Check className="w-4 h-4" />
             {t.common.save}
-          </button>
+          </Button>
         </div>
         <ActionDialog
           open={pendingImportData !== null}

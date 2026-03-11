@@ -15,6 +15,7 @@ import {
   X,
   Sun
 } from 'lucide-react'
+import { Switch } from './ui'
 import { useUIStore } from '../stores/uiStore'
 import { useSettingsStore } from '../stores/settingsStore'
 import type { CaptionStyle } from '../types'
@@ -284,7 +285,7 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
                         className={`
                           py-2 rounded-lg font-medium text-sm transition-all border-2
                           ${(style.displayMode ?? 'source') === option.value
-                            ? 'bg-muted text-foreground border-gray-800 dark:border-white'
+                            ? 'bg-primary/10 text-foreground border-primary'
                             : 'bg-muted hover:bg-accent text-muted-foreground hover:text-foreground border-transparent'
                           }
                         `}
@@ -354,7 +355,7 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
                       className={`
                         flex-1 py-2 rounded-lg font-medium text-sm transition-all relative border-2
                         ${style.maxLines === num
-                          ? 'bg-muted text-foreground border-gray-800 dark:border-white'
+                          ? 'bg-primary/10 text-foreground border-primary'
                           : 'bg-muted hover:bg-accent text-muted-foreground hover:text-foreground border-transparent'
                         }
                       `}
@@ -378,7 +379,7 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
                       className={`
                         px-3 py-2 text-xs rounded-lg transition-all whitespace-nowrap border-2
                         ${style.fontFamily === font.value
-                          ? 'bg-muted text-foreground border-gray-800 dark:border-white'
+                          ? 'bg-primary/10 text-foreground border-primary'
                           : 'bg-muted hover:bg-accent text-muted-foreground hover:text-foreground border-transparent'
                         }
                       `}
@@ -450,30 +451,14 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
               {/* 文字阴影 */}
               <div className="flex items-center justify-between p-4 rounded-xl transition-all border border-border bg-muted hover:bg-accent">
                 <label className="text-sm font-medium flex items-center gap-2 text-foreground">
-                  <Sun className={`w-4 h-4 ${style.textShadow ? 'text-green-500' : 'text-muted-foreground'}`} />
+                  <Sun className={`w-4 h-4 ${style.textShadow ? 'text-primary' : 'text-muted-foreground'}`} />
                   <span>{t.caption?.textShadow || '文字阴影'}</span>
                 </label>
-                <button
-                  onClick={() => handleStyleChange({ textShadow: !style.textShadow })}
-                  className={`
-                    relative inline-flex h-6 w-11 items-center rounded-full transition-all ring-2
-                    ${style.textShadow
-                      ? 'bg-green-500 ring-green-500'
-                      : 'bg-muted-foreground/30 ring-transparent'
-                    }
-                  `}
+                <Switch
+                  checked={!!style.textShadow}
+                  onChange={(val) => handleStyleChange({ textShadow: val })}
                   aria-label={style.textShadow ? 'Disable text shadow' : 'Enable text shadow'}
-                >
-                  <span
-                    className={`
-                      inline-block h-4 w-4 transform rounded-full shadow-sm transition-transform bg-white
-                      ${style.textShadow
-                        ? 'translate-x-6'
-                        : 'translate-x-1'
-                      }
-                    `}
-                  />
-                </button>
+                />
               </div>
             </div>
           </div>

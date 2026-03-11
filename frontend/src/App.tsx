@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { AlertTriangle, Settings, Waves } from 'lucide-react'
+import { AlertTriangle, Settings, Waves, Radio, BookOpen } from 'lucide-react'
 import { useUIStore } from './stores/uiStore'
 import { useSettingsStore } from './stores/settingsStore'
 import { useSessionStore } from './stores/sessionStore'
@@ -9,7 +9,6 @@ import {
   ApiKeyConfig, 
   TranscriptDisplay, 
   RecordingControls, 
-  HistoryPanel,
   ToastContainer,
   AnimatedThemeToggler,
   SourcePicker,
@@ -174,7 +173,47 @@ function App() {
               <Waves className="h-4 w-4" />
             </div>
             <h1 className="text-base font-semibold tracking-tight">{t.app.name}</h1>
-            <div className="hidden items-center gap-2 sm:flex">
+            <nav className="hidden items-center sm:flex ml-2" role="navigation" aria-label="Main navigation">
+              <button
+                onClick={() => setView('live')}
+                className={`relative inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  currentView === 'live'
+                    ? 'text-primary bg-primary/10'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                }`}
+                aria-current={currentView === 'live' ? 'page' : undefined}
+              >
+                <Radio className="h-3.5 w-3.5" />
+                Live
+              </button>
+              <button
+                onClick={() => setView('review')}
+                className={`relative inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  currentView === 'review'
+                    ? 'text-primary bg-primary/10'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                }`}
+                aria-current={currentView === 'review' ? 'page' : undefined}
+              >
+                <BookOpen className="h-3.5 w-3.5" />
+                Review
+              </button>
+              <button
+                onClick={() => setView('settings')}
+                className={`relative inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  currentView === 'settings'
+                    ? 'text-primary bg-primary/10'
+                    : !hasApiKey
+                    ? 'text-warning'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                }`}
+                aria-current={currentView === 'settings' ? 'page' : undefined}
+              >
+                <Settings className="h-3.5 w-3.5" />
+                {t.common.settings}
+              </button>
+            </nav>
+            <div className="hidden items-center gap-2 lg:flex ml-2">
               <Badge>{currentProvider?.name || copy.notConfigured}</Badge>
               <Badge>
                 <StatusIndicator status={statusType} />
@@ -191,7 +230,7 @@ function App() {
               onClick={() => setView('settings')}
               className={`
                 inline-flex items-center justify-center rounded-md text-sm font-medium
-                ring-offset-background transition-colors
+                ring-offset-background transition-colors sm:hidden
                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
                 h-9 px-3 gap-2 active:scale-[0.97]
                 ${!hasApiKey
@@ -202,77 +241,79 @@ function App() {
               aria-label={hasApiKey ? 'Open settings' : 'Configure API'}
             >
               <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline">{hasApiKey ? t.common.settings : t.common.configureApi}</span>
             </button>
           </div>
         </div>
       </header>
 
-      {currentView === 'settings' ? (
-        <main id="app-main" className="flex-1 overflow-hidden">
+      {currentView === 'settings' && (
+        <main key="settings" id="app-main" className="flex-1 overflow-hidden animate-view-enter">
           <ApiKeyConfig isOpen mode="view" onClose={backToLive} />
         </main>
-      ) : currentView === 'review' ? (
-        <main id="app-main" className="flex-1 overflow-hidden">
+      )}
+
+      {currentView === 'review' && (
+        <main key="review" id="app-main" className="flex-1 overflow-hidden animate-view-enter">
           <ReviewDeskView />
         </main>
-      ) : (
-        <main id="app-main" className="container mx-auto max-w-[1500px] px-4 pb-8 pt-4 sm:px-6">
-          <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
-            <div className="space-y-4">
-              {isInitialized && !hasApiKey && (
-                <div className="flex items-start gap-3 rounded-xl border border-warning/30 bg-warning/5 p-4">
-                  <div className="rounded-full bg-warning/10 p-1.5 text-warning">
-                    <Settings className="h-4 w-4" />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-medium text-foreground">{t.api.needConfig}</h3>
-                    <p className="text-xs text-muted-foreground">{t.api.needConfigDesc}</p>
-                  </div>
-                </div>
-              )}
+      )}
 
-              {isInitialized && recordingState === 'idle' && recoverySession && (
-                <div className="flex flex-col gap-3 rounded-xl border border-info/30 bg-info/5 p-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex items-start gap-3">
-                    <div className="rounded-full bg-info/10 p-1.5 text-info">
-                      <AlertTriangle className="h-4 w-4" />
-                    </div>
-                    <div className="space-y-1">
-                      <h3 className="text-sm font-medium text-foreground">{t.session.recoveryTitle}</h3>
-                      <p className="text-xs text-muted-foreground">{t.session.recoveryDesc(recoverySession.title)}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      onClick={() => { restoreRecoverySession(); addToast('success', t.session.recoveredToast) }}
-                      className="inline-flex h-8 items-center rounded-md bg-info px-3 text-xs font-medium text-white hover:bg-info/90"
-                    >
-                      {t.session.restoreInterrupted}
-                    </button>
-                    <button
-                      onClick={() => { dismissRecoverySession(); addToast('success', t.session.dismissedToast) }}
-                      className="inline-flex h-8 items-center rounded-md border border-info/30 bg-background px-3 text-xs font-medium text-muted-foreground hover:bg-info/10"
-                    >
-                      {t.session.dismissInterrupted}
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              <TranscriptDisplay contentHeightClassName="h-[min(60vh,48rem)] min-h-[32rem]" />
-
-              <div className="workspace-panel p-5">
-                <RecordingControls onError={handleError} />
+      {/* Live 视图始终挂载，切走时隐藏，避免转录中断 */}
+      <main
+        className={`container mx-auto max-w-4xl px-4 pb-8 pt-4 sm:px-6 ${
+          currentView === 'live' ? 'flex-1' : 'hidden'
+        }`}
+      >
+        <div className="space-y-4">
+          {isInitialized && !hasApiKey && (
+            <div className="flex items-start gap-3 rounded-xl border border-warning/30 bg-warning/5 p-4">
+              <div className="rounded-full bg-warning/10 p-1.5 text-warning">
+                <Settings className="h-4 w-4" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm font-medium text-foreground">{t.api.needConfig}</h3>
+                <p className="text-xs text-muted-foreground">{t.api.needConfigDesc}</p>
               </div>
             </div>
+          )}
 
-            <aside>
-              <HistoryPanel variant="rail" />
-            </aside>
+          {isInitialized && recordingState === 'idle' && recoverySession && (
+            <div className="flex flex-col gap-3 rounded-xl border border-info/30 bg-info/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <div className="rounded-full bg-info/10 p-1.5 text-info">
+                  <AlertTriangle className="h-4 w-4" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-sm font-medium text-foreground">{t.session.recoveryTitle}</h3>
+                  <p className="text-xs text-muted-foreground">{t.session.recoveryDesc(recoverySession.title)}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => { restoreRecoverySession(); addToast('success', t.session.recoveredToast) }}
+                  className="inline-flex h-8 items-center rounded-md bg-info px-3 text-xs font-medium text-white hover:bg-info/90"
+                >
+                  {t.session.restoreInterrupted}
+                </button>
+                <button
+                  onClick={() => { dismissRecoverySession(); addToast('success', t.session.dismissedToast) }}
+                  className="inline-flex h-8 items-center rounded-md border border-info/30 bg-background px-3 text-xs font-medium text-muted-foreground hover:bg-info/10"
+                >
+                  {t.session.dismissInterrupted}
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="animate-reveal-up delay-1">
+            <TranscriptDisplay contentHeightClassName="h-[min(60vh,48rem)] min-h-[32rem]" />
           </div>
-        </main>
-      )}
+
+          <div className="workspace-panel p-5 animate-reveal-up delay-2">
+            <RecordingControls onError={handleError} />
+          </div>
+        </div>
+      </main>
 
       {window.electronAPI && (
         <SourcePicker
