@@ -76,7 +76,7 @@ export function GeneralSettingsPanel({
 
   return (
     <>
-      <div className="space-y-3">
+      <section className="workspace-panel-muted p-4 space-y-3">
         <label className="text-sm font-medium leading-none flex items-center gap-2">
           <Globe className="w-3.5 h-3.5 text-muted-foreground" />
           {t.settings.interfaceLanguage}
@@ -106,9 +106,9 @@ export function GeneralSettingsPanel({
             {t.settings.languageEnglish}
           </button>
         </div>
-      </div>
+      </section>
 
-      <div className="space-y-3">
+      <section className="workspace-panel-muted p-4 space-y-3">
         <label className="text-sm font-medium leading-none flex items-center gap-2">
           <Palette className="w-3.5 h-3.5 text-muted-foreground" />
           {t.settings?.colorTheme || '主题配色'}
@@ -148,9 +148,9 @@ export function GeneralSettingsPanel({
             </button>
           ))}
         </div>
-      </div>
+      </section>
 
-      <div className="space-y-3">
+      <section className="workspace-panel-muted p-4 space-y-3">
         <label className="text-sm font-medium leading-none flex items-center gap-2">
           <Sparkles className="w-3.5 h-3.5 text-muted-foreground" />
           {t.settings.aiPostProcessTitle}
@@ -242,9 +242,9 @@ export function GeneralSettingsPanel({
             </button>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="space-y-3">
+      <section className="workspace-panel-muted p-4 space-y-3">
         <label className="text-sm font-medium leading-none flex items-center gap-2">
           <Download className="w-3.5 h-3.5 text-muted-foreground" />
           {t.settings.dataManagement}
@@ -294,12 +294,12 @@ export function GeneralSettingsPanel({
             {importMessage.text}
           </div>
         )}
-      </div>
+      </section>
 
       {hasElectronApi && (
         <>
           {supportsAutoLaunch && (
-            <div className="space-y-3">
+            <section className="workspace-panel-muted p-4 space-y-3">
               <label className="text-sm font-medium leading-none flex items-center gap-2">
                 <Power className="w-3.5 h-3.5 text-muted-foreground" />
                 {t.settings.launchSettings}
@@ -320,11 +320,11 @@ export function GeneralSettingsPanel({
                   />
                 </button>
               </div>
-            </div>
+            </section>
           )}
 
           {supportsAutoUpdate && (
-            <div className="space-y-3">
+            <section className="workspace-panel-muted p-4 space-y-3">
               <label className="text-sm font-medium leading-none flex items-center gap-2">
                 <RefreshCw className="w-3.5 h-3.5 text-muted-foreground" />
                 {t.update?.checkForUpdates || '检查更新'}
@@ -398,10 +398,10 @@ export function GeneralSettingsPanel({
                   }
                 </button>
               </div>
-            </div>
+            </section>
           )}
 
-          <div className="space-y-3">
+          <section className="workspace-panel-muted p-4 space-y-3">
             <label className="text-sm font-medium leading-none flex items-center gap-2">
               <AlertCircle className="w-3.5 h-3.5 text-muted-foreground" />
               {t.settings.diagnostics}
@@ -419,7 +419,7 @@ export function GeneralSettingsPanel({
                 {t.settings.exportDiagnostics}
               </button>
             </div>
-          </div>
+          </section>
         </>
       )}
     </>

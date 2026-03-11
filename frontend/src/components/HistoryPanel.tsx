@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { History, Calendar, Pencil, Trash2, Check, X, ChevronDown, ChevronRight, Search, FileText } from 'lucide-react'
+import { History, Calendar, Pencil, Trash2, Check, X, ChevronDown, ChevronRight, Search, FileText, Sparkles } from 'lucide-react'
 import { useUIStore } from '../stores/uiStore'
 import { useSessionStore } from '../stores/sessionStore'
 import { useTagStore } from '../stores/tagStore'
@@ -48,6 +48,20 @@ export function HistoryPanel({
     setSearchQuery('')
   }
 
+  const getSessionPreviewText = (session: TranscriptSession) => {
+    const summary = session.postProcess?.summary?.trim()
+    if (summary) {
+      return summary
+    }
+
+    const translated = session.translatedTranscript?.text?.trim()
+    if (translated) {
+      return translated
+    }
+
+    return session.transcript.trim()
+  }
+
   // 按标签和搜索词筛选会话
   const filteredSessions = useMemo(() => {
     let result = sessions
@@ -62,14 +76,46 @@ export function HistoryPanel({
     // 搜索筛选
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim()
-      result = result.filter(session => 
-        session.title.toLowerCase().includes(query) ||
-        session.transcript.toLowerCase().includes(query)
-      )
+      result = result.filter(session => {
+        const tagNames = (session.tagIds || [])
+          .map((tagId) => tags.find((tag) => tag.id === tagId)?.name || '')
+          .filter(Boolean)
+        const postProcessSearch = [
+          session.postProcess?.summary || '',
+          ...(session.postProcess?.actionItems || []),
+          ...(session.postProcess?.keywords || []),
+          ...(session.postProcess?.tagSuggestions || []),
+          ...(session.postProcess?.chapters || []).flatMap((chapter) => [
+            chapter.title || '',
+            chapter.summary || '',
+          ]),
+        ]
+        const speakerSearch = [
+          ...(session.speakers || []).flatMap((speaker) => [
+            speaker.id,
+            speaker.label,
+            speaker.displayName || '',
+          ]),
+          ...(session.segments || []).map((segment) => segment.speakerId || ''),
+        ]
+        const searchableContent = [
+          session.title,
+          session.transcript,
+          session.translatedTranscript?.text || '',
+          session.providerId || '',
+          ...tagNames,
+          ...postProcessSearch,
+          ...speakerSearch,
+        ]
+          .join('\n')
+          .toLowerCase()
+
+        return searchableContent.includes(query)
+      })
     }
     
     return result
-  }, [sessions, selectedTagIds, searchQuery])
+  }, [sessions, selectedTagIds, searchQuery, tags])
 
   // 按日期分组
   const groupedSessions = useMemo(() => {
@@ -366,11 +412,27 @@ export function HistoryPanel({
                           {/* 第二行：标签 */}
                           {editingId !== session.id && (
                             <div className="pl-[3.75rem]" onClick={e => e.stopPropagation()}>
-                              <TagSelector 
-                                sessionId={session.id} 
-                                sessionTagIds={session.tagIds || []}
-                                compact
-                              />
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <TagSelector 
+                                    sessionId={session.id} 
+                                    sessionTagIds={session.tagIds || []}
+                                    compact
+                                  />
+                                  {session.postProcess?.summary && (
+                                    <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                                      <Sparkles className="h-3 w-3" />
+                                      AI
+                                    </span>
+                                  )}
+                                </div>
+                                {getSessionPreviewText(session) && (
+                                  <p className="text-xs leading-5 text-muted-foreground">
+                                    {getSessionPreviewText(session).slice(0, 150)}
+                                    {getSessionPreviewText(session).length > 150 ? '...' : ''}
+                                  </p>
+                                )}
+                              </div>
                             </div>
                           )}
                         </div>
