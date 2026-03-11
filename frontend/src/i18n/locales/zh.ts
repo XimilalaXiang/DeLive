@@ -212,6 +212,11 @@ export const zh = {
     askNoTranscript: '当前会话没有可用于问答的转录内容',
     askErrorFallback: 'AI 问答失败',
     askReferenceFallback: 'Transcript',
+    askCopied: '已复制！',
+    askCopy: '复制',
+    askRegenerate: '重新生成',
+    askScrollToBottom: '滚动到底部',
+    askThinking: '思考中',
     askSuggestions: [
       '这次会话的核心结论是什么？',
       '有哪些明确的行动项？',

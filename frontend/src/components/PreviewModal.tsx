@@ -85,7 +85,12 @@ export function PreviewModal({
         onToggleSidebar={onToggleSidebar}
       />
       <SessionTabBar activeTab={activeTab} onTabChange={setActiveTab} />
-      <div className="flex-1 overflow-hidden">
+      <div
+        className="flex-1 overflow-hidden"
+        role="tabpanel"
+        id={`tabpanel-${activeTab}`}
+        aria-labelledby={`tab-${activeTab}`}
+      >
         {tabContent}
       </div>
     </>

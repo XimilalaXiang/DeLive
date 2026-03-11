@@ -214,6 +214,11 @@ export const en: Translations = {
     askNoTranscript: 'This session has no transcript available for Q&A.',
     askErrorFallback: 'Session Q&A failed',
     askReferenceFallback: 'Transcript',
+    askCopied: 'Copied!',
+    askCopy: 'Copy',
+    askRegenerate: 'Regenerate',
+    askScrollToBottom: 'Scroll to bottom',
+    askThinking: 'Thinking',
     askSuggestions: [
       'What are the main conclusions from this session?',
       'What action items were mentioned?',

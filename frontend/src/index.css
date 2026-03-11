@@ -253,6 +253,21 @@ body {
   transform: scale(0.97);
 }
 
+/* ===== Scrollbar hide utility ===== */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* ===== Code highlight (highlight.js) ===== */
+.hljs {
+  background: transparent !important;
+  color: inherit;
+}
+
 /* ===== Markmap dark mode ===== */
 .dark .markmap-container svg {
   color: hsl(var(--foreground));
