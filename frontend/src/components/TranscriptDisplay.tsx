@@ -161,12 +161,7 @@ export function TranscriptDisplay({
       >
         {isStarting ? (
           <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
-            <div className="relative">
-              <div className="h-12 w-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin mb-4"></div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                 <div className="h-2 w-2 bg-primary rounded-full"></div>
-              </div>
-            </div>
+            <div className="h-12 w-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin mb-4"></div>
             <p className="text-sm font-medium text-foreground">{t.transcript.connecting(providerName)}</p>
             <p className="text-xs mt-2 opacity-80">{t.transcript.selectAudioSource}</p>
           </div>

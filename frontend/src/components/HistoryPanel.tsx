@@ -394,9 +394,9 @@ export function HistoryPanel({
 
                           {/* 第二行：标签 */}
                           {editingId !== session.id && (
-                            <div className="pl-[3.75rem]" onClick={e => e.stopPropagation()}>
+                            <div className="pl-[3.75rem]">
                               <div className="space-y-2">
-                                <div className="flex flex-wrap items-center gap-2">
+                                <div className="flex flex-wrap items-center gap-2" onClick={e => e.stopPropagation()}>
                                   <TagSelector 
                                     sessionId={session.id} 
                                     sessionTagIds={session.tagIds || []}
