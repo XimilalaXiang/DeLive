@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.6.1] - 2026-03-12
+
+### Fixed / 修复
+- 🐛 Fixed topic assignment being silently discarded during session persistence — `normalizeTranscriptSession()` was missing the `topicId` field, causing it to be stripped every time a session was cached or saved
+- 🐛 修复主题归属在 session 持久化过程中被静默丢弃的问题 — `normalizeTranscriptSession()` 遗漏了 `topicId` 字段，导致每次缓存或保存时该字段被清除
+
+---
+
 ## [1.6.0] - 2026-03-12
 
 ### Added / 新增
