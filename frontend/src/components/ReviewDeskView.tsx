@@ -28,8 +28,8 @@ export function ReviewDeskView() {
     <div className="h-full flex animate-view-enter">
       {/* Collapsible sidebar */}
       <aside
-        className={`hidden lg:flex shrink-0 border-r border-border/60 overflow-hidden transition-[width] duration-300 ease-in-out ${
-          sidebarCollapsed ? 'w-0 border-r-0' : 'w-[380px]'
+        className={`hidden lg:flex shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out ${
+          sidebarCollapsed ? 'w-0' : 'w-[380px] border-r border-border/40'
         }`}
       >
         <div className="flex-1 overflow-y-auto p-3 w-[380px]">

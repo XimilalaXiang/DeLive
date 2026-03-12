@@ -33,7 +33,7 @@ body,
 
 body {
   margin: 0;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: hsl(var(--background));
@@ -44,7 +44,8 @@ body {
 
 @layer components {
   .workspace-panel {
-    @apply rounded-2xl border border-border/70 bg-card/90 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/80;
+    @apply rounded-2xl border border-border/70 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.05);
   }
 
   .workspace-panel-muted {
@@ -65,6 +66,43 @@ body {
 
   .workspace-badge {
     @apply inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/80 px-3 py-1.5 text-xs font-medium text-muted-foreground;
+  }
+}
+
+.dark .workspace-panel {
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.08), 0 4px 6px -1px rgb(0 0 0 / 0.3);
+}
+
+/* ===== Elevation 层级系统 ===== */
+@layer components {
+  .elevation-0 {
+    box-shadow: none;
+  }
+  .elevation-1 {
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06);
+  }
+  .elevation-2 {
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  }
+  .elevation-3 {
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+  }
+  .elevation-4 {
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+  }
+
+  /* Dark mode: use subtle ring instead of shadow for depth */
+  .dark .elevation-1 {
+    box-shadow: 0 0 0 1px rgb(255 255 255 / 0.06);
+  }
+  .dark .elevation-2 {
+    box-shadow: 0 0 0 1px rgb(255 255 255 / 0.08), 0 4px 6px -1px rgb(0 0 0 / 0.3);
+  }
+  .dark .elevation-3 {
+    box-shadow: 0 0 0 1px rgb(255 255 255 / 0.08), 0 10px 15px -3px rgb(0 0 0 / 0.4);
+  }
+  .dark .elevation-4 {
+    box-shadow: 0 0 0 1px rgb(255 255 255 / 0.1), 0 20px 25px -5px rgb(0 0 0 / 0.5);
   }
 }
 
@@ -136,23 +174,37 @@ body {
 }
 
 .animate-view-enter {
-  animation: view-enter 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: view-enter 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* ===== 视图切换过渡 ===== */
 .view-transition-enter {
-  animation: view-enter 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: view-enter 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-@keyframes view-enter {
+/* ===== Dropdown / Popover 动画 ===== */
+@keyframes dropdown-in {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: scale(0.95) translateY(-4px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: scale(1) translateY(0);
   }
+}
+
+.animate-dropdown-in {
+  animation: dropdown-in 150ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ===== Tab 内容 crossfade ===== */
+@keyframes tab-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-tab-enter {
+  animation: tab-fade-in 150ms ease-out both;
 }
 
 /* Staggered delays — 40ms per item */
@@ -296,7 +348,9 @@ body {
   .animate-glow-pulse,
   .animate-glow-pulse-destructive,
   .animate-pulse-recording,
-  .animate-view-enter {
+  .animate-view-enter,
+  .animate-dropdown-in,
+  .animate-tab-enter {
     animation: none;
     opacity: 1;
     transform: none;

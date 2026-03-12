@@ -4,7 +4,7 @@
 
 # DeLive
 
-**System Audio Capture | Multi-Provider ASR | Local-First Session Review**
+**System Audio Capture | Multi-Provider ASR | Local-First AI Review Workspace**
 
 English | [简体中文](./README_ZH.md) | [繁體中文](./README_TW.md) | [日本語](./README_JA.md)
 
@@ -20,7 +20,7 @@ English | [简体中文](./README_ZH.md) | [繁體中文](./README_TW.md) | [日
 
 </div>
 
-DeLive is a desktop transcription workspace for system audio. It captures whatever your computer is playing, routes the audio through the ASR backend that fits the job, keeps the session on your machine, and turns completed transcripts into searchable history, AI briefings, Q&A threads, and mind maps.
+DeLive is a desktop transcription workspace for system audio. It captures whatever your computer is playing, routes the audio through the ASR backend that fits the job, keeps everything on your machine, and turns completed transcripts into searchable history with a full AI Review Desk — rich Markdown-rendered chat, Q&A threads, structured briefings, and mind maps.
 
 <div align="center">
 <img width="800" alt="DeLive Screenshot" src="https://github.com/user-attachments/assets/f0d26fe3-ae9c-4d24-8b5d-b12f2095acb7" />
@@ -35,9 +35,14 @@ DeLive is a desktop transcription workspace for system audio. It captures whatev
 - **Session lifecycle management**. Draft sessions, autosave while recording, interrupted-session recovery on next launch, and completed-session history.
 - **Floating caption overlay**. Separate always-on-top caption window with source / translated / dual display modes, drag/lock control, and style customization.
 - **Soniox-specific bilingual and speaker-aware flows**. Realtime translation, dual-line captions, diarization tokens, and speaker-grouped session preview.
-- **AI review workspace for finished sessions**. Generate structured briefings, suggested titles and tags, cited session Q&A, and Markmap-compatible mind maps with SVG / PNG export.
+- **Dedicated AI Review Desk**. A full-page workspace (not a modal) for finished sessions with animated tab navigation (Overview, Transcript, Chat, Mind Map) and keyboard arrow support.
+- **Rich AI Chat**. Multi-thread conversation with GFM Markdown rendering, syntax-highlighted code blocks with one-click copy, user/AI avatars, hover Copy/Regenerate actions on every message, animated thinking-dots indicator, auto-resizing composer (1–6 rows, Enter to send), floating scroll-to-bottom button, and per-thread delete.
+- **Structured AI briefing**. Summary, action items, keywords, chapters, title/tag suggestions, and cited Q&A answers — all persisted into the session.
+- **Mind maps**. Generate Markmap-compatible Markdown, edit it live, and export SVG or PNG directly from the Review Desk.
+- **Polished Transcript tab**. Timestamps in the left gutter, color-coded speaker badges, automatic consecutive same-speaker merging, and hover highlight.
 - **Local model workflows**. Detect local services, discover installed models, optionally pull models from Ollama, and import/download `whisper.cpp` binaries and models.
 - **Local-first persistence**. Sessions, tags, and settings live in IndexedDB/localStorage, while secrets go through Electron `safeStorage` when OS encryption is available.
+- **Shared design system**. Composable UI primitives (Button, Badge, Switch, EmptyState, StatusIndicator, DialogShell) with semantic `warning`/`success`/`info` color tokens across five light and dark themes.
 - **Desktop integration**. Tray behavior, global shortcut, auto-launch, updater, diagnostics export, source picker, and typed preload APIs.
 - **Security hardening**. Trusted-window IPC checks, CSP injection, navigation guard, path allowlist, redacted diagnostics, and encrypted secret storage.
 
@@ -46,10 +51,12 @@ DeLive is a desktop transcription workspace for system audio. It captures whatev
 | Area | Key files | Responsibility |
 |------|-----------|----------------|
 | Desktop shell | `electron/main.ts`, `electron/mainWindow.ts`, `electron/captionWindow.ts`, `electron/tray.ts`, `electron/shortcuts.ts` | Starts Electron, owns native windows, tray behavior, shortcuts, updater lifecycle, and app shutdown. |
-| Renderer app | `frontend/src/App.tsx`, `frontend/src/components/*`, `frontend/src/i18n/*` | Main settings, recording, history, preview, and caption-control UI. |
+| Renderer app | `frontend/src/App.tsx`, `frontend/src/components/*`, `frontend/src/i18n/*` | Main settings, recording, history, preview, and caption-control UI. Workspace view (Live / Review Desk / Settings) is driven by Zustand. |
 | ASR orchestration | `frontend/src/hooks/useASR.ts`, `frontend/src/services/captureManager.ts`, `frontend/src/services/providerSession.ts`, `frontend/src/services/captionBridge.ts` | Resolves provider setup, starts the right audio pipeline, forwards transcript events, and mirrors text to the caption overlay. |
 | Provider abstraction | `frontend/src/providers/registry.ts`, `frontend/src/providers/implementations/*` | Normalizes six backends behind one contract and capability model. |
-| Session intelligence | `frontend/src/stores/sessionStore.ts`, `frontend/src/services/aiPostProcess.ts`, `frontend/src/components/PreviewModal.tsx`, `frontend/src/components/SessionMindMapCard.tsx` | Session persistence, autosave/recovery, AI briefing, Q&A, mind maps, tagging, and speaker label editing. |
+| Session intelligence | `frontend/src/stores/sessionStore.ts`, `frontend/src/services/aiPostProcess.ts`, `frontend/src/components/ReviewDeskView.tsx`, `frontend/src/components/PreviewModal.tsx` | Session persistence, autosave/recovery, AI briefing, Q&A, mind maps, tagging, and speaker label editing. |
+| Review Desk UI | `frontend/src/components/review/SessionTabBar.tsx`, `frontend/src/components/review/OverviewTab.tsx`, `frontend/src/components/review/TranscriptTab.tsx`, `frontend/src/components/review/ChatTab.tsx`, `frontend/src/components/review/MindMapTab.tsx`, `frontend/src/components/review/MarkdownRenderer.tsx` | Animated tab bar with keyboard navigation, per-tab content views, GFM Markdown rendering with syntax highlighting, and mind map editing. |
+| Shared UI system | `frontend/src/components/ui/*` | Button, Badge, Switch, EmptyState, StatusIndicator, DialogShell primitives with semantic color tokens across five themes. |
 | Local model/runtime tooling | `frontend/src/utils/localModelSetup.ts`, `frontend/src/utils/localRuntimeManager.ts`, `frontend/src/components/LocalModelSetupGuide.tsx`, `frontend/src/components/BundledRuntimeSetupGuide.tsx`, `electron/localRuntime.ts` | Detects local services, checks models, supports Ollama pull, imports/downloads `whisper.cpp` assets, and starts/stops the local runtime. |
 | Shared contracts | `shared/electronApi.ts`, `electron/preload.ts`, `shared/volcProxyCore.ts` | Typed bridge between renderer and main process plus shared protocol helpers for the embedded Volcengine proxy. |
 | Debug and release support | `server/`, `scripts/`, `.github/workflows/release.yml` | Standalone Volc proxy debugging, icon/runtime staging scripts, release-note generation, and tagged multi-platform release builds. |
@@ -286,13 +293,14 @@ If `local-runtimes/whisper_cpp/whisper-server(.exe)` exists at build time, `elec
 - Switch between source, translated, and dual modes when the provider supplies translation output.
 - Use draggable/interactive states to reposition the overlay without closing it.
 
-### AI Review Workspace
+### AI Review Desk
 
-For completed sessions, the preview modal is more than a transcript viewer:
+Completed sessions open in a dedicated full-page Review Desk (not a modal) with an animated sliding tab bar and keyboard arrow navigation:
 
-- **AI briefing**: summary, action items, keywords, chapters, title suggestions, and tag suggestions
-- **Session Q&A**: ask questions about one session only; answers can include short citations
-- **Mind maps**: generate Markmap-compatible Markdown, edit it, and export SVG / PNG
+- **Overview tab**: AI briefing — summary, action items, keywords, chapters, title/tag suggestions, and one-click apply
+- **Transcript tab**: Timestamped segments in a left gutter, color-coded speaker badges, consecutive same-speaker merging, hover highlight, and SRT/VTT/TXT export
+- **Chat tab**: Multi-thread AI conversation — GFM Markdown rendering with syntax-highlighted code blocks (one-click copy), user/AI avatars, hover Copy/Regenerate actions, animated thinking-dots indicator, auto-resizing composer (Enter to send), floating scroll-to-bottom button, and per-thread delete
+- **Mind Map tab**: Generate Markmap-compatible Markdown, edit it live, and export SVG or PNG
 - **Metadata actions**: apply suggested title/tags and rename speaker labels for diarized sessions
 
 ### Local OpenAI-compatible Services

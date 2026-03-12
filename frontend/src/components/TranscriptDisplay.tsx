@@ -133,19 +133,19 @@ export function TranscriptDisplay({
             </span>
           )}
           {isStarting && (
-            <div className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-400">
+            <div className="inline-flex items-center rounded-full border border-warning/30 bg-warning/10 px-3 py-1.5 text-xs font-semibold text-warning">
               <span className="relative mr-2 flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-warning"></span>
               </span>
               {t.recording.starting.replace('...', '')}
             </div>
           )}
           {isRecording && (
-            <div className="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400 shadow-sm">
+            <div className="inline-flex items-center rounded-full border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive shadow-sm">
               <span className="relative mr-2 flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-destructive"></span>
               </span>
               REC
             </div>
@@ -170,9 +170,9 @@ export function TranscriptDisplay({
             {isRecording ? (
               <div className="text-center space-y-4 max-w-sm mx-auto animate-in fade-in duration-500">
                 <div className="relative inline-block">
-                  <div className="absolute inset-0 bg-red-500/20 rounded-full animate-ping"></div>
+                  <div className="absolute inset-0 bg-destructive/20 rounded-full animate-ping"></div>
                   <div className="relative bg-background p-4 rounded-full border border-border shadow-sm">
-                    <Mic className="w-8 h-8 text-red-500" />
+                    <Mic className="w-8 h-8 text-destructive" />
                   </div>
                 </div>
                 <div>
@@ -250,7 +250,7 @@ export function TranscriptDisplay({
               <div className="my-4 h-px bg-border" />
             )}
             {showTranslated && (
-              <p className="text-base leading-relaxed whitespace-pre-wrap text-sky-700 dark:text-sky-300">
+              <p className="text-base leading-relaxed whitespace-pre-wrap text-info">
                 <span className="font-medium transition-colors duration-300">{finalTranslatedTranscript}</span>
                 <span className="opacity-80 transition-colors duration-300">{nonFinalTranslatedTranscript}</span>
               </p>

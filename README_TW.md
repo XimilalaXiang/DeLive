@@ -4,7 +4,7 @@
 
 # DeLive
 
-**系統級音訊擷取 | 雲端與本地 ASR 一體化桌面應用**
+**系統音訊擷取 | 多 Provider ASR | 本地優先的 AI 複盤工作台**
 
 [English](./README.md) | [简体中文](./README_ZH.md) | 繁體中文 | [日本語](./README_JA.md)
 
@@ -16,11 +16,11 @@
 [![下載量](https://img.shields.io/github/downloads/XimilalaXiang/DeLive/total?label=下載量&color=orange)](https://github.com/XimilalaXiang/DeLive/releases)
 [![Stars](https://img.shields.io/github/stars/XimilalaXiang/DeLive?style=social)](https://github.com/XimilalaXiang/DeLive)
 
-[核心功能](#-核心功能) • [快速開始](#-快速開始) • [系統架構](#-系統架構) • [支援的 ASR 服務](#-支援的-asr-服務)
+[核心功能](#-核心功能) • [專案組成](#-專案組成) • [系統架構](#-系統架構) • [支援的 Provider](#-支援的-asr-provider) • [快速開始](#-快速開始)
 
 </div>
 
-只要電腦能播放出聲音，DeLive 就能擷取這段系統音訊，送到你選擇的 ASR 後端，並把轉錄內容保存在本機，還能把已完成會話進一步整理成 AI briefing，方便後續回顧、檢索與匯出。
+DeLive 是一個面向系統音訊的桌面轉錄工作台。它會擷取電腦正在播放的聲音，按所選 Provider 的能力選擇最合適的轉錄鏈路，把會話保存在本機，並在錄製結束後提供完整的 AI 複盤工作台——支援富文本 Markdown 對話、結構化 briefing、會話問答和思維導圖整理。
 
 <div align="center">
 <img width="800" alt="DeLive 截圖" src="https://github.com/user-attachments/assets/f0d26fe3-ae9c-4d24-8b5d-b12f2095acb7" />
@@ -28,16 +28,48 @@
 
 ## 🎯 核心功能
 
-- **系統級音訊擷取**：適用於瀏覽器影片、直播、會議、課程與任何可分享系統音訊的場景。
-- **6 種 ASR 後端**：內建 Soniox、火山引擎、Groq、SiliconFlow、本地 OpenAI-compatible、本地 `whisper.cpp`。
-- **依 Provider 自動切換音訊管線**：在 `MediaRecorder` 與 `AudioWorklet` PCM16 處理之間切換。
-- **本地模型工作流**：支援本地服務偵測、模型列表、Ollama 一鍵拉取，以及 `whisper.cpp` binary / 模型導入與下載。
-- **懸浮字幕視窗**：透明、置頂、可拖曳與鎖定，並可自訂樣式。
-- **會話級 AI 後處理**：支援配置 OpenAI-compatible briefing 生成，為已完成會話產生摘要、行動項、關鍵詞、章節、標題建議與標籤建議。
-- **歷史、標籤與匯出**：支援 AI briefing 卡片、搜尋、TXT / SRT / VTT 匯出與資料備份。
-- **桌面級整合**：系統匣、全域快捷鍵、開機自啟動、更新檢查、中英文介面。
-- **安全加固**：IPC 發送者驗證、內容安全策略（CSP）、導覽守衛、路徑白名單、API 金鑰透過作業系統級 `safeStorage` 加密儲存。
-- **一鍵診斷匯出**：收集系統資訊、脫敏設定和近期日誌為 JSON 檔案，方便問題排查。
+- **真正面向桌面場景的系統音訊擷取**。網頁影片、直播、會議、課程、播客，只要共享系統音訊即可接入。
+- **6 條 ASR 路徑統一在一個 UI 裡**。Soniox、火山引擎、Groq、矽基流動、本地 OpenAI-compatible、本地 `whisper.cpp`。
+- **按 Provider 能力自動切換音訊管線**。根據後端要求在 `MediaRecorder` 和 `AudioWorklet` PCM16 之間切換。
+- **同一應用內涵蓋 3 種執行模式**。即時流式、視窗批次處理重轉寫、Electron 管理的本地 runtime。
+- **完整會話生命週期管理**。草稿會話、錄製中自動儲存、異常中斷後的下次啟動恢復、已完成歷史紀錄。
+- **懸浮字幕視窗**。獨立始終置頂視窗，支援原文 / 翻譯 / 雙語模式、拖曳/鎖定和樣式自訂。
+- **Soniox 專屬雙語與說話人能力**。即時翻譯、雙語字幕、發言人區分 token、按 speaker 分組的會話預覽。
+- **獨立 AI 複盤工作台（Review Desk）**。專屬全頁檢視（非彈窗），配備帶滑動動畫的標籤列和鍵盤左右箭頭切換，涵蓋 Overview、Transcript、Chat、Mind Map 四個標籤頁。
+- **富文本 AI 對話（Chat 標籤頁）**。多執行緒對話，GFM Markdown 渲染（含語法高亮程式碼區塊和一鍵複製）、使用者/AI 頭像、訊息懸停操作列（複製/重新產生）、跳動圓點思考動畫、自動伸縮輸入框（Enter 傳送）、浮動回底部按鈕，以及單條對話執行緒刪除。
+- **結構化 AI briefing**。摘要、行動項、關鍵詞、章節、標題/標籤建議及帶引用的問答，全部持久化到會話。
+- **思維導圖**。基於 Markmap-compatible Markdown 產生，支援本地編輯，可直接從 Review Desk 匯出 SVG / PNG。
+- **精細化 Transcript 標籤頁**。左側時間戳槽、彩色說話人標籤、連續同一說話人合併、懸停高亮。
+- **本地模型工作流**。偵測本地服務、發現已安裝模型、可選 Ollama 一鍵拉取，以及 `whisper.cpp` binary / 模型匯入與下載。
+- **本地優先的資料儲存**。會話、標籤、設定保存在 IndexedDB / localStorage；金鑰在系統支援時透過 Electron `safeStorage` 保存。
+- **共享設計系統**。可組合 UI 原語（Button、Badge、Switch、EmptyState、StatusIndicator、DialogShell），五套主題（亮/暗）均涵蓋 `warning`/`success`/`info` 語義色彩 token。
+- **桌面整合能力**。系統匣、全域快捷鍵、開機自啟動、更新檢查、診斷匯出、音源選擇器、型別化 preload API。
+- **安全加固**。可信視窗 IPC 校驗、CSP 注入、導覽守衛、路徑白名單、診斷資訊脫敏、金鑰加密儲存。
+
+## 🧩 專案組成
+
+| 模組 | 關鍵檔案 | 職責 |
+|------|----------|------|
+| 桌面殼層 | `electron/main.ts`, `electron/mainWindow.ts`, `electron/captionWindow.ts`, `electron/tray.ts`, `electron/shortcuts.ts` | 啟動 Electron，管理主視窗、字幕視窗、系統匣、快捷鍵、更新和應用生命週期。 |
+| 渲染層應用 | `frontend/src/App.tsx`, `frontend/src/components/*`, `frontend/src/i18n/*` | 主介面、設定、錄製、歷史、預覽和字幕控制 UI；工作區檢視（Live / Review Desk / Settings）由 Zustand 驅動。 |
+| ASR 編排層 | `frontend/src/hooks/useASR.ts`, `frontend/src/services/captureManager.ts`, `frontend/src/services/providerSession.ts`, `frontend/src/services/captionBridge.ts` | 解析 Provider 設定、啟動正確的音訊擷取鏈路、轉發轉錄事件，並同步到懸浮字幕。 |
+| Provider 抽象層 | `frontend/src/providers/registry.ts`, `frontend/src/providers/implementations/*` | 把 6 個後端統一到同一套 contract 和 capability 模型。 |
+| 會話智慧層 | `frontend/src/stores/sessionStore.ts`, `frontend/src/services/aiPostProcess.ts`, `frontend/src/components/ReviewDeskView.tsx`, `frontend/src/components/PreviewModal.tsx` | 會話持久化、自動儲存/恢復、AI briefing、問答、思維導圖、標籤和 speaker 名稱編輯。 |
+| Review Desk UI | `frontend/src/components/review/SessionTabBar.tsx`, `frontend/src/components/review/OverviewTab.tsx`, `frontend/src/components/review/TranscriptTab.tsx`, `frontend/src/components/review/ChatTab.tsx`, `frontend/src/components/review/MindMapTab.tsx`, `frontend/src/components/review/MarkdownRenderer.tsx` | 動畫標籤列（含鍵盤導覽）、各標籤頁檢視、GFM Markdown 渲染（含語法高亮）和思維導圖編輯。 |
+| 共享 UI 系統 | `frontend/src/components/ui/*` | Button、Badge、Switch、EmptyState、StatusIndicator、DialogShell 原語，五套主題的語義色彩 token。 |
+| 本地模型 / runtime 工具層 | `frontend/src/utils/localModelSetup.ts`, `frontend/src/utils/localRuntimeManager.ts`, `frontend/src/components/LocalModelSetupGuide.tsx`, `frontend/src/components/BundledRuntimeSetupGuide.tsx`, `electron/localRuntime.ts` | 偵測本地服務、檢查模型、支援 Ollama 拉取、管理 `whisper.cpp` 資源匯入/下載/啟動/停止。 |
+| 共享契約層 | `shared/electronApi.ts`, `electron/preload.ts`, `shared/volcProxyCore.ts` | 定義 renderer 與 main 的型別化橋接介面，以及火山代理共享協議輔助邏輯。 |
+| 除錯與發佈支援 | `server/`, `scripts/`, `.github/workflows/release.yml` | 獨立火山代理除錯、圖示/運行時預置指令碼、release notes 產生、tag 觸發的多平台構建發佈。 |
+| 設計參考 | `design-system/delive/MASTER.md` | 產品與視覺參考資料，不參與執行階段邏輯。 |
+
+## 🔄 錄製生命週期
+
+1. `App.tsx` 啟動後初始化儲存、主題、設定、標籤和歷史會話。
+2. `useASR` 呼叫 `ProviderSessionManager`，根據當前 Provider 的能力解析連線方式。
+3. `CaptureManager` 透過 `getDisplayMedia` 取得系統音訊，並在 `MediaRecorder` 與 `AudioWorklet` PCM16 之間做選擇。
+4. Provider 回傳的事件寫入 `sessionStore`，`CaptionBridge` 同時把穩定文本和非最終文本同步到懸浮字幕視窗。
+5. `sessionStore` 會持續構建會話快照、自動儲存草稿，並在下次啟動時恢復被中斷的會話。
+6. 已完成會話進入歷史區，可進一步做轉錄複盤、AI 摘要、問答、思維導圖、標籤整理和匯出。
 
 ## 🏗️ 系統架構
 
@@ -45,72 +77,67 @@
 graph TB
     subgraph "桌面殼層"
         EM[Electron 主程序]
-        CAP[字幕視窗<br/>透明疊加層]
+        WIN[主視窗]
+        CAP[字幕懸浮窗]
         DESK[系統匣 / 快捷鍵 / 自啟動 / 更新]
-        SEC[IPC 安全 / CSP / SafeStorage]
+        SEC[IPC 安全 / SafeStorage / Diagnostics]
     end
 
-    subgraph "前端層"
+    subgraph "渲染層"
         UI[React App]
-        STORES[Zustand Stores<br/>ui / settings / session / tag]
-        CFG[Provider 設定介面]
-        HIS[歷史 / 匯出 / 備份]
+        STORES[Zustand Stores]
+        CFG[Provider 與 Runtime 設定]
+        PREV[歷史 / 預覽 / AI 工作台]
     end
 
-    subgraph "服務層"
+    subgraph "編排層"
+        ASR[useASR]
         CAPMGR[CaptureManager]
-        CAPBR[CaptionBridge]
         PROVSESS[ProviderSessionManager]
+        CAPBR[CaptionBridge]
     end
 
-    subgraph "擷取與處理層"
-        SRC[音源選擇器]
+    subgraph "擷取管線"
         GDM[getDisplayMedia]
         MR[MediaRecorder<br/>WebM / Opus]
         AP[AudioWorklet<br/>PCM16 16kHz]
     end
 
-    subgraph "Provider 抽象層"
+    subgraph "Provider 層"
         REG[Provider Registry]
-        SON[Soniox Provider]
-        VOL[Volc Provider]
-        GRQ[Groq Provider]
-        SIL[SiliconFlow Provider]
-        LOA[本地 OpenAI-compatible]
+        SON[Soniox]
+        VOL[Volcengine]
+        GRQ[Groq]
+        SIL[SiliconFlow]
+        LOA[Local OpenAI-compatible]
         WCP[whisper.cpp Runtime]
     end
 
-    subgraph "Electron 服務層"
-        PROXY[內建火山代理<br/>Express + WebSocket]
-        RTM[本地 Runtime 管理器<br/>IPC + 行程控制]
-        DIAG[診斷資訊收集器]
-    end
-
-    subgraph "ASR 後端"
-        SONIOX[Soniox Realtime API]
-        VOLC[火山引擎 API]
-        GROQAPI[Groq Cloud API]
-        SILAPI[SiliconFlow API]
-        OPENAI[Ollama / OpenAI-compatible]
-        WHISPER[whisper.cpp server]
+    subgraph "Electron 服務"
+        PROXY[內建火山代理]
+        RTM[本地 Runtime 控制器]
     end
 
     subgraph "持久化"
-        IDB[IndexedDB<br/>sessions / settings / tags]
-        LS[localStorage<br/>快速同步快取]
-        SAFE[safeStorage<br/>加密 API 金鑰]
+        REPO[Session Repository]
+        IDB[IndexedDB]
+        LS[localStorage]
+        SAFE[safeStorage]
     end
 
     UI --> STORES
     UI --> CFG
-    UI --> HIS
-    UI --> SRC
-    SRC --> GDM
+    UI --> PREV
+    UI --> ASR
+
+    ASR --> CAPMGR
+    ASR --> PROVSESS
+    ASR --> CAPBR
+
+    CAPMGR --> GDM
     GDM --> MR
     GDM --> AP
 
-    UI --> CAPMGR
-    UI --> PROVSESS
     PROVSESS --> REG
     REG --> SON
     REG --> VOL
@@ -122,30 +149,25 @@ graph TB
     MR --> SON
     MR --> LOA
     AP --> VOL
+    AP --> GRQ
+    AP --> SIL
     AP --> WCP
-    MR --> GRQ
-    MR --> SIL
 
-    SON --> SONIOX
     VOL --> PROXY
-    PROXY --> VOLC
-    GRQ --> GROQAPI
-    SIL --> SILAPI
-    LOA --> OPENAI
     WCP --> RTM
-    RTM --> WHISPER
 
-    STORES --> IDB
-    STORES --> LS
-    STORES --> SAFE
+    STORES --> REPO
+    REPO --> IDB
+    REPO --> LS
+    CFG --> SAFE
+
     UI --> EM
+    EM --> WIN
     EM --> CAP
-    EM --> PROXY
-    EM --> RTM
     EM --> DESK
     EM --> SEC
-    EM --> DIAG
-    CAPMGR --> CAPBR
+    EM --> PROXY
+    EM --> RTM
     CAPBR --> CAP
 
     style UI fill:#61dafb,color:#000
@@ -163,37 +185,37 @@ graph TB
 
 | 層級 | 主要元件 | 說明 |
 |------|----------|------|
-| 桌面殼層 | Electron 主程序、系統匣、更新器、字幕窗、IPC 安全、診斷模組 | 負責原生桌面能力、IPC 與作業系統級加密 |
-| 前端層 | React、Zustand（4 個 Store）、設定頁、歷史面板 | 管理錄製流程與會話狀態 |
-| 服務層 | `CaptureManager`、`CaptionBridge`、`ProviderSessionManager` | 從單體 hook 解耦的單一職責服務 |
-| 擷取與處理層 | `getDisplayMedia`、`MediaRecorder`、`AudioWorklet` | 依 Provider 能力切換音訊路徑 |
-| Provider 抽象層 | 註冊表 + 6 個 Provider 實作 | 統一雲端與本地轉錄介面 |
-| Electron 服務層 | 內建火山代理、本地 runtime 管理器、診斷收集器 | 處理自訂 Header 代理、本地行程生命週期和診斷資訊 |
-| 持久化 | IndexedDB（主存）+ localStorage（同步快取）+ safeStorage（金鑰） | 雙寫自動恢復；API 金鑰透過 OS 鑰匙圈加密 |
+| 桌面殼層 | Electron 主程序、主視窗、字幕視窗、系統匣、更新、診斷 | 負責原生生命週期、音源選擇、字幕疊加和系統整合。 |
+| 渲染層 | React UI、Zustand stores、歷史/預覽工作台、設定面板 | 負責錄製流程、設定、會話複盤和使用者互動。 |
+| 編排層 | `useASR`、`CaptureManager`、`ProviderSessionManager`、`CaptionBridge` | 讓擷取、Provider 和 UI 解耦。 |
+| Provider 層 | 註冊表 + 6 個實作 | 同時涵蓋即時雲端、視窗批次處理雲端、本地服務和本地 runtime。 |
+| Electron 服務 | 內建火山代理、本地 runtime 控制器、safe-storage IPC、diagnostics IPC | 提供瀏覽器環境無法直接完成的能力。 |
+| 持久化 | Session Repository、IndexedDB、localStorage、`safeStorage` | 自動儲存草稿、恢復中斷會話，並將金鑰與一般設定分開儲存。 |
+| 共享契約 | 型別化 preload bridge 與共享 helper | 讓 renderer/main 的介面顯式可維護。 |
 
-## 🔌 支援的 ASR 服務
+## 🔌 支援的 ASR Provider
 
-| 服務 | 類型 | 音訊路徑 | 說明 |
-|------|------|----------|------|
-| **Soniox V4** | 雲端 | `MediaRecorder` → WebSocket | Token 級即時轉錄，多語言 |
-| **火山引擎** | 雲端 | PCM16 → 內建代理 → WebSocket | 中文最佳化，代理負責補齊 Header |
-| **Groq** | 雲端 | `MediaRecorder` → REST API | Whisper large-v3-turbo / large-v3，整段重轉寫 |
-| **SiliconFlow** | 雲端 | `MediaRecorder` → REST API | SenseVoice、TeleSpeech、Qwen Omni，整段重轉寫 |
-| **本地 OpenAI-compatible** | 本地服務 | `MediaRecorder` → `/v1/audio/transcriptions` | 適配 Ollama 或其他相容閘道，支援模型偵測和可選一鍵拉取 |
-| **本地 whisper.cpp** | 本地 runtime | PCM16 → 本地 `/inference` | 內建或使用者導入 `whisper-server`，支援 `.bin` / `.gguf` 模型 |
+| Provider | 類型 | 傳輸模式 | 音訊路徑 | 亮點 |
+|----------|------|----------|----------|------|
+| **Soniox V4** | 雲端 | 即時流式 | `MediaRecorder` (`webm/opus`) → WebSocket | token 級即時轉錄、即時翻譯、雙語字幕、多發言人辨識 |
+| **火山引擎** | 雲端 | 即時流式 | `AudioWorklet` PCM16 → 內建代理 → WebSocket | 中文場景友善；代理在 Electron 側補齊必要 Header |
+| **Groq** | 雲端 | 視窗批次處理重轉寫 | `AudioWorklet` PCM16 → WAV → REST | 基於 Whisper 的準即時會話更新路徑 |
+| **矽基流動** | 雲端 | 視窗批次處理重轉寫 | `AudioWorklet` PCM16 → WAV → REST | SenseVoice、TeleSpeech、Qwen Omni 等模型路徑 |
+| **本地 OpenAI-compatible** | 本地服務 | 視窗批次處理重轉寫 | `MediaRecorder` (`webm/opus`) → `/v1/audio/transcriptions` | 適配 Ollama 或其他相容閘道，支援服務/模型偵測和可選 Ollama 拉取 |
+| **本地 `whisper.cpp`** | 本地 runtime | Electron 管理的本地 runtime | `AudioWorklet` PCM16 → 本地 `/inference` | 直接啟動 `whisper-server`，管理 binary 與模型資源，全本地執行 |
 
 ## 🚀 快速開始
 
 ### 前置需求
 
-- Node.js 18+
-- 選擇一種後端：
+- Node.js 18+（CI 中使用 Node 20）
+- 任意一種 Provider 路徑：
   - **Soniox**：[soniox.com](https://soniox.com) 的 API Key
-  - **火山引擎**：APP ID + Access Token
+  - **火山引擎**：APP ID 和 Access Token
   - **Groq**：[groq.com](https://groq.com) 的 API Key
-  - **SiliconFlow**：[siliconflow.cn](https://siliconflow.cn) 的 API Key
-  - **本地 OpenAI-compatible**：提供 `/v1/models` 與 `/v1/audio/transcriptions` 的本地服務（如 Ollama）
-  - **本地 whisper.cpp**：`whisper-server` binary + 本地模型，或在 DeLive 內下載/導入
+  - **矽基流動**：[siliconflow.cn](https://siliconflow.cn) 的 API Key
+  - **本地 OpenAI-compatible**：暴露 `/v1/models` 與 `/v1/audio/transcriptions` 的本地服務
+  - **本地 `whisper.cpp`**：`whisper-server` + 本地 `.bin` / `.gguf` 模型，或直接讓 DeLive 匯入/下載
 
 ### 安裝
 
@@ -203,154 +225,152 @@ cd DeLive
 npm run install:all
 ```
 
-### 開發模式
+### 開發
 
 ```bash
 npm run dev
 ```
 
-桌面端正常開發時，火山引擎代理已內建於 Electron 主程序。只有在你要單獨除錯代理時，才需要：
+`npm run dev` 會同時啟動 Vite 和 Electron。火山引擎代理已內建在 Electron 主程序中，正常桌面開發不需要單獨後端。
+
+如需單獨除錯代理：
 
 ```bash
 npm run dev:server
 ```
 
-### 打包構建
+### 品質檢查
 
 ```bash
-npm run dist:win     # Windows (NSIS 安裝包 + 可攜版)
-npm run dist:mac     # macOS (DMG + zip, x64 + arm64)
-npm run dist:linux   # Linux (AppImage + deb)
-npm run dist:all     # 全平台
+npm run check
 ```
 
-產物位於 `release/`。
+`npm run check` 會執行前端 lint、前端測試和完整構建。
 
-### 執行測試
+如果只想跑前端測試：
 
 ```bash
-cd frontend && npm test
+npm run test:frontend
 ```
 
-透過 Vitest 執行 180 個單元測試，涵蓋 Provider 設定、字幕匯出、轉錄穩定器、視窗批次處理、AI 後處理解析、儲存工具和 BaseASRProvider 事件系統。
+目前測試狀態：**22 個測試檔案、184 個測試案例全部通過**，涵蓋 Provider 設定、轉錄狀態/穩定化、字幕匯出、會話生命週期與倉儲、儲存以及 AI 後處理解析。
 
-### 可選：預置 `whisper.cpp`
+### 打包
+
+```bash
+npm run dist:win
+npm run dist:mac
+npm run dist:linux
+npm run dist:all
+```
+
+構建產物輸出到 `release/`。
+
+### 可選：打包時預置 `whisper.cpp`
 
 ```bash
 npm run fetch:whisper-runtime -- --target win32
 npm run stage:whisper-runtime -- --binary /path/to/whisper-server --target linux
 ```
 
-如果打包時已存在 `local-runtimes/whisper_cpp/whisper-server(.exe)`，安裝包會一併帶上；否則也可在 UI 中後續導入或下載。
+如果構建時 `local-runtimes/whisper_cpp/whisper-server(.exe)` 已存在，`electron-builder` 會把它作為額外資源帶進安裝包。即便沒有預置，終端使用者也仍然可以在 UI 中自行匯入或下載 binary / 模型。
 
-## 📖 使用方式
+## 📖 使用說明
 
-### 雲端 Provider
+### 典型錄製流程
 
-1. 在設定中選擇一個雲端 Provider（Soniox V4、火山引擎、Groq 或 SiliconFlow）。
-2. 輸入憑證並執行 **測試配置**。
-3. 點擊 **開始錄製**，選擇要分享的視窗或螢幕並勾選音訊。
-4. 即時結果會顯示在主視窗，也可同步至懸浮字幕視窗。
+1. 開啟設定，選擇一個 Provider。
+2. 填寫憑證或本地 runtime 資訊，並點擊 **測試設定**。
+3. 點擊 **開始錄製**。
+4. 選擇要共享的螢幕或視窗，並確認勾選共享音訊。
+5. 在主視窗和懸浮字幕視窗裡檢視中間結果與最終結果。
+6. 停止錄製後，從歷史紀錄開啟會話繼續複盤、做 AI 操作或匯出。
 
-### AI Briefing
+### 懸浮字幕
 
-1. 打開 **設定 → 一般設定**，啟用 **AI 後處理**。
-2. 配置 OpenAI-compatible 的 `Base URL`、`Model` 和可選 API Key。
-3. 在歷史記錄中打開任意一個已完成會話。
-4. 點擊 **生成 AI 摘要**，生成摘要、行動項、關鍵詞、章節、標題建議與標籤建議。
-5. 如果建議合適，可以直接在會話預覽中一鍵套用標題或標籤。
+- 可以從主介面開啟或關閉懸浮字幕視窗。
+- 支援字型、顏色、寬度、行數、陰影和位置調整。
+- 當 Provider 回傳翻譯文本時，可切換原文、翻譯、雙語三種模式。
+- 支援拖曳 / 互動狀態切換，便於擺放字幕視窗位置。
 
-### 本地 OpenAI-compatible
+### AI 複盤工作台
+
+已完成會話在預覽中不只是「看轉錄」：
+
+- **AI briefing**：摘要、行動項、關鍵詞、章節、標題建議、標籤建議
+- **會話問答**：只針對當前會話提問，回答可帶短引用
+- **思維導圖**：產生相容 Markmap 的 Markdown，支援編輯後匯出 SVG / PNG
+- **中繼資料操作**：一鍵套用建議標題/標籤，對 diarization 會話重新命名 speaker
+
+### 本地 OpenAI-compatible 服務
 
 1. 選擇 **本地 OpenAI-compatible**。
-2. 填入 **Base URL** 與 **Model**。
-3. 先偵測服務，再檢查模型；若是 Ollama，可直接一鍵拉取模型。
+2. 填寫 `Base URL` 和 `Model`。
+3. 用本地模型引導偵測服務並列出已安裝模型。
+4. 如果偵測出來是 Ollama，DeLive 可以直接一鍵拉取所選模型。
 
-### 本地 `whisper.cpp`
+### 本地 `whisper.cpp` Runtime
 
 1. 選擇 **本地 whisper.cpp**。
-2. 準備 `whisper-server` binary，或使用內建推薦流程下載官方資產。
-3. 選擇、導入或下載 `.bin` / `.gguf` 模型。
-4. 啟動 runtime 或執行 **測試配置** 後再錄製。
+2. 透過匯入現有 `whisper-server` 或下載官方 release 資產準備 runtime binary。
+3. 透過選擇、匯入或下載 `.bin` / `.gguf` 檔案準備模型。
+4. 啟動 runtime 或執行 **測試設定**。
+5. 之後錄製方式與其他 Provider 一致，Electron 會透過 IPC 管理 runtime 生命週期。
 
-### 字幕、歷史與匯出
+### 歷史、備份與恢復
 
-- 開啟懸浮字幕視窗，自訂字型、顏色、字級、寬度、陰影和位置。
-- 在歷史面板中重新命名會話、打標籤、搜尋紀錄，並生成 AI briefing 卡片。
-- 在歷史預覽中可直接套用 AI 建議的標題與標籤。
-- 匯出 TXT、SRT 或 VTT。
-- 在設定面板中匯入 / 匯出全部本地資料，用於備份和轉移。
-
-### 診斷資訊
-
-遇到問題時，打開 **設定 → 一般 → 診斷資訊**，點擊 **匯出診斷包**。會產生一個 JSON 檔案，包含系統資訊、脫敏後的設定和近期日誌，方便分享給開發者排查問題。
+- 會話支援重新命名、打標籤、搜尋，以及匯出 TXT、SRT、VTT。
+- 錄製草稿會自動儲存；如果應用中斷，下次啟動可以恢復未完成會話。
+- 支援匯入 / 匯出全部本地資料，用於備份和轉移。
+- 診斷匯出會產生一個脫敏 JSON，包含系統資訊和近期日誌，便於排障。
 
 ## 📁 專案結構
 
 ```text
 DeLive/
-├── electron/                         # Electron 主程序與 IPC
-│   ├── main.ts                       # 應用入口、視窗建立、IPC 註冊
-│   ├── preload.ts                    # Context Bridge（渲染程序安全 API）
-│   ├── mainWindow.ts                 # 主視窗建立、CSP 注入
-│   ├── captionWindow.ts              # 懸浮字幕視窗控制器
-│   ├── captionIpc.ts                 # 字幕操作 IPC handler
-│   ├── appIpc.ts                     # 通用 IPC（版本號、系統匣、自啟動、檔案選擇）
-│   ├── volcProxy.ts                  # 內建 Express + WebSocket 火山引擎代理
-│   ├── localRuntime.ts               # whisper.cpp runtime 控制器
-│   ├── localRuntimeIpc.ts            # 本地 runtime 操作 IPC handler
-│   ├── ipcSecurity.ts                # 可信視窗驗證、CSP、導覽守衛、路徑白名單
-│   ├── safeStorageIpc.ts             # API 金鑰加密儲存（Electron safeStorage）
-│   ├── diagnosticsIpc.ts             # 日誌攔截與診斷包匯出
-│   ├── tray.ts                       # 系統匣圖示與選單
-│   └── shortcuts.ts                  # 全域快捷鍵
-├── frontend/
-│   ├── caption.html                  # 字幕視窗入口
-│   ├── src/
-│   │   ├── components/               # UI 元件（17 個檔案）
-│   │   ├── hooks/                    # useASR — ASR 編排 hook
-│   │   ├── services/                 # CaptureManager、CaptionBridge、ProviderSessionManager
-│   │   ├── providers/                # Provider 註冊表 + 6 個實作
-│   │   ├── stores/                   # Zustand 狀態管理（ui、settings、session、tag）
-│   │   ├── utils/                    # 音訊、儲存、Provider 設定、字幕匯出等工具
-│   │   ├── types/                    # ASR 型別與各廠商型別定義
-│   │   └── i18n/                     # 介面翻譯（中文、英文）
-│   ├── public/                       # 靜態資源（AudioWorklet 處理器、favicon）
-│   └── vitest.config.ts              # 測試設定
-├── local-runtimes/
-│   └── whisper_cpp/                  # 可選的預置 whisper.cpp runtime 資源
-├── scripts/                          # 圖示產生、runtime 拉取/預置、release notes
-├── server/                           # 獨立火山引擎代理（供除錯使用）
-├── .github/workflows/release.yml     # CI/CD：tag 推送觸發構建與 GitHub Release
+├── electron/                         # Electron 主程序、視窗、系統匣、IPC、更新、本地 runtime 控制
+├── frontend/                         # React 渲染層、Provider、Store、UI 元件、測試
+├── shared/                           # preload/renderer/main 共用的 TypeScript 契約與代理 helper
+├── server/                           # 主要用於除錯的獨立火山引擎代理
+├── local-runtimes/                   # 可選的預置 runtime 資源（供 whisper.cpp 打包）
+├── scripts/                          # 圖示產生、runtime 取得/預置、release notes
+├── design-system/                    # 設計參考資料
+├── assets/                           # README 與品牌素材
+├── build/                            # electron-builder 圖示與打包資源
+├── .github/workflows/release.yml     # tag 觸發的品質檢查 + 發佈流程
+├── README.md
 └── package.json
 ```
+
+這裡省略了 `dist-electron/`、`release/`、依賴目錄等產生產物。
 
 ## 🔧 技術棧
 
 | 層級 | 技術 |
 |------|------|
 | 桌面應用 | Electron 40 |
-| 前端 | React 18 + TypeScript 5.6 + Vite 6 |
+| 前端 | React 18.3 + TypeScript 5.6 + Vite 6 |
 | 樣式 | Tailwind CSS 3.4 |
-| 狀態管理 | Zustand 4.5（4 個聚焦 Store） |
-| 測試 | Vitest 4（180 個單元測試） |
-| 音訊處理 | AudioWorklet（ScriptProcessorNode 回退） |
-| 桌面服務 | Electron 內建 Express + ws |
-| 持久化 | IndexedDB + localStorage + Electron safeStorage |
-| ASR 後端 | Soniox V4、火山引擎、Groq、SiliconFlow、OpenAI-compatible 本地 ASR、whisper.cpp |
-| 打包 | electron-builder (NSIS / DMG / AppImage) |
-| CI/CD | GitHub Actions |
+| 狀態管理 | Zustand 4.5 |
+| 測試 | Vitest 4 |
+| 音訊處理 | `MediaRecorder`、`AudioWorklet`、WAV 轉換工具 |
+| 桌面服務 | Electron 主程序 IPC、Express、`ws` |
+| 持久化 | IndexedDB、localStorage、Electron `safeStorage` |
+| AI 複盤 | OpenAI-compatible chat completions（briefing / 問答 / 思維導圖） |
+| 打包 | `electron-builder` |
+| 發佈自動化 | GitHub Actions tag 工作流 |
 
 ## 🔒 安全
 
 | 特性 | 說明 |
 |------|------|
 | 上下文隔離 | `contextIsolation: true`，`nodeIntegration: false` |
-| IPC 發送者驗證 | 所有敏感 IPC handler 驗證呼叫者為可信視窗 |
-| 內容安全策略 | 透過 `webRequest.onHeadersReceived` 注入 CSP，本地模型連線安全放行 |
-| 導覽守衛 | `will-navigate` 阻擋意外 URL 載入 |
-| 路徑白名單 | `path-exists` IPC 限制在安全目錄（userData、home、desktop 等） |
-| API 金鑰加密 | 透過 Electron `safeStorage`（Windows DPAPI / macOS Keychain）加密儲存 |
+| 可信 IPC 傳送者 | 敏感 handler 會校驗呼叫者是否為註冊過的可信視窗 |
+| 內容安全策略 | 在 Electron 層注入 CSP，只放行必要的連線目標 |
+| 導覽守衛 | 阻止渲染層意外跳轉到非預期 URL |
+| 路徑白名單 | 檔案路徑檢查僅允許 `userData`、home、desktop、downloads、documents 等安全根目錄 |
+| 金鑰儲存 | 系統支援時透過 Electron `safeStorage` 保存 API Key |
+| 診斷脫敏 | 匯出的診斷 JSON 會先清洗疑似金鑰欄位 |
 
 ## ⌨️ 快捷鍵
 
@@ -358,14 +378,23 @@ DeLive/
 |--------|------|
 | `Ctrl+Shift+D` / `Cmd+Shift+D` | 顯示或隱藏主視窗 |
 
+## 🔧 擴充 Provider
+
+1. 在 `frontend/src/providers/implementations/` 下新增 Provider 實作。
+2. 正確宣告 `ASRProviderInfo`、必填欄位和 capability 標記。
+3. 在 `frontend/src/providers/registry.ts` 註冊。
+4. 如果支援設定驗證，在 `frontend/src/utils/providerConfigTest.ts` 增加對應邏輯。
+5. 如果是本地服務或本地 runtime 路徑，在 `frontend/src/utils/localModelSetup.ts` 或 `frontend/src/utils/localRuntimeManager.ts` 接入配套能力。
+6. 如果需要自訂 Header 或原生程序控制，在 `electron/` 側補充支援。
+
 ## ⚠️ 注意事項
 
 1. **系統需求**：Windows 10+、macOS 13+、或具備 PulseAudio loopback 的 Linux。
-2. **火山引擎代理**：桌面端正常使用時不需要另啟後端，Electron 會自帶代理。
-3. **本地 OpenAI-compatible**：模型偵測依賴 `/v1/models`，轉錄依賴 `/v1/audio/transcriptions`。
-4. **`whisper.cpp` 模式**：預置 binary 不是必需，可在執行時自行導入或下載。
-5. **系統匣行為**：關閉主視窗會縮到系統匣，需從系統匣選單完全退出。
-6. **開機自啟動**：支援 Windows 和 macOS。
+2. **火山引擎代理**：正常桌面使用無需單獨後端，Electron 會自動啟動內建代理。
+3. **本地 OpenAI-compatible 模式**：模型發現依賴 `/v1/models`，轉錄依賴 `/v1/audio/transcriptions`。
+4. **`whisper.cpp` 模式**：預置 binary 只是可選項，使用者也可以執行階段後續匯入或下載。
+5. **系統匣行為**：關閉主視窗預設會隱藏到系統匣，而不是直接結束。
+6. **開機自啟動**：目前支援 Windows 和 macOS。
 7. **自動更新**：支援 Windows、macOS 和 Linux AppImage。
 
 ### 🛡️ Windows SmartScreen 提示
@@ -374,6 +403,8 @@ DeLive/
 
 1. 點擊 **更多資訊**。
 2. 點擊 **仍要執行**。
+
+也可以直接審查原始碼，或者自行校驗發佈產物。
 
 ## 📄 授權
 
@@ -384,7 +415,17 @@ Apache License 2.0
 - [Soniox](https://soniox.com) — 即時語音辨識 API
 - [火山引擎](https://www.volcengine.com) — 中文語音辨識
 - [Groq](https://groq.com) — 高效能 Whisper 推論
-- [SiliconFlow](https://siliconflow.cn) — SenseVoice 與多模態 ASR
+- [矽基流動](https://siliconflow.cn) — 語音與多模態 ASR 服務
 - [Ollama](https://ollama.com) — 本地模型工作流
 - [`whisper.cpp`](https://github.com/ggml-org/whisper.cpp) — 本地開源 runtime
 - [BiBi-Keyboard](https://github.com/BryceWG/BiBi-Keyboard) — 多 Provider 架構靈感
+
+---
+
+<div align="center">
+
+[![Star History Chart](https://api.star-history.com/svg?repos=XimilalaXiang/DeLive&type=date&legend=top-left)](https://www.star-history.com/#XimilalaXiang/DeLive&type=date&legend=top-left)
+
+**Made by [XimilalaXiang](https://github.com/XimilalaXiang)**
+
+</div>

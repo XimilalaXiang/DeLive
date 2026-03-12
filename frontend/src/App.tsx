@@ -34,7 +34,6 @@ function App() {
     restoreRecoverySession,
     dismissRecoverySession,
     recordingState,
-    sessions,
   } = useSessionStore()
   const { loadTags } = useTagStore()
   const hasCheckedApiKey = useRef(false)
@@ -148,13 +147,6 @@ function App() {
     return copy.statusIdle
   })()
 
-  const statusType = (() => {
-    if (recordingState === 'recording') return 'recording' as const
-    if (recordingState === 'starting') return 'starting' as const
-    if (recordingState === 'stopping') return 'stopping' as const
-    return 'idle' as const
-  })()
-
   return (
     <div className={`bg-background text-foreground transition-colors duration-300 ${currentView === 'live' ? 'min-h-screen' : 'flex h-screen flex-col overflow-hidden'}`}>
       <a
@@ -167,7 +159,7 @@ function App() {
       {isElectron && <div className="h-8 shrink-0" />}
 
       <header className={`z-40 w-full shrink-0 border-b border-border/60 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/75 ${currentView === 'live' ? (isElectron ? 'sticky top-8' : 'sticky top-0') : ''}`}>
-        <div className="container mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-4 py-3 sm:px-6">
+        <div className="container mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-4 py-3.5 sm:px-6">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
               <Waves className="h-4 w-4" />
@@ -213,14 +205,14 @@ function App() {
                 {t.common.settings}
               </button>
             </nav>
-            <div className="hidden items-center gap-2 lg:flex ml-2">
-              <Badge>{currentProvider?.name || copy.notConfigured}</Badge>
-              <Badge>
-                <StatusIndicator status={statusType} />
-                {recordingStateLabel}
-              </Badge>
-              <Badge>{sessions.length} sessions</Badge>
-            </div>
+            {recordingState === 'recording' && (
+              <div className="hidden items-center lg:flex ml-2">
+                <Badge variant="destructive">
+                  <StatusIndicator status="recording" />
+                  {recordingStateLabel}
+                </Badge>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
@@ -264,7 +256,7 @@ function App() {
           currentView === 'live' ? 'flex-1' : 'hidden'
         }`}
       >
-        <div className="space-y-4">
+        <div className="space-y-6">
           {isInitialized && !hasApiKey && (
             <div className="flex items-start gap-3 rounded-xl border border-warning/30 bg-warning/5 p-4">
               <div className="rounded-full bg-warning/10 p-1.5 text-warning">

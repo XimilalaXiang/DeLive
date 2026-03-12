@@ -104,7 +104,7 @@ export function OverviewTab({ session }: OverviewTabProps) {
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
       {/* AI Briefing */}
-      <div className="rounded-xl border border-border bg-card/70 p-5 space-y-4">
+      <div className="rounded-xl border border-border bg-card/70 p-5 space-y-4 border-l-4 border-l-primary/40">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
             <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-primary">
