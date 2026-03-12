@@ -4,6 +4,7 @@ import { useUIStore } from './stores/uiStore'
 import { useSettingsStore } from './stores/settingsStore'
 import { useSessionStore } from './stores/sessionStore'
 import { useTagStore } from './stores/tagStore'
+import { useASR } from './hooks/useASR'
 import { buildProviderConnectConfig, isProviderConfigured } from './utils/providerConfig'
 import { 
   ApiKeyConfig, 
@@ -37,6 +38,39 @@ function App() {
   } = useSessionStore()
   const { loadTags } = useTagStore()
   const hasCheckedApiKey = useRef(false)
+
+  // Toast 管理
+  const addToast = useCallback((type: 'success' | 'error', message: string) => {
+    const id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    setToasts((prev) => [...prev, { id, type, message }])
+  }, [])
+
+  const removeToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id))
+  }, [])
+
+  const handleError = useCallback((message: string) => {
+    addToast('error', message)
+  }, [addToast])
+
+  // ASR — lifted to App so global shortcut can reach it
+  const { startRecording, stopRecording } = useASR({
+    onError: handleError,
+    onStarted: () => console.log('[App] Recording started'),
+  })
+
+  // Global shortcut: toggle recording from Electron
+  useEffect(() => {
+    if (!window.electronAPI?.onToggleRecording) return
+    return window.electronAPI.onToggleRecording(() => {
+      const state = useSessionStore.getState().recordingState
+      if (state === 'idle') {
+        startRecording()
+      } else if (state === 'recording') {
+        stopRecording()
+      }
+    })
+  }, [startRecording, stopRecording])
 
   // 初始化加载
   useEffect(() => {
@@ -105,20 +139,6 @@ function App() {
       }
     }
   }, [isInitialized, hasApiKey, setView])
-
-  // Toast 管理
-  const addToast = useCallback((type: 'success' | 'error', message: string) => {
-    const id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-    setToasts((prev) => [...prev, { id, type, message }])
-  }, [])
-
-  const removeToast = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id))
-  }, [])
-
-  const handleError = useCallback((message: string) => {
-    addToast('error', message)
-  }, [addToast])
 
   // 检测是否在 Electron 环境中
   const isElectron = !!window.electronAPI?.isElectron
@@ -313,7 +333,7 @@ function App() {
           </div>
 
           <div className="workspace-panel p-5 animate-reveal-up delay-2">
-            <RecordingControls onError={handleError} />
+            <RecordingControls onError={handleError} startRecording={startRecording} stopRecording={stopRecording} />
           </div>
         </div>
       </main>

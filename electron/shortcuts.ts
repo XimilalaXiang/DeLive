@@ -5,9 +5,27 @@ interface RegisterShortcutsOptions {
   isTrayReady: () => boolean
 }
 
-export function registerAppShortcuts(options: RegisterShortcutsOptions): void {
-  const shortcut = 'CommandOrControl+Shift+D'
+function tryRegister(
+  accelerator: string,
+  callback: () => void,
+  label: string,
+): boolean {
+  try {
+    const ok = globalShortcut.register(accelerator, callback)
+    if (ok) {
+      console.log(`[Shortcuts] ${label} ${accelerator} 注册成功`)
+    } else {
+      console.warn(`[Shortcuts] ${label} ${accelerator} 注册失败，可能被其他程序占用`)
+    }
+    return ok
+  } catch (error) {
+    console.warn(`[Shortcuts] ${label} ${accelerator} 注册异常:`, error)
+    return false
+  }
+}
 
+export function registerAppShortcuts(options: RegisterShortcutsOptions): void {
+  // ── Toggle window visibility ─────────────────────
   const toggleWindow = () => {
     const mainWindow = options.getMainWindow()
     if (mainWindow?.isVisible()) {
@@ -20,26 +38,18 @@ export function registerAppShortcuts(options: RegisterShortcutsOptions): void {
     }
   }
 
-  try {
-    const registered = globalShortcut.register(shortcut, toggleWindow)
+  if (!tryRegister('CommandOrControl+Shift+D', toggleWindow, '显示/隐藏窗口')) {
+    tryRegister('CommandOrControl+Alt+D', toggleWindow, '显示/隐藏窗口(备用)')
+  }
 
-    if (registered) {
-      console.log(`全局快捷键 ${shortcut} 注册成功`)
-    } else {
-      console.warn(`全局快捷键 ${shortcut} 注册失败，可能被其他程序占用`)
+  // ── Toggle recording ─────────────────────────────
+  const toggleRecording = () => {
+    const mainWindow = options.getMainWindow()
+    if (!mainWindow || mainWindow.isDestroyed()) return
+    mainWindow.webContents.send('toggle-recording')
+  }
 
-      const backupShortcut = 'CommandOrControl+Alt+D'
-      const backupRegistered = globalShortcut.register(backupShortcut, toggleWindow)
-
-      if (backupRegistered) {
-        console.log(`备用快捷键 ${backupShortcut} 注册成功`)
-      } else {
-        console.warn(`备用快捷键 ${backupShortcut} 也注册失败`)
-      }
-    }
-
-    console.log(`快捷键 ${shortcut} 已注册: ${globalShortcut.isRegistered(shortcut)}`)
-  } catch (error) {
-    console.warn('[Shortcuts] 全局快捷键注册失败，当前环境可能不支持:', error)
+  if (!tryRegister('CommandOrControl+Shift+R', toggleRecording, '开始/停止录制')) {
+    tryRegister('CommandOrControl+Alt+R', toggleRecording, '开始/停止录制(备用)')
   }
 }

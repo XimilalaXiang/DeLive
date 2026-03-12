@@ -144,6 +144,12 @@ const electronAPI: ElectronAPI = {
     return () => ipcRenderer.removeListener('open-caption-settings', listener)
   },
 
+  onToggleRecording: (callback: () => void) => {
+    const listener = () => callback()
+    ipcRenderer.on('toggle-recording', listener)
+    return () => ipcRenderer.removeListener('toggle-recording', listener)
+  },
+
   isElectron: true,
   platform: process.platform as 'win32' | 'darwin' | 'linux',
 

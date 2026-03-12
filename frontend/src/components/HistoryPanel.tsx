@@ -104,6 +104,8 @@ export function HistoryPanel({
         ]
         const searchableContent = [
           session.title,
+          session.date,
+          session.time,
           session.transcript,
           session.translatedTranscript?.text || '',
           session.providerId || '',

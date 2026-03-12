@@ -1,12 +1,15 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import { useUIStore } from '../stores/uiStore'
 import { useSessionStore } from '../stores/sessionStore'
+import { useTagStore } from '../stores/tagStore'
 import { PreviewModal } from './PreviewModal'
 import { HistoryPanel } from './HistoryPanel'
+import { ActivityHeatmap } from './ActivityHeatmap'
 
 export function ReviewDeskView() {
   const { reviewSessionId } = useUIStore()
   const sessions = useSessionStore((s) => s.sessions)
+  const { searchQuery, setSearchQuery } = useTagStore()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   const session = useMemo(
@@ -14,11 +17,22 @@ export function ReviewDeskView() {
     [sessions, reviewSessionId],
   )
 
+  const handleDateClick = useCallback((date: string) => {
+    setSearchQuery(searchQuery === date ? '' : date)
+  }, [searchQuery, setSearchQuery])
+
+  const activeDate = /^\d{4}-\d{2}-\d{2}$/.test(searchQuery) ? searchQuery : null
+
   if (!session) {
     return (
-      <div className="h-full flex flex-col animate-view-enter">
-        <div className="container mx-auto max-w-5xl flex-1 px-4 py-4 sm:px-6">
-          <HistoryPanel variant="full" contentHeightClassName="h-[min(72vh,56rem)]" />
+      <div className="h-full flex flex-col animate-view-enter overflow-y-auto">
+        <div className="container mx-auto max-w-5xl px-4 py-4 sm:px-6 space-y-4">
+          <ActivityHeatmap
+            sessions={sessions}
+            onDateClick={handleDateClick}
+            activeDate={activeDate}
+          />
+          <HistoryPanel variant="full" contentHeightClassName="h-[min(60vh,48rem)]" />
         </div>
       </div>
     )

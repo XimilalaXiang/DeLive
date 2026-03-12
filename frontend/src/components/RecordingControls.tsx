@@ -2,23 +2,19 @@ import { Mic, Square, Loader2 } from 'lucide-react'
 import { useUIStore } from '../stores/uiStore'
 import { useSettingsStore } from '../stores/settingsStore'
 import { useSessionStore } from '../stores/sessionStore'
-import { useASR } from '../hooks/useASR'
 import { buildProviderConnectConfig, isProviderConfigured } from '../utils/providerConfig'
 import { StatusIndicator } from './ui'
 
 interface RecordingControlsProps {
   onError: (message: string) => void
+  startRecording: () => void
+  stopRecording: () => void
 }
 
-export function RecordingControls({ onError }: RecordingControlsProps) {
+export function RecordingControls({ onError, startRecording, stopRecording }: RecordingControlsProps) {
   const { t } = useUIStore()
   const { settings, availableProviders } = useSettingsStore()
   const { recordingState, currentTranscript } = useSessionStore()
-  const { startRecording, stopRecording } = useASR({
-    onError,
-    onStarted: () => console.log('[UI] Recording started'),
-    onFinished: () => console.log('[UI] Recording finished'),
-  })
 
   const currentVendor = settings.currentVendor || 'soniox'
   const currentProvider = availableProviders.find(p => p.id === currentVendor)
@@ -103,6 +99,14 @@ export function RecordingControls({ onError }: RecordingControlsProps) {
         )}
         {isIdle && !hasApiKey && (
           <p className="text-warning">{t.recording.clickToConfigureApi}</p>
+        )}
+        {isIdle && hasApiKey && window.electronAPI?.isElectron && (
+          <p className="text-xs text-muted-foreground/70">
+            {t.recording.shortcutHint}:
+            <kbd className="ml-1.5 inline-flex h-5 items-center rounded border border-border bg-muted px-1.5 font-mono text-[10px] text-muted-foreground">
+              {window.electronAPI?.platform === 'darwin' ? '⌘' : 'Ctrl'}+Shift+R
+            </kbd>
+          </p>
         )}
       </div>
     </div>

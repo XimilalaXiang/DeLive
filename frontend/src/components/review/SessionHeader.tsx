@@ -11,7 +11,7 @@ import {
   PanelLeftOpen,
 } from 'lucide-react'
 import type { TranscriptSession } from '../../types'
-import { exportToTxt } from '../../utils/storage'
+import { exportToTxt, exportToMarkdown } from '../../utils/storage'
 import { downloadSubtitle } from '../../utils/subtitleExport'
 import { useUIStore } from '../../stores/uiStore'
 
@@ -36,6 +36,11 @@ export function SessionHeader({
 
   const handleExportTxt = () => {
     exportToTxt(session)
+    setShowExportMenu(false)
+  }
+
+  const handleExportMarkdown = () => {
+    exportToMarkdown(session)
     setShowExportMenu(false)
   }
 
@@ -109,6 +114,13 @@ export function SessionHeader({
                   >
                     <FileText className="w-4 h-4" />
                     {t.preview.exportTxt}
+                  </button>
+                  <button
+                    onClick={handleExportMarkdown}
+                    className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-foreground transition-colors hover:bg-accent"
+                  >
+                    <FileText className="w-4 h-4" />
+                    Markdown
                   </button>
                   <button
                     onClick={handleExportSrt}

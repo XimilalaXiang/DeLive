@@ -35,6 +35,7 @@ export {
 
 export {
   exportToTxt,
+  exportToMarkdown,
   formatDate,
   formatTime,
   generateId,

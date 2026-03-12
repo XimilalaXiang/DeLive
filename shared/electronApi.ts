@@ -181,6 +181,7 @@ export interface ElectronAPI {
   safeStorageGet: (key: string) => Promise<string | null>
   safeStorageDelete: (key: string) => Promise<boolean>
   safeStorageAvailable: () => Promise<boolean>
+  onToggleRecording: (callback: () => void) => () => void
   isElectron: boolean
   platform: 'win32' | 'darwin' | 'linux'
   supportsAutoLaunch: boolean

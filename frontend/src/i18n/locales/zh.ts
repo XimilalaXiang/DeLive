@@ -128,6 +128,7 @@ export const zh = {
     waitingForAudio: '等待音频输入... 请确保页面有声音',
     configureApiFirst: '请先在设置中配置 API 密钥',
     clickToConfigureApi: '↑ 请先点击右上角配置 API 密钥',
+    shortcutHint: '快捷键',
   },
 
   // 转录显示

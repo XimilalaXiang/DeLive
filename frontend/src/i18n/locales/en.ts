@@ -130,6 +130,7 @@ export const en: Translations = {
     waitingForAudio: 'Waiting for audio input... Make sure the page has sound',
     configureApiFirst: 'Please configure API key in settings first',
     clickToConfigureApi: '↑ Please click "Configure API" in the top right corner',
+    shortcutHint: 'Shortcut',
   },
 
   // Transcript display
