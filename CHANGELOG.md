@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.6.0] - 2026-03-12
+
+### Added / 新增
+- 📂 Topics feature — organize sessions into project-like topic containers (similar to ChatGPT Projects) with full CRUD, card-grid view, and per-topic detail pages
+- 📂 主题功能 — 将录制会话按主题/项目归类（类似 ChatGPT 项目），支持完整 CRUD、卡片网格视图和主题详情页
+- 🏷️ Topic picker in Live view — select a topic before recording so sessions are automatically assigned; badge displays current topic with one-click clear
+- 🏷️ 录制页主题选择器 — 录制前选择主题，session 自动归类；徽章显示当前主题，一键清除
+- 🔀 "Move to Topic" / "Remove from Topic" in Review → Overview tab — reassign existing sessions to topics or move them back to uncategorized
+- 🔀 Review → Overview tab 新增"移入主题"/"移出主题"操作，可将已有 session 重新归类或移回未分类
+- 🔍 Global search includes topic sessions — searching in Review still finds sessions inside topics
+- 🔍 全局搜索包含主题内 session — 在 Review 中搜索仍能找到主题内的 session
+
+### Changed / 变更
+- 🧭 Navigation bar now includes a Topics tab between Review and Settings
+- 🧭 导航栏在 Review 和 Settings 之间新增 Topics 标签页
+- 📋 Review view now hides sessions that belong to a topic (they live inside their topic's detail view); search mode still shows all
+- 📋 Review 视图默认隐藏已归入主题的 session（它们在主题详情页中查看）；搜索模式下仍显示全部
+
+---
+
 ## [1.5.1] - 2026-03-11
 
 ### Added / 新增

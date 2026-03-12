@@ -41,7 +41,8 @@ DeLive is a desktop transcription workspace for system audio. It captures whatev
 - **Mind maps**. Generate Markmap-compatible Markdown, edit it live, and export SVG or PNG directly from the Review Desk.
 - **Polished Transcript tab**. Timestamps in the left gutter, color-coded speaker badges, automatic consecutive same-speaker merging, and hover highlight.
 - **Local model workflows**. Detect local services, discover installed models, optionally pull models from Ollama, and import/download `whisper.cpp` binaries and models.
-- **Local-first persistence**. Sessions, tags, and settings live in IndexedDB/localStorage, while secrets go through Electron `safeStorage` when OS encryption is available.
+- **Topics for project-based organization**. Group related sessions under named topics with emoji icons and descriptions. Sessions in a topic are isolated from the default Review list while remaining searchable globally. Record directly into a topic from Live or move existing sessions in from Review.
+- **Local-first persistence**. Sessions, tags, topics, and settings live in IndexedDB/localStorage, while secrets go through Electron `safeStorage` when OS encryption is available.
 - **Shared design system**. Composable UI primitives (Button, Badge, Switch, EmptyState, StatusIndicator, DialogShell) with semantic `warning`/`success`/`info` color tokens across five light and dark themes.
 - **Desktop integration**. Tray behavior, global shortcut, auto-launch, updater, diagnostics export, source picker, and typed preload APIs.
 - **Security hardening**. Trusted-window IPC checks, CSP injection, navigation guard, path allowlist, redacted diagnostics, and encrypted secret storage.
@@ -51,10 +52,11 @@ DeLive is a desktop transcription workspace for system audio. It captures whatev
 | Area | Key files | Responsibility |
 |------|-----------|----------------|
 | Desktop shell | `electron/main.ts`, `electron/mainWindow.ts`, `electron/captionWindow.ts`, `electron/tray.ts`, `electron/shortcuts.ts` | Starts Electron, owns native windows, tray behavior, shortcuts, updater lifecycle, and app shutdown. |
-| Renderer app | `frontend/src/App.tsx`, `frontend/src/components/*`, `frontend/src/i18n/*` | Main settings, recording, history, preview, and caption-control UI. Workspace view (Live / Review Desk / Settings) is driven by Zustand. |
+| Renderer app | `frontend/src/App.tsx`, `frontend/src/components/*`, `frontend/src/i18n/*` | Main settings, recording, history, topics, preview, and caption-control UI. Workspace view (Live / Review Desk / Topics / Settings) is driven by Zustand. |
 | ASR orchestration | `frontend/src/hooks/useASR.ts`, `frontend/src/services/captureManager.ts`, `frontend/src/services/providerSession.ts`, `frontend/src/services/captionBridge.ts` | Resolves provider setup, starts the right audio pipeline, forwards transcript events, and mirrors text to the caption overlay. |
 | Provider abstraction | `frontend/src/providers/registry.ts`, `frontend/src/providers/implementations/*` | Normalizes six backends behind one contract and capability model. |
-| Session intelligence | `frontend/src/stores/sessionStore.ts`, `frontend/src/services/aiPostProcess.ts`, `frontend/src/components/ReviewDeskView.tsx`, `frontend/src/components/PreviewModal.tsx` | Session persistence, autosave/recovery, AI briefing, Q&A, mind maps, tagging, and speaker label editing. |
+| Session intelligence | `frontend/src/stores/sessionStore.ts`, `frontend/src/stores/topicStore.ts`, `frontend/src/services/aiPostProcess.ts`, `frontend/src/components/ReviewDeskView.tsx`, `frontend/src/components/PreviewModal.tsx` | Session persistence, autosave/recovery, topic organization, AI briefing, Q&A, mind maps, tagging, and speaker label editing. |
+| Topics | `frontend/src/components/TopicsView.tsx`, `frontend/src/components/TopicDetailView.tsx`, `frontend/src/components/TopicDialog.tsx`, `frontend/src/components/TopicPicker.tsx` | Card-grid topic browser, per-topic session list, CRUD dialogs, and Live-view topic selection. |
 | Review Desk UI | `frontend/src/components/review/SessionTabBar.tsx`, `frontend/src/components/review/OverviewTab.tsx`, `frontend/src/components/review/TranscriptTab.tsx`, `frontend/src/components/review/ChatTab.tsx`, `frontend/src/components/review/MindMapTab.tsx`, `frontend/src/components/review/MarkdownRenderer.tsx` | Animated tab bar with keyboard navigation, per-tab content views, GFM Markdown rendering with syntax highlighting, and mind map editing. |
 | Shared UI system | `frontend/src/components/ui/*` | Button, Badge, Switch, EmptyState, StatusIndicator, DialogShell primitives with semantic color tokens across five themes. |
 | Local model/runtime tooling | `frontend/src/utils/localModelSetup.ts`, `frontend/src/utils/localRuntimeManager.ts`, `frontend/src/components/LocalModelSetupGuide.tsx`, `frontend/src/components/BundledRuntimeSetupGuide.tsx`, `electron/localRuntime.ts` | Detects local services, checks models, supports Ollama pull, imports/downloads `whisper.cpp` assets, and starts/stops the local runtime. |
@@ -186,7 +188,7 @@ graph TB
 | Layer | Main components | Notes |
 |-------|-----------------|-------|
 | Desktop shell | Electron main process, main window, caption window, tray, updater, diagnostics | Owns native lifecycle, source picking, caption overlay, and OS integration. |
-| Renderer | React UI, Zustand stores, history/preview workspace, settings panels | Handles recording flow, configuration, session review, and user actions. |
+| Renderer | React UI, Zustand stores, history/preview workspace, topics, settings panels | Handles recording flow, configuration, topic management, session review, and user actions. |
 | Orchestration | `useASR`, `CaptureManager`, `ProviderSessionManager`, `CaptionBridge` | Keeps provider logic separate from capture and UI. |
 | Provider layer | Registry plus 6 implementations | Unifies realtime cloud, windowed batch cloud, local service, and local runtime flows. |
 | Electron services | Embedded Volc proxy, local runtime controller, safe-storage IPC, diagnostics IPC | Provides features that the browser environment cannot do directly. |
@@ -293,6 +295,19 @@ If `local-runtimes/whisper_cpp/whisper-server(.exe)` exists at build time, `elec
 - Switch between source, translated, and dual modes when the provider supplies translation output.
 - Use draggable/interactive states to reposition the overlay without closing it.
 
+### Topics
+
+Organize recordings into project-like containers:
+
+1. Open the **Topics** tab from the navigation bar.
+2. Create a topic with a name, emoji icon, and optional description.
+3. Start recording into a topic in two ways:
+   - Click **Record New** on a topic card — jumps to Live with the topic pre-selected.
+   - In the Live view, click the **Select Topic** link above the recording controls and pick a topic.
+4. The selected topic appears as a badge above the record button. Recordings are assigned automatically.
+5. Existing sessions can be moved into (or out of) a topic from the **Overview** tab in Review.
+6. Sessions inside a topic are hidden from the default Review list, but global search still finds them.
+
 ### AI Review Desk
 
 Completed sessions open in a dedicated full-page Review Desk (not a modal) with an animated sliding tab bar and keyboard arrow navigation:
@@ -320,7 +335,7 @@ Completed sessions open in a dedicated full-page Review Desk (not a modal) with 
 
 ### History, Backup, and Recovery
 
-- Sessions can be renamed, tagged, searched, and exported as TXT, SRT, or VTT.
+- Sessions can be renamed, tagged, organized by topic, searched, and exported as TXT, SRT, or VTT.
 - Recording drafts are autosaved and incomplete sessions can be restored after an interrupted launch.
 - Full local data can be exported/imported for backup or migration.
 - Diagnostics export generates a redacted JSON bundle with system info and recent logs for troubleshooting.
