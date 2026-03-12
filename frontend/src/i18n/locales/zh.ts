@@ -5,6 +5,7 @@ export const zh = {
     name: 'DeLive',
     subtitle: '桌面音频实时转录',
     footer: '开源于',
+    backToLive: '返回 Live',
   },
 
   // 通用

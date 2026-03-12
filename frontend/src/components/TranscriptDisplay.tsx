@@ -100,26 +100,20 @@ export function TranscriptDisplay({
             <Activity className="h-3.5 w-3.5" />
             {t.transcript.title}
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="workspace-badge">
               {providerName}
               <span className="rounded-full bg-muted px-2 py-0.5 text-xs uppercase tracking-wide text-muted-foreground">
                 {providerModeLabel}
               </span>
             </span>
-            {currentSessionId && (
-              <span className="workspace-badge font-mono">
-                ID {currentSessionId.slice(0, 8)}
-              </span>
-            )}
-            {showTranslated && (
-              <span className="workspace-badge text-info dark:text-info">
-                {t.transcript.translated || 'Translated'}
-              </span>
-            )}
-            {speakerDiarizationEnabled && (
-              <span className="workspace-badge">
-                Speakers
+            {(showTranslated || speakerDiarizationEnabled || currentSessionId) && (
+              <span className="text-xs text-muted-foreground/60">
+                {[
+                  currentSessionId ? `#${currentSessionId.slice(0, 6)}` : '',
+                  showTranslated ? (t.transcript.translated || 'Translated') : '',
+                  speakerDiarizationEnabled ? 'Speakers' : '',
+                ].filter(Boolean).join(' · ')}
               </span>
             )}
           </div>
@@ -275,21 +269,25 @@ export function TranscriptDisplay({
 
       {/* 底部状态栏 */}
       {(finalTranscript || nonFinalTranscript || translatedText) && (
-        <div className="px-6 py-2.5 border-t border-border bg-muted/30 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <FileText className="w-3.5 h-3.5" />
-            <span>
-              {t.transcript.transcribed} {(finalTranscript.length + nonFinalTranscript.length)} {t.common.characters}
-            </span>
+        <div className="px-6 py-3 border-t border-border bg-muted/30 flex items-center justify-between text-xs">
+          <div className="flex items-center gap-1 text-muted-foreground">
+            <FileText className="w-3.5 h-3.5 mr-1" />
+            <span>{t.transcript.transcribed} {(finalTranscript.length + nonFinalTranscript.length)} {t.common.characters}</span>
             {translatedText && (
-              <span className="text-info dark:text-info">
-                {t.transcript.translated || '已翻译'} {translatedText.length}
-              </span>
+              <>
+                <span className="mx-1.5 text-border">|</span>
+                <span className="text-info dark:text-info">
+                  {t.transcript.translated || '已翻译'} {translatedText.length}
+                </span>
+              </>
             )}
             {isRecording && nonFinalTranscript.length > 0 && (
-              <span className="text-muted-foreground/60">
-                ({t.transcript.confirmed || '已确认'} {finalTranscript.length})
-              </span>
+              <>
+                <span className="mx-1.5 text-border">|</span>
+                <span className="text-muted-foreground/60">
+                  {t.transcript.confirmed || '已确认'} {finalTranscript.length}
+                </span>
+              </>
             )}
           </div>
           {isRecording && (

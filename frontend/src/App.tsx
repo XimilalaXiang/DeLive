@@ -158,6 +158,17 @@ function App() {
       <TitleBar />
       {isElectron && <div className="h-8 shrink-0" />}
 
+      {/* Global recording indicator */}
+      {recordingState === 'recording' && currentView !== 'live' && (
+        <div className="shrink-0 flex items-center justify-center gap-2 bg-destructive/10 border-b border-destructive/20 px-4 py-1.5 text-xs font-medium text-destructive cursor-pointer hover:bg-destructive/15 transition-colors" onClick={() => setView('live')}>
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-destructive" />
+          </span>
+          {copy.statusRecording} — {t.app.backToLive}
+        </div>
+      )}
+
       <header className={`z-40 w-full shrink-0 border-b border-border/60 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/75 ${currentView === 'live' ? (isElectron ? 'sticky top-8' : 'sticky top-0') : ''}`}>
         <div className="container mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-4 py-3.5 sm:px-6">
           <div className="flex items-center gap-3">

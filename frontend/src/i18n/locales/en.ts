@@ -7,6 +7,7 @@ export const en: Translations = {
     name: 'DeLive',
     subtitle: 'Real-time Desktop Audio Transcription',
     footer: 'Open Source on',
+    backToLive: 'Back to Live',
   },
 
   // Common

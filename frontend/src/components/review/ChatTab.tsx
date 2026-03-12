@@ -314,19 +314,19 @@ export function ChatTab({ session }: ChatTabProps) {
                         />
                       </div>
                     </div>
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                      <User className="h-3.5 w-3.5" />
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <User className="h-4 w-4" />
                     </div>
                   </div>
 
                   {/* AI message */}
                   <div className="group/msg flex items-start gap-3">
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                      <Sparkles className="h-3.5 w-3.5" />
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <Sparkles className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">
                       {turn.status === 'pending' ? (
-                        <div className="space-y-3">
+                        <div className="rounded-2xl rounded-tl-md bg-muted/40 px-4 py-3 space-y-3">
                           <div className="flex items-center gap-2 text-xs font-medium text-primary">
                             <Sparkles className="h-3.5 w-3.5" />
                             {t.preview.askThinking}
@@ -334,13 +334,13 @@ export function ChatTab({ session }: ChatTabProps) {
                           <ThinkingIndicator />
                         </div>
                       ) : turn.status === 'error' ? (
-                        <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3">
+                        <div className="rounded-2xl rounded-tl-md border border-destructive/20 bg-destructive/5 px-4 py-3">
                           <p className="text-sm leading-relaxed text-destructive whitespace-pre-wrap">
                             {turn.error || t.preview.askErrorFallback}
                           </p>
                         </div>
                       ) : (
-                        <div>
+                        <div className="rounded-2xl rounded-tl-md bg-muted/30 px-4 py-3">
                           <MarkdownRenderer content={turn.answer || ''} />
                         </div>
                       )}
@@ -469,7 +469,7 @@ export function ChatTab({ session }: ChatTabProps) {
               )}
             </button>
           </div>
-          <p className="mt-1.5 text-center text-[10px] text-muted-foreground/50">
+          <p className="mt-1.5 text-center text-[10px] text-muted-foreground/70">
             Enter {t.preview.askSend} · Shift+Enter {'\u2191'}
           </p>
         </div>

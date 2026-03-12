@@ -390,24 +390,23 @@ export function ApiKeyConfig({ isOpen, onClose, mode = 'modal' }: ApiKeyConfigPr
           </button>
         </div>
 
-        {/* Tab bar */}
-        <div className="flex border-b border-border bg-muted/20 px-6 flex-shrink-0" role="tablist" aria-label="Settings sections">
+        {/* Tab bar — unified with SessionTabBar style */}
+        <div className="relative flex items-center gap-1 border-b border-border bg-background/70 px-6 flex-shrink-0" role="tablist" aria-label="Settings sections">
           <button
             role="tab"
             aria-selected={activeTab === 'service'}
             aria-controls="settings-panel-service"
             id="settings-tab-service"
             onClick={() => setActiveTab('service')}
-            className={`px-4 py-2.5 text-sm font-medium transition-colors relative ${
+            className={`relative inline-flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors ${
               activeTab === 'service'
                 ? 'text-primary'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
+            <Settings className="h-4 w-4" />
             {t.settings?.tabService || '服务配置'}
-            {activeTab === 'service' && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
-            )}
+            <span className={`absolute bottom-0 left-0 right-0 h-0.5 rounded-t-full bg-primary transition-opacity duration-200 ${activeTab === 'service' ? 'opacity-100' : 'opacity-0'}`} />
           </button>
           <button
             role="tab"
@@ -415,16 +414,15 @@ export function ApiKeyConfig({ isOpen, onClose, mode = 'modal' }: ApiKeyConfigPr
             aria-controls="settings-panel-general"
             id="settings-tab-general"
             onClick={() => setActiveTab('general')}
-            className={`px-4 py-2.5 text-sm font-medium transition-colors relative ${
+            className={`relative inline-flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors ${
               activeTab === 'general'
                 ? 'text-primary'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
+            <Settings className="h-4 w-4" />
             {t.settings?.tabGeneral || '通用设置'}
-            {activeTab === 'general' && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
-            )}
+            <span className={`absolute bottom-0 left-0 right-0 h-0.5 rounded-t-full bg-primary transition-opacity duration-200 ${activeTab === 'general' ? 'opacity-100' : 'opacity-0'}`} />
           </button>
         </div>
 

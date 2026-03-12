@@ -45,31 +45,31 @@ export function RecordingControls({ onError }: RecordingControlsProps) {
   }
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-5">
       <button
         onClick={handleClick}
         disabled={isLoading}
         className={`
-          relative flex shrink-0 items-center gap-2.5 rounded-full px-5 py-2.5
-          text-sm font-medium tracking-wide shadow-md
+          relative flex shrink-0 items-center gap-2.5 rounded-full px-6 py-3
+          text-sm font-semibold tracking-wide shadow-md
           transition-all duration-200
           disabled:opacity-80 disabled:cursor-not-allowed
           active:scale-[0.97]
           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
           ${isRecording
             ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90 ring-2 ring-destructive/20 animate-glow-pulse-destructive'
-            : 'bg-primary text-primary-foreground hover:bg-primary/90 ring-2 ring-primary/20'
+            : 'bg-primary text-primary-foreground hover:bg-primary/90 ring-2 ring-primary/20 animate-glow-pulse'
           }
         `}
       >
         {isStarting ? (
           <>
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-4.5 w-4.5 animate-spin" />
             <span>{t.recording.starting}</span>
           </>
         ) : isStopping ? (
           <>
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-4.5 w-4.5 animate-spin" />
             <span>{t.recording.stopping}</span>
           </>
         ) : isRecording ? (
@@ -79,7 +79,7 @@ export function RecordingControls({ onError }: RecordingControlsProps) {
           </>
         ) : (
           <>
-            <Mic className="h-4 w-4" />
+            <Mic className="h-4.5 w-4.5" />
             <span>{t.recording.startRecording}</span>
           </>
         )}

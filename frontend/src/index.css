@@ -5,6 +5,14 @@
 /* ===== CSS 变量 ===== */
 :root {
   --radius: 1rem;
+
+  /* Motion tokens */
+  --duration-fast: 120ms;
+  --duration-normal: 200ms;
+  --duration-slow: 350ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ===== 全局品牌选中色 — 跟随主题 ===== */
@@ -154,11 +162,11 @@ body {
 }
 
 .animate-reveal-up {
-  animation: reveal-up 250ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: reveal-up var(--duration-normal) var(--ease-out) both;
 }
 
 .animate-reveal-fade {
-  animation: reveal-fade 200ms ease-out both;
+  animation: reveal-fade var(--duration-normal) ease-out both;
 }
 
 /* ===== 视图切换过渡 ===== */
@@ -174,11 +182,11 @@ body {
 }
 
 .animate-view-enter {
-  animation: view-enter 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: view-enter var(--duration-normal) var(--ease-out) both;
 }
 
 .view-transition-enter {
-  animation: view-enter 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: view-enter var(--duration-normal) var(--ease-out) both;
 }
 
 /* ===== Dropdown / Popover 动画 ===== */
@@ -194,7 +202,7 @@ body {
 }
 
 .animate-dropdown-in {
-  animation: dropdown-in 150ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: dropdown-in var(--duration-fast) var(--ease-spring) both;
 }
 
 /* ===== Tab 内容 crossfade ===== */
@@ -204,7 +212,7 @@ body {
 }
 
 .animate-tab-enter {
-  animation: tab-fade-in 150ms ease-out both;
+  animation: tab-fade-in var(--duration-fast) ease-out both;
 }
 
 /* Staggered delays — 40ms per item */
@@ -297,9 +305,26 @@ body {
   box-shadow: 0 0 0 4px hsl(var(--primary) / 0.2);
 }
 
+/* ===== 可交互卡片 ===== */
+.interactive-card {
+  transition: box-shadow var(--duration-normal) var(--ease-out),
+              transform var(--duration-normal) var(--ease-out),
+              border-color var(--duration-normal) var(--ease-out);
+}
+.interactive-card:hover {
+  box-shadow: 0 4px 12px -2px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.04);
+  transform: translateY(-1px);
+}
+.interactive-card:active {
+  transform: translateY(0) scale(0.995);
+}
+.dark .interactive-card:hover {
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.1), 0 4px 12px -2px rgb(0 0 0 / 0.4);
+}
+
 /* ===== 交互反馈 ===== */
 .press-scale {
-  transition: transform 0.15s ease;
+  transition: transform var(--duration-fast) var(--ease-out);
 }
 .press-scale:active {
   transform: scale(0.97);

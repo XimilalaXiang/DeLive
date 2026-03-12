@@ -325,7 +325,7 @@ export function HistoryPanel({
                           key={session.id}
                           onClick={() => handlePreview(session)}
                           className="group flex flex-col gap-2 px-4 py-3 rounded-lg mx-2
-                                   hover:bg-primary/5 cursor-pointer transition-all duration-200 border border-transparent hover:border-primary/20"
+                                   cursor-pointer interactive-card border border-transparent hover:border-primary/20 hover:bg-primary/5"
                         >
                           {/* 第一行：时间、标题、操作 */}
                           <div className="flex items-center gap-3">
