@@ -308,6 +308,37 @@ export const en: Translations = {
     checkForUpdates: 'Check for Updates',
   },
 
+  // Topics
+  topics: {
+    title: 'Topics',
+    newTopic: 'New Topic',
+    editTopic: 'Edit Topic',
+    deleteTopic: 'Delete Topic',
+    deleteConfirm: (name: string) => `Delete topic "${name}"? Sessions in this topic will become uncategorized.`,
+    topicName: 'Topic Name',
+    topicNamePlaceholder: 'Enter topic name',
+    topicEmoji: 'Choose Icon',
+    topicDescription: 'Description (optional)',
+    topicDescriptionPlaceholder: 'Briefly describe this topic',
+    noTopics: 'No topics yet',
+    noTopicsHint: 'Create a topic to organize your recordings',
+    sessions: 'sessions',
+    totalDuration: 'Total',
+    lastRecording: 'Last recorded',
+    recordNew: 'Record New',
+    searchTopics: 'Search topics...',
+    moveToTopic: 'Move to Topic',
+    removeFromTopic: 'Remove from Topic',
+    selectTopic: 'Select Topic',
+    noTopic: 'No Topic',
+    currentTopic: 'Current Topic',
+    uncategorized: 'Uncategorized',
+    daysAgo: (n: number) => n === 0 ? 'Today' : n === 1 ? 'Yesterday' : `${n}d ago`,
+    weeksAgo: (n: number) => `${n}w ago`,
+    hoursShort: 'h',
+    minutesShort: 'min',
+  },
+
   // Live Caption
   caption: {
     title: 'Live Caption',

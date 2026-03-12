@@ -8,6 +8,7 @@
 import { useCallback, useRef, useEffect } from 'react'
 import { useSettingsStore } from '../stores/settingsStore'
 import { useSessionStore } from '../stores/sessionStore'
+import { useTopicStore } from '../stores/topicStore'
 import { CaptureManager } from '../services/captureManager'
 import { CaptionBridge } from '../services/captionBridge'
 import { ProviderSessionManager } from '../services/providerSession'
@@ -202,6 +203,13 @@ export function useASR(options: UseASROptions = {}) {
       )
 
       startNewSession()
+
+      const activeTopicId = useTopicStore.getState().activeTopicId
+      if (activeTopicId) {
+        const sid = useSessionStore.getState().currentSessionId
+        if (sid) useSessionStore.getState().updateSessionTopic(sid, activeTopicId)
+      }
+
       selectedVendorRef.current = vendorId
       setRecordingState('recording')
       options.onStarted?.()

@@ -42,7 +42,7 @@ const applyTheme = (resolvedTheme: ResolvedTheme) => {
   }
 }
 
-export type WorkspaceView = 'live' | 'review' | 'settings'
+export type WorkspaceView = 'live' | 'review' | 'topics' | 'settings'
 
 export interface UIState {
   language: Language

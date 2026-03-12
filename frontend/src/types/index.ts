@@ -4,6 +4,16 @@ export * from './asr'
 // 兼容旧代码：保留 Soniox 类型别名
 export type { SonioxToken, SonioxResponse, SonioxConfig } from './asr/vendors/soniox'
 
+// 主题类型
+export interface Topic {
+  id: string
+  name: string
+  emoji: string
+  description?: string
+  createdAt: number
+  updatedAt: number
+}
+
 // 标签类型
 export interface Tag {
   id: string
@@ -146,6 +156,7 @@ export interface TranscriptSession {
   transcript: string
   translatedTranscript?: TranscriptTranslationData
   duration?: number // 毫秒
+  topicId?: string // 归属的主题ID
   tagIds?: string[] // 关联的标签ID列表
   tokens?: TranscriptTokenData[] // 带时间戳的 tokens（用于 SRT 导出）
   speakers?: TranscriptSpeaker[]

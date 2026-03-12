@@ -69,6 +69,11 @@ export function HistoryPanel({
   // 按标签和搜索词筛选会话
   const filteredSessions = useMemo(() => {
     let result = sessions
+
+    // 搜索时包含所有 session（含主题内的），否则隐藏有 topicId 的 session
+    if (!searchQuery.trim()) {
+      result = result.filter((session) => !session.topicId)
+    }
     
     // 标签筛选
     if (selectedTagIds.length > 0) {

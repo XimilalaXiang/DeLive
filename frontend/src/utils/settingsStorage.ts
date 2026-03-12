@@ -1,4 +1,4 @@
-import type { AppSettings, Tag } from '../types'
+import type { AppSettings, Tag, Topic } from '../types'
 import {
   createTransaction,
   getDefaultSettings,
@@ -153,4 +153,12 @@ export function saveSettings(settings: AppSettings): void {
     'Failed to save settings to localStorage:',
   )
   void mirrorSettingsToIdb(settings)
+}
+
+export function getTopics(): Topic[] {
+  return readJsonFromLocalStorage(STORAGE_KEYS.TOPICS, [] as Topic[])
+}
+
+export function saveTopics(topics: Topic[]): void {
+  writeJsonToLocalStorage(STORAGE_KEYS.TOPICS, topics, 'Failed to save topics to localStorage:')
 }

@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { AlertTriangle, Settings, Waves, Radio, BookOpen } from 'lucide-react'
+import { AlertTriangle, Settings, Waves, Radio, BookOpen, FolderOpen } from 'lucide-react'
 import { useUIStore } from './stores/uiStore'
 import { useSettingsStore } from './stores/settingsStore'
 import { useSessionStore } from './stores/sessionStore'
 import { useTagStore } from './stores/tagStore'
+import { useTopicStore } from './stores/topicStore'
 import { useASR } from './hooks/useASR'
 import { buildProviderConnectConfig, isProviderConfigured } from './utils/providerConfig'
 import { 
@@ -21,6 +22,8 @@ import { Badge } from './components/ui'
 import { StatusIndicator } from './components/ui'
 import { UpdateNotification } from './components/UpdateNotification'
 import { ReviewDeskView } from './components/ReviewDeskView'
+import { TopicsView } from './components/TopicsView'
+import { TopicPicker } from './components/TopicPicker'
 import { initStorage } from './utils/storage'
 
 function App() {
@@ -37,6 +40,7 @@ function App() {
     recordingState,
   } = useSessionStore()
   const { loadTags } = useTagStore()
+  const { loadTopics } = useTopicStore()
   const hasCheckedApiKey = useRef(false)
 
   // Toast 管理
@@ -81,6 +85,7 @@ function App() {
       initTheme()
       loadSettings()
       loadTags()
+      loadTopics()
       await loadSessions()
 
       if (!cancelled) {
@@ -222,6 +227,18 @@ function App() {
                 Review
               </button>
               <button
+                onClick={() => setView('topics')}
+                className={`relative inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  currentView === 'topics'
+                    ? 'text-primary bg-primary/10'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                }`}
+                aria-current={currentView === 'topics' ? 'page' : undefined}
+              >
+                <FolderOpen className="h-3.5 w-3.5" />
+                Topics
+              </button>
+              <button
                 onClick={() => setView('settings')}
                 className={`relative inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
                   currentView === 'settings'
@@ -281,6 +298,12 @@ function App() {
         </main>
       )}
 
+      {currentView === 'topics' && (
+        <main key="topics" id="app-main" className="flex-1 overflow-hidden animate-view-enter">
+          <TopicsView />
+        </main>
+      )}
+
       {/* Live 视图始终挂载，切走时隐藏，避免转录中断 */}
       <main
         className={`container mx-auto max-w-5xl px-4 pb-8 pt-4 sm:px-6 ${
@@ -332,7 +355,8 @@ function App() {
             <TranscriptDisplay contentHeightClassName="h-[min(50vh,36rem)] min-h-[24rem]" />
           </div>
 
-          <div className="workspace-panel p-5 animate-reveal-up delay-2">
+          <div className="workspace-panel p-5 animate-reveal-up delay-2 space-y-3">
+            {recordingState === 'idle' && <TopicPicker />}
             <RecordingControls onError={handleError} startRecording={startRecording} stopRecording={stopRecording} />
           </div>
         </div>

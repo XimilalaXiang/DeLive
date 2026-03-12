@@ -4,6 +4,7 @@ export const STORAGE_KEYS = {
   SESSIONS: 'desktoplive_sessions',
   SETTINGS: 'desktoplive_settings',
   TAGS: 'desktoplive_tags',
+  TOPICS: 'desktoplive_topics',
 } as const
 
 export const DB_NAME = 'delive-app'

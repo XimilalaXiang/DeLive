@@ -16,6 +16,7 @@ export function createDraftSession(options: {
   now?: number
   title: string
   providerId?: string
+  topicId?: string
   sourceMeta?: TranscriptSourceMeta
 }): TranscriptSession {
   const now = options.now ?? Date.now()
@@ -28,6 +29,7 @@ export function createDraftSession(options: {
     createdAt: now,
     updatedAt: now,
     transcript: '',
+    topicId: options.topicId,
     tagIds: [],
     providerId: options.providerId,
     sourceMeta: options.sourceMeta,

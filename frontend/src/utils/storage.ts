@@ -9,9 +9,11 @@ export {
 export {
   getSettings,
   getTags,
+  getTopics,
   initStorage,
   saveSettings,
   saveTags,
+  saveTopics,
 } from './settingsStorage'
 
 export {
