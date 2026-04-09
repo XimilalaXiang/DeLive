@@ -15,7 +15,7 @@ English | [简体中文](./README_ZH.md) | [繁體中文](./README_TW.md) | [日
 [![Platform](https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=black)](https://github.com/XimilalaXiang/DeLive/releases)
 [![Downloads](https://img.shields.io/github/downloads/XimilalaXiang/DeLive/total?label=Downloads&color=orange)](https://github.com/XimilalaXiang/DeLive/releases)
 [![Stars](https://img.shields.io/github/stars/XimilalaXiang/DeLive?style=social)](https://github.com/XimilalaXiang/DeLive)
-
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/XimilalaXiang/DeLive)
 [Core Features](#-core-features) • [Project Map](#-project-map) • [Architecture](#-system-architecture) • [Providers](#-supported-asr-providers) • [Quick Start](#-quick-start)
 
 </div>
