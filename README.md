@@ -27,13 +27,18 @@ DeLive is a desktop transcription workspace for system audio. It captures whatev
 
 | Live Transcription | Review & History | Topics |
 |:---:|:---:|:---:|
-| Real-time transcription workspace with provider switching | Session history with calendar view and search | Project-based session organization |
-| <img width="300" src="assets/screenshot-live-light.webp" alt="Live View" /> | <img width="300" src="assets/screenshot-review.webp" alt="Review View" /> | <img width="300" src="assets/screenshot-topics.webp" alt="Topics View" /> |
+| Real-time transcription with floating caption overlay | Session history with activity heatmap and search | Project-based session organization |
+| <img width="300" src="assets/screenshot-live.png" alt="Live Transcription" /> | <img width="300" src="assets/screenshot-review-history.png" alt="Review & History" /> | <img width="300" src="assets/screenshot-topics-view.png" alt="Topics" /> |
 
-| Themes & Customization | Dark Mode |
+| AI Overview | AI Chat | Mind Map & Export |
+|:---:|:---:|:---:|
+| Summary, action items, keywords, and chapters | Multi-thread conversation with cited references | Caption style editor with live preview |
+| <img width="300" src="assets/screenshot-ai-overview.png" alt="AI Overview" /> | <img width="300" src="assets/screenshot-ai-chat.png" alt="AI Chat" /> | <img width="300" src="assets/screenshot-caption-style.png" alt="Caption Style" /> |
+
+| Settings | Caption Overlay |
 |:---:|:---:|
-| 5 color themes with full light/dark support | Complete dark mode across all views |
-| <img width="400" src="assets/screenshot-settings-themes.webp" alt="Settings Themes" /> | <img width="400" src="assets/screenshot-settings-dark.webp" alt="Dark Mode" /> |
+| Provider configuration with credential management | Draggable always-on-top floating caption window |
+| <img width="400" src="assets/screenshot-settings-api.png" alt="Settings" /> | <img width="400" src="assets/screenshot-caption-overlay.png" alt="Caption Overlay" /> |
 
 #
 
