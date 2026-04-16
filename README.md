@@ -219,7 +219,7 @@ Organize recordings into project-like containers:
 Completed sessions open in a dedicated full-page Review Desk (not a modal) with an animated sliding tab bar and keyboard arrow navigation:
 
 - **Overview tab**: AI briefing — summary, action items, keywords, chapters, title/tag suggestions, and one-click apply
-- **Transcript tab**: Timestamped segments in a left gutter, color-coded speaker badges, consecutive same-speaker merging, hover highlight, and SRT/VTT/TXT export
+- **Transcript tab**: Timestamped segments in a left gutter, color-coded speaker badges, consecutive same-speaker merging, hover highlight, and TXT/Markdown/SRT/VTT export
 - **Chat tab**: Multi-thread AI conversation — GFM Markdown rendering with syntax-highlighted code blocks (one-click copy), user/AI avatars, hover Copy/Regenerate actions, animated thinking-dots indicator, auto-resizing composer (Enter to send), floating scroll-to-bottom button, and per-thread delete
 - **Mind Map tab**: Generate Markmap-compatible Markdown, edit it live, and export SVG or PNG
 - **Metadata actions**: apply suggested title/tags and rename speaker labels for diarized sessions
@@ -241,7 +241,7 @@ Completed sessions open in a dedicated full-page Review Desk (not a modal) with 
 
 ### History, Backup, and Recovery
 
-- Sessions can be renamed, tagged, organized by topic, searched, and exported as TXT, SRT, or VTT.
+- Sessions can be renamed, tagged, organized by topic, searched, and exported as TXT, Markdown, SRT, or VTT.
 - Recording drafts are autosaved and incomplete sessions can be restored after an interrupted launch.
 - Full local data can be exported/imported for backup or migration.
 - Diagnostics export generates a redacted JSON bundle with system info and recent logs for troubleshooting.
@@ -250,17 +250,21 @@ Completed sessions open in a dedicated full-page Review Desk (not a modal) with 
 
 | Area | Key files | Responsibility |
 |------|-----------|----------------|
-| Desktop shell | `electron/main.ts`, `electron/mainWindow.ts`, `electron/captionWindow.ts`, `electron/tray.ts`, `electron/shortcuts.ts` | Starts Electron, owns native windows, tray behavior, shortcuts, updater lifecycle, and app shutdown. |
+| Desktop shell | `electron/main.ts`, `electron/mainWindow.ts`, `electron/captionWindow.ts`, `electron/tray.ts`, `electron/shortcuts.ts`, `electron/desktopSource.ts`, `electron/autoUpdater.ts`, `electron/ipcSecurity.ts` | Starts Electron, owns native windows, tray behavior, shortcuts, desktop source picking, updater lifecycle, IPC security, and app shutdown. |
 | Renderer app | `frontend/src/App.tsx`, `frontend/src/components/*`, `frontend/src/i18n/*` | Main settings, recording, history, topics, preview, and caption-control UI. Workspace view (Live / Review Desk / Topics / Settings) is driven by Zustand. |
 | ASR orchestration | `frontend/src/hooks/useASR.ts`, `frontend/src/services/captureManager.ts`, `frontend/src/services/providerSession.ts`, `frontend/src/services/captionBridge.ts` | Resolves provider setup, starts the right audio pipeline, forwards transcript events, and mirrors text to the caption overlay. |
 | Provider abstraction | `frontend/src/providers/registry.ts`, `frontend/src/providers/implementations/*` | Normalizes six backends behind one contract and capability model. |
-| Session intelligence | `frontend/src/stores/sessionStore.ts`, `frontend/src/stores/topicStore.ts`, `frontend/src/services/aiPostProcess.ts`, `frontend/src/components/ReviewDeskView.tsx`, `frontend/src/components/PreviewModal.tsx` | Session persistence, autosave/recovery, topic organization, AI briefing, Q&A, mind maps, tagging, and speaker label editing. |
+| State management | `frontend/src/stores/sessionStore.ts`, `frontend/src/stores/topicStore.ts`, `frontend/src/stores/uiStore.ts`, `frontend/src/stores/settingsStore.ts`, `frontend/src/stores/tagStore.ts`, `frontend/src/stores/transcriptStore.ts` | Zustand store slices for sessions, topics, UI state, settings, tags, and a unified facade for backward compatibility. |
+| Session intelligence | `frontend/src/services/aiPostProcess.ts`, `frontend/src/components/ReviewDeskView.tsx`, `frontend/src/components/PreviewModal.tsx` | AI briefing, Q&A, mind maps, tagging, and speaker label editing. |
 | Topics | `frontend/src/components/TopicsView.tsx`, `frontend/src/components/TopicDetailView.tsx`, `frontend/src/components/TopicDialog.tsx`, `frontend/src/components/TopicPicker.tsx` | Card-grid topic browser, per-topic session list, CRUD dialogs, and Live-view topic selection. |
-| Review Desk UI | `frontend/src/components/review/SessionTabBar.tsx`, `frontend/src/components/review/OverviewTab.tsx`, `frontend/src/components/review/TranscriptTab.tsx`, `frontend/src/components/review/ChatTab.tsx`, `frontend/src/components/review/MindMapTab.tsx`, `frontend/src/components/review/MarkdownRenderer.tsx` | Animated tab bar with keyboard navigation, per-tab content views, GFM Markdown rendering with syntax highlighting, and mind map editing. |
+| Review Desk UI | `frontend/src/components/review/SessionTabBar.tsx`, `frontend/src/components/review/SessionHeader.tsx`, `frontend/src/components/review/OverviewTab.tsx`, `frontend/src/components/review/TranscriptTab.tsx`, `frontend/src/components/review/ChatTab.tsx`, `frontend/src/components/review/MindMapTab.tsx`, `frontend/src/components/review/MarkdownRenderer.tsx` | Animated tab bar with keyboard navigation, session header with multi-format export (TXT/Markdown/SRT/VTT), per-tab content views, GFM Markdown rendering with syntax highlighting, and mind map editing. |
+| Settings UI | `frontend/src/components/settings/ServiceSettingsPanel.tsx`, `frontend/src/components/settings/GeneralSettingsPanel.tsx` | Provider credential configuration and general app settings (language, theme, AI config, backup/restore). |
+| Runtime UI | `frontend/src/components/runtime/BundledRuntimeSummaryCard.tsx`, `frontend/src/components/runtime/BundledRuntimeAdvancedPanel.tsx` | Status card and advanced panel for managing bundled `whisper.cpp` runtime assets. |
 | Shared UI system | `frontend/src/components/ui/*` | Button, Badge, Switch, EmptyState, StatusIndicator, DialogShell primitives with semantic color tokens across five themes. |
-| Local model/runtime tooling | `frontend/src/utils/localModelSetup.ts`, `frontend/src/utils/localRuntimeManager.ts`, `frontend/src/components/LocalModelSetupGuide.tsx`, `frontend/src/components/BundledRuntimeSetupGuide.tsx`, `electron/localRuntime.ts` | Detects local services, checks models, supports Ollama pull, imports/downloads `whisper.cpp` assets, and starts/stops the local runtime. |
+| Local model/runtime tooling | `frontend/src/utils/localModelSetup.ts`, `frontend/src/utils/localRuntimeManager.ts`, `frontend/src/components/LocalModelSetupGuide.tsx`, `frontend/src/components/BundledRuntimeSetupGuide.tsx`, `electron/localRuntime.ts`, `electron/localRuntimeFiles.ts`, `electron/localRuntimeShared.ts`, `electron/localRuntimeIpc.ts` | Detects local services, checks models, supports Ollama pull, imports/downloads `whisper.cpp` assets, manages runtime files, and starts/stops the local runtime. |
+| Electron IPC layer | `electron/appIpc.ts`, `electron/captionIpc.ts`, `electron/safeStorageIpc.ts`, `electron/updaterIpc.ts`, `electron/diagnosticsIpc.ts` | Modular IPC handlers for app lifecycle, caption window control, secret storage, auto-update, and diagnostics export. |
 | Shared contracts | `shared/electronApi.ts`, `electron/preload.ts`, `shared/volcProxyCore.ts` | Typed bridge between renderer and main process plus shared protocol helpers for the embedded Volcengine proxy. |
-| Debug and release support | `server/`, `scripts/`, `.github/workflows/release.yml` | Standalone Volc proxy debugging, icon/runtime staging scripts, release-note generation, and tagged multi-platform release builds. |
+| Debug and release support | `server/`, `scripts/`, `.github/workflows/release.yml`, `.github/workflows/ci.yml` | Standalone Volc proxy debugging, icon/runtime staging scripts, continuous integration, and tagged multi-platform release builds. |
 | Design references | `design-system/delive/MASTER.md` | Product and visual reference material used during UI iteration. Not part of the runtime path. |
 
 ## 🔄 Recording Lifecycle
@@ -407,6 +411,7 @@ DeLive/
 ├── design-system/                    # Design reference material
 ├── assets/                           # README and branding assets
 ├── build/                            # Electron-builder icons and packaging resources
+├── .github/workflows/ci.yml          # Push/PR continuous integration pipeline
 ├── .github/workflows/release.yml     # Tag-triggered quality + release pipeline
 ├── README.md
 └── package.json

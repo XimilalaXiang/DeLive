@@ -218,7 +218,7 @@ npm run stage:whisper-runtime -- --binary /path/to/whisper-server --target linux
 已完成会话在独立全页 Review Desk（非弹窗）中打开，配备带滑动动画的标签栏和键盘箭头导航：
 
 - **Overview 标签页**：AI briefing — 摘要、行动项、关键词、章节、标题/标签建议，一键应用
-- **Transcript 标签页**：左侧时间戳、彩色说话人标签、连续同一说话人合并、悬停高亮、SRT/VTT/TXT 导出
+- **Transcript 标签页**：左侧时间戳、彩色说话人标签、连续同一说话人合并、悬停高亮、TXT/Markdown/SRT/VTT 导出
 - **Chat 标签页**：多线程 AI 对话 — GFM Markdown 渲染（语法高亮代码块、一键复制）、用户/AI 头像、悬停操作、跳动圆点动画、自动伸缩输入框、浮动回底部按钮、单条线程删除
 - **Mind Map 标签页**：生成 Markmap-compatible Markdown，本地编辑，导出 SVG / PNG
 - **元数据操作**：应用建议标题/标签，重命名 diarization 会话的 speaker 标签
@@ -240,7 +240,7 @@ npm run stage:whisper-runtime -- --binary /path/to/whisper-server --target linux
 
 ### 历史、备份与恢复
 
-- 会话支持重命名、打标签、按主题归类、搜索，以及导出 TXT、SRT、VTT。
+- 会话支持重命名、打标签、按主题归类、搜索，以及导出 TXT、Markdown、SRT、VTT。
 - 录制草稿会自动保存；如果应用中断，下次启动可以恢复未完成会话。
 - 支持导入 / 导出全部本地数据，用于备份和迁移。
 - 诊断导出会生成一个脱敏 JSON，包含系统信息和最近日志，便于排障。
@@ -249,17 +249,21 @@ npm run stage:whisper-runtime -- --binary /path/to/whisper-server --target linux
 
 | 模块 | 关键文件 | 职责 |
 |------|----------|------|
-| 桌面壳层 | `electron/main.ts`, `electron/mainWindow.ts`, `electron/captionWindow.ts`, `electron/tray.ts`, `electron/shortcuts.ts` | 启动 Electron，管理主窗、字幕窗、托盘、快捷键、更新和应用生命周期。 |
+| 桌面壳层 | `electron/main.ts`, `electron/mainWindow.ts`, `electron/captionWindow.ts`, `electron/tray.ts`, `electron/shortcuts.ts`, `electron/desktopSource.ts`, `electron/autoUpdater.ts`, `electron/ipcSecurity.ts` | 启动 Electron，管理主窗、字幕窗、托盘、快捷键、桌面源选取、更新器、IPC 安全和应用生命周期。 |
 | 渲染层应用 | `frontend/src/App.tsx`, `frontend/src/components/*`, `frontend/src/i18n/*` | 主界面、设置、录制、历史、主题、预览和字幕控制 UI；工作区视图（Live / Review Desk / Topics / Settings）由 Zustand 驱动。 |
-| 主题组件 | `frontend/src/components/TopicsView.tsx`, `frontend/src/components/TopicDetailView.tsx`, `frontend/src/components/TopicDialog.tsx`, `frontend/src/components/TopicPicker.tsx` | 主题卡片网格浏览、单主题会话列表、CRUD 弹窗，以及 Live 视图中的主题选择器。 |
 | ASR 编排层 | `frontend/src/hooks/useASR.ts`, `frontend/src/services/captureManager.ts`, `frontend/src/services/providerSession.ts`, `frontend/src/services/captionBridge.ts` | 解析 Provider 配置、启动正确的音频采集链路、转发转录事件，并同步到悬浮字幕。 |
 | Provider 抽象层 | `frontend/src/providers/registry.ts`, `frontend/src/providers/implementations/*` | 把 6 个后端统一到同一套 contract 和 capability 模型。 |
-| 会话智能层 | `frontend/src/stores/sessionStore.ts`, `frontend/src/stores/topicStore.ts`, `frontend/src/services/aiPostProcess.ts`, `frontend/src/components/ReviewDeskView.tsx`, `frontend/src/components/PreviewModal.tsx` | 会话持久化、自动保存/恢复、主题归类、AI briefing、问答、思维导图、标签和 speaker 名称编辑。 |
-| Review Desk UI | `frontend/src/components/review/SessionTabBar.tsx`, `frontend/src/components/review/OverviewTab.tsx`, `frontend/src/components/review/TranscriptTab.tsx`, `frontend/src/components/review/ChatTab.tsx`, `frontend/src/components/review/MindMapTab.tsx`, `frontend/src/components/review/MarkdownRenderer.tsx` | 动画标签栏（含键盘导航）、各标签页视图、GFM Markdown 渲染（含语法高亮）和思维导图编辑。 |
+| 状态管理 | `frontend/src/stores/sessionStore.ts`, `frontend/src/stores/topicStore.ts`, `frontend/src/stores/uiStore.ts`, `frontend/src/stores/settingsStore.ts`, `frontend/src/stores/tagStore.ts`, `frontend/src/stores/transcriptStore.ts` | Zustand store 分片：会话、主题、UI 状态、设置、标签，以及用于向后兼容的统一 facade。 |
+| 会话智能层 | `frontend/src/services/aiPostProcess.ts`, `frontend/src/components/ReviewDeskView.tsx`, `frontend/src/components/PreviewModal.tsx` | AI briefing、问答、思维导图、标签和 speaker 名称编辑。 |
+| 主题组件 | `frontend/src/components/TopicsView.tsx`, `frontend/src/components/TopicDetailView.tsx`, `frontend/src/components/TopicDialog.tsx`, `frontend/src/components/TopicPicker.tsx` | 主题卡片网格浏览、单主题会话列表、CRUD 弹窗，以及 Live 视图中的主题选择器。 |
+| Review Desk UI | `frontend/src/components/review/SessionTabBar.tsx`, `frontend/src/components/review/SessionHeader.tsx`, `frontend/src/components/review/OverviewTab.tsx`, `frontend/src/components/review/TranscriptTab.tsx`, `frontend/src/components/review/ChatTab.tsx`, `frontend/src/components/review/MindMapTab.tsx`, `frontend/src/components/review/MarkdownRenderer.tsx` | 动画标签栏（含键盘导航）、会话头部（多格式导出 TXT/Markdown/SRT/VTT）、各标签页视图、GFM Markdown 渲染（含语法高亮）和思维导图编辑。 |
+| 设置 UI | `frontend/src/components/settings/ServiceSettingsPanel.tsx`, `frontend/src/components/settings/GeneralSettingsPanel.tsx` | Provider 凭证配置与通用应用设置（语言、主题、AI 配置、备份/恢复）。 |
+| Runtime UI | `frontend/src/components/runtime/BundledRuntimeSummaryCard.tsx`, `frontend/src/components/runtime/BundledRuntimeAdvancedPanel.tsx` | `whisper.cpp` 运行时的状态卡片和高级管理面板。 |
 | 共享 UI 系统 | `frontend/src/components/ui/*` | Button、Badge、Switch、EmptyState、StatusIndicator、DialogShell 原语，五套主题的语义色彩 token。 |
-| 本地模型 / runtime 工具层 | `frontend/src/utils/localModelSetup.ts`, `frontend/src/utils/localRuntimeManager.ts`, `frontend/src/components/LocalModelSetupGuide.tsx`, `frontend/src/components/BundledRuntimeSetupGuide.tsx`, `electron/localRuntime.ts` | 探测本地服务、检查模型、支持 Ollama 拉取、管理 `whisper.cpp` 资源导入/下载/启动/停止。 |
+| 本地模型 / runtime 工具层 | `frontend/src/utils/localModelSetup.ts`, `frontend/src/utils/localRuntimeManager.ts`, `frontend/src/components/LocalModelSetupGuide.tsx`, `frontend/src/components/BundledRuntimeSetupGuide.tsx`, `electron/localRuntime.ts`, `electron/localRuntimeFiles.ts`, `electron/localRuntimeShared.ts`, `electron/localRuntimeIpc.ts` | 探测本地服务、检查模型、支持 Ollama 拉取、管理 `whisper.cpp` 资源导入/下载/文件管理/启动/停止。 |
+| Electron IPC 层 | `electron/appIpc.ts`, `electron/captionIpc.ts`, `electron/safeStorageIpc.ts`, `electron/updaterIpc.ts`, `electron/diagnosticsIpc.ts` | 模块化 IPC 处理器：应用生命周期、字幕窗控制、密钥存储、自动更新和诊断导出。 |
 | 共享契约层 | `shared/electronApi.ts`, `electron/preload.ts`, `shared/volcProxyCore.ts` | 定义 renderer 与 main 的类型化桥接接口，以及火山代理共享协议辅助逻辑。 |
-| 调试与发布支持 | `server/`, `scripts/`, `.github/workflows/release.yml` | 独立火山代理调试、图标/运行时预置脚本、release notes 生成、tag 触发的多平台构建发布。 |
+| 调试与发布支持 | `server/`, `scripts/`, `.github/workflows/release.yml`, `.github/workflows/ci.yml` | 独立火山代理调试、图标/运行时预置脚本、持续集成和 tag 触发的多平台构建发布。 |
 | 设计参考 | `design-system/delive/MASTER.md` | 产品与视觉参考资料，不参与运行时逻辑。 |
 
 ## 🔄 录制生命周期
@@ -406,6 +410,7 @@ DeLive/
 ├── design-system/                    # 设计参考资料
 ├── assets/                           # README 与品牌素材
 ├── build/                            # electron-builder 图标与打包资源
+├── .github/workflows/ci.yml          # Push/PR 持续集成流程
 ├── .github/workflows/release.yml     # tag 触发的质量检查 + 发布流程
 ├── README.md
 └── package.json

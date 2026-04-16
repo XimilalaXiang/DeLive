@@ -218,7 +218,7 @@ npm run stage:whisper-runtime -- --binary /path/to/whisper-server --target linux
 完了済みセッションは専用のフルページ Review Desk（モーダルではない）で振り返り可能。スライドアニメーション付きタブバーとキーボード矢印キー操作に対応：
 
 - **Overview タブ**：AI ブリーフィング — 要約、アクションアイテム、キーワード、チャプター、タイトル/タグ提案、ワンクリック適用
-- **Transcript タブ**：左ガターにタイムスタンプ、カラーコード付き話者バッジ、同一話者自動マージ、ホバーハイライト、SRT/VTT/TXT エクスポート
+- **Transcript タブ**：左ガターにタイムスタンプ、カラーコード付き話者バッジ、同一話者自動マージ、ホバーハイライト、TXT/Markdown/SRT/VTT エクスポート
 - **Chat タブ**：マルチスレッド AI 会話 — GFM Markdown（シンタックスハイライト・ワンクリックコピー）、アバター、ホバーアクション、思考中アニメーション、自動リサイズコンポーザー、スクロール復帰ボタン、スレッド削除
 - **Mind Map タブ**：Markmap 互換 Markdown 生成、その場で編集、SVG / PNG エクスポート
 - **メタデータ操作**：提案タイトル/タグのワンクリック適用、diarization セッションの話者名変更
@@ -240,7 +240,7 @@ npm run stage:whisper-runtime -- --binary /path/to/whisper-server --target linux
 
 ### 履歴、バックアップ、復元
 
-- セッションのリネーム、タグ付け、トピック別に分類、検索、TXT / SRT / VTT エクスポートに対応。
+- セッションのリネーム、タグ付け、トピック別に分類、検索、TXT / Markdown / SRT / VTT エクスポートに対応。
 - 録音ドラフトは自動保存。アプリ中断時は次回起動時に未完了セッションを復元可能。
 - すべてのローカルデータのインポート/エクスポートに対応（バックアップ・移行用）。
 - 診断エクスポートでマスキング済み JSON バンドル（システム情報 + 最近のログ）を生成。
@@ -249,17 +249,21 @@ npm run stage:whisper-runtime -- --binary /path/to/whisper-server --target linux
 
 | モジュール | 主要ファイル | 役割 |
 |------------|------------|------|
-| デスクトップシェル | `electron/main.ts`, `electron/mainWindow.ts`, `electron/captionWindow.ts`, `electron/tray.ts`, `electron/shortcuts.ts` | Electron 起動、メイン/字幕ウィンドウ、トレイ、ショートカット、アップデート、アプリライフサイクル管理。 |
+| デスクトップシェル | `electron/main.ts`, `electron/mainWindow.ts`, `electron/captionWindow.ts`, `electron/tray.ts`, `electron/shortcuts.ts`, `electron/desktopSource.ts`, `electron/autoUpdater.ts`, `electron/ipcSecurity.ts` | Electron 起動、メイン/字幕ウィンドウ、トレイ、ショートカット、デスクトップソース選択、アップデーター、IPC セキュリティ、アプリライフサイクル管理。 |
 | レンダラーアプリ | `frontend/src/App.tsx`, `frontend/src/components/*`, `frontend/src/i18n/*` | メイン UI、設定、録音、履歴、プレビュー、字幕コントロール。ワークスペースビュー（Live / Review Desk / Topics / Settings）は Zustand で駆動。 |
-| トピックコンポーネント | `frontend/src/components/TopicsView.tsx`, `frontend/src/components/TopicDetailView.tsx`, `frontend/src/components/TopicDialog.tsx`, `frontend/src/components/TopicPicker.tsx` | トピック一覧、トピック詳細、トピック作成/編集ダイアログ、録音時のトピック選択。 |
 | ASR オーケストレーション | `frontend/src/hooks/useASR.ts`, `frontend/src/services/captureManager.ts`, `frontend/src/services/providerSession.ts`, `frontend/src/services/captionBridge.ts` | プロバイダー設定解決、音声パイプライン起動、文字起こしイベント転送、フローティング字幕への同期。 |
 | プロバイダー抽象層 | `frontend/src/providers/registry.ts`, `frontend/src/providers/implementations/*` | 6 バックエンドを統一コントラクトとケイパビリティモデルに正規化。 |
-| セッションインテリジェンス | `frontend/src/stores/sessionStore.ts`, `frontend/src/stores/topicStore.ts`, `frontend/src/services/aiPostProcess.ts`, `frontend/src/components/ReviewDeskView.tsx`, `frontend/src/components/PreviewModal.tsx` | セッション永続化、自動保存/復元、AI ブリーフィング、Q&A、マインドマップ、タグ、話者名編集。 |
-| Review Desk UI | `frontend/src/components/review/SessionTabBar.tsx`, `frontend/src/components/review/OverviewTab.tsx`, `frontend/src/components/review/TranscriptTab.tsx`, `frontend/src/components/review/ChatTab.tsx`, `frontend/src/components/review/MindMapTab.tsx`, `frontend/src/components/review/MarkdownRenderer.tsx` | アニメーション付きタブバー（キーボードナビ対応）、各タブビュー、GFM Markdown レンダリング（シンタックスハイライト）、マインドマップ編集。 |
+| 状態管理 | `frontend/src/stores/sessionStore.ts`, `frontend/src/stores/topicStore.ts`, `frontend/src/stores/uiStore.ts`, `frontend/src/stores/settingsStore.ts`, `frontend/src/stores/tagStore.ts`, `frontend/src/stores/transcriptStore.ts` | Zustand ストアスライス：セッション、トピック、UI 状態、設定、タグ、および後方互換のための統一ファサード。 |
+| セッションインテリジェンス | `frontend/src/services/aiPostProcess.ts`, `frontend/src/components/ReviewDeskView.tsx`, `frontend/src/components/PreviewModal.tsx` | AI ブリーフィング、Q&A、マインドマップ、タグ、話者名編集。 |
+| トピックコンポーネント | `frontend/src/components/TopicsView.tsx`, `frontend/src/components/TopicDetailView.tsx`, `frontend/src/components/TopicDialog.tsx`, `frontend/src/components/TopicPicker.tsx` | トピック一覧、トピック詳細、トピック作成/編集ダイアログ、録音時のトピック選択。 |
+| Review Desk UI | `frontend/src/components/review/SessionTabBar.tsx`, `frontend/src/components/review/SessionHeader.tsx`, `frontend/src/components/review/OverviewTab.tsx`, `frontend/src/components/review/TranscriptTab.tsx`, `frontend/src/components/review/ChatTab.tsx`, `frontend/src/components/review/MindMapTab.tsx`, `frontend/src/components/review/MarkdownRenderer.tsx` | アニメーション付きタブバー（キーボードナビ対応）、セッションヘッダー（マルチフォーマットエクスポート TXT/Markdown/SRT/VTT）、各タブビュー、GFM Markdown レンダリング（シンタックスハイライト）、マインドマップ編集。 |
+| 設定 UI | `frontend/src/components/settings/ServiceSettingsPanel.tsx`, `frontend/src/components/settings/GeneralSettingsPanel.tsx` | プロバイダー認証情報設定と一般アプリ設定（言語、テーマ、AI 設定、バックアップ/復元）。 |
+| Runtime UI | `frontend/src/components/runtime/BundledRuntimeSummaryCard.tsx`, `frontend/src/components/runtime/BundledRuntimeAdvancedPanel.tsx` | `whisper.cpp` ランタイムのステータスカードと詳細管理パネル。 |
 | 共有 UI システム | `frontend/src/components/ui/*` | Button、Badge、Switch、EmptyState、StatusIndicator、DialogShell プリミティブ。5 テーマのセマンティックカラートークン。 |
-| ローカルモデル / runtime ツール | `frontend/src/utils/localModelSetup.ts`, `frontend/src/utils/localRuntimeManager.ts`, `frontend/src/components/LocalModelSetupGuide.tsx`, `frontend/src/components/BundledRuntimeSetupGuide.tsx`, `electron/localRuntime.ts` | ローカルサービス検出、モデル確認、Ollama pull 対応、`whisper.cpp` リソースのインポート/ダウンロード/起動/停止。 |
+| ローカルモデル / runtime ツール | `frontend/src/utils/localModelSetup.ts`, `frontend/src/utils/localRuntimeManager.ts`, `frontend/src/components/LocalModelSetupGuide.tsx`, `frontend/src/components/BundledRuntimeSetupGuide.tsx`, `electron/localRuntime.ts`, `electron/localRuntimeFiles.ts`, `electron/localRuntimeShared.ts`, `electron/localRuntimeIpc.ts` | ローカルサービス検出、モデル確認、Ollama pull 対応、`whisper.cpp` リソースのインポート/ダウンロード/ファイル管理/起動/停止。 |
+| Electron IPC 層 | `electron/appIpc.ts`, `electron/captionIpc.ts`, `electron/safeStorageIpc.ts`, `electron/updaterIpc.ts`, `electron/diagnosticsIpc.ts` | モジュール化 IPC ハンドラー：アプリライフサイクル、字幕ウィンドウ制御、シークレットストレージ、自動更新、診断エクスポート。 |
 | 共有コントラクト | `shared/electronApi.ts`, `electron/preload.ts`, `shared/volcProxyCore.ts` | renderer と main 間の型付きブリッジ定義、Volcengine プロキシ共有プロトコルヘルパー。 |
-| デバッグ・リリース | `server/`, `scripts/`, `.github/workflows/release.yml` | 単体 Volc プロキシデバッグ、アイコン/runtime ステージングスクリプト、リリースノート生成、タグトリガーのマルチプラットフォームビルド。 |
+| デバッグ・リリース | `server/`, `scripts/`, `.github/workflows/release.yml`, `.github/workflows/ci.yml` | 単体 Volc プロキシデバッグ、アイコン/runtime ステージングスクリプト、継続的インテグレーション、タグトリガーのマルチプラットフォームビルド。 |
 | デザインリファレンス | `design-system/delive/MASTER.md` | プロダクトおよびビジュアルリファレンス資料。ランタイムパスには含まれない。 |
 
 ## 🔄 録音ライフサイクル
@@ -406,6 +410,7 @@ DeLive/
 ├── design-system/                    # デザインリファレンス資料
 ├── assets/                           # README およびブランド素材
 ├── build/                            # electron-builder アイコンとパッケージングリソース
+├── .github/workflows/ci.yml          # Push/PR 継続的インテグレーション
 ├── .github/workflows/release.yml     # タグトリガーの品質チェック + リリースフロー
 ├── README.md
 └── package.json

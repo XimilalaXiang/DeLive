@@ -218,7 +218,7 @@ npm run stage:whisper-runtime -- --binary /path/to/whisper-server --target linux
 已完成會話在獨立全頁 Review Desk（非彈窗）中開啟，配備帶滑動動畫的標籤列和鍵盤箭頭導覽：
 
 - **Overview 標籤頁**：AI briefing — 摘要、行動項、關鍵詞、章節、標題/標籤建議，一鍵套用
-- **Transcript 標籤頁**：左側時間戳、彩色說話人標籤、連續同一說話人合併、懸停高亮、SRT/VTT/TXT 匯出
+- **Transcript 標籤頁**：左側時間戳、彩色說話人標籤、連續同一說話人合併、懸停高亮、TXT/Markdown/SRT/VTT 匯出
 - **Chat 標籤頁**：多執行緒 AI 對話 — GFM Markdown 渲染（語法高亮程式碼區塊、一鍵複製）、使用者/AI 頭像、懸停操作、跳動圓點動畫、自動伸縮輸入框、浮動回底部按鈕、單條執行緒刪除
 - **Mind Map 標籤頁**：產生 Markmap-compatible Markdown，本地編輯，匯出 SVG / PNG
 - **中繼資料操作**：套用建議標題/標籤，重新命名 diarization 會話的 speaker 標籤
@@ -240,7 +240,7 @@ npm run stage:whisper-runtime -- --binary /path/to/whisper-server --target linux
 
 ### 歷史、備份與恢復
 
-- 會話支援重新命名、打標籤、按主題歸類、搜尋，以及匯出 TXT、SRT、VTT。
+- 會話支援重新命名、打標籤、按主題歸類、搜尋，以及匯出 TXT、Markdown、SRT、VTT。
 - 錄製草稿會自動儲存；如果應用中斷，下次啟動可以恢復未完成會話。
 - 支援匯入 / 匯出全部本地資料，用於備份和轉移。
 - 診斷匯出會產生一個脫敏 JSON，包含系統資訊和近期日誌，便於排障。
@@ -249,17 +249,21 @@ npm run stage:whisper-runtime -- --binary /path/to/whisper-server --target linux
 
 | 模組 | 關鍵檔案 | 職責 |
 |------|----------|------|
-| 桌面殼層 | `electron/main.ts`, `electron/mainWindow.ts`, `electron/captionWindow.ts`, `electron/tray.ts`, `electron/shortcuts.ts` | 啟動 Electron，管理主視窗、字幕視窗、系統匣、快捷鍵、更新和應用生命週期。 |
+| 桌面殼層 | `electron/main.ts`, `electron/mainWindow.ts`, `electron/captionWindow.ts`, `electron/tray.ts`, `electron/shortcuts.ts`, `electron/desktopSource.ts`, `electron/autoUpdater.ts`, `electron/ipcSecurity.ts` | 啟動 Electron，管理主視窗、字幕視窗、系統匣、快捷鍵、桌面來源選取、更新器、IPC 安全和應用生命週期。 |
 | 渲染層應用 | `frontend/src/App.tsx`, `frontend/src/components/*`, `frontend/src/i18n/*` | 主介面、設定、錄製、歷史、預覽、主題和字幕控制 UI；工作區檢視（Live / Review Desk / Topics / Settings）由 Zustand 驅動。 |
-| 主題元件 | `frontend/src/components/TopicsView.tsx`, `frontend/src/components/TopicDetailView.tsx`, `frontend/src/components/TopicDialog.tsx`, `frontend/src/components/TopicPicker.tsx` | 主題列表、主題詳情、建立/編輯主題對話框、錄製時選擇主題。 |
 | ASR 編排層 | `frontend/src/hooks/useASR.ts`, `frontend/src/services/captureManager.ts`, `frontend/src/services/providerSession.ts`, `frontend/src/services/captionBridge.ts` | 解析 Provider 設定、啟動正確的音訊擷取鏈路、轉發轉錄事件，並同步到懸浮字幕。 |
 | Provider 抽象層 | `frontend/src/providers/registry.ts`, `frontend/src/providers/implementations/*` | 把 6 個後端統一到同一套 contract 和 capability 模型。 |
-| 會話智慧層 | `frontend/src/stores/sessionStore.ts`, `frontend/src/stores/topicStore.ts`, `frontend/src/services/aiPostProcess.ts`, `frontend/src/components/ReviewDeskView.tsx`, `frontend/src/components/PreviewModal.tsx` | 會話持久化、主題管理、自動儲存/恢復、AI briefing、問答、思維導圖、標籤和 speaker 名稱編輯。 |
-| Review Desk UI | `frontend/src/components/review/SessionTabBar.tsx`, `frontend/src/components/review/OverviewTab.tsx`, `frontend/src/components/review/TranscriptTab.tsx`, `frontend/src/components/review/ChatTab.tsx`, `frontend/src/components/review/MindMapTab.tsx`, `frontend/src/components/review/MarkdownRenderer.tsx` | 動畫標籤列（含鍵盤導覽）、各標籤頁檢視、GFM Markdown 渲染（含語法高亮）和思維導圖編輯。 |
+| 狀態管理 | `frontend/src/stores/sessionStore.ts`, `frontend/src/stores/topicStore.ts`, `frontend/src/stores/uiStore.ts`, `frontend/src/stores/settingsStore.ts`, `frontend/src/stores/tagStore.ts`, `frontend/src/stores/transcriptStore.ts` | Zustand store 分片：會話、主題、UI 狀態、設定、標籤，以及用於向後相容的統一 facade。 |
+| 會話智慧層 | `frontend/src/services/aiPostProcess.ts`, `frontend/src/components/ReviewDeskView.tsx`, `frontend/src/components/PreviewModal.tsx` | AI briefing、問答、思維導圖、標籤和 speaker 名稱編輯。 |
+| 主題元件 | `frontend/src/components/TopicsView.tsx`, `frontend/src/components/TopicDetailView.tsx`, `frontend/src/components/TopicDialog.tsx`, `frontend/src/components/TopicPicker.tsx` | 主題列表、主題詳情、建立/編輯主題對話框、錄製時選擇主題。 |
+| Review Desk UI | `frontend/src/components/review/SessionTabBar.tsx`, `frontend/src/components/review/SessionHeader.tsx`, `frontend/src/components/review/OverviewTab.tsx`, `frontend/src/components/review/TranscriptTab.tsx`, `frontend/src/components/review/ChatTab.tsx`, `frontend/src/components/review/MindMapTab.tsx`, `frontend/src/components/review/MarkdownRenderer.tsx` | 動畫標籤列（含鍵盤導覽）、會話標頭（多格式匯出 TXT/Markdown/SRT/VTT）、各標籤頁檢視、GFM Markdown 渲染（含語法高亮）和思維導圖編輯。 |
+| 設定 UI | `frontend/src/components/settings/ServiceSettingsPanel.tsx`, `frontend/src/components/settings/GeneralSettingsPanel.tsx` | Provider 憑證設定與通用應用設定（語言、主題、AI 設定、備份/恢復）。 |
+| Runtime UI | `frontend/src/components/runtime/BundledRuntimeSummaryCard.tsx`, `frontend/src/components/runtime/BundledRuntimeAdvancedPanel.tsx` | `whisper.cpp` 執行階段的狀態卡片和進階管理面板。 |
 | 共享 UI 系統 | `frontend/src/components/ui/*` | Button、Badge、Switch、EmptyState、StatusIndicator、DialogShell 原語，五套主題的語義色彩 token。 |
-| 本地模型 / runtime 工具層 | `frontend/src/utils/localModelSetup.ts`, `frontend/src/utils/localRuntimeManager.ts`, `frontend/src/components/LocalModelSetupGuide.tsx`, `frontend/src/components/BundledRuntimeSetupGuide.tsx`, `electron/localRuntime.ts` | 偵測本地服務、檢查模型、支援 Ollama 拉取、管理 `whisper.cpp` 資源匯入/下載/啟動/停止。 |
+| 本地模型 / runtime 工具層 | `frontend/src/utils/localModelSetup.ts`, `frontend/src/utils/localRuntimeManager.ts`, `frontend/src/components/LocalModelSetupGuide.tsx`, `frontend/src/components/BundledRuntimeSetupGuide.tsx`, `electron/localRuntime.ts`, `electron/localRuntimeFiles.ts`, `electron/localRuntimeShared.ts`, `electron/localRuntimeIpc.ts` | 偵測本地服務、檢查模型、支援 Ollama 拉取、管理 `whisper.cpp` 資源匯入/下載/檔案管理/啟動/停止。 |
+| Electron IPC 層 | `electron/appIpc.ts`, `electron/captionIpc.ts`, `electron/safeStorageIpc.ts`, `electron/updaterIpc.ts`, `electron/diagnosticsIpc.ts` | 模組化 IPC 處理器：應用生命週期、字幕視窗控制、密鑰儲存、自動更新和診斷匯出。 |
 | 共享契約層 | `shared/electronApi.ts`, `electron/preload.ts`, `shared/volcProxyCore.ts` | 定義 renderer 與 main 的型別化橋接介面，以及火山代理共享協議輔助邏輯。 |
-| 除錯與發佈支援 | `server/`, `scripts/`, `.github/workflows/release.yml` | 獨立火山代理除錯、圖示/運行時預置指令碼、release notes 產生、tag 觸發的多平台構建發佈。 |
+| 除錯與發佈支援 | `server/`, `scripts/`, `.github/workflows/release.yml`, `.github/workflows/ci.yml` | 獨立火山代理除錯、圖示/執行階段預置指令碼、持續整合和 tag 觸發的多平台構建發佈。 |
 | 設計參考 | `design-system/delive/MASTER.md` | 產品與視覺參考資料，不參與執行階段邏輯。 |
 
 ## 🔄 錄製生命週期
@@ -406,6 +410,7 @@ DeLive/
 ├── design-system/                    # 設計參考資料
 ├── assets/                           # README 與品牌素材
 ├── build/                            # electron-builder 圖示與打包資源
+├── .github/workflows/ci.yml          # Push/PR 持續整合流程
 ├── .github/workflows/release.yml     # tag 觸發的品質檢查 + 發佈流程
 ├── README.md
 └── package.json
