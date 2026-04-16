@@ -16,36 +16,229 @@
 [![下载量](https://img.shields.io/github/downloads/XimilalaXiang/DeLive/total?label=下载量&color=orange)](https://github.com/XimilalaXiang/DeLive/releases)
 [![Stars](https://img.shields.io/github/stars/XimilalaXiang/DeLive?style=social)](https://github.com/XimilalaXiang/DeLive)
 
-[核心功能](#-核心功能) • [项目组成](#-项目组成) • [系统架构](#-系统架构) • [支持的 Provider](#-支持的-asr-provider) • [快速开始](#-快速开始)
-
 </div>
 
 DeLive 是一个面向系统音频的桌面转录工作台。它会把电脑正在播放的声音捕获下来，按所选 Provider 的能力选择最合适的转录链路，把会话保存在本地，并在录制结束后提供完整的 AI 复盘工作台——支持富文本 Markdown 对话、结构化 briefing、会话问答和思维导图整理。
 
 <div align="center">
-<img width="800" alt="DeLive 截图" src="https://github.com/user-attachments/assets/f0d26fe3-ae9c-4d24-8b5d-b12f2095acb7" />
+
+#
+
+| 实时转录 | 复盘与历史 | 主题管理 |
+|:---:|:---:|:---:|
+| 支持多 Provider 切换的实时转录工作台 | 带日历视图和搜索的会话历史 | 基于项目的会话归类管理 |
+| <img width="300" src="assets/screenshot-live-light.webp" alt="实时转录" /> | <img width="300" src="assets/screenshot-review.webp" alt="复盘视图" /> | <img width="300" src="assets/screenshot-topics.webp" alt="主题视图" /> |
+
+| 主题与自定义 | 深色模式 |
+|:---:|:---:|
+| 5 套配色主题，完整明/暗模式支持 | 所有视图均支持深色模式 |
+| <img width="400" src="assets/screenshot-settings-themes.webp" alt="主题设置" /> | <img width="400" src="assets/screenshot-settings-dark.webp" alt="深色模式" /> |
+
+#
+
 </div>
+
+## 目录
+
+- [核心功能](#-核心功能)
+- [下载安装](#-下载安装)
+- [支持的 ASR Provider](#-支持的-asr-provider)
+- [快速开始](#-快速开始)
+- [使用说明](#-使用说明)
+- [项目组成](#-项目组成)
+- [系统架构](#-系统架构)
+- [技术栈](#-技术栈)
+- [安全](#-安全)
+- [扩展 Provider](#-扩展-provider)
+- [注意事项](#%EF%B8%8F-注意事项)
+- [许可证](#-许可证)
+- [致谢](#-致谢)
 
 ## 🎯 核心功能
 
-- **真正面向桌面场景的系统音频采集**。网页视频、直播、会议、课程、播客，只要共享系统音频即可接入。
-- **6 条 ASR 路径统一在一个 UI 里**。Soniox、火山引擎、Groq、硅基流动、本地 OpenAI-compatible、本地 `whisper.cpp`。
-- **按 Provider 能力自动切换音频管线**。根据后端要求在 `MediaRecorder` 和 `AudioWorklet` PCM16 之间切换。
-- **同一应用内覆盖 3 种执行模式**。实时流式、窗口批处理重转写、Electron 管理的本地 runtime。
-- **完整会话生命周期管理**。草稿会话、录制中自动保存、异常中断后的下次启动恢复、已完成历史记录。
-- **悬浮字幕窗**。独立始终置顶窗口，支持原文 / 翻译 / 双语模式、拖动/锁定和样式自定义。
-- **Soniox 专属双语与说话人能力**。实时翻译、双语字幕、发言人区分 token、按 speaker 分组的会话预览。
-- **独立 AI 复盘工作台（Review Desk）**。专属全页视图（非弹窗），配备带滑动动画的标签栏和键盘左右箭头切换，涵盖 Overview、Transcript、Chat、Mind Map 四个标签页。
-- **富文本 AI 对话（Chat 标签页）**。多线程对话，GFM Markdown 渲染（含语法高亮代码块和一键复制）、用户/AI 头像、消息悬停操作栏（复制/重新生成）、跳动圆点思考动画、自动伸缩输入框（Enter 发送）、浮动回底部按钮，以及单条对话线程删除。
-- **结构化 AI briefing**。摘要、行动项、关键词、章节、标题/标签建议及带引用的问答，全部持久化到会话。
-- **思维导图**。基于 Markmap-compatible Markdown 生成，支持本地编辑，可直接从 Review Desk 导出 SVG / PNG。
-- **精细化 Transcript 标签页**。左侧时间戳槽、彩色说话人标签、连续同一说话人合并、悬停高亮。
-- **本地模型工作流**。探测本地服务、发现已安装模型、可选 Ollama 一键拉取，以及 `whisper.cpp` binary / 模型导入与下载。
-- **主题功能**。将相关会话归类到带 emoji 和描述的主题容器中；主题内会话与默认 Review 列表隔离，但全局搜索仍可找到；可从 Live 直接录制进主题，或将已有会话移入/移出主题。
-- **本地优先的数据存储**。会话、标签、主题、设置保存在 IndexedDB / localStorage；密钥在系统支持时通过 Electron `safeStorage` 保存。
-- **共享设计系统**。可组合 UI 原语（Button、Badge、Switch、EmptyState、StatusIndicator、DialogShell），五套主题（亮/暗）均覆盖 `warning`/`success`/`info` 语义色彩 token。
-- **桌面集成能力**。托盘、全局快捷键、开机自启动、更新检查、诊断导出、音源选择器、类型化 preload API。
-- **安全加固**。可信窗口 IPC 校验、CSP 注入、导航守卫、路径白名单、诊断信息脱敏、密钥加密存储。
+- [x] **系统音频采集** — 网页视频、直播、会议、课程、播客，只要共享系统音频即可接入
+- [x] **6 条 ASR 路径统一在一个 UI 里** — Soniox、火山引擎、Groq、硅基流动、本地 OpenAI-compatible、本地 `whisper.cpp`
+- [x] **按 Provider 能力自动切换音频管线** — 根据后端要求在 `MediaRecorder` 和 `AudioWorklet` PCM16 之间切换
+- [x] **同一应用内覆盖 3 种执行模式** — 实时流式、窗口批处理重转写、Electron 管理的本地 runtime
+- [x] **完整会话生命周期管理** — 草稿会话、录制中自动保存、异常中断恢复、已完成历史记录
+- [x] **悬浮字幕窗** — 独立始终置顶窗口，支持原文 / 翻译 / 双语模式和样式自定义
+- [x] **Soniox 专属双语与说话人能力** — 实时翻译、双语字幕、发言人区分、按 speaker 分组预览
+- [x] **AI 复盘工作台（Review Desk）** — 全页视图，动画标签栏导航（Overview、Transcript、Chat、Mind Map）
+- [x] **富文本 AI 对话** — 多线程对话，GFM Markdown 渲染，语法高亮代码块，消息悬停操作栏等
+- [x] **结构化 AI briefing** — 摘要、行动项、关键词、章节、标题/标签建议及带引用问答
+- [x] **思维导图** — 基于 Markmap-compatible Markdown 生成，支持编辑，可导出 SVG / PNG
+- [x] **主题功能** — 将会话归类到带 emoji 和描述的项目容器中
+- [x] **本地模型工作流** — 探测本地服务、发现模型、Ollama 一键拉取、`whisper.cpp` 资源导入与下载
+- [x] **5 套配色主题** — 青蓝、紫罗兰、玫瑰、绿色、琥珀，均支持完整明/暗模式
+- [x] **本地优先的数据存储** — 会话、标签、主题、设置保存在 IndexedDB / localStorage；密钥通过 `safeStorage` 保存
+- [x] **桌面集成** — 托盘、全局快捷键、开机自启动、更新检查、诊断导出
+- [x] **安全加固** — 可信窗口 IPC 校验、CSP 注入、导航守卫、路径白名单、密钥加密存储
+- [x] **跨平台** — Windows、macOS、Linux
+
+## 📥 下载安装
+
+获取最新版本：
+
+<div align="center">
+
+[![Windows](https://img.shields.io/badge/Windows-下载-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/XimilalaXiang/DeLive/releases/latest)
+[![macOS](https://img.shields.io/badge/macOS-下载-000000?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/XimilalaXiang/DeLive/releases/latest)
+[![Linux](https://img.shields.io/badge/Linux-下载-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://github.com/XimilalaXiang/DeLive/releases/latest)
+
+</div>
+
+| 平台 | 文件 |
+|------|------|
+| Windows | `.exe` 安装包、便携版 `.exe` |
+| macOS | `.dmg`（Intel x64 和 Apple Silicon arm64） |
+| Linux | `.AppImage`、`.deb` |
+
+> 所有下载均可在 [Releases](https://github.com/XimilalaXiang/DeLive/releases/latest) 页面获取。
+
+## 🔌 支持的 ASR Provider
+
+| Provider | 类型 | 传输模式 | 音频路径 | 亮点 |
+|----------|------|----------|----------|------|
+| **Soniox V4** | 云端 | 实时流式 | `MediaRecorder` (`webm/opus`) → WebSocket | token 级实时转录、实时翻译、双语字幕、多发言人识别 |
+| **火山引擎** | 云端 | 实时流式 | `AudioWorklet` PCM16 → 内置代理 → WebSocket | 中文场景友好；代理在 Electron 侧补齐必须 Header |
+| **Groq** | 云端 | 窗口批处理重转写 | `AudioWorklet` PCM16 → WAV → REST | 基于 Whisper 的准实时会话更新路径 |
+| **硅基流动** | 云端 | 窗口批处理重转写 | `AudioWorklet` PCM16 → WAV → REST | SenseVoice、TeleSpeech、Qwen Omni 等模型路径 |
+| **本地 OpenAI-compatible** | 本地服务 | 窗口批处理重转写 | `MediaRecorder` (`webm/opus`) → `/v1/audio/transcriptions` | 适配 Ollama 或其他兼容网关，支持服务/模型探测和可选 Ollama 拉取 |
+| **本地 `whisper.cpp`** | 本地 runtime | Electron 管理的本地 runtime | `AudioWorklet` PCM16 → 本地 `/inference` | 直接启动 `whisper-server`，管理 binary 与模型资源，全本地运行 |
+
+## 🚀 快速开始
+
+### 前置要求
+
+- Node.js 18+（CI 中使用 Node 20）
+- 任意一种 Provider 路径：
+  - **Soniox**：[soniox.com](https://soniox.com) 的 API Key
+  - **火山引擎**：APP ID 和 Access Token
+  - **Groq**：[groq.com](https://groq.com) 的 API Key
+  - **硅基流动**：[siliconflow.cn](https://siliconflow.cn) 的 API Key
+  - **本地 OpenAI-compatible**：暴露 `/v1/models` 与 `/v1/audio/transcriptions` 的本地服务
+  - **本地 `whisper.cpp`**：`whisper-server` + 本地 `.bin` / `.gguf` 模型，或直接让 DeLive 导入/下载
+
+### 安装
+
+```bash
+git clone https://github.com/XimilalaXiang/DeLive.git
+cd DeLive
+npm run install:all
+```
+
+### 开发
+
+```bash
+npm run dev
+```
+
+`npm run dev` 会同时启动 Vite 和 Electron。火山引擎代理已内置在 Electron 主进程中，正常桌面开发不需要单独后端。
+
+如需单独调试代理：
+
+```bash
+npm run dev:server
+```
+
+### 质量检查
+
+```bash
+npm run check
+```
+
+`npm run check` 会执行前端 lint、前端测试和完整构建。
+
+如果只想跑前端测试：
+
+```bash
+npm run test:frontend
+```
+
+当前测试状态：**22 个测试文件、184 个测试用例全部通过**，覆盖 Provider 配置、转录状态/稳定化、字幕导出、会话生命周期与仓储、存储以及 AI 后处理解析。
+
+### 打包
+
+```bash
+npm run dist:win
+npm run dist:mac
+npm run dist:linux
+npm run dist:all
+```
+
+构建产物输出到 `release/`。
+
+### 可选：打包时预置 `whisper.cpp`
+
+```bash
+npm run fetch:whisper-runtime -- --target win32
+npm run stage:whisper-runtime -- --binary /path/to/whisper-server --target linux
+```
+
+如果构建时 `local-runtimes/whisper_cpp/whisper-server(.exe)` 已存在，`electron-builder` 会把它作为额外资源带进安装包。即便没有预置，终端用户也仍然可以在 UI 中自行导入或下载 binary / 模型。
+
+## 📖 使用说明
+
+### 典型录制流程
+
+1. 打开设置，选择一个 Provider。
+2. 填写凭据或本地 runtime 信息，并点击 **测试配置**。
+3. 点击 **开始录制**。
+4. 选择要共享的屏幕或窗口，并确认勾选共享音频。
+5. 在主窗口和悬浮字幕窗里查看中间结果与最终结果。
+6. 停止录制后，从历史记录打开会话继续复盘、做 AI 操作或导出。
+
+### 悬浮字幕
+
+- 可以从主界面开启或关闭悬浮字幕窗。
+- 支持字体、颜色、宽度、行数、阴影和位置调整。
+- 当 Provider 返回翻译文本时，可切换原文、翻译、双语三种模式。
+- 支持拖动 / 交互状态切换，便于摆放字幕窗位置。
+
+### 主题
+
+将录制按项目式主题归类管理：
+
+1. 从导航栏打开 **主题** 标签页。
+2. 创建主题，填写名称、emoji 图标和可选描述。
+3. 有两种方式开始录制进主题：
+   - 在主题卡片上点击 **录制新会话** —— 跳转到 Live 并预选该主题。
+   - 在 Live 视图中，点击录制控件上方的 **选择主题** 链接并选择主题。
+4. 所选主题会以徽章形式显示在录制按钮上方，录制会自动归属到该主题。
+5. 已有会话可在 Review 的 **Overview** 标签页中移入或移出主题。
+6. 主题内的会话不会出现在默认 Review 列表中，但全局搜索仍可找到。
+
+### AI 复盘工作台
+
+已完成会话在独立全页 Review Desk（非弹窗）中打开，配备带滑动动画的标签栏和键盘箭头导航：
+
+- **Overview 标签页**：AI briefing — 摘要、行动项、关键词、章节、标题/标签建议，一键应用
+- **Transcript 标签页**：左侧时间戳、彩色说话人标签、连续同一说话人合并、悬停高亮、SRT/VTT/TXT 导出
+- **Chat 标签页**：多线程 AI 对话 — GFM Markdown 渲染（语法高亮代码块、一键复制）、用户/AI 头像、悬停操作、跳动圆点动画、自动伸缩输入框、浮动回底部按钮、单条线程删除
+- **Mind Map 标签页**：生成 Markmap-compatible Markdown，本地编辑，导出 SVG / PNG
+- **元数据操作**：应用建议标题/标签，重命名 diarization 会话的 speaker 标签
+
+### 本地 OpenAI-compatible 服务
+
+1. 选择 **本地 OpenAI-compatible**。
+2. 填写 `Base URL` 和 `Model`。
+3. 用本地模型引导探测服务并列出已安装模型。
+4. 如果探测出来是 Ollama，DeLive 可以直接一键拉取所选模型。
+
+### 本地 `whisper.cpp` Runtime
+
+1. 选择 **本地 whisper.cpp**。
+2. 通过导入现有 `whisper-server` 或下载官方 release 资产准备 runtime binary。
+3. 通过选择、导入或下载 `.bin` / `.gguf` 文件准备模型。
+4. 启动 runtime 或执行 **测试配置**。
+5. 之后录制方式与其他 Provider 一致，Electron 会通过 IPC 管理 runtime 生命周期。
+
+### 历史、备份与恢复
+
+- 会话支持重命名、打标签、按主题归类、搜索，以及导出 TXT、SRT、VTT。
+- 录制草稿会自动保存；如果应用中断，下次启动可以恢复未完成会话。
+- 支持导入 / 导出全部本地数据，用于备份和迁移。
+- 诊断导出会生成一个脱敏 JSON，包含系统信息和最近日志，便于排障。
 
 ## 🧩 项目组成
 
@@ -195,150 +388,6 @@ graph TB
 | 持久化 | Session Repository、IndexedDB、localStorage、`safeStorage` | 自动保存草稿、恢复中断会话，并将密钥与普通设置分开存储。 |
 | 共享契约 | 类型化 preload bridge 与共享 helper | 让 renderer/main 的接口显式可维护。 |
 
-## 🔌 支持的 ASR Provider
-
-| Provider | 类型 | 传输模式 | 音频路径 | 亮点 |
-|----------|------|----------|----------|------|
-| **Soniox V4** | 云端 | 实时流式 | `MediaRecorder` (`webm/opus`) → WebSocket | token 级实时转录、实时翻译、双语字幕、多发言人识别 |
-| **火山引擎** | 云端 | 实时流式 | `AudioWorklet` PCM16 → 内置代理 → WebSocket | 中文场景友好；代理在 Electron 侧补齐必须 Header |
-| **Groq** | 云端 | 窗口批处理重转写 | `AudioWorklet` PCM16 → WAV → REST | 基于 Whisper 的准实时会话更新路径 |
-| **硅基流动** | 云端 | 窗口批处理重转写 | `AudioWorklet` PCM16 → WAV → REST | SenseVoice、TeleSpeech、Qwen Omni 等模型路径 |
-| **本地 OpenAI-compatible** | 本地服务 | 窗口批处理重转写 | `MediaRecorder` (`webm/opus`) → `/v1/audio/transcriptions` | 适配 Ollama 或其他兼容网关，支持服务/模型探测和可选 Ollama 拉取 |
-| **本地 `whisper.cpp`** | 本地 runtime | Electron 管理的本地 runtime | `AudioWorklet` PCM16 → 本地 `/inference` | 直接启动 `whisper-server`，管理 binary 与模型资源，全本地运行 |
-
-## 🚀 快速开始
-
-### 前置要求
-
-- Node.js 18+（CI 中使用 Node 20）
-- 任意一种 Provider 路径：
-  - **Soniox**：[soniox.com](https://soniox.com) 的 API Key
-  - **火山引擎**：APP ID 和 Access Token
-  - **Groq**：[groq.com](https://groq.com) 的 API Key
-  - **硅基流动**：[siliconflow.cn](https://siliconflow.cn) 的 API Key
-  - **本地 OpenAI-compatible**：暴露 `/v1/models` 与 `/v1/audio/transcriptions` 的本地服务
-  - **本地 `whisper.cpp`**：`whisper-server` + 本地 `.bin` / `.gguf` 模型，或直接让 DeLive 导入/下载
-
-### 安装
-
-```bash
-git clone https://github.com/XimilalaXiang/DeLive.git
-cd DeLive
-npm run install:all
-```
-
-### 开发
-
-```bash
-npm run dev
-```
-
-`npm run dev` 会同时启动 Vite 和 Electron。火山引擎代理已内置在 Electron 主进程中，正常桌面开发不需要单独后端。
-
-如需单独调试代理：
-
-```bash
-npm run dev:server
-```
-
-### 质量检查
-
-```bash
-npm run check
-```
-
-`npm run check` 会执行前端 lint、前端测试和完整构建。
-
-如果只想跑前端测试：
-
-```bash
-npm run test:frontend
-```
-
-当前测试状态：**22 个测试文件、184 个测试用例全部通过**，覆盖 Provider 配置、转录状态/稳定化、字幕导出、会话生命周期与仓储、存储以及 AI 后处理解析。
-
-### 打包
-
-```bash
-npm run dist:win
-npm run dist:mac
-npm run dist:linux
-npm run dist:all
-```
-
-构建产物输出到 `release/`。
-
-### 可选：打包时预置 `whisper.cpp`
-
-```bash
-npm run fetch:whisper-runtime -- --target win32
-npm run stage:whisper-runtime -- --binary /path/to/whisper-server --target linux
-```
-
-如果构建时 `local-runtimes/whisper_cpp/whisper-server(.exe)` 已存在，`electron-builder` 会把它作为额外资源带进安装包。即便没有预置，终端用户也仍然可以在 UI 中自行导入或下载 binary / 模型。
-
-## 📖 使用说明
-
-### 典型录制流程
-
-1. 打开设置，选择一个 Provider。
-2. 填写凭据或本地 runtime 信息，并点击 **测试配置**。
-3. 点击 **开始录制**。
-4. 选择要共享的屏幕或窗口，并确认勾选共享音频。
-5. 在主窗口和悬浮字幕窗里查看中间结果与最终结果。
-6. 停止录制后，从历史记录打开会话继续复盘、做 AI 操作或导出。
-
-### 主题
-
-将录制按项目式主题归类管理：
-
-1. 从导航栏打开 **主题** 标签页。
-2. 创建主题，填写名称、emoji 图标和可选描述。
-3. 有两种方式开始录制进主题：
-   - 在主题卡片上点击 **录制新会话** —— 跳转到 Live 并预选该主题。
-   - 在 Live 视图中，点击录制控件上方的 **选择主题** 链接并选择主题。
-4. 所选主题会以徽章形式显示在录制按钮上方，录制会自动归属到该主题。
-5. 已有会话可在 Review 的 **Overview** 标签页中移入或移出主题。
-6. 主题内的会话不会出现在默认 Review 列表中，但全局搜索仍可找到。
-
-### 悬浮字幕
-
-- 可以从主界面开启或关闭悬浮字幕窗。
-- 支持字体、颜色、宽度、行数、阴影和位置调整。
-- 当 Provider 返回翻译文本时，可切换原文、翻译、双语三种模式。
-- 支持拖动 / 交互状态切换，便于摆放字幕窗位置。
-
-### AI 复盘工作台
-
-已完成会话在预览弹窗里不只是“看转录”：
-
-- **AI briefing**：摘要、行动项、关键词、章节、标题建议、标签建议
-- **会话问答**：只针对当前会话提问，回答可带短引用
-- **思维导图**：生成兼容 Markmap 的 Markdown，支持编辑后导出 SVG / PNG
-- **元数据操作**：一键应用建议标题/标签，对 diarization 会话重命名 speaker
-
-### 本地 OpenAI-compatible 服务
-
-1. 选择 **本地 OpenAI-compatible**。
-2. 填写 `Base URL` 和 `Model`。
-3. 用本地模型引导探测服务并列出已安装模型。
-4. 如果探测出来是 Ollama，DeLive 可以直接一键拉取所选模型。
-
-### 本地 `whisper.cpp` Runtime
-
-1. 选择 **本地 whisper.cpp**。
-2. 通过导入现有 `whisper-server` 或下载官方 release 资产准备 runtime binary。
-3. 通过选择、导入或下载 `.bin` / `.gguf` 文件准备模型。
-4. 启动 runtime 或执行 **测试配置**。
-5. 之后录制方式与其他 Provider 一致，Electron 会通过 IPC 管理 runtime 生命周期。
-
-### 历史、备份与恢复
-
-- 会话支持重命名、打标签、按主题归类、搜索，以及导出 TXT、SRT、VTT。
-- 录制草稿会自动保存；如果应用中断，下次启动可以恢复未完成会话。
-- 支持导入 / 导出全部本地数据，用于备份和迁移。
-- 诊断导出会生成一个脱敏 JSON，包含系统信息和最近日志，便于排障。
-
 ## 📁 项目结构
 
 ```text
@@ -442,7 +491,5 @@ Apache License 2.0
 [![Star History Chart](https://api.star-history.com/svg?repos=XimilalaXiang/DeLive&type=date&legend=top-left)](https://www.star-history.com/#XimilalaXiang/DeLive&type=date&legend=top-left)
 
 **Made by [XimilalaXiang](https://github.com/XimilalaXiang)**
-
-</div>
 
 </div>

@@ -1,6 +1,6 @@
-<img src="assets/header.png" alt="DeLive Header">
-
 <div align="center">
+
+<img src="assets/icon.svg" width="128" height="128" alt="DeLive Logo">
 
 # DeLive
 
@@ -17,36 +17,229 @@ English | [简体中文](./README_ZH.md) | [繁體中文](./README_TW.md) | [日
 [![Stars](https://img.shields.io/github/stars/XimilalaXiang/DeLive?style=social)](https://github.com/XimilalaXiang/DeLive)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/XimilalaXiang/DeLive)
 
-[Core Features](#-core-features) • [Project Map](#-project-map) • [Architecture](#-system-architecture) • [Providers](#-supported-asr-providers) • [Quick Start](#-quick-start)
-
 </div>
 
 DeLive is a desktop transcription workspace for system audio. It captures whatever your computer is playing, routes the audio through the ASR backend that fits the job, keeps everything on your machine, and turns completed transcripts into searchable history with a full AI Review Desk — rich Markdown-rendered chat, Q&A threads, structured briefings, and mind maps.
 
 <div align="center">
-<img width="800" alt="DeLive Screenshot" src="https://github.com/user-attachments/assets/f0d26fe3-ae9c-4d24-8b5d-b12f2095acb7" />
+
+#
+
+| Live Transcription | Review & History | Topics |
+|:---:|:---:|:---:|
+| Real-time transcription workspace with provider switching | Session history with calendar view and search | Project-based session organization |
+| <img width="300" src="assets/screenshot-live-light.webp" alt="Live View" /> | <img width="300" src="assets/screenshot-review.webp" alt="Review View" /> | <img width="300" src="assets/screenshot-topics.webp" alt="Topics View" /> |
+
+| Themes & Customization | Dark Mode |
+|:---:|:---:|
+| 5 color themes with full light/dark support | Complete dark mode across all views |
+| <img width="400" src="assets/screenshot-settings-themes.webp" alt="Settings Themes" /> | <img width="400" src="assets/screenshot-settings-dark.webp" alt="Dark Mode" /> |
+
+#
+
 </div>
+
+## Table of Contents
+
+- [Core Features](#-core-features)
+- [Download](#-download)
+- [Supported ASR Providers](#-supported-asr-providers)
+- [Quick Start](#-quick-start)
+- [Usage](#-usage)
+- [Project Map](#-project-map)
+- [System Architecture](#-system-architecture)
+- [Tech Stack](#-tech-stack)
+- [Security](#-security)
+- [Extending Providers](#-extending-providers)
+- [Notes](#%EF%B8%8F-notes)
+- [License](#-license)
+- [Acknowledgments](#-acknowledgments)
 
 ## 🎯 Core Features
 
-- **System-audio capture for real desktop use**. Browser video, live streams, meetings, courses, podcasts, or any other playback source that can be shared with system audio.
-- **Six ASR backends behind one UI**. Soniox, Volcengine, Groq, SiliconFlow, OpenAI-compatible local services, and local `whisper.cpp`.
-- **Provider-aware capture pipeline**. DeLive switches between `MediaRecorder` and `AudioWorklet` PCM16 capture based on the selected provider's transport requirements.
-- **Three execution modes in one app**. True realtime streaming, windowed batch retranscription, and Electron-managed local runtime execution.
-- **Session lifecycle management**. Draft sessions, autosave while recording, interrupted-session recovery on next launch, and completed-session history.
-- **Floating caption overlay**. Separate always-on-top caption window with source / translated / dual display modes, drag/lock control, and style customization.
-- **Soniox-specific bilingual and speaker-aware flows**. Realtime translation, dual-line captions, diarization tokens, and speaker-grouped session preview.
-- **Dedicated AI Review Desk**. A full-page workspace (not a modal) for finished sessions with animated tab navigation (Overview, Transcript, Chat, Mind Map) and keyboard arrow support.
-- **Rich AI Chat**. Multi-thread conversation with GFM Markdown rendering, syntax-highlighted code blocks with one-click copy, user/AI avatars, hover Copy/Regenerate actions on every message, animated thinking-dots indicator, auto-resizing composer (1–6 rows, Enter to send), floating scroll-to-bottom button, and per-thread delete.
-- **Structured AI briefing**. Summary, action items, keywords, chapters, title/tag suggestions, and cited Q&A answers — all persisted into the session.
-- **Mind maps**. Generate Markmap-compatible Markdown, edit it live, and export SVG or PNG directly from the Review Desk.
-- **Polished Transcript tab**. Timestamps in the left gutter, color-coded speaker badges, automatic consecutive same-speaker merging, and hover highlight.
-- **Local model workflows**. Detect local services, discover installed models, optionally pull models from Ollama, and import/download `whisper.cpp` binaries and models.
-- **Topics for project-based organization**. Group related sessions under named topics with emoji icons and descriptions. Sessions in a topic are isolated from the default Review list while remaining searchable globally. Record directly into a topic from Live or move existing sessions in from Review.
-- **Local-first persistence**. Sessions, tags, topics, and settings live in IndexedDB/localStorage, while secrets go through Electron `safeStorage` when OS encryption is available.
-- **Shared design system**. Composable UI primitives (Button, Badge, Switch, EmptyState, StatusIndicator, DialogShell) with semantic `warning`/`success`/`info` color tokens across five light and dark themes.
-- **Desktop integration**. Tray behavior, global shortcut, auto-launch, updater, diagnostics export, source picker, and typed preload APIs.
-- **Security hardening**. Trusted-window IPC checks, CSP injection, navigation guard, path allowlist, redacted diagnostics, and encrypted secret storage.
+- [x] **System-audio capture** for real desktop use — browser video, live streams, meetings, courses, podcasts, or any other playback source
+- [x] **Six ASR backends behind one UI** — Soniox, Volcengine, Groq, SiliconFlow, OpenAI-compatible local services, and local `whisper.cpp`
+- [x] **Provider-aware capture pipeline** — auto-switches between `MediaRecorder` and `AudioWorklet` PCM16 capture based on provider requirements
+- [x] **Three execution modes** — true realtime streaming, windowed batch retranscription, and Electron-managed local runtime
+- [x] **Session lifecycle management** — draft sessions, autosave while recording, interrupted-session recovery, and completed-session history
+- [x] **Floating caption overlay** — separate always-on-top window with source / translated / dual display modes and style customization
+- [x] **Soniox bilingual & speaker-aware flows** — realtime translation, dual-line captions, diarization tokens, speaker-grouped preview
+- [x] **AI Review Desk** — full-page workspace with animated tab navigation (Overview, Transcript, Chat, Mind Map)
+- [x] **Rich AI Chat** — multi-thread conversation with GFM Markdown rendering, syntax-highlighted code blocks, hover actions, and more
+- [x] **Structured AI briefing** — summary, action items, keywords, chapters, title/tag suggestions, and cited Q&A
+- [x] **Mind maps** — generate Markmap-compatible Markdown, edit live, export SVG or PNG
+- [x] **Topics** — organize sessions into project-based containers with emoji icons
+- [x] **Local model workflows** — detect local services, discover models, pull from Ollama, import/download `whisper.cpp` assets
+- [x] **5 color themes** — Cyan, Violet, Rose, Green, Amber — each with full light and dark mode
+- [x] **Local-first persistence** — sessions, tags, topics, and settings in IndexedDB/localStorage; secrets via Electron `safeStorage`
+- [x] **Desktop integration** — tray, global shortcut, auto-launch, updater, diagnostics export
+- [x] **Security hardening** — trusted-window IPC, CSP injection, navigation guard, path allowlist, encrypted secret storage
+- [x] **Cross-platform** — Windows, macOS, and Linux
+
+## 📥 Download
+
+Get the latest release for your platform:
+
+<div align="center">
+
+[![Windows](https://img.shields.io/badge/Windows-Download-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/XimilalaXiang/DeLive/releases/latest)
+[![macOS](https://img.shields.io/badge/macOS-Download-000000?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/XimilalaXiang/DeLive/releases/latest)
+[![Linux](https://img.shields.io/badge/Linux-Download-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://github.com/XimilalaXiang/DeLive/releases/latest)
+
+</div>
+
+| Platform | Files |
+|----------|-------|
+| Windows | `.exe` installer, portable `.exe` |
+| macOS | `.dmg` (Intel x64 and Apple Silicon arm64) |
+| Linux | `.AppImage`, `.deb` |
+
+> All downloads are available on the [Releases](https://github.com/XimilalaXiang/DeLive/releases/latest) page.
+
+## 🔌 Supported ASR Providers
+
+| Provider | Type | Transport | Audio path | Highlights |
+|----------|------|-----------|------------|------------|
+| **Soniox V4** | Cloud | Realtime streaming | `MediaRecorder` (`webm/opus`) → WebSocket | Token-level realtime transcription, realtime translation, bilingual captions, speaker diarization |
+| **Volcengine** | Cloud | Realtime streaming | `AudioWorklet` PCM16 → embedded proxy → WebSocket | Chinese-oriented realtime path; proxy injects required headers from Electron |
+| **Groq** | Cloud | Windowed batch retranscription | `AudioWorklet` PCM16 → WAV → REST | Whisper `large-v3-turbo` / `large-v3` style flow with quasi-realtime session updates |
+| **SiliconFlow** | Cloud | Windowed batch retranscription | `AudioWorklet` PCM16 → WAV → REST | SenseVoice, TeleSpeech, and Qwen Omni-backed transcription flow |
+| **Local OpenAI-compatible** | Local service | Windowed batch retranscription | `MediaRecorder` (`webm/opus`) → `/v1/audio/transcriptions` | Works with Ollama or other compatible gateways; supports service/model discovery and optional Ollama pull |
+| **Local `whisper.cpp`** | Local runtime | Electron-managed local runtime | `AudioWorklet` PCM16 → local `/inference` | Starts `whisper-server`, manages binary/model assets, and stays fully local |
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js 18+ (`release.yml` uses Node 20 in CI)
+- One provider path:
+  - **Soniox**: API key from [soniox.com](https://soniox.com)
+  - **Volcengine**: APP ID and Access Token
+  - **Groq**: API key from [groq.com](https://groq.com)
+  - **SiliconFlow**: API key from [siliconflow.cn](https://siliconflow.cn)
+  - **Local OpenAI-compatible**: local service exposing `/v1/models` and `/v1/audio/transcriptions`
+  - **Local `whisper.cpp`**: `whisper-server` plus a local `.bin` or `.gguf` model, or let DeLive import/download them
+
+### Installation
+
+```bash
+git clone https://github.com/XimilalaXiang/DeLive.git
+cd DeLive
+npm run install:all
+```
+
+### Development
+
+```bash
+npm run dev
+```
+
+`npm run dev` starts Vite and Electron together. The Volcengine proxy is embedded in the Electron main process, so normal desktop development does not need a separate backend.
+
+For standalone proxy debugging:
+
+```bash
+npm run dev:server
+```
+
+### Quality Checks
+
+```bash
+npm run check
+```
+
+`npm run check` runs frontend lint, frontend tests, and a full app build.
+
+To run just the frontend tests:
+
+```bash
+npm run test:frontend
+```
+
+Current suite status: **184 tests across 22 files** with coverage around provider config, transcript state/stabilization, subtitle export, session lifecycle/repository, storage, and AI post-process parsing.
+
+### Build
+
+```bash
+npm run dist:win
+npm run dist:mac
+npm run dist:linux
+npm run dist:all
+```
+
+Artifacts are written to `release/`.
+
+### Optional: Stage `whisper.cpp` Into Packaged Builds
+
+```bash
+npm run fetch:whisper-runtime -- --target win32
+npm run stage:whisper-runtime -- --binary /path/to/whisper-server --target linux
+```
+
+If `local-runtimes/whisper_cpp/whisper-server(.exe)` exists at build time, `electron-builder` packages it as an extra resource. End users can still import or download binaries and models later from the UI.
+
+## 📖 Usage
+
+### Typical Recording Flow
+
+1. Open settings and choose a provider.
+2. Fill in credentials or local runtime details, then run **Test Config**.
+3. Click **Start Recording**.
+4. Pick a screen or window and make sure audio sharing is enabled.
+5. Watch partial and final text update in the main window and, optionally, the floating caption overlay.
+6. Stop recording and open the saved session from History for review, AI actions, or export.
+
+### Caption Overlay
+
+- Toggle the floating caption window from the main UI.
+- Adjust font, colors, width, line count, shadow, and position.
+- Switch between source, translated, and dual modes when the provider supplies translation output.
+- Use draggable/interactive states to reposition the overlay without closing it.
+
+### Topics
+
+Organize recordings into project-like containers:
+
+1. Open the **Topics** tab from the navigation bar.
+2. Create a topic with a name, emoji icon, and optional description.
+3. Start recording into a topic in two ways:
+   - Click **Record New** on a topic card — jumps to Live with the topic pre-selected.
+   - In the Live view, click the **Select Topic** link above the recording controls and pick a topic.
+4. The selected topic appears as a badge above the record button. Recordings are assigned automatically.
+5. Existing sessions can be moved into (or out of) a topic from the **Overview** tab in Review.
+6. Sessions inside a topic are hidden from the default Review list, but global search still finds them.
+
+### AI Review Desk
+
+Completed sessions open in a dedicated full-page Review Desk (not a modal) with an animated sliding tab bar and keyboard arrow navigation:
+
+- **Overview tab**: AI briefing — summary, action items, keywords, chapters, title/tag suggestions, and one-click apply
+- **Transcript tab**: Timestamped segments in a left gutter, color-coded speaker badges, consecutive same-speaker merging, hover highlight, and SRT/VTT/TXT export
+- **Chat tab**: Multi-thread AI conversation — GFM Markdown rendering with syntax-highlighted code blocks (one-click copy), user/AI avatars, hover Copy/Regenerate actions, animated thinking-dots indicator, auto-resizing composer (Enter to send), floating scroll-to-bottom button, and per-thread delete
+- **Mind Map tab**: Generate Markmap-compatible Markdown, edit it live, and export SVG or PNG
+- **Metadata actions**: apply suggested title/tags and rename speaker labels for diarized sessions
+
+### Local OpenAI-compatible Services
+
+1. Select **Local OpenAI-compatible**.
+2. Fill in `Base URL` and `Model`.
+3. Use the local-model guide to probe the service and list installed models.
+4. If the detected service is Ollama, DeLive can pull the selected model directly from the app.
+
+### Local `whisper.cpp` Runtime
+
+1. Select **Local whisper.cpp**.
+2. Prepare the runtime binary by importing an existing `whisper-server` file or downloading a recommended official release asset.
+3. Prepare the model by choosing, importing, or downloading a `.bin` / `.gguf` file.
+4. Start the runtime or run **Test Config**.
+5. Record normally; Electron manages the runtime lifecycle through IPC.
+
+### History, Backup, and Recovery
+
+- Sessions can be renamed, tagged, organized by topic, searched, and exported as TXT, SRT, or VTT.
+- Recording drafts are autosaved and incomplete sessions can be restored after an interrupted launch.
+- Full local data can be exported/imported for backup or migration.
+- Diagnostics export generates a redacted JSON bundle with system info and recent logs for troubleshooting.
 
 ## 🧩 Project Map
 
@@ -195,151 +388,6 @@ graph TB
 | Electron services | Embedded Volc proxy, local runtime controller, safe-storage IPC, diagnostics IPC | Provides features that the browser environment cannot do directly. |
 | Persistence | Session repository, IndexedDB, localStorage, `safeStorage` | Autosaves drafts, restores interrupted sessions, and stores secrets separately from general settings. |
 | Shared contracts | Typed preload bridge and shared helper modules | Keeps renderer/main contracts explicit and safer to evolve. |
-
-## 🔌 Supported ASR Providers
-
-| Provider | Type | Transport | Audio path | Highlights |
-|----------|------|-----------|------------|------------|
-| **Soniox V4** | Cloud | Realtime streaming | `MediaRecorder` (`webm/opus`) → WebSocket | Token-level realtime transcription, realtime translation, bilingual captions, speaker diarization |
-| **Volcengine** | Cloud | Realtime streaming | `AudioWorklet` PCM16 → embedded proxy → WebSocket | Chinese-oriented realtime path; proxy injects required headers from Electron |
-| **Groq** | Cloud | Windowed batch retranscription | `AudioWorklet` PCM16 → WAV → REST | Whisper `large-v3-turbo` / `large-v3` style flow with quasi-realtime session updates |
-| **SiliconFlow** | Cloud | Windowed batch retranscription | `AudioWorklet` PCM16 → WAV → REST | SenseVoice, TeleSpeech, and Qwen Omni-backed transcription flow |
-| **Local OpenAI-compatible** | Local service | Windowed batch retranscription | `MediaRecorder` (`webm/opus`) → `/v1/audio/transcriptions` | Works with Ollama or other compatible gateways; supports service/model discovery and optional Ollama pull |
-| **Local `whisper.cpp`** | Local runtime | Electron-managed local runtime | `AudioWorklet` PCM16 → local `/inference` | Starts `whisper-server`, manages binary/model assets, and stays fully local |
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Node.js 18+ (`release.yml` uses Node 20 in CI)
-- One provider path:
-  - **Soniox**: API key from [soniox.com](https://soniox.com)
-  - **Volcengine**: APP ID and Access Token
-  - **Groq**: API key from [groq.com](https://groq.com)
-  - **SiliconFlow**: API key from [siliconflow.cn](https://siliconflow.cn)
-  - **Local OpenAI-compatible**: local service exposing `/v1/models` and `/v1/audio/transcriptions`
-  - **Local `whisper.cpp`**: `whisper-server` plus a local `.bin` or `.gguf` model, or let DeLive import/download them
-
-### Installation
-
-```bash
-git clone https://github.com/XimilalaXiang/DeLive.git
-cd DeLive
-npm run install:all
-```
-
-### Development
-
-```bash
-npm run dev
-```
-
-`npm run dev` starts Vite and Electron together. The Volcengine proxy is embedded in the Electron main process, so normal desktop development does not need a separate backend.
-
-For standalone proxy debugging:
-
-```bash
-npm run dev:server
-```
-
-### Quality Checks
-
-```bash
-npm run check
-```
-
-`npm run check` runs frontend lint, frontend tests, and a full app build.
-
-To run just the frontend tests:
-
-```bash
-npm run test:frontend
-```
-
-Current suite status: **184 tests across 22 files** with coverage around provider config, transcript state/stabilization, subtitle export, session lifecycle/repository, storage, and AI post-process parsing.
-
-### Build
-
-```bash
-npm run dist:win
-npm run dist:mac
-npm run dist:linux
-npm run dist:all
-```
-
-Artifacts are written to `release/`.
-
-### Optional: Stage `whisper.cpp` Into Packaged Builds
-
-```bash
-npm run fetch:whisper-runtime -- --target win32
-npm run stage:whisper-runtime -- --binary /path/to/whisper-server --target linux
-```
-
-If `local-runtimes/whisper_cpp/whisper-server(.exe)` exists at build time, `electron-builder` packages it as an extra resource. End users can still import or download binaries and models later from the UI.
-
-## 📖 Usage
-
-### Typical Recording Flow
-
-1. Open settings and choose a provider.
-2. Fill in credentials or local runtime details, then run **Test Config**.
-3. Click **Start Recording**.
-4. Pick a screen or window and make sure audio sharing is enabled.
-5. Watch partial and final text update in the main window and, optionally, the floating caption overlay.
-6. Stop recording and open the saved session from History for review, AI actions, or export.
-
-### Caption Overlay
-
-- Toggle the floating caption window from the main UI.
-- Adjust font, colors, width, line count, shadow, and position.
-- Switch between source, translated, and dual modes when the provider supplies translation output.
-- Use draggable/interactive states to reposition the overlay without closing it.
-
-### Topics
-
-Organize recordings into project-like containers:
-
-1. Open the **Topics** tab from the navigation bar.
-2. Create a topic with a name, emoji icon, and optional description.
-3. Start recording into a topic in two ways:
-   - Click **Record New** on a topic card — jumps to Live with the topic pre-selected.
-   - In the Live view, click the **Select Topic** link above the recording controls and pick a topic.
-4. The selected topic appears as a badge above the record button. Recordings are assigned automatically.
-5. Existing sessions can be moved into (or out of) a topic from the **Overview** tab in Review.
-6. Sessions inside a topic are hidden from the default Review list, but global search still finds them.
-
-### AI Review Desk
-
-Completed sessions open in a dedicated full-page Review Desk (not a modal) with an animated sliding tab bar and keyboard arrow navigation:
-
-- **Overview tab**: AI briefing — summary, action items, keywords, chapters, title/tag suggestions, and one-click apply
-- **Transcript tab**: Timestamped segments in a left gutter, color-coded speaker badges, consecutive same-speaker merging, hover highlight, and SRT/VTT/TXT export
-- **Chat tab**: Multi-thread AI conversation — GFM Markdown rendering with syntax-highlighted code blocks (one-click copy), user/AI avatars, hover Copy/Regenerate actions, animated thinking-dots indicator, auto-resizing composer (Enter to send), floating scroll-to-bottom button, and per-thread delete
-- **Mind Map tab**: Generate Markmap-compatible Markdown, edit it live, and export SVG or PNG
-- **Metadata actions**: apply suggested title/tags and rename speaker labels for diarized sessions
-
-### Local OpenAI-compatible Services
-
-1. Select **Local OpenAI-compatible**.
-2. Fill in `Base URL` and `Model`.
-3. Use the local-model guide to probe the service and list installed models.
-4. If the detected service is Ollama, DeLive can pull the selected model directly from the app.
-
-### Local `whisper.cpp` Runtime
-
-1. Select **Local whisper.cpp**.
-2. Prepare the runtime binary by importing an existing `whisper-server` file or downloading a recommended official release asset.
-3. Prepare the model by choosing, importing, or downloading a `.bin` / `.gguf` file.
-4. Start the runtime or run **Test Config**.
-5. Record normally; Electron manages the runtime lifecycle through IPC.
-
-### History, Backup, and Recovery
-
-- Sessions can be renamed, tagged, organized by topic, searched, and exported as TXT, SRT, or VTT.
-- Recording drafts are autosaved and incomplete sessions can be restored after an interrupted launch.
-- Full local data can be exported/imported for backup or migration.
-- Diagnostics export generates a redacted JSON bundle with system info and recent logs for troubleshooting.
 
 ## 📁 Project Structure
 
