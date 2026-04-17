@@ -223,7 +223,7 @@ function App() {
           id="app-main"
           className={`flex-1 overflow-y-auto ${currentView === 'live' ? '' : 'hidden'}`}
         >
-          <div className="container mx-auto max-w-5xl px-4 pb-8 pt-4 sm:px-6">
+          <div className={`container mx-auto max-w-5xl px-4 pb-8 sm:px-6 ${recordingState === 'idle' ? 'min-h-full flex flex-col justify-center' : 'pt-4'}`}>
             <div className="space-y-6">
               {isInitialized && !hasApiKey && recordingState === 'idle' && (
                 <div className="rounded-xl border border-primary/20 bg-primary/5 p-6 space-y-3 text-center">

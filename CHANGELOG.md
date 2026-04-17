@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0-beta.5] - 2026-04-17
+
+### Added / 新增
+- 🔍 Search box in TitleBar — click to open Command Palette (Ctrl+K), shows shortcut hint, coexists with REC indicator during recording
+- 🔍 TitleBar 搜索框 — 点击打开命令面板 (Ctrl+K)，显示快捷键提示，录制时与 REC 指示器共存
+
+### Changed / 变更
+- 📐 Live page content vertically centered when idle — recording mode keeps top-aligned flow for transcript growth
+- 📐 Live 页空闲时内容垂直居中 — 录制模式保持顶部对齐以适应转录内容增长
+
+---
+
 ## [2.0.0-beta.4] - 2026-04-17
 
 ### Fixed / 修复

@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react'
-import { Minus, Square, X, Maximize2 } from 'lucide-react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { Minus, Square, X, Maximize2, Search } from 'lucide-react'
 import { useUIStore } from '../stores/uiStore'
 import type { RecordingState } from '../types'
 
@@ -52,7 +52,10 @@ export function TitleBar({ recordingState, onClickRec }: TitleBarProps) {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  // 非 Electron 环境不显示
+  const openCommandPalette = useCallback(() => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true }))
+  }, [])
+
   if (!window.electronAPI?.isElectron) {
     return null
   }
@@ -71,25 +74,42 @@ export function TitleBar({ recordingState, onClickRec }: TitleBarProps) {
     window.electronAPI?.windowClose()
   }
 
+  const isMac = platform === 'darwin'
+  const shortcutLabel = isMac ? '⌘K' : 'Ctrl+K'
+
   return (
     <div className="title-bar fixed top-0 left-0 right-0 h-8 z-50 flex items-center justify-between bg-background/95 backdrop-blur border-b border-border/40">
       <div
-        className={`flex-1 h-full app-drag-region flex items-center ${platform === 'darwin' ? 'pl-20' : ''}`}
+        className={`flex-1 h-full app-drag-region flex items-center ${isMac ? 'pl-20' : ''}`}
         style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
       >
-        {recordingState === 'recording' && (
+        <div className="flex-1 flex items-center justify-center px-4 gap-3">
+          {/* Search box — opens CommandPalette */}
           <button
-            onClick={onClickRec}
-            className="ml-auto mr-auto flex items-center gap-1.5 text-xs font-medium text-destructive hover:text-destructive/80 transition-colors"
+            onClick={openCommandPalette}
+            className="flex items-center gap-2 h-[22px] max-w-[360px] w-full rounded-md border border-border/50 bg-muted/40 px-2.5 text-[11px] text-muted-foreground/70 hover:bg-muted/60 hover:text-muted-foreground transition-colors"
             style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
           >
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-destructive" />
-            </span>
-            REC {formatTime(elapsed)}
+            <Search className="h-3 w-3 shrink-0" />
+            <span className="truncate">{(t.command as Record<string, string> | undefined)?.searchPlaceholder || 'Search...'}</span>
+            <kbd className="ml-auto shrink-0 rounded border border-border/40 bg-background/60 px-1 text-[10px] font-mono leading-tight">{shortcutLabel}</kbd>
           </button>
-        )}
+
+          {/* REC indicator */}
+          {recordingState === 'recording' && (
+            <button
+              onClick={onClickRec}
+              className="flex items-center gap-1.5 text-xs font-medium text-destructive hover:text-destructive/80 transition-colors shrink-0"
+              style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-destructive" />
+              </span>
+              REC {formatTime(elapsed)}
+            </button>
+          )}
+        </div>
       </div>
 
 
