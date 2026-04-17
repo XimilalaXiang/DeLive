@@ -304,11 +304,12 @@ describe('search filtering logic', () => {
   })
 
   it('returns all for empty query', () => {
-    const query = ''
+    const query: string = ''
+    const lowerQuery = query.toLowerCase()
     const filtered = query
       ? sessions.filter(s =>
-        s.title.toLowerCase().includes(query.toLowerCase())
-        || (s.transcript ?? '').toLowerCase().includes(query.toLowerCase()),
+        s.title.toLowerCase().includes(lowerQuery)
+        || (s.transcript ?? '').toLowerCase().includes(lowerQuery),
       )
       : sessions
     expect(filtered).toHaveLength(3)
