@@ -32,23 +32,59 @@ async function request(
   return { status: resp.status, body: text }
 }
 
-export async function webdavTest(
-  config: WebDAVConfig,
-): Promise<{ ok: boolean; error?: string }> {
-  try {
-    const baseUrl = buildBaseUrl(config)
-    const resp = await request(baseUrl + '/', 'PROPFIND', config, {
+async function ensureDirectory(config: WebDAVConfig): Promise<void> {
+  const basePath = config.basePath.replace(/^\/+|\/+$/g, '')
+  if (!basePath) return
+
+  const serverUrl = config.url.replace(/\/+$/, '')
+  const segments = basePath.split('/').filter(Boolean)
+  let currentPath = serverUrl
+
+  for (const segment of segments) {
+    currentPath = `${currentPath}/${segment}`
+    const check = await request(currentPath + '/', 'PROPFIND', config, {
       Depth: '0',
       'Content-Type': 'application/xml; charset=utf-8',
     }, '<?xml version="1.0" encoding="utf-8"?><D:propfind xmlns:D="DAV:"><D:prop><D:resourcetype/></D:prop></D:propfind>')
 
-    if (resp.status === 207 || resp.status === 200) {
-      return { ok: true }
+    if (check.status === 404 || check.status === 409) {
+      const mkdir = await request(currentPath + '/', 'MKCOL', config)
+      if (mkdir.status !== 201 && mkdir.status !== 405) {
+        // 405 = already exists on some servers
+      }
     }
-    if (resp.status === 401 || resp.status === 403) {
+  }
+}
+
+export async function webdavTest(
+  config: WebDAVConfig,
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const serverUrl = config.url.replace(/\/+$/, '')
+    const authCheck = await request(serverUrl + '/', 'PROPFIND', config, {
+      Depth: '0',
+      'Content-Type': 'application/xml; charset=utf-8',
+    }, '<?xml version="1.0" encoding="utf-8"?><D:propfind xmlns:D="DAV:"><D:prop><D:resourcetype/></D:prop></D:propfind>')
+
+    if (authCheck.status === 401 || authCheck.status === 403) {
       return { ok: false, error: 'Authentication failed. Check username and password.' }
     }
-    return { ok: false, error: `Server returned status ${resp.status}` }
+    if (authCheck.status !== 207 && authCheck.status !== 200) {
+      return { ok: false, error: `Server returned status ${authCheck.status}` }
+    }
+
+    await ensureDirectory(config)
+
+    const baseUrl = buildBaseUrl(config)
+    const dirCheck = await request(baseUrl + '/', 'PROPFIND', config, {
+      Depth: '0',
+      'Content-Type': 'application/xml; charset=utf-8',
+    }, '<?xml version="1.0" encoding="utf-8"?><D:propfind xmlns:D="DAV:"><D:prop><D:resourcetype/></D:prop></D:propfind>')
+
+    if (dirCheck.status === 207 || dirCheck.status === 200) {
+      return { ok: true }
+    }
+    return { ok: false, error: `Base path directory check failed with status ${dirCheck.status}` }
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)
     return { ok: false, error: msg }
@@ -60,6 +96,8 @@ export async function webdavUpload(
   jsonData: string,
 ): Promise<{ ok: boolean; key?: string; error?: string }> {
   try {
+    await ensureDirectory(config)
+
     const baseUrl = buildBaseUrl(config)
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
     const filename = `delive_backup_${timestamp}.json`

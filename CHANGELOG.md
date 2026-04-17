@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0-beta.11] - 2026-04-17
+
+### Fixed / 修复
+- 🌐 WebDAV auto-create basePath directory with MKCOL before upload — fixes 404/409 errors on Jianguoyun (坚果云), Nextcloud, and servers that require parent directories to exist
+- 🌐 WebDAV 上传前自动用 MKCOL 创建 basePath 目录 — 修复坚果云等不自动创建目录的服务器返回 404/409 错误
+- 🌐 WebDAV test now first validates auth against server root, then ensures basePath directory exists
+- 🌐 WebDAV 测试连接现在先验证认证，再确保 basePath 目录存在
+
+---
+
 ## [2.0.0-beta.10] - 2026-04-17
 
 ### Fixed / 修复
