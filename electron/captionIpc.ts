@@ -1,5 +1,6 @@
 import type { IpcMain } from 'electron'
 import { createCaptionWindowController } from './captionWindow'
+import { broadcastLiveTranscript } from './apiBroadcast'
 
 interface RegisterCaptionIpcOptions {
   ipcMain: IpcMain
@@ -32,6 +33,14 @@ export function registerCaptionIpc({ ipcMain, controller }: RegisterCaptionIpcOp
         translatedStableText,
         translatedActiveText,
       )
+
+      broadcastLiveTranscript({
+        stableText,
+        activeText,
+        translatedStableText: translatedStableText ?? '',
+        translatedActiveText: translatedActiveText ?? '',
+        isFinal,
+      })
     },
   )
 

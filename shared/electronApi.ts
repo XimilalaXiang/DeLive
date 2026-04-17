@@ -121,6 +121,108 @@ export interface DiagnosticsExportPayload {
   localStorageKeys: string[]
 }
 
+// ─── Open API types ───
+
+export interface SessionSummary {
+  id: string
+  title: string
+  date: string
+  time: string
+  createdAt: number
+  updatedAt: number
+  duration?: number
+  status?: string
+  topicId?: string
+  tagIds?: string[]
+  providerId?: string
+  hasSummary: boolean
+  hasMindMap: boolean
+  transcriptLength: number
+}
+
+export interface SessionDetail {
+  id: string
+  title: string
+  date: string
+  time: string
+  createdAt: number
+  updatedAt: number
+  duration?: number
+  status?: string
+  topicId?: string
+  tagIds?: string[]
+  providerId?: string
+  transcript: string
+  translatedTranscript?: {
+    text: string
+    targetLanguage?: string
+  }
+  tokens?: Array<{
+    text: string
+    isFinal?: boolean
+    startMs?: number
+    endMs?: number
+    speaker?: string
+  }>
+  speakers?: Array<{
+    id: string
+    label: string
+    displayName?: string
+  }>
+  segments?: Array<{
+    text: string
+    translatedText?: string
+    startMs?: number
+    endMs?: number
+    speakerId?: string
+  }>
+  postProcess?: {
+    summary?: string
+    actionItems?: string[]
+    keywords?: string[]
+    titleSuggestion?: string
+    tagSuggestions?: string[]
+    generatedAt?: number
+    status?: string
+  }
+  mindMap?: {
+    markdown: string
+    title?: string
+    generatedAt?: number
+    status?: string
+  }
+  askHistory?: Array<{
+    id: string
+    question: string
+    answer?: string
+    createdAt: number
+    status: string
+  }>
+}
+
+export interface ApiRecordingStatus {
+  isRecording: boolean
+  currentSessionId: string | null
+  recordingState: string
+}
+
+export interface ApiTopicData {
+  id: string
+  name: string
+  emoji: string
+  description?: string
+  createdAt: number
+  updatedAt: number
+}
+
+export interface ApiTagData {
+  id: string
+  name: string
+  color: string
+}
+
+// ─── Core types ───
+
 export interface ElectronAPI {
   getAppVersion: () => Promise<string>
   minimizeToTray: () => Promise<void>
@@ -182,6 +284,24 @@ export interface ElectronAPI {
   safeStorageDelete: (key: string) => Promise<boolean>
   safeStorageAvailable: () => Promise<boolean>
   onToggleRecording: (callback: () => void) => () => void
+  apiNotifySessionStart: (sessionId: string) => void
+  apiNotifySessionEnd: (sessionId: string) => void
+
+  onApiGetSessions: (callback: (event: unknown) => void) => () => void
+  apiRespondSessions: (sessions: SessionSummary[]) => void
+  onApiGetSessionDetail: (callback: (event: unknown, sessionId: string) => void) => () => void
+  apiRespondSessionDetail: (session: SessionDetail | null) => void
+  onApiSearchSessions: (callback: (event: unknown, query: string) => void) => () => void
+  apiRespondSearchSessions: (sessions: SessionSummary[]) => void
+  onApiGetTopics: (callback: (event: unknown) => void) => () => void
+  apiRespondTopics: (topics: ApiTopicData[]) => void
+  onApiGetTags: (callback: (event: unknown) => void) => () => void
+  apiRespondTags: (tags: ApiTagData[]) => void
+  onApiGetRecordingStatus: (callback: (event: unknown) => void) => () => void
+  apiRespondRecordingStatus: (status: ApiRecordingStatus) => void
+
+  apiUpdateOpenApiConfig: (config: { enabled: boolean; token: string }) => void
+
   isElectron: boolean
   platform: 'win32' | 'darwin' | 'linux'
   supportsAutoLaunch: boolean

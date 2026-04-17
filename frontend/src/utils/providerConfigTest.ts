@@ -115,7 +115,7 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
         bidiStreaming: 'true',
         enableDdc: 'true',
       })
-      const proxyUrl = `ws://localhost:3001/ws/volc?${params.toString()}`
+      const proxyUrl = `ws://localhost:23456/ws/volc?${params.toString()}`
       let ws: WebSocket | null = null
       let lastProxyErrorMessage = ''
 

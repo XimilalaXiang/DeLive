@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "delive": {
+      "command": "node",
+      "args": ["<PATH_TO_DELIVE>/mcp/delive-mcp-server.js"],
+      "env": {
+        "DELIVE_API_URL": "http://localhost:23456",
+        "DELIVE_API_TOKEN": "<YOUR_TOKEN_FROM_DELIVE_SETTINGS>"
+      }
+    }
+  }
+}

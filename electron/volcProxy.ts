@@ -2,7 +2,7 @@ import { createServer, type Server } from 'http'
 import { WebSocketServer } from 'ws'
 import { attachVolcProxyServer } from '../shared/volcProxyCore'
 
-export function startVolcProxyServer(port = 3001): Server {
+export function startVolcProxyServer(port = 23456): Server {
   const server = createServer()
   const wss = new WebSocketServer({
     server,

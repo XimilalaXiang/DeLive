@@ -173,6 +173,13 @@ function normalizeSettings(value: unknown): AppSettings {
       ...defaults.aiPostProcess,
       ...(normalizeAiPostProcessConfig(record.aiPostProcess) || {}),
     },
+    openApi: {
+      ...defaults.openApi,
+      ...(isRecord(record.openApi) ? {
+        enabled: typeof record.openApi.enabled === 'boolean' ? record.openApi.enabled : false,
+        token: typeof record.openApi.token === 'string' ? record.openApi.token : '',
+      } : {}),
+    },
   }
 }
 

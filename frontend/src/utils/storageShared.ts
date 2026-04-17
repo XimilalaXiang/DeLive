@@ -156,5 +156,9 @@ export function getDefaultSettings(): AppSettings {
       apiKey: '',
       promptLanguage: 'zh',
     },
+    openApi: {
+      enabled: false,
+      token: '',
+    },
   }
 }

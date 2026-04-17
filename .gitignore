@@ -74,4 +74,5 @@ rules/
 .trae/
 .windsurf/
 skills/
+!skills/delive-transcript-analyzer/
 skills-lock.json

@@ -40,6 +40,7 @@ export function ApiKeyConfig({ isOpen, onClose, mode = 'modal' }: ApiKeyConfigPr
     settings,
     updateSettings,
     updateAiPostProcessConfig,
+    updateOpenApiConfig,
     availableProviders,
     updateProviderConfig,
   } = useSettingsStore()
@@ -493,6 +494,8 @@ export function ApiKeyConfig({ isOpen, onClose, mode = 'modal' }: ApiKeyConfigPr
                   ...patch,
                 }))
               }}
+              openApiConfig={settings.openApi || { enabled: false, token: '' }}
+              updateOpenApiConfig={updateOpenApiConfig}
               appVersion={appVersion}
               updateStatus={updateStatus}
               handleCheckUpdate={handleCheckUpdate}

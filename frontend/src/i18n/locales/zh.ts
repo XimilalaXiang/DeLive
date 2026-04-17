@@ -96,6 +96,18 @@ export const zh = {
     aiApiKeyPlaceholder: '可选：本地服务通常可留空',
     aiApiKeyDesc: '用于 OpenAI-compatible 文本生成接口，可选',
     aiPromptLanguage: 'AI 输出语言',
+    openApiTitle: '开放 API',
+    openApiDesc: '允许外部程序（MCP 服务器、脚本等）通过本地接口访问 DeLive 数据',
+    openApiEnable: '启用开放 API',
+    openApiEnableDesc: '开启后，本地 REST API 和 WebSocket 将接受外部请求',
+    openApiToken: '访问令牌 (Token)',
+    openApiTokenDesc: '为空时不鉴权；设置后，外部请求需携带 Bearer Token',
+    openApiTokenPlaceholder: '可选：留空表示不鉴权',
+    openApiGenerateToken: '生成随机令牌',
+    openApiEndpoints: '接口地址',
+    openApiRestUrl: 'REST API',
+    openApiWsUrl: 'WebSocket',
+    openApiCopied: '已复制',
   },
 
   // 提供商相关

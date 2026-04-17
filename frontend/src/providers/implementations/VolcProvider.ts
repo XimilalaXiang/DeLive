@@ -14,7 +14,7 @@ import type {
 } from '../../types/asr'
 
 // 本地代理服务器地址
-const PROXY_WS_URL = 'ws://localhost:3001/ws/volc'
+const PROXY_WS_URL = 'ws://localhost:23456/ws/volc'
 
 export class VolcProvider extends BaseASRProvider {
   readonly id: ASRVendor = 'volc' as ASRVendor

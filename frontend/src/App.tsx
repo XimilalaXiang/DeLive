@@ -6,6 +6,7 @@ import { useSessionStore } from './stores/sessionStore'
 import { useTagStore } from './stores/tagStore'
 import { useTopicStore } from './stores/topicStore'
 import { useASR } from './hooks/useASR'
+import { useApiIpcResponder } from './hooks/useApiIpcResponder'
 import { buildProviderConnectConfig, isProviderConfigured } from './utils/providerConfig'
 import { 
   ApiKeyConfig, 
@@ -56,6 +57,8 @@ function App() {
   const handleError = useCallback((message: string) => {
     addToast('error', message)
   }, [addToast])
+
+  useApiIpcResponder()
 
   // ASR — lifted to App so global shortcut can reach it
   const { startRecording, stopRecording } = useASR({

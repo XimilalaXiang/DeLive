@@ -98,6 +98,18 @@ export const en: Translations = {
     aiApiKeyPlaceholder: 'Optional: usually empty for local services',
     aiApiKeyDesc: 'Used for OpenAI-compatible text generation endpoints.',
     aiPromptLanguage: 'AI Output Language',
+    openApiTitle: 'Open API',
+    openApiDesc: 'Allow external programs (MCP servers, scripts, etc.) to access DeLive data via local API',
+    openApiEnable: 'Enable Open API',
+    openApiEnableDesc: 'When enabled, the local REST API and WebSocket will accept external requests',
+    openApiToken: 'Access Token',
+    openApiTokenDesc: 'Empty means no auth required; when set, external requests must provide a Bearer Token',
+    openApiTokenPlaceholder: 'Optional: leave empty for no authentication',
+    openApiGenerateToken: 'Generate Random Token',
+    openApiEndpoints: 'Endpoints',
+    openApiRestUrl: 'REST API',
+    openApiWsUrl: 'WebSocket',
+    openApiCopied: 'Copied',
   },
 
   // Provider related

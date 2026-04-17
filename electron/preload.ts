@@ -1,5 +1,13 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { CaptionStyle, ElectronAPI } from '../shared/electronApi'
+import type {
+  ApiRecordingStatus,
+  ApiTagData,
+  ApiTopicData,
+  CaptionStyle,
+  ElectronAPI,
+  SessionDetail,
+  SessionSummary,
+} from '../shared/electronApi'
 
 const electronAPI: ElectronAPI = {
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
@@ -148,6 +156,66 @@ const electronAPI: ElectronAPI = {
     const listener = () => callback()
     ipcRenderer.on('toggle-recording', listener)
     return () => ipcRenderer.removeListener('toggle-recording', listener)
+  },
+
+  apiNotifySessionStart: (sessionId: string) => {
+    ipcRenderer.send('api-notify-session-start', sessionId)
+  },
+  apiNotifySessionEnd: (sessionId: string) => {
+    ipcRenderer.send('api-notify-session-end', sessionId)
+  },
+
+  onApiGetSessions: (callback: (event: unknown) => void) => {
+    const listener = (event: Electron.IpcRendererEvent) => callback(event)
+    ipcRenderer.on('api-get-sessions', listener)
+    return () => ipcRenderer.removeListener('api-get-sessions', listener)
+  },
+  apiRespondSessions: (sessions: SessionSummary[]) => {
+    ipcRenderer.send('api-respond-sessions', sessions)
+  },
+  onApiGetSessionDetail: (callback: (event: unknown, sessionId: string) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, sessionId: string) => callback(_event, sessionId)
+    ipcRenderer.on('api-get-session-detail', listener)
+    return () => ipcRenderer.removeListener('api-get-session-detail', listener)
+  },
+  apiRespondSessionDetail: (session: SessionDetail | null) => {
+    ipcRenderer.send('api-respond-session-detail', session)
+  },
+  onApiSearchSessions: (callback: (event: unknown, query: string) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, query: string) => callback(_event, query)
+    ipcRenderer.on('api-search-sessions', listener)
+    return () => ipcRenderer.removeListener('api-search-sessions', listener)
+  },
+  apiRespondSearchSessions: (sessions: SessionSummary[]) => {
+    ipcRenderer.send('api-respond-search-sessions', sessions)
+  },
+  onApiGetTopics: (callback: (event: unknown) => void) => {
+    const listener = (event: Electron.IpcRendererEvent) => callback(event)
+    ipcRenderer.on('api-get-topics', listener)
+    return () => ipcRenderer.removeListener('api-get-topics', listener)
+  },
+  apiRespondTopics: (topics: ApiTopicData[]) => {
+    ipcRenderer.send('api-respond-topics', topics)
+  },
+  onApiGetTags: (callback: (event: unknown) => void) => {
+    const listener = (event: Electron.IpcRendererEvent) => callback(event)
+    ipcRenderer.on('api-get-tags', listener)
+    return () => ipcRenderer.removeListener('api-get-tags', listener)
+  },
+  apiRespondTags: (tags: ApiTagData[]) => {
+    ipcRenderer.send('api-respond-tags', tags)
+  },
+  onApiGetRecordingStatus: (callback: (event: unknown) => void) => {
+    const listener = (event: Electron.IpcRendererEvent) => callback(event)
+    ipcRenderer.on('api-get-recording-status', listener)
+    return () => ipcRenderer.removeListener('api-get-recording-status', listener)
+  },
+  apiRespondRecordingStatus: (status: ApiRecordingStatus) => {
+    ipcRenderer.send('api-respond-recording-status', status)
+  },
+
+  apiUpdateOpenApiConfig: (config: { enabled: boolean; token: string }) => {
+    ipcRenderer.send('api-update-open-api-config', config)
   },
 
   isElectron: true,

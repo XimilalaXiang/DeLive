@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type {
   AiPostProcessConfig,
   AppSettings,
+  OpenApiConfig,
   ProviderConfigData,
   CaptionStyle,
 } from '../types'
@@ -32,6 +33,7 @@ export interface SettingsState {
   loadSettings: () => void
   updateSettings: (settings: Partial<AppSettings>) => void
   updateAiPostProcessConfig: (config: Partial<AiPostProcessConfig>) => Promise<void>
+  updateOpenApiConfig: (config: Partial<OpenApiConfig>) => void
 
   availableProviders: ASRProviderInfo[]
   setCurrentVendor: (vendorId: string) => void
@@ -68,19 +70,30 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       settings.currentVendor = registeredVendors[0] || 'soniox'
     }
 
-    set({
-      settings: {
-        ...settings,
-        captionStyle: {
-          ...defaultCaptionStyle,
-          ...(settings.captionStyle || {}),
-        },
-        aiPostProcess: {
-          ...defaultSettings.aiPostProcess,
-          ...(settings.aiPostProcess || {}),
-        },
+    const merged = {
+      ...settings,
+      captionStyle: {
+        ...defaultCaptionStyle,
+        ...(settings.captionStyle || {}),
       },
-    })
+      aiPostProcess: {
+        ...defaultSettings.aiPostProcess,
+        ...(settings.aiPostProcess || {}),
+      },
+      openApi: {
+        ...defaultSettings.openApi,
+        ...(settings.openApi || {}),
+      },
+    }
+
+    set({ settings: merged })
+
+    if (window.electronAPI) {
+      window.electronAPI.apiUpdateOpenApiConfig({
+        enabled: !!merged.openApi?.enabled,
+        token: merged.openApi?.token || '',
+      })
+    }
 
     void (async () => {
       await migrateApiKeysToSafeStorage()
@@ -115,6 +128,22 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         apiKey: encryptedApiKey,
       },
     })
+  },
+  updateOpenApiConfig: (config) => {
+    const { settings } = get()
+    const currentConfig = settings.openApi || {}
+    const nextConfig = { ...currentConfig, ...config }
+    const newSettings = { ...settings, openApi: nextConfig }
+
+    saveSettings(newSettings)
+    set({ settings: newSettings })
+
+    if (window.electronAPI) {
+      window.electronAPI.apiUpdateOpenApiConfig({
+        enabled: !!nextConfig.enabled,
+        token: nextConfig.token || '',
+      })
+    }
   },
 
   availableProviders: providerRegistry.getAllProviders(),

@@ -190,6 +190,11 @@ export interface AiPostProcessConfig {
   promptLanguage?: 'zh' | 'en'
 }
 
+export interface OpenApiConfig {
+  enabled?: boolean
+  token?: string
+}
+
 // 应用设置（支持多提供商）
 export interface AppSettings {
   // 兼容旧版：保留单一 API Key（用于 Soniox）
@@ -207,4 +212,6 @@ export interface AppSettings {
   colorTheme?: string
   // AI 后处理
   aiPostProcess?: AiPostProcessConfig
+  // Open API
+  openApi?: OpenApiConfig
 }

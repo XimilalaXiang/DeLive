@@ -55,6 +55,7 @@ DeLive is a desktop transcription workspace for system audio. It captures whatev
 - [System Architecture](#-system-architecture)
 - [Tech Stack](#-tech-stack)
 - [Security](#-security)
+- [Open API & MCP Ecosystem](#-open-api--mcp-ecosystem)
 - [Extending Providers](#-extending-providers)
 - [Notes](#%EF%B8%8F-notes)
 - [License](#-license)
@@ -79,6 +80,7 @@ DeLive is a desktop transcription workspace for system audio. It captures whatev
 - [x] **Local-first persistence** — sessions, tags, topics, and settings in IndexedDB/localStorage; secrets via Electron `safeStorage`
 - [x] **Desktop integration** — tray, global shortcut, auto-launch, updater, diagnostics export
 - [x] **Security hardening** — trusted-window IPC, CSP injection, navigation guard, path allowlist, encrypted secret storage
+- [x] **Open API & MCP ecosystem** — local REST API, real-time WebSocket, MCP server for AI agents, token-based authentication, and agent skill definition
 - [x] **Cross-platform** — Windows, macOS, and Linux
 
 ## 📥 Download
@@ -262,7 +264,9 @@ Completed sessions open in a dedicated full-page Review Desk (not a modal) with 
 | Runtime UI | `frontend/src/components/runtime/BundledRuntimeSummaryCard.tsx`, `frontend/src/components/runtime/BundledRuntimeAdvancedPanel.tsx` | Status card and advanced panel for managing bundled `whisper.cpp` runtime assets. |
 | Shared UI system | `frontend/src/components/ui/*` | Button, Badge, Switch, EmptyState, StatusIndicator, DialogShell primitives with semantic color tokens across five themes. |
 | Local model/runtime tooling | `frontend/src/utils/localModelSetup.ts`, `frontend/src/utils/localRuntimeManager.ts`, `frontend/src/components/LocalModelSetupGuide.tsx`, `frontend/src/components/BundledRuntimeSetupGuide.tsx`, `electron/localRuntime.ts`, `electron/localRuntimeFiles.ts`, `electron/localRuntimeShared.ts`, `electron/localRuntimeIpc.ts` | Detects local services, checks models, supports Ollama pull, imports/downloads `whisper.cpp` assets, manages runtime files, and starts/stops the local runtime. |
-| Electron IPC layer | `electron/appIpc.ts`, `electron/captionIpc.ts`, `electron/safeStorageIpc.ts`, `electron/updaterIpc.ts`, `electron/diagnosticsIpc.ts` | Modular IPC handlers for app lifecycle, caption window control, secret storage, auto-update, and diagnostics export. |
+| Electron IPC layer | `electron/appIpc.ts`, `electron/captionIpc.ts`, `electron/safeStorageIpc.ts`, `electron/updaterIpc.ts`, `electron/diagnosticsIpc.ts`, `electron/apiIpc.ts` | Modular IPC handlers for app lifecycle, caption window control, secret storage, auto-update, diagnostics, and Open API data bridge. |
+| Open API layer | `electron/apiServer.ts`, `electron/apiBroadcast.ts`, `frontend/src/hooks/useApiIpcResponder.ts` | REST API endpoints, WebSocket live transcript broadcasting, and renderer-side IPC responder for session data queries. |
+| MCP & agent ecosystem | `mcp/delive-mcp-server.js`, `skills/delive-transcript-analyzer/SKILL.md`, `demo/` | Standalone MCP server exposing DeLive as tools/resources, agent skill definition, and Python demo scripts. |
 | Shared contracts | `shared/electronApi.ts`, `electron/preload.ts`, `shared/volcProxyCore.ts` | Typed bridge between renderer and main process plus shared protocol helpers for the embedded Volcengine proxy. |
 | Debug and release support | `server/`, `scripts/`, `.github/workflows/release.yml`, `.github/workflows/ci.yml` | Standalone Volc proxy debugging, icon/runtime staging scripts, continuous integration, and tagged multi-platform release builds. |
 | Design references | `design-system/delive/MASTER.md` | Product and visual reference material used during UI iteration. Not part of the runtime path. |
@@ -402,10 +406,13 @@ graph TB
 
 ```text
 DeLive/
-├── electron/                         # Electron main process, windows, tray, IPC, updater, runtime control
+├── electron/                         # Electron main process, windows, tray, IPC, updater, runtime control, Open API server
 ├── frontend/                         # React renderer app, providers, stores, UI components, tests
 ├── shared/                           # Shared TypeScript contracts for preload/renderer/main and proxy helpers
 ├── server/                           # Standalone Volcengine proxy used mainly for debugging
+├── mcp/                              # Standalone MCP server for AI agents (Claude, Cursor, etc.)
+├── skills/                           # Agent skill definitions
+├── demo/                             # Python demo scripts for REST API and WebSocket
 ├── local-runtimes/                   # Optional packaged runtime assets (for whisper.cpp staging)
 ├── scripts/                          # Icon generation, runtime fetch/stage, release notes
 ├── design-system/                    # Design reference material
@@ -445,6 +452,7 @@ Generated outputs such as `dist-electron/`, `release/`, and dependency folders a
 | Navigation guard | Unexpected renderer navigation is blocked |
 | Path allowlist | File-path checks are limited to safe roots such as `userData`, home, desktop, downloads, and documents |
 | Secret storage | API keys are stored through Electron `safeStorage` when OS encryption is available |
+| Open API gating | Local REST API and WebSocket are disabled by default; optional Bearer token authentication when enabled |
 | Diagnostics hygiene | Exported diagnostics redact secret-looking fields before writing the JSON bundle |
 
 ## ⌨️ Keyboard Shortcut
@@ -452,6 +460,49 @@ Generated outputs such as `dist-electron/`, `release/`, and dependency folders a
 | Shortcut | Function |
 |----------|----------|
 | `Ctrl+Shift+D` / `Cmd+Shift+D` | Show or hide the main window |
+
+## 🌐 Open API & MCP Ecosystem
+
+DeLive exposes its transcription data through a local API, enabling external tools, scripts, and AI agents to programmatically access session history, live captions, and recording status.
+
+### Enabling the API
+
+1. Go to **Settings > General > Open API**.
+2. Toggle **Enable Open API** to on.
+3. Optionally set an **Access Token** for authentication (recommended).
+
+### REST API
+
+When enabled, the following endpoints are available at `http://localhost:23456/api/v1/`:
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /health` | Health check (always accessible, even when API is disabled) |
+| `GET /sessions` | List sessions with search, filter, and pagination |
+| `GET /sessions/:id` | Full session detail including transcript and AI summary |
+| `GET /sessions/:id/transcript` | Plain text transcript only |
+| `GET /sessions/:id/summary` | AI summary, action items, and mind map |
+| `GET /topics` | List all topics |
+| `GET /tags` | List all tags |
+| `GET /status` | Current recording status |
+
+If a token is set, include it as `Authorization: Bearer <token>`.
+
+### WebSocket
+
+Real-time transcript streaming is available at `ws://localhost:23456/ws/live`. Authenticate via `?token=<token>` query parameter or `Authorization` header.
+
+### MCP Server
+
+A standalone MCP server (`mcp/delive-mcp-server.js`) exposes DeLive's API as tools and resources for AI agents (Claude Desktop, Cursor, etc.). See [`mcp/`](./mcp/) for setup instructions.
+
+### Agent Skill
+
+An agent skill definition is available at [`skills/delive-transcript-analyzer/SKILL.md`](./skills/delive-transcript-analyzer/SKILL.md), providing structured guidance for AI agents to use DeLive's capabilities.
+
+### Demo Scripts
+
+Python demo scripts in [`demo/`](./demo/) show how to connect to the REST API and WebSocket from external programs.
 
 ## 🔧 Extending Providers
 

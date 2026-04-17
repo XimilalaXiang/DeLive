@@ -14,6 +14,8 @@ import { installLogInterceptor, registerDiagnosticsIpc } from './diagnosticsIpc'
 import { registerTrustedWindow } from './ipcSecurity'
 import { registerSafeStorageIpc } from './safeStorageIpc'
 import { startVolcProxyServer } from './volcProxy'
+import { registerApiIpc } from './apiIpc'
+import { attachApiServer } from './apiServer'
 
 installLogInterceptor()
 
@@ -113,7 +115,8 @@ if (!gotTheLock) {
   })
 
   app.whenReady().then(() => {
-    startVolcProxyServer()
+    const httpServer = startVolcProxyServer()
+    attachApiServer({ server: httpServer })
 
     createWindow()
     tray = createAppTray({
@@ -223,3 +226,8 @@ registerDiagnosticsIpc({
 })
 
 registerSafeStorageIpc(ipcMain)
+
+registerApiIpc({
+  ipcMain,
+  getMainWindow: () => mainWindow,
+})
