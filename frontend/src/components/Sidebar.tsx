@@ -127,14 +127,19 @@ export function Sidebar({
       {/* macOS traffic light spacer (non-macOS gets TitleBar height via marginTop in parent) */}
       {isElectron && platform !== 'darwin' && <div className="h-8 shrink-0" />}
 
-      {/* Logo area */}
-      <div className={`flex items-center h-12 shrink-0 ${collapsed ? 'justify-center px-2' : 'px-4'}`}>
+      {/* Logo area + collapse toggle */}
+      <div className={`flex items-center h-12 shrink-0 ${collapsed ? 'justify-center px-2' : 'justify-between px-4'}`}>
         {!collapsed && (
           <span className="text-base font-semibold tracking-tight select-none">DeLive</span>
         )}
-        {collapsed && (
-          <span className="text-base font-bold select-none">D</span>
-        )}
+        <button
+          onClick={onToggle}
+          className="flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+          title={collapsed ? getLabel('expand') : getLabel('collapse')}
+          aria-label={collapsed ? getLabel('expand') : getLabel('collapse')}
+        >
+          {collapsed ? <PanelLeft className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+        </button>
       </div>
 
       {/* Main navigation */}
@@ -151,17 +156,9 @@ export function Sidebar({
         {NAV_AUX.filter(i => i.id === 'settings').map(renderNavItem)}
       </nav>
 
-      {/* Bottom: theme toggle + collapse */}
-      <div className={`flex items-center gap-2 border-t border-border/40 py-2 shrink-0 ${collapsed ? 'flex-col px-2' : 'px-3'}`}>
+      {/* Bottom: theme toggle */}
+      <div className={`flex items-center justify-center border-t border-border/40 py-2 shrink-0 ${collapsed ? 'px-2' : 'px-3'}`}>
         <AnimatedThemeToggler className="h-8 w-8" />
-        <button
-          onClick={onToggle}
-          className="flex items-center justify-center h-8 w-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-          title={collapsed ? getLabel('expand') : getLabel('collapse')}
-          aria-label={collapsed ? getLabel('expand') : getLabel('collapse')}
-        >
-          {collapsed ? <PanelLeft className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-        </button>
       </div>
     </aside>
   )
