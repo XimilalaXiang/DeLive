@@ -41,7 +41,7 @@ export function RecordingControls({ onError, startRecording, stopRecording }: Re
   }
 
   return (
-    <div className="flex items-center gap-5">
+    <div className={`flex ${isIdle ? 'flex-col items-center gap-3' : 'items-center gap-5'}`}>
       <button
         onClick={handleClick}
         disabled={isLoading}
@@ -81,7 +81,7 @@ export function RecordingControls({ onError, startRecording, stopRecording }: Re
         )}
       </button>
 
-      <div className="min-w-0 flex-1 text-sm">
+      <div className={`text-sm ${isIdle ? 'text-center' : 'min-w-0 flex-1'}`}>
         {isStarting && (
           <p className="flex items-center gap-2 text-warning">
             <StatusIndicator status="starting" />

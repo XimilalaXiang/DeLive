@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0-beta.8] - 2026-04-17
+
+### Changed / 变更
+- 🎯 Recording button centered on Live page when idle — column layout with centered alignment, switches to horizontal during recording
+- 🎯 录制按钮在空闲时居中显示 — 垂直居中布局，录制时切换为水平布局
+
+### Removed / 移除
+- 🗑️ Removed CaptionControls from Live page — caption settings are now only accessible via Settings panel
+- 🗑️ 移除 Live 页的字幕控制按钮 — 字幕设置仅通过设置页面访问
+
+---
+
 ## [2.0.0-beta.7] - 2026-04-17
 
 ### Added / 新增

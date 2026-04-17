@@ -25,7 +25,6 @@ import { UpdateNotification } from './components/UpdateNotification'
 import { ReviewDeskView } from './components/ReviewDeskView'
 import { TopicsView } from './components/TopicsView'
 import { TopicPicker } from './components/TopicPicker'
-import { CaptionControls } from './components/CaptionControls'
 import { initStorage } from './utils/storage'
 
 function App() {
@@ -300,7 +299,6 @@ function App() {
               <div className="workspace-panel p-5 animate-reveal-up delay-2 space-y-3">
                 {recordingState === 'idle' && <TopicPicker />}
                 <RecordingControls onError={handleError} startRecording={startRecording} stopRecording={stopRecording} />
-                <CaptionControls className="pt-1" />
               </div>
             </div>
           </div>
