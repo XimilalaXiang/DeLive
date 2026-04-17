@@ -9,15 +9,70 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.0.0-beta.11] - 2026-04-17
+## [2.0.0] - 2026-04-18
+
+### 🎨 Major UI/UX Overhaul / 重大界面重构
+
+This release consolidates all beta changes (beta.1 through beta.10) into the stable 2.0.0 release.
+
+此版本将所有测试版更改（beta.1 至 beta.10）整合为稳定的 2.0.0 正式版。
+
+### Added / 新增
+- 🧭 Persistent left sidebar navigation replacing the top header bar — 5 nav items (Live, Review, Topics, Caption, Settings), collapsible with Ctrl+B
+- 🧭 固定左侧栏导航替代原有顶部导航栏 — 5 个导航项，支持 Ctrl+B 折叠
+- ⌨️ Global Command Palette (Ctrl+K / Cmd+K) — search and execute commands
+- ⌨️ 全局命令面板 (Ctrl+K / Cmd+K) — 搜索并执行命令
+- 🔍 Search box in TitleBar — click to open Command Palette, coexists with REC indicator during recording
+- 🔍 TitleBar 搜索框 — 点击打开命令面板，录制时与 REC 指示器共存
+- 🤖 Dedicated AI Tab in Review page — extracted AI Briefing into its own tab
+- 🤖 Review 页独立 AI Tab — 将 AI 摘要提取到独立标签页
+- ⚙️ Settings restructured into 8 grouped panels — Provider, Appearance, Caption Style, AI Post-Processing, Open API, Cloud Backup, Data Management, About
+- ⚙️ 设置页重构为 8 个分组面板
+- 🎬 Caption style settings panel — full inline editing (font size, font family, text color, background, shadow, width, max lines, bilingual mode)
+- 🎬 字幕样式设置面板 — 完整内嵌式字幕配置
+- 🌐 **WebDAV cloud backup** — full implementation supporting Nutstore/Jianguoyun, Nextcloud, Alist, and any standard WebDAV server
+- 🌐 **WebDAV 云端备份** — 完整实现，支持坚果云、Nextcloud、Alist 及任何标准 WebDAV 服务器
+- 📦 Backup now includes Topics (schema v3)
+- 📦 备份数据新增 Topics（schema v3）
+- 🏠 Welcome card for new users on Live page
+- 🏠 Live 页新用户欢迎卡片
+- ✅ Post-recording guidance card with "View Details" and "Record Again" buttons
+- ✅ 录制结束引导卡片
+- 📊 Collapsible Activity Heatmap with persisted state
+- 📊 可折叠活动热力图，状态持久化
+
+### Changed / 变更
+- 🔄 App.tsx — flex row layout with Sidebar + main content area
+- 🔄 App.tsx — Sidebar + 主内容区的 flex 行布局
+- 🎯 Recording button centered on Live page when idle
+- 🎯 录制按钮在空闲时居中显示
+- 🔧 Sidebar collapse toggle moved to top Logo row for better discoverability
+- 🔧 侧栏折叠按钮移至顶部 Logo 行旁
 
 ### Fixed / 修复
-- 🌐 WebDAV auto-create basePath directory with MKCOL before upload — fixes 404/409 errors on Jianguoyun (坚果云), Nextcloud, and servers that require parent directories to exist
-- 🌐 WebDAV 上传前自动用 MKCOL 创建 basePath 目录 — 修复坚果云等不自动创建目录的服务器返回 404/409 错误
-- 🌐 WebDAV test now first validates auth against server root, then ensures basePath directory exists
-- 🌐 WebDAV 测试连接现在先验证认证，再确保 basePath 目录存在
+- 🔑 Fix S3/WebDAV secret key not resolved from OS Safe Storage after app restart
+- 🔑 修复 S3/WebDAV 密钥在应用重启后无法从系统安全存储中解密的问题
+- 🔧 TitleBar search box uses Zustand store to open Command Palette (fixes Electron click issue)
+- 🔧 TitleBar 搜索框改用 Zustand store 驱动 CommandPalette
+- 🎯 Theme toggle alignment fixes in expanded sidebar
+- 🎯 展开侧栏时主题切换按钮对齐修复
+- 🌐 WebDAV auto-create basePath directory with MKCOL — fixes 404/409 errors on servers that require parent directories
+- 🌐 WebDAV 上传前自动用 MKCOL 创建 basePath 目录
+
+### Removed / 移除
+- 🗑️ Removed CaptionControls from Live page — caption settings now only in Settings panel
+- 🗑️ 移除 Live 页的字幕控制按钮
+
+### Infrastructure / 基础设施
+- 🔧 CI release workflow auto-detects pre-release tags and marks GitHub releases accordingly
+- 🔧 CI 发布流程自动识别预发布 tag
+- 🧪 256 tests passing across 29 test files
+- 🧪 256 个测试通过，29 个测试文件
 
 ---
+
+<details>
+<summary>Beta changelog (beta.1 — beta.10)</summary>
 
 ## [2.0.0-beta.10] - 2026-04-17
 
@@ -164,6 +219,8 @@ This is a beta release for the complete frontend redesign. Existing users on sta
 - 🔧 CI 发布流程现在自动识别预发布 tag 并标记为 GitHub pre-release — 稳定版用户不会收到预发布更新
 - 🧪 256 tests passing across 29 test files (up from 210)
 - 🧪 256 个测试通过，29 个测试文件（从 210 个增长）
+
+</details>
 
 ---
 
