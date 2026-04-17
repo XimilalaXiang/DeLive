@@ -15,6 +15,7 @@
 [![Platform](https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=black)](https://github.com/XimilalaXiang/DeLive/releases)
 [![下载量](https://img.shields.io/github/downloads/XimilalaXiang/DeLive/total?label=下载量&color=orange)](https://github.com/XimilalaXiang/DeLive/releases)
 [![Stars](https://img.shields.io/github/stars/XimilalaXiang/DeLive?style=social)](https://github.com/XimilalaXiang/DeLive)
+[![文档](https://img.shields.io/badge/文档-VitePress-646cff?logo=vitepress&logoColor=white)](https://ximilalaxiang.github.io/DeLive/zh/)
 
 </div>
 
