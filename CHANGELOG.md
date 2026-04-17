@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0-beta.2] - 2026-04-17
+
+### Changed / 变更
+- 🔧 Sidebar collapse toggle moved from bottom to top Logo row for better discoverability
+- 🔧 侧栏折叠按钮从底部移至顶部 Logo 行旁，更易发现
+- 🎨 Bottom area now only contains theme toggle, cleaner layout
+- 🎨 底部区域仅保留主题切换，布局更简洁
+
+---
+
 ## [2.0.0-beta.1] - 2026-04-17
 
 ### 🎨 Major UI/UX Overhaul / 重大界面重构
