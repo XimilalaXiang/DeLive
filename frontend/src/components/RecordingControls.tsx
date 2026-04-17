@@ -100,14 +100,6 @@ export function RecordingControls({ onError, startRecording, stopRecording }: Re
         {isIdle && !hasApiKey && (
           <p className="text-warning">{t.recording.clickToConfigureApi}</p>
         )}
-        {isIdle && hasApiKey && window.electronAPI?.isElectron && (
-          <p className="text-xs text-muted-foreground/70">
-            {t.recording.shortcutHint}:
-            <kbd className="ml-1.5 inline-flex h-5 items-center rounded border border-border bg-muted px-1.5 font-mono text-[10px] text-muted-foreground">
-              {window.electronAPI?.platform === 'darwin' ? '⌘' : 'Ctrl'}+Shift+R
-            </kbd>
-          </p>
-        )}
       </div>
     </div>
   )
