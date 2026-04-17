@@ -61,6 +61,9 @@ export interface UIState {
   setView: (view: WorkspaceView, reviewSessionId?: string | null) => void
   openReview: (sessionId: string) => void
   backToLive: () => void
+
+  commandPaletteOpen: boolean
+  setCommandPaletteOpen: (open: boolean) => void
 }
 
 export const useUIStore = create<UIState>((set, get) => ({
@@ -91,6 +94,9 @@ export const useUIStore = create<UIState>((set, get) => ({
   setView: (view, reviewSessionId = null) => set({ currentView: view, reviewSessionId }),
   openReview: (sessionId) => set({ currentView: 'review', reviewSessionId: sessionId }),
   backToLive: () => set({ currentView: 'live', reviewSessionId: null }),
+
+  commandPaletteOpen: false,
+  setCommandPaletteOpen: (open) => set({ commandPaletteOpen: open }),
 
   initTheme: () => {
     const savedTheme = getSavedTheme()

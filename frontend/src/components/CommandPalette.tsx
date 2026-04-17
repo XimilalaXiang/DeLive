@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import { useEffect, useMemo, useRef, useCallback, useState } from 'react'
 import { Search, Mic, FileText, FolderOpen, Monitor, Settings, Download } from 'lucide-react'
 import { useUIStore, type WorkspaceView } from '../stores/uiStore'
 
@@ -11,13 +11,12 @@ interface Command {
 }
 
 export function CommandPalette() {
-  const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
 
-  const { t, setView } = useUIStore()
+  const { t, setView, commandPaletteOpen: open, setCommandPaletteOpen: setOpen } = useUIStore()
 
   const commands = useMemo<Command[]>(() => [
     { id: 'nav-live', label: t.nav?.live || 'Live', shortcut: 'Ctrl+1', icon: Mic, action: () => setView('live' as WorkspaceView) },
@@ -55,7 +54,7 @@ export function CommandPalette() {
     const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault()
-        setOpen(prev => !prev)
+        setOpen(!useUIStore.getState().commandPaletteOpen)
       }
       if (e.key === 'Escape' && open) {
         e.preventDefault()

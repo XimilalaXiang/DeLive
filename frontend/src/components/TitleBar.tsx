@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Minus, Square, X, Maximize2, Search } from 'lucide-react'
 import { useUIStore } from '../stores/uiStore'
 import type { RecordingState } from '../types'
@@ -10,7 +10,7 @@ interface TitleBarProps {
 
 export function TitleBar({ recordingState, onClickRec }: TitleBarProps) {
   const [isMaximized, setIsMaximized] = useState(false)
-  const { t } = useUIStore()
+  const { t, setCommandPaletteOpen } = useUIStore()
   const [elapsed, setElapsed] = useState(0)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -52,9 +52,7 @@ export function TitleBar({ recordingState, onClickRec }: TitleBarProps) {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  const openCommandPalette = useCallback(() => {
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true }))
-  }, [])
+  const openCommandPalette = () => setCommandPaletteOpen(true)
 
   if (!window.electronAPI?.isElectron) {
     return null

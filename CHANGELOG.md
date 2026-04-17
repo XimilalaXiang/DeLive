@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0-beta.6] - 2026-04-17
+
+### Fixed / 修复
+- 🔧 Search box in TitleBar now uses Zustand store to open Command Palette (fixes click not responding in Electron)
+- 🔧 TitleBar 搜索框改用 Zustand store 驱动 CommandPalette（修复 Electron 中点击无响应）
+
+---
+
 ## [2.0.0-beta.5] - 2026-04-17
 
 ### Added / 新增
