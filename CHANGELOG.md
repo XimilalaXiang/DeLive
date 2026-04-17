@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0-beta.4] - 2026-04-17
+
+### Fixed / 修复
+- 🎯 Align theme toggle icon center with navigation icons in expanded sidebar
+- 🎯 展开侧栏时主题切换图标中心与导航图标精确对齐
+
+---
+
 ## [2.0.0-beta.3] - 2026-04-17
 
 ### Fixed / 修复

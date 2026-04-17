@@ -156,8 +156,8 @@ export function Sidebar({
         {NAV_AUX.filter(i => i.id === 'settings').map(renderNavItem)}
       </nav>
 
-      {/* Bottom: theme toggle */}
-      <div className={`flex items-center border-t border-border/40 py-2 shrink-0 ${collapsed ? 'justify-center px-2' : 'px-3'}`}>
+      {/* Bottom: theme toggle — ml matches nav icon center alignment */}
+      <div className={`border-t border-border/40 py-2 shrink-0 ${collapsed ? 'flex justify-center px-2' : 'pl-[17px]'}`}>
         <AnimatedThemeToggler className="h-8 w-8" />
       </div>
     </aside>
