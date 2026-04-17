@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0-beta.3] - 2026-04-17
+
+### Fixed / 修复
+- 🎨 Theme toggle button left-aligned in expanded sidebar (was incorrectly centered)
+- 🎨 展开侧栏时主题切换按钮改为左对齐（之前错误地居中）
+
+---
+
 ## [2.0.0-beta.2] - 2026-04-17
 
 ### Changed / 变更

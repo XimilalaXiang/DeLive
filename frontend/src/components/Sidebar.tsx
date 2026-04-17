@@ -157,7 +157,7 @@ export function Sidebar({
       </nav>
 
       {/* Bottom: theme toggle */}
-      <div className={`flex items-center justify-center border-t border-border/40 py-2 shrink-0 ${collapsed ? 'px-2' : 'px-3'}`}>
+      <div className={`flex items-center border-t border-border/40 py-2 shrink-0 ${collapsed ? 'justify-center px-2' : 'px-3'}`}>
         <AnimatedThemeToggler className="h-8 w-8" />
       </div>
     </aside>
