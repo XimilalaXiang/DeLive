@@ -63,6 +63,42 @@ export async function migrateApiKeysToSafeStorage(): Promise<void> {
     }
   }
 
+  if (
+    settings.cloudBackup?.s3?.secretAccessKey
+    && typeof settings.cloudBackup.s3.secretAccessKey === 'string'
+    && settings.cloudBackup.s3.secretAccessKey !== SAFE_STORAGE_PLACEHOLDER
+  ) {
+    const stored = await window.electronAPI.safeStorageSet(
+      safeStorageKeyFor('cloud_backup_s3'),
+      settings.cloudBackup.s3.secretAccessKey,
+    )
+    if (stored) {
+      settings.cloudBackup = {
+        ...settings.cloudBackup,
+        s3: { ...settings.cloudBackup.s3, secretAccessKey: SAFE_STORAGE_PLACEHOLDER },
+      }
+      changed = true
+    }
+  }
+
+  if (
+    settings.cloudBackup?.webdav?.password
+    && typeof settings.cloudBackup.webdav.password === 'string'
+    && settings.cloudBackup.webdav.password !== SAFE_STORAGE_PLACEHOLDER
+  ) {
+    const stored = await window.electronAPI.safeStorageSet(
+      safeStorageKeyFor('cloud_backup_webdav'),
+      settings.cloudBackup.webdav.password,
+    )
+    if (stored) {
+      settings.cloudBackup = {
+        ...settings.cloudBackup,
+        webdav: { ...settings.cloudBackup.webdav, password: SAFE_STORAGE_PLACEHOLDER },
+      }
+      changed = true
+    }
+  }
+
   if (changed) {
     saveSettings(settings)
   }
@@ -100,6 +136,26 @@ export async function resolveApiKeysFromSafeStorage(
       resolved.aiPostProcess = {
         ...resolved.aiPostProcess,
         apiKey: value,
+      }
+    }
+  }
+
+  if (resolved.cloudBackup?.s3?.secretAccessKey === SAFE_STORAGE_PLACEHOLDER) {
+    const value = await window.electronAPI.safeStorageGet(safeStorageKeyFor('cloud_backup_s3'))
+    if (value) {
+      resolved.cloudBackup = {
+        ...resolved.cloudBackup,
+        s3: { ...resolved.cloudBackup.s3, secretAccessKey: value },
+      }
+    }
+  }
+
+  if (resolved.cloudBackup?.webdav?.password === SAFE_STORAGE_PLACEHOLDER) {
+    const value = await window.electronAPI.safeStorageGet(safeStorageKeyFor('cloud_backup_webdav'))
+    if (value) {
+      resolved.cloudBackup = {
+        ...resolved.cloudBackup,
+        webdav: { ...resolved.cloudBackup.webdav, password: value },
       }
     }
   }

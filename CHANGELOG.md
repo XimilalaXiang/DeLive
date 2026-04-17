@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0-beta.10] - 2026-04-17
+
+### Fixed / 修复
+- 🔑 Fix S3/WebDAV secret key not resolved from OS Safe Storage after app restart — `resolveApiKeysFromSafeStorage` now correctly decrypts cloud backup secrets (S3 secretAccessKey, WebDAV password)
+- 🔑 修复 S3/WebDAV 密钥在应用重启后无法从系统安全存储中解密的问题 — 导致 S3 签名不匹配错误
+- 🔑 Also added cloud backup secrets to migration path (`migrateApiKeysToSafeStorage`)
+- 🔑 同时将云备份密钥纳入迁移路径
+
+---
+
 ## [2.0.0-beta.9] - 2026-04-17
 
 ### Added / 新增
