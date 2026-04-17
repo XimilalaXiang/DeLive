@@ -20,31 +20,28 @@ import { useUIStore } from '../stores/uiStore'
 import { useSettingsStore } from '../stores/settingsStore'
 import type { CaptionStyle } from '../types'
 
-// 预设颜色
-const presetColors = [
-  { name: '白色', value: '#ffffff', ariaLabel: 'White' },
-  { name: '黄色', value: '#ffd700', ariaLabel: 'Yellow' },
-  { name: '绿色', value: '#00ff00', ariaLabel: 'Green' },
-  { name: '青色', value: '#00ffff', ariaLabel: 'Cyan' },
-  { name: '粉色', value: '#ff69b4', ariaLabel: 'Pink' },
+const PRESET_COLORS = [
+  { key: 'colorWhite' as const, value: '#ffffff' },
+  { key: 'colorYellow' as const, value: '#ffd700' },
+  { key: 'colorGreen' as const, value: '#00ff00' },
+  { key: 'colorCyan' as const, value: '#00ffff' },
+  { key: 'colorPink' as const, value: '#ff69b4' },
 ]
 
-// 预设背景
-const presetBackgrounds = [
-  { name: '半透明黑', value: 'rgba(0, 0, 0, 0.7)' },
-  { name: '深色', value: 'rgba(0, 0, 0, 0.9)' },
-  { name: '透明', value: 'rgba(0, 0, 0, 0)' },
-  { name: '半透明蓝', value: 'rgba(0, 0, 100, 0.7)' },
-  { name: '半透明紫', value: 'rgba(75, 0, 130, 0.7)' },
+const PRESET_BACKGROUNDS = [
+  { key: 'bgSemiBlack' as const, value: 'rgba(0, 0, 0, 0.7)' },
+  { key: 'bgDark' as const, value: 'rgba(0, 0, 0, 0.9)' },
+  { key: 'bgTransparent' as const, value: 'rgba(0, 0, 0, 0)' },
+  { key: 'bgSemiBlue' as const, value: 'rgba(0, 0, 100, 0.7)' },
+  { key: 'bgSemiPurple' as const, value: 'rgba(75, 0, 130, 0.7)' },
 ]
 
-// 预设字体（跨平台）
-const presetFonts = [
-  { name: '系统默认', value: '-apple-system, BlinkMacSystemFont, "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Hiragino Sans GB", sans-serif' },
-  { name: '黑体', value: '"Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif' },
-  { name: '宋体', value: 'SimSun, "Songti SC", "Noto Serif CJK SC", serif' },
-  { name: '楷体', value: 'KaiTi, "Kaiti SC", serif' },
-  { name: '等宽', value: '"SF Mono", Consolas, "Liberation Mono", monospace' },
+const PRESET_FONTS = [
+  { key: 'fontSystem' as const, value: '-apple-system, BlinkMacSystemFont, "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Hiragino Sans GB", sans-serif' },
+  { key: 'fontHei' as const, value: '"Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif' },
+  { key: 'fontSong' as const, value: 'SimSun, "Songti SC", "Noto Serif CJK SC", serif' },
+  { key: 'fontKai' as const, value: 'KaiTi, "Kaiti SC", serif' },
+  { key: 'fontMono' as const, value: '"SF Mono", Consolas, "Liberation Mono", monospace' },
 ]
 
 interface CaptionControlsProps {
@@ -211,7 +208,7 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
             <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 bg-card border-b border-border">
               <h3 id="caption-settings-title" className="text-lg font-semibold flex items-center gap-2 text-foreground">
                 <Subtitles className="w-5 h-5 text-primary" />
-                {t.caption?.styleSettings || '字幕样式设置'}
+                {t.caption?.styleSettings}
               </h3>
               <button
                 onClick={() => setShowSettings(false)}
@@ -243,7 +240,7 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
                       lineHeight: 1.5,
                     }}
                   >
-                    字幕预览效果
+                    {t.caption?.previewText || 'Caption preview'}
                   </p>
                 )}
                 {(style.displayMode ?? 'source') === 'dual' && (
@@ -271,13 +268,13 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
                 <div className="space-y-3">
                   <label className="text-sm font-medium flex items-center gap-2 text-foreground">
                     <Subtitles className="w-4 h-4 text-muted-foreground" />
-                    <span>{t.caption?.displayMode || '显示模式'}</span>
+                    <span>{t.caption?.displayMode}</span>
                   </label>
                   <div className="grid grid-cols-3 gap-2">
                     {[
-                      { value: 'source', label: t.caption?.modeSource || '原文' },
-                      { value: 'translated', label: t.caption?.modeTranslated || '翻译' },
-                      { value: 'dual', label: t.caption?.modeDual || '双语' },
+                      { value: 'source', label: t.caption?.modeSource },
+                      { value: 'translated', label: t.caption?.modeTranslated },
+                      { value: 'dual', label: t.caption?.modeDual },
                     ].map((option) => (
                       <button
                         key={option.value}
@@ -301,7 +298,7 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
               <div className="space-y-3">
                 <label className="text-sm font-medium flex items-center gap-2 text-foreground">
                   <Type className="w-4 h-4 text-muted-foreground" />
-                  <span>{t.caption?.fontSize || '字体大小'}</span>
+                  <span>{t.caption?.fontSize}</span>
                   <span className="ml-auto font-mono">{style.fontSize}px</span>
                 </label>
                 <div className="relative flex items-center">
@@ -322,7 +319,7 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
               <div className="space-y-3">
                 <label className="text-sm font-medium flex items-center gap-2 text-foreground">
                   <Maximize2 className="w-4 h-4 text-muted-foreground" />
-                  <span>{t.caption?.width || '字幕宽度'}</span>
+                  <span>{t.caption?.width}</span>
                   <span className="ml-auto font-mono">{style.width}px</span>
                 </label>
                 <div className="relative flex items-center">
@@ -344,8 +341,8 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
               <div className="space-y-3">
                 <label className="text-sm font-medium flex items-center gap-2 text-foreground">
                   <Maximize2 className="w-4 h-4 text-muted-foreground" />
-                  <span>{t.caption?.maxLines || '最大行数'}</span>
-                  <span className="ml-auto font-mono">{style.maxLines} 行</span>
+                  <span>{t.caption?.maxLines}</span>
+                  <span className="ml-auto font-mono">{style.maxLines} {t.caption?.linesUnit || 'lines'}</span>
                 </label>
                 <div className="flex gap-2">
                   {[1, 2, 3, 4, 5].map((num) => (
@@ -369,10 +366,10 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
               {/* 字体选择 */}
               <div className="space-y-3">
                 <label className="text-sm font-medium text-foreground">
-                  {t.caption?.fontFamily || '字体'}
+                  {t.caption?.fontFamily}
                 </label>
                 <div className="flex gap-2 overflow-x-auto p-2 -mx-2 no-scrollbar">
-                  {presetFonts.map((font) => (
+                  {PRESET_FONTS.map((font) => (
                     <button
                       key={font.value}
                       onClick={() => handleStyleChange({ fontFamily: font.value })}
@@ -385,7 +382,7 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
                       `}
                       style={{ fontFamily: font.value }}
                     >
-                      {font.name}
+                      {(t.caption as Record<string, string>)?.[font.key] ?? font.key}
                     </button>
                   ))}
                 </div>
@@ -395,37 +392,38 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
               <div className="space-y-3">
                 <label className="text-sm font-medium flex items-center gap-2 text-foreground">
                   <Palette className="w-4 h-4 text-muted-foreground" />
-                  <span>{t.caption?.textColor || '文字颜色'}</span>
+                  <span>{t.caption?.textColor}</span>
                 </label>
                 <div className="flex gap-3 justify-center">
-                  {presetColors.map((color) => (
-                    <button
-                      key={color.value}
-                      onClick={() => handleStyleChange({ textColor: color.value })}
-                      className={`
-                        w-8 h-8 rounded-full transition-all relative border-2
-                        ${style.textColor === color.value
-                          ? 'ring-2 ring-primary ring-offset-2 ring-offset-background scale-110'
-                          : 'hover:scale-105 border-border hover:border-primary/50'
-                        }
-                      `}
-                      style={{
-                        backgroundColor: color.value,
-                      }}
-                      title={color.name}
-                      aria-label={`Select ${color.ariaLabel} text color`}
-                    />
-                  ))}
+                  {PRESET_COLORS.map((color) => {
+                    const label = (t.caption as Record<string, string>)?.[color.key] ?? color.key
+                    return (
+                      <button
+                        key={color.value}
+                        onClick={() => handleStyleChange({ textColor: color.value })}
+                        className={`
+                          w-8 h-8 rounded-full transition-all relative border-2
+                          ${style.textColor === color.value
+                            ? 'ring-2 ring-primary ring-offset-2 ring-offset-background scale-110'
+                            : 'hover:scale-105 border-border hover:border-primary/50'
+                          }
+                        `}
+                        style={{ backgroundColor: color.value }}
+                        title={label}
+                        aria-label={label}
+                      />
+                    )
+                  })}
                 </div>
               </div>
 
               {/* 背景颜色 */}
               <div className="space-y-3">
                 <label className="text-sm font-medium text-foreground">
-                  {t.caption?.backgroundColor || '背景颜色'}
+                  {t.caption?.backgroundColor}
                 </label>
                 <div className="flex gap-2 overflow-x-auto p-2 -mx-2 no-scrollbar">
-                  {presetBackgrounds.map((bg) => (
+                  {PRESET_BACKGROUNDS.map((bg) => (
                     <button
                       key={bg.value}
                       onClick={() => handleStyleChange({ backgroundColor: bg.value })}
@@ -442,7 +440,7 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
                         borderStyle: bg.value.includes('0, 0, 0, 0)') ? 'dashed' : 'solid',
                       }}
                     >
-                      {bg.name}
+                      {(t.caption as Record<string, string>)?.[bg.key] ?? bg.key}
                     </button>
                   ))}
                 </div>
@@ -452,7 +450,7 @@ export function CaptionControls({ className = '' }: CaptionControlsProps) {
               <div className="flex items-center justify-between p-4 rounded-xl transition-all border border-border bg-muted hover:bg-accent">
                 <label className="text-sm font-medium flex items-center gap-2 text-foreground">
                   <Sun className={`w-4 h-4 ${style.textShadow ? 'text-primary' : 'text-muted-foreground'}`} />
-                  <span>{t.caption?.textShadow || '文字阴影'}</span>
+                  <span>{t.caption?.textShadow}</span>
                 </label>
                 <Switch
                   checked={!!style.textShadow}

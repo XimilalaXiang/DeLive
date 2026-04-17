@@ -1,7 +1,8 @@
 import { useMemo, useState, useCallback } from 'react'
-import { Flame, Calendar, Clock, TrendingUp } from 'lucide-react'
+import { Flame, Calendar, Clock, TrendingUp, ChevronDown } from 'lucide-react'
 import type { TranscriptSession } from '../types'
 import { useUIStore } from '../stores/uiStore'
+import type { Translations } from '../i18n'
 
 interface ActivityHeatmapProps {
   sessions: TranscriptSession[]
@@ -42,9 +43,21 @@ function getLevel(count: number): number {
   return 4
 }
 
+const HEATMAP_COLLAPSED_KEY = 'heatmap-collapsed'
+
 export function ActivityHeatmap({ sessions, onDateClick, activeDate }: ActivityHeatmapProps) {
-  const { language } = useUIStore()
+  const { language, t } = useUIStore()
+  const hm = (t as Translations).heatmap
   const [tooltip, setTooltip] = useState<{ x: number; y: number; data: DayData } | null>(null)
+  const [collapsed, setCollapsed] = useState(() => localStorage.getItem(HEATMAP_COLLAPSED_KEY) === 'true')
+
+  const toggleCollapsed = useCallback(() => {
+    setCollapsed((prev) => {
+      const next = !prev
+      localStorage.setItem(HEATMAP_COLLAPSED_KEY, String(next))
+      return next
+    })
+  }, [])
 
   const dailyMap = useMemo(() => {
     const map = new Map<string, { count: number; duration: number }>()
@@ -150,35 +163,20 @@ export function ActivityHeatmap({ sessions, onDateClick, activeDate }: ActivityH
 
   const handleMouseLeave = useCallback(() => setTooltip(null), [])
 
-  const dayLabels = language === 'zh'
-    ? ['', '一', '', '三', '', '五', '']
-    : ['', 'Mon', '', 'Wed', '', 'Fri', '']
+  const dayLabels = ['', hm?.dayMon || 'Mon', '', hm?.dayWed || 'Wed', '', hm?.dayFri || 'Fri', '']
 
-  const copy = language === 'zh'
-    ? {
-        title: '活动概览',
-        total: '总录制',
-        thisMonth: '本月',
-        streak: '连续',
-        totalDuration: '总时长',
-        days: '天',
-        less: '少',
-        more: '多',
-        noRecordings: '无录制',
-        recording: '次录制',
-      }
-    : {
-        title: 'Activity Overview',
-        total: 'Total',
-        thisMonth: 'This month',
-        streak: 'Streak',
-        totalDuration: 'Duration',
-        days: 'days',
-        less: 'Less',
-        more: 'More',
-        noRecordings: 'No recordings',
-        recording: 'recordings',
-      }
+  const copy = {
+    title: hm?.title || 'Activity Overview',
+    total: hm?.total || 'Total',
+    thisMonth: hm?.thisMonth || 'This month',
+    streak: hm?.streak || 'Streak',
+    totalDuration: hm?.totalDuration || 'Duration',
+    days: hm?.days || 'days',
+    less: hm?.less || 'Less',
+    more: hm?.more || 'More',
+    noRecordings: hm?.noRecordings || 'No recordings',
+    recording: hm?.recording || 'recordings',
+  }
 
   const levelClasses = [
     'bg-muted/60 dark:bg-muted/30',
@@ -190,11 +188,17 @@ export function ActivityHeatmap({ sessions, onDateClick, activeDate }: ActivityH
 
   return (
     <div className="workspace-panel p-5 space-y-4" data-heatmap>
-      {/* Header + summary stats */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      {/* Header + summary stats — clickable to toggle collapse */}
+      <button
+        type="button"
+        onClick={toggleCollapsed}
+        className="flex w-full flex-wrap items-center justify-between gap-3 text-left"
+        aria-expanded={!collapsed}
+      >
         <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
           <Calendar className="h-4 w-4 text-primary" />
           {copy.title}
+          <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform duration-200 ${collapsed ? '-rotate-90' : ''}`} />
         </h3>
         <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
           <span className="flex items-center gap-1.5">
@@ -218,10 +222,10 @@ export function ActivityHeatmap({ sessions, onDateClick, activeDate }: ActivityH
             </span>
           )}
         </div>
-      </div>
+      </button>
 
-      {/* Heatmap grid — CSS Grid auto-fit to fill container */}
-      <div className="relative">
+      {/* Heatmap grid — collapsible */}
+      {!collapsed && <div className="relative">
         <div
           className="grid gap-[2px]"
           style={{
@@ -289,16 +293,18 @@ export function ActivityHeatmap({ sessions, onDateClick, activeDate }: ActivityH
             </div>
           </div>
         )}
-      </div>
+      </div>}
 
       {/* Legend */}
-      <div className="flex items-center justify-end gap-1.5 text-[10px] text-muted-foreground/70">
-        <span>{copy.less}</span>
-        {levelClasses.map((cls, i) => (
-          <div key={i} className={`h-[11px] w-[11px] rounded-[2px] ${cls}`} />
-        ))}
-        <span>{copy.more}</span>
-      </div>
+      {!collapsed && (
+        <div className="flex items-center justify-end gap-1.5 text-[10px] text-muted-foreground/70">
+          <span>{copy.less}</span>
+          {levelClasses.map((cls, i) => (
+            <div key={i} className={`h-[11px] w-[11px] rounded-[2px] ${cls}`} />
+          ))}
+          <span>{copy.more}</span>
+        </div>
+      )}
     </div>
   )
 }

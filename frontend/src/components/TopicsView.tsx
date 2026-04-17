@@ -130,10 +130,13 @@ export function TopicsView() {
             {filteredTopics.map((topic, idx) => {
               const stats = topicStats.get(topic.id)
               return (
-                <button
+                <div
                   key={topic.id}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => handleTopicClick(topic.id)}
-                  className="group relative flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 text-left transition-all duration-200 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5 active:scale-[0.98] interactive-card"
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleTopicClick(topic.id) } }}
+                  className="group relative flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 text-left transition-all duration-200 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5 active:scale-[0.98] interactive-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   style={{ animationDelay: `${idx * 40}ms` }}
                 >
                   {/* Menu */}
@@ -199,7 +202,7 @@ export function TopicsView() {
                       {t.topics.recordNew}
                     </button>
                   </div>
-                </button>
+                </div>
               )
             })}
           </div>

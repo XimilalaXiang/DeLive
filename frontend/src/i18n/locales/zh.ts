@@ -8,6 +8,30 @@ export const zh = {
     backToLive: '返回 Live',
   },
 
+  // 侧栏导航
+  nav: {
+    live: '录制',
+    review: '回顾',
+    topics: '主题',
+    caption: '字幕',
+    settings: '设置',
+    collapse: '折叠侧栏',
+    expand: '展开侧栏',
+  },
+
+  // Live 页面
+  live: {
+    sessionSaved: '会话已保存',
+    viewDetails: '查看详情',
+    recordAgain: '再次录制',
+    words: '字',
+    welcomeTitle: '欢迎使用 DeLive',
+    welcomeDesc: '选择一个转录服务商来开始。支持 6 种服务商，包括免费本地方案。',
+    welcomeLocalHint: '也可以使用 whisper.cpp，无需 API Key，完全本地运行',
+    goToSettings: '前往设置',
+    configDone: '已配置',
+  },
+
   // 通用
   common: {
     save: '保存',
@@ -31,8 +55,15 @@ export const zh = {
 
   // 设置页面
   settings: {
-    title: 'API 设置',
-    subtitle: '配置语音识别服务',
+    title: '设置',
+    subtitle: '管理应用配置',
+    groupProvider: '服务商',
+    groupAppearance: '外观',
+    groupAi: 'AI 后处理',
+    groupOpenApi: '开放 API',
+    groupCloudBackup: '云端备份',
+    groupDataManagement: '数据管理',
+    groupAbout: '关于',
     apiKey: 'API 密钥',
     apiKeyPlaceholder: '输入你的 API 密钥',
     apiKeyHint: '获取你的 API 密钥',
@@ -211,6 +242,7 @@ export const zh = {
   // 历史记录
   history: {
     title: '历史记录',
+    railDescription: '检索、重开并整理已完成会话。',
     searchPlaceholder: '搜索标题或内容，按回车确认...',
     noRecords: '暂无历史记录',
     noMatchingRecords: '没有匹配的记录',
@@ -297,6 +329,7 @@ export const zh = {
     mindMapNoTranscript: '当前会话没有可用于生成思维导图的转录内容',
     aiNotConfigured: '请先到设置 > 通用设置 中启用并配置 AI 后处理',
     tabOverview: '概览',
+    tabAi: 'AI 分析',
     tabChat: '对话',
     tabMindMap: '思维导图',
     tabTranscript: '转录文本',
@@ -391,6 +424,27 @@ export const zh = {
     minutesShort: 'min',
   },
 
+  command: {
+    searchPlaceholder: '输入命令或搜索…',
+    exportData: '导出数据',
+  },
+
+  heatmap: {
+    title: '活动概览',
+    total: '总录制',
+    thisMonth: '本月',
+    streak: '连续',
+    totalDuration: '总时长',
+    days: '天',
+    less: '少',
+    more: '多',
+    noRecordings: '无录制',
+    recording: '次录制',
+    dayMon: '一',
+    dayWed: '三',
+    dayFri: '五',
+  },
+
   caption: {
     title: '实时字幕',
     showCaption: '显示字幕',
@@ -414,8 +468,25 @@ export const zh = {
     modeTranslated: '翻译',
     modeDual: '双语',
     preview: '预览效果',
+    previewText: '字幕预览效果',
     dragHint: '拖拽调整字幕位置',
     lockHint: '字幕位置已锁定',
+    linesUnit: '行',
+    colorWhite: '白色',
+    colorYellow: '黄色',
+    colorGreen: '绿色',
+    colorCyan: '青色',
+    colorPink: '粉色',
+    bgSemiBlack: '半透明黑',
+    bgDark: '深色',
+    bgTransparent: '透明',
+    bgSemiBlue: '半透明蓝',
+    bgSemiPurple: '半透明紫',
+    fontSystem: '系统默认',
+    fontHei: '黑体',
+    fontSong: '宋体',
+    fontKai: '楷体',
+    fontMono: '等宽',
   },
 }
 

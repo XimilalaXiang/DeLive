@@ -1,15 +1,35 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Minus, Square, X, Maximize2 } from 'lucide-react'
 import { useUIStore } from '../stores/uiStore'
+import type { RecordingState } from '../types'
 
-/**
- * 自定义标题栏组件 - 仅在 Electron 环境中显示
- * 提供窗口拖拽和最小化/最大化/关闭按钮
- * macOS 上不显示窗口控制按钮（使用原生红绿灯）
- */
-export function TitleBar() {
+interface TitleBarProps {
+  recordingState?: RecordingState
+  onClickRec?: () => void
+}
+
+export function TitleBar({ recordingState, onClickRec }: TitleBarProps) {
   const [isMaximized, setIsMaximized] = useState(false)
   const { t } = useUIStore()
+  const [elapsed, setElapsed] = useState(0)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    if (recordingState === 'recording') {
+      setElapsed(0)
+      intervalRef.current = setInterval(() => setElapsed(s => s + 1), 1000)
+    } else {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+      setElapsed(0)
+    }
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
+  }, [recordingState])
+
+  const formatTime = (s: number) => {
+    const m = Math.floor(s / 60)
+    const sec = s % 60
+    return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`
+  }
 
   // 当前平台
   const platform = window.electronAPI?.platform
@@ -53,12 +73,24 @@ export function TitleBar() {
 
   return (
     <div className="title-bar fixed top-0 left-0 right-0 h-8 z-50 flex items-center justify-between bg-background/95 backdrop-blur border-b border-border/40">
-      {/* 拖拽区域 - 占据大部分空间 */}
-      {/* macOS: 左侧留出空间给红绿灯按钮 */}
       <div
-        className={`flex-1 h-full app-drag-region ${platform === 'darwin' ? 'pl-20' : ''}`}
+        className={`flex-1 h-full app-drag-region flex items-center ${platform === 'darwin' ? 'pl-20' : ''}`}
         style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
-      />
+      >
+        {recordingState === 'recording' && (
+          <button
+            onClick={onClickRec}
+            className="ml-auto mr-auto flex items-center gap-1.5 text-xs font-medium text-destructive hover:text-destructive/80 transition-colors"
+            style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+          >
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-destructive" />
+            </span>
+            REC {formatTime(elapsed)}
+          </button>
+        )}
+      </div>
 
 
       {/* 窗口控制按钮 - macOS 上不显示（使用原生红绿灯） */}

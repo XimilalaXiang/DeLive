@@ -19,7 +19,7 @@ export function HistoryPanel({
   className = '',
   contentHeightClassName,
 }: HistoryPanelProps) {
-  const { t, language, openReview } = useUIStore()
+  const { t, openReview } = useUIStore()
   const { sessions, updateSessionTitle, deleteSession } = useSessionStore()
   const { tags, selectedTagIds, searchQuery, setSearchQuery } = useTagStore()
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -222,15 +222,8 @@ export function HistoryPanel({
   }
   const isRail = variant === 'rail'
   const resolvedContentHeightClassName = contentHeightClassName || (isRail ? 'h-[min(62vh,44rem)]' : 'max-h-[400px]')
-  const railCopy = language === 'zh'
-    ? {
-      title: 'Session Library',
-      description: '检索、重开并整理已完成会话。',
-    }
-    : {
-      title: 'Session Library',
-      description: 'Search, reopen, and organize finished sessions.',
-    }
+  const railDescription = (t.history as Record<string, unknown>).railDescription as string | undefined
+    || 'Search, reopen, and organize finished sessions.'
 
   return (
     <>
@@ -241,10 +234,10 @@ export function HistoryPanel({
             <div className="space-y-1">
               <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">
                 <History className="h-3.5 w-3.5" />
-                {isRail ? railCopy.title : t.history.title}
+                {t.history.title}
               </div>
               <p className="text-xs text-muted-foreground">
-                {isRail ? railCopy.description : 'Search transcripts and reopen completed sessions.'}
+                {railDescription}
               </p>
             </div>
             <span className="workspace-badge">
@@ -330,9 +323,12 @@ export function HistoryPanel({
                       {dateSessions.map((session) => (
                         <div
                           key={session.id}
+                          role="button"
+                          tabIndex={0}
                           onClick={() => handlePreview(session)}
+                          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handlePreview(session) } }}
                           className="group flex flex-col gap-2 px-4 py-3 rounded-lg mx-2
-                                   cursor-pointer interactive-card border border-transparent hover:border-primary/20 hover:bg-primary/5"
+                                   cursor-pointer interactive-card border border-transparent hover:border-primary/20 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         >
                           {/* 第一行：时间、标题、操作 */}
                           <div className="flex items-center gap-3">

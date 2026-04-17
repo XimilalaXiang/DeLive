@@ -9,6 +9,58 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0-beta.1] - 2026-04-17
+
+### 🎨 Major UI/UX Overhaul / 重大界面重构
+
+This is a beta release for the complete frontend redesign. Existing users on stable releases will **not** receive this update automatically.
+
+此版本为前端全面重构的测试版。稳定版用户**不会**自动收到此更新。
+
+### Added / 新增
+- 🧭 Persistent left sidebar navigation replacing the top header bar — 5 nav items (Live, Review, Topics, Caption, Settings), collapsible with Ctrl+B, width persisted to localStorage
+- 🧭 固定左侧栏导航替代原有顶部导航栏 — 5 个导航项，支持 Ctrl+B 折叠，宽度持久化到 localStorage
+- ⌨️ Global Command Palette (Ctrl+K / Cmd+K) — search and execute commands including navigation, caption toggle, and data export
+- ⌨️ 全局命令面板 (Ctrl+K / Cmd+K) — 搜索并执行命令，包括导航、字幕切换、数据导出
+- 🤖 Dedicated AI Tab in Review page — extracted AI Briefing (summary, keywords, action items, chapters) from OverviewTab into its own tab
+- 🤖 Review 页独立 AI Tab — 将 AI 摘要/关键词/待办/章节从 OverviewTab 提取到独立标签页
+- ⚙️ Settings restructured into 7 grouped panels — Provider, Appearance, AI Post-Processing, Open API, Cloud Backup, Data Management, About
+- ⚙️ 设置页重构为 7 个分组面板 — 服务商、外观、AI 后处理、开放 API、云备份、数据管理、关于
+- 🏠 Welcome card for new users on Live page — friendly guidance instead of auto-redirect to Settings
+- 🏠 Live 页新用户欢迎卡片 — 友好引导替代自动跳转到设置
+- ✅ Post-recording guidance card — "Session saved" with "View Details" and "Record Again" buttons after stopping recording
+- ✅ 录制结束引导卡片 — 停止录制后显示"会话已保存"并提供"查看详情"和"再次录制"按钮
+- 📊 Collapsible Activity Heatmap — click header to expand/collapse, state persisted to localStorage
+- 📊 可折叠活动热力图 — 点击标题展开/折叠，状态持久化
+- 🎯 5 new Settings panel components: AppearancePanel, AiPostProcessPanel, OpenApiPanel, DataManagementPanel, AboutPanel
+- 🎯 5 个新设置面板组件
+- 🪝 2 new hooks: `useSidebarState` (sidebar collapse + Ctrl+B), `useCaptionToggle` (caption on/off via IPC)
+- 🪝 2 个新 Hook：`useSidebarState`（侧栏折叠 + Ctrl+B）、`useCaptionToggle`（IPC 字幕开关）
+
+### Changed / 变更
+- 🔄 App.tsx — removed top header bar, switched to flex row layout with Sidebar + main content area
+- 🔄 App.tsx — 移除顶部导航栏，改为 Sidebar + 主内容区的 flex 行布局
+- 🎨 TitleBar — added recording state indicator (● REC + duration) in the drag area, clickable to jump to Live
+- 🎨 TitleBar — 拖拽区新增录制状态指示器（● REC + 时长），点击跳转 Live
+- 🌐 ActivityHeatmap — migrated 13 hardcoded copy strings to i18n system (`t.heatmap.*`)
+- 🌐 ActivityHeatmap — 13 个硬编码文案迁移到 i18n 系统
+- 🌐 CaptionControls — migrated 17 hardcoded Chinese preset names (colors, backgrounds, fonts) to i18n keys
+- 🌐 CaptionControls — 17 个硬编码中文预设名迁移到 i18n 键
+- 🌐 HistoryPanel — removed `language === 'zh'` hardcoded copy pattern, now uses `t.history.railDescription`
+- 🌐 HistoryPanel — 移除 `language === 'zh'` 硬编码模式，改用 i18n
+- ♿ HistoryPanel session rows — added `role="button"`, `tabIndex={0}`, keyboard activation (Enter/Space)
+- ♿ HistoryPanel 会话行 — 新增 `role="button"`、`tabIndex={0}`、键盘激活
+- ♿ TopicsView topic cards — fixed nested `<button>` issue, outer element changed to `<div role="button">`
+- ♿ TopicsView 主题卡片 — 修复嵌套 `<button>` 问题
+
+### Infrastructure / 基础设施
+- 🔧 CI release workflow now auto-detects pre-release tags (`-beta`, `-alpha`, `-rc`) and marks GitHub releases accordingly — stable users will not see pre-release updates
+- 🔧 CI 发布流程现在自动识别预发布 tag 并标记为 GitHub pre-release — 稳定版用户不会收到预发布更新
+- 🧪 256 tests passing across 29 test files (up from 210)
+- 🧪 256 个测试通过，29 个测试文件（从 210 个增长）
+
+---
+
 ## [1.7.1] - 2026-04-17
 
 ### Added / 新增

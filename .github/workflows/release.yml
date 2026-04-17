@@ -118,7 +118,14 @@ jobs:
 
       - name: Get version from tag
         id: get_version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          if [[ "$VERSION" == *-alpha* ]] || [[ "$VERSION" == *-beta* ]] || [[ "$VERSION" == *-rc* ]]; then
+            echo "IS_PRERELEASE=true" >> $GITHUB_OUTPUT
+          else
+            echo "IS_PRERELEASE=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Download Windows artifacts
         uses: actions/download-artifact@v4
@@ -147,7 +154,7 @@ jobs:
           name: DeLive v${{ steps.get_version.outputs.VERSION }}
           body_path: release-notes.md
           draft: false
-          prerelease: false
+          prerelease: ${{ steps.get_version.outputs.IS_PRERELEASE == 'true' }}
           files: |
             release-win/*.exe
             release-win/*.exe.blockmap

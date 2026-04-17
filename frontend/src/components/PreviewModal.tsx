@@ -4,6 +4,7 @@ import {
   SessionHeader,
   SessionTabBar,
   OverviewTab,
+  AiTab,
   ChatTab,
   MindMapTab,
   TranscriptTab,
@@ -65,6 +66,8 @@ export function PreviewModal({
     switch (activeTab) {
       case 'overview':
         return <OverviewTab session={session} />
+      case 'ai':
+        return <AiTab session={session} />
       case 'chat':
         return <ChatTab session={session} />
       case 'mindmap':

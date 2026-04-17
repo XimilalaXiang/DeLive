@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { FileText, Mic, HelpCircle, ArrowDown, Activity, Volume2, Share2, Terminal } from 'lucide-react'
+import { FileText, Mic, HelpCircle, ArrowDown, Volume2, Share2, Terminal } from 'lucide-react'
 import { useUIStore } from '../stores/uiStore'
 import { useSettingsStore } from '../stores/settingsStore'
 import { useSessionStore } from '../stores/sessionStore'
@@ -30,7 +30,6 @@ export function TranscriptDisplay({
     nonFinalTranslatedTranscript,
     currentSegments,
     recordingState,
-    currentSessionId,
   } = useSessionStore()
   
   // 获取当前提供商名称
@@ -89,61 +88,31 @@ export function TranscriptDisplay({
   const isEmpty = !finalTranscript && !nonFinalTranscript && !translatedText
   const isRecording = recordingState === 'recording'
   const isStarting = recordingState === 'starting'
-  const providerModeLabel = currentProvider?.type === 'local' ? 'Local' : 'Cloud'
-
   return (
     <div className={`workspace-panel overflow-hidden relative ${className}`}>
-      {/* 头部 */}
-      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border/70 bg-muted/25 px-6 py-5">
-        <div className="space-y-3">
-          <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">
-            <Activity className="h-3.5 w-3.5" />
-            {t.transcript.title}
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="workspace-badge">
-              {providerName}
-              <span className="rounded-full bg-muted px-2 py-0.5 text-xs uppercase tracking-wide text-muted-foreground">
-                {providerModeLabel}
-              </span>
-            </span>
-            {(showTranslated || speakerDiarizationEnabled || currentSessionId) && (
-              <span className="text-xs text-muted-foreground/60">
-                {[
-                  currentSessionId ? `#${currentSessionId.slice(0, 6)}` : '',
-                  showTranslated ? (t.transcript.translated || 'Translated') : '',
-                  speakerDiarizationEnabled ? 'Speakers' : '',
-                ].filter(Boolean).join(' · ')}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* 状态指示器 */}
-        <div className="flex flex-wrap items-center justify-end gap-2">
+      {/* Header — minimal: provider badge on right, scroll indicator */}
+      <div className="flex items-center justify-between gap-2 border-b border-border/70 bg-muted/25 px-4 py-2.5">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
           {!shouldAutoScroll && isRecording && (
             <span className="workspace-badge">
               {t.transcript.scrollPaused}
             </span>
           )}
           {isStarting && (
-            <div className="inline-flex items-center rounded-full border border-warning/30 bg-warning/10 px-3 py-1.5 text-xs font-semibold text-warning">
-              <span className="relative mr-2 flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-warning"></span>
+            <div className="inline-flex items-center gap-1.5 text-warning font-medium">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-warning" />
               </span>
               {t.recording.starting.replace('...', '')}
             </div>
           )}
-          {isRecording && (
-            <div className="inline-flex items-center rounded-full border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive shadow-sm">
-              <span className="relative mr-2 flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-destructive"></span>
-              </span>
-              REC
-            </div>
-          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 text-xs text-muted-foreground">
+            {currentProvider?.type === 'local' ? <Terminal className="h-3 w-3" /> : <Share2 className="h-3 w-3" />}
+            {providerName}
+          </span>
         </div>
       </div>
 

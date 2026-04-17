@@ -10,6 +10,30 @@ export const en: Translations = {
     backToLive: 'Back to Live',
   },
 
+  // Sidebar navigation
+  nav: {
+    live: 'Live',
+    review: 'Review',
+    topics: 'Topics',
+    caption: 'Caption',
+    settings: 'Settings',
+    collapse: 'Collapse sidebar',
+    expand: 'Expand sidebar',
+  },
+
+  // Live page
+  live: {
+    sessionSaved: 'Session saved',
+    viewDetails: 'View details',
+    recordAgain: 'Record again',
+    words: 'words',
+    welcomeTitle: 'Welcome to DeLive',
+    welcomeDesc: 'Choose a transcription provider to get started. 6 providers supported, including free local options.',
+    welcomeLocalHint: 'You can also use whisper.cpp — no API key needed, runs entirely locally',
+    goToSettings: 'Go to Settings',
+    configDone: 'Configured',
+  },
+
   // Common
   common: {
     save: 'Save',
@@ -33,8 +57,15 @@ export const en: Translations = {
 
   // Settings page
   settings: {
-    title: 'API Settings',
-    subtitle: 'Configure speech recognition service',
+    title: 'Settings',
+    subtitle: 'Manage app configuration',
+    groupProvider: 'Provider',
+    groupAppearance: 'Appearance',
+    groupAi: 'AI Post-Processing',
+    groupOpenApi: 'Open API',
+    groupCloudBackup: 'Cloud Backup',
+    groupDataManagement: 'Data Management',
+    groupAbout: 'About',
     apiKey: 'API Key',
     apiKeyPlaceholder: 'Enter your API key',
     apiKeyHint: 'Get your API key at',
@@ -213,6 +244,7 @@ export const en: Translations = {
   // History
   history: {
     title: 'History',
+    railDescription: 'Search, reopen, and organize finished sessions.',
     searchPlaceholder: 'Search title or content, press Enter to confirm...',
     noRecords: 'No history records',
     noMatchingRecords: 'No matching records',
@@ -299,6 +331,7 @@ export const en: Translations = {
     mindMapNoTranscript: 'This session has no transcript available for mind map generation.',
     aiNotConfigured: 'Enable and configure AI post-process in Settings > General first.',
     tabOverview: 'Overview',
+    tabAi: 'AI Analysis',
     tabChat: 'Chat',
     tabMindMap: 'Mind Map',
     tabTranscript: 'Transcript',
@@ -393,6 +426,29 @@ export const en: Translations = {
     minutesShort: 'min',
   },
 
+  // Command Palette
+  command: {
+    searchPlaceholder: 'Type a command or search...',
+    exportData: 'Export Data',
+  },
+
+  // Activity Heatmap
+  heatmap: {
+    title: 'Activity Overview',
+    total: 'Total',
+    thisMonth: 'This month',
+    streak: 'Streak',
+    totalDuration: 'Duration',
+    days: 'days',
+    less: 'Less',
+    more: 'More',
+    noRecordings: 'No recordings',
+    recording: 'recordings',
+    dayMon: 'Mon',
+    dayWed: 'Wed',
+    dayFri: 'Fri',
+  },
+
   // Live Caption
   caption: {
     title: 'Live Caption',
@@ -417,7 +473,24 @@ export const en: Translations = {
     modeTranslated: 'Translation',
     modeDual: 'Bilingual',
     preview: 'Preview',
+    previewText: 'Caption preview text',
     dragHint: 'Drag to adjust caption position',
     lockHint: 'Caption position is locked',
+    linesUnit: 'lines',
+    colorWhite: 'White',
+    colorYellow: 'Yellow',
+    colorGreen: 'Green',
+    colorCyan: 'Cyan',
+    colorPink: 'Pink',
+    bgSemiBlack: 'Semi-transparent Black',
+    bgDark: 'Dark',
+    bgTransparent: 'Transparent',
+    bgSemiBlue: 'Semi-transparent Blue',
+    bgSemiPurple: 'Semi-transparent Purple',
+    fontSystem: 'System Default',
+    fontHei: 'Gothic',
+    fontSong: 'Serif',
+    fontKai: 'Calligraphy',
+    fontMono: 'Monospace',
   },
 }
