@@ -266,7 +266,7 @@ Completed sessions open in a dedicated full-page Review Desk (not a modal) with 
 | Local model/runtime tooling | `frontend/src/utils/localModelSetup.ts`, `frontend/src/utils/localRuntimeManager.ts`, `frontend/src/components/LocalModelSetupGuide.tsx`, `frontend/src/components/BundledRuntimeSetupGuide.tsx`, `electron/localRuntime.ts`, `electron/localRuntimeFiles.ts`, `electron/localRuntimeShared.ts`, `electron/localRuntimeIpc.ts` | Detects local services, checks models, supports Ollama pull, imports/downloads `whisper.cpp` assets, manages runtime files, and starts/stops the local runtime. |
 | Electron IPC layer | `electron/appIpc.ts`, `electron/captionIpc.ts`, `electron/safeStorageIpc.ts`, `electron/updaterIpc.ts`, `electron/diagnosticsIpc.ts`, `electron/apiIpc.ts` | Modular IPC handlers for app lifecycle, caption window control, secret storage, auto-update, diagnostics, and Open API data bridge. |
 | Open API layer | `electron/apiServer.ts`, `electron/apiBroadcast.ts`, `frontend/src/hooks/useApiIpcResponder.ts` | REST API endpoints, WebSocket live transcript broadcasting, and renderer-side IPC responder for session data queries. |
-| MCP & agent ecosystem | `mcp/delive-mcp-server.js`, `skills/delive-transcript-analyzer/SKILL.md`, `demo/` | Standalone MCP server exposing DeLive as tools/resources, agent skill definition, and Python demo scripts. |
+| MCP & agent ecosystem | `mcp/delive-mcp-server.js`, `skills/delive-transcript-analyzer/SKILL.md` | Standalone MCP server exposing DeLive as tools/resources and agent skill definition. |
 | Shared contracts | `shared/electronApi.ts`, `electron/preload.ts`, `shared/volcProxyCore.ts` | Typed bridge between renderer and main process plus shared protocol helpers for the embedded Volcengine proxy. |
 | Debug and release support | `server/`, `scripts/`, `.github/workflows/release.yml`, `.github/workflows/ci.yml` | Standalone Volc proxy debugging, icon/runtime staging scripts, continuous integration, and tagged multi-platform release builds. |
 | Design references | `design-system/delive/MASTER.md` | Product and visual reference material used during UI iteration. Not part of the runtime path. |
@@ -412,7 +412,6 @@ DeLive/
 ├── server/                           # Standalone Volcengine proxy used mainly for debugging
 ├── mcp/                              # Standalone MCP server for AI agents (Claude, Cursor, etc.)
 ├── skills/                           # Agent skill definitions
-├── demo/                             # Python demo scripts for REST API and WebSocket
 ├── local-runtimes/                   # Optional packaged runtime assets (for whisper.cpp staging)
 ├── scripts/                          # Icon generation, runtime fetch/stage, release notes
 ├── design-system/                    # Design reference material
@@ -499,10 +498,6 @@ A standalone MCP server (`mcp/delive-mcp-server.js`) exposes DeLive's API as too
 ### Agent Skill
 
 An agent skill definition is available at [`skills/delive-transcript-analyzer/SKILL.md`](./skills/delive-transcript-analyzer/SKILL.md), providing structured guidance for AI agents to use DeLive's capabilities.
-
-### Demo Scripts
-
-Python demo scripts in [`demo/`](./demo/) show how to connect to the REST API and WebSocket from external programs.
 
 ## 🔧 Extending Providers
 

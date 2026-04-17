@@ -22,9 +22,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🛡️ 设置页新增 Open API 开关与可选 Bearer Token 鉴权 — API 默认关闭，Token 同时支持 REST 请求头和 WebSocket 查询参数
 - 📋 Agent Skill definition (`skills/delive-transcript-analyzer/SKILL.md`) providing structured guidance for AI agents
 - 📋 Agent Skill 定义文件，为 AI Agent 提供使用 DeLive 的结构化指引
-- 🐍 Python demo scripts (`demo/`) for REST API and WebSocket integration examples
-- 🐍 Python 演示脚本（`demo/`），展示 REST API 和 WebSocket 集成方式
-
 ### Changed / 变更
 - 🔌 Default server port changed from 3001 to 23456 to reduce conflicts with common development tools
 - 🔌 默认服务端口从 3001 改为 23456，减少与常用开发工具的端口冲突
@@ -32,6 +29,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🏗️ 重构 `apiIpc.ts`，内置 `getMainWindow` 引用，简化 API 服务器依赖结构
 - 📝 Updated README.md and README_ZH.md with Open API documentation, new project structure entries, and security table additions
 - 📝 更新中英文 README，新增 Open API 文档、项目结构条目和安全表条目
+
+### Removed / 移除
+- 🗑️ Removed `demo/` directory — REST API and WebSocket usage examples are already covered in the Agent Skill (`SKILL.md`) and README
+- 🗑️ 移除 `demo/` 目录 — REST API 和 WebSocket 的使用示例已在 Agent Skill (`SKILL.md`) 和 README 中完整覆盖
 
 ---
 

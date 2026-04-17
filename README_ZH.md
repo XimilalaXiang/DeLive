@@ -265,7 +265,7 @@ npm run stage:whisper-runtime -- --binary /path/to/whisper-server --target linux
 | 本地模型 / runtime 工具层 | `frontend/src/utils/localModelSetup.ts`, `frontend/src/utils/localRuntimeManager.ts`, `frontend/src/components/LocalModelSetupGuide.tsx`, `frontend/src/components/BundledRuntimeSetupGuide.tsx`, `electron/localRuntime.ts`, `electron/localRuntimeFiles.ts`, `electron/localRuntimeShared.ts`, `electron/localRuntimeIpc.ts` | 探测本地服务、检查模型、支持 Ollama 拉取、管理 `whisper.cpp` 资源导入/下载/文件管理/启动/停止。 |
 | Electron IPC 层 | `electron/appIpc.ts`, `electron/captionIpc.ts`, `electron/safeStorageIpc.ts`, `electron/updaterIpc.ts`, `electron/diagnosticsIpc.ts`, `electron/apiIpc.ts` | 模块化 IPC 处理器：应用生命周期、字幕窗控制、密钥存储、自动更新、诊断导出和 Open API 数据桥接。 |
 | Open API 层 | `electron/apiServer.ts`, `electron/apiBroadcast.ts`, `frontend/src/hooks/useApiIpcResponder.ts` | REST API 端点、WebSocket 实时转录广播、渲染层 IPC 响应器。 |
-| MCP 与 Agent 生态 | `mcp/delive-mcp-server.js`, `skills/delive-transcript-analyzer/SKILL.md`, `demo/` | MCP 服务器封装 DeLive 为 Tools/Resources、Agent Skill 定义、Python 演示脚本。 |
+| MCP 与 Agent 生态 | `mcp/delive-mcp-server.js`, `skills/delive-transcript-analyzer/SKILL.md` | MCP 服务器封装 DeLive 为 Tools/Resources、Agent Skill 定义。 |
 | 共享契约层 | `shared/electronApi.ts`, `electron/preload.ts`, `shared/volcProxyCore.ts` | 定义 renderer 与 main 的类型化桥接接口，以及火山代理共享协议辅助逻辑。 |
 | 调试与发布支持 | `server/`, `scripts/`, `.github/workflows/release.yml`, `.github/workflows/ci.yml` | 独立火山代理调试、图标/运行时预置脚本、持续集成和 tag 触发的多平台构建发布。 |
 | 设计参考 | `design-system/delive/MASTER.md` | 产品与视觉参考资料，不参与运行时逻辑。 |
@@ -411,7 +411,6 @@ DeLive/
 ├── server/                           # 主要用于调试的独立火山引擎代理
 ├── mcp/                              # 独立 MCP 服务器，供 AI Agent 使用（Claude、Cursor 等）
 ├── skills/                           # Agent Skill 定义
-├── demo/                             # Python 演示脚本（REST API、WebSocket）
 ├── local-runtimes/                   # 可选的预置 runtime 资源（供 whisper.cpp 打包）
 ├── scripts/                          # 图标生成、runtime 获取/预置、release notes
 ├── design-system/                    # 设计参考资料
@@ -498,10 +497,6 @@ DeLive 通过本地 API 对外开放转录数据，外部工具、脚本和 AI A
 ### Agent Skill
 
 Agent Skill 定义位于 [`skills/delive-transcript-analyzer/SKILL.md`](./skills/delive-transcript-analyzer/SKILL.md)，为 AI Agent 提供使用 DeLive 的结构化指引。
-
-### 演示脚本
-
-[`demo/`](./demo/) 目录包含 Python 演示脚本，展示如何从外部程序连接 REST API 和 WebSocket。
 
 ## 🔧 扩展 Provider
 
