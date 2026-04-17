@@ -9,6 +9,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.1] - 2026-04-17
+
+### Added / 新增
+- ☁️ S3-compatible cloud backup — upload, download, list, and delete session backups to any S3-compatible storage (AWS S3, MinIO, Cloudflare R2, etc.)
+- ☁️ S3 兼容云端备份 — 支持将会话备份上传、下载、列出和删除到任意 S3 兼容存储（AWS S3、MinIO、Cloudflare R2 等）
+- 🔧 Cloud Backup settings panel under General tab with full S3 configuration (endpoint, region, bucket, prefix, accessKeyId, secretAccessKey, forcePathStyle)
+- 🔧 通用设置下新增云备份面板，提供完整 S3 配置（endpoint、region、bucket、prefix、accessKeyId、secretAccessKey、forcePathStyle）
+- 🔗 One-click connection test, manual backup, and backup history with restore/delete actions
+- 🔗 一键测试连接、手动备份，以及备份历史列表（支持恢复/删除操作）
+- 🔄 Auto-backup on recording complete toggle — optionally push a backup after every session ends
+- 🔄 录制完成自动备份开关 — 可选在每次会话结束后自动推送备份
+- 🔐 S3 secretAccessKey encrypted via Electron `safeStorage` before persisting to settings
+- 🔐 S3 secretAccessKey 在持久化到设置前通过 Electron `safeStorage` 加密
+- 🧪 Added `cloudBackup.test.ts` with 8 tests covering IPC config builder and type guards (total: 210 tests / 24 files)
+- 🧪 新增 `cloudBackup.test.ts`，包含 8 个测试覆盖 IPC 配置构建与类型守卫（总计：210 测试 / 24 文件）
+
+### Changed / 变更
+- 📦 Added `@aws-sdk/client-s3` dependency for S3 operations in the Electron main process
+- 📦 新增 `@aws-sdk/client-s3` 依赖，用于 Electron 主进程中的 S3 操作
+- 🏗️ Extended `ElectronAPI` interface with 5 new IPC channels: `cloudBackupTest`, `cloudBackupUpload`, `cloudBackupList`, `cloudBackupDownload`, `cloudBackupDelete`
+- 🏗️ 扩展 `ElectronAPI` 接口，新增 5 个 IPC 通道：`cloudBackupTest`、`cloudBackupUpload`、`cloudBackupList`、`cloudBackupDownload`、`cloudBackupDelete`
+- 🌐 Added 45 new i18n keys for cloud backup UI in both English and Chinese locales
+- 🌐 为云备份 UI 新增 45 个中英文国际化键
+
+---
+
 ## [1.7.0] - 2026-04-17
 
 ### Added / 新增

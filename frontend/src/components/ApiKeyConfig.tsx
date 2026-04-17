@@ -14,6 +14,7 @@ import {
   type BackupData,
 } from '../utils/storage'
 import { GeneralSettingsPanel } from './settings/GeneralSettingsPanel'
+import { CloudBackupPanel } from './settings/CloudBackupPanel'
 import { ServiceSettingsPanel } from './settings/ServiceSettingsPanel'
 import { ActionDialog } from './ActionDialog'
 import type { ASRProviderInfo, ProviderConfigData } from '../types'
@@ -41,6 +42,7 @@ export function ApiKeyConfig({ isOpen, onClose, mode = 'modal' }: ApiKeyConfigPr
     updateSettings,
     updateAiPostProcessConfig,
     updateOpenApiConfig,
+    updateCloudBackupConfig,
     availableProviders,
     updateProviderConfig,
   } = useSettingsStore()
@@ -500,6 +502,11 @@ export function ApiKeyConfig({ isOpen, onClose, mode = 'modal' }: ApiKeyConfigPr
               updateStatus={updateStatus}
               handleCheckUpdate={handleCheckUpdate}
               handleExportDiagnostics={handleExportDiagnostics}
+            />
+            <CloudBackupPanel
+              t={t}
+              cloudBackupConfig={settings.cloudBackup || { enabled: false, provider: 's3' }}
+              updateCloudBackupConfig={updateCloudBackupConfig}
             />
             </div>
           )}

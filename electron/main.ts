@@ -16,6 +16,7 @@ import { registerSafeStorageIpc } from './safeStorageIpc'
 import { startVolcProxyServer } from './volcProxy'
 import { registerApiIpc } from './apiIpc'
 import { attachApiServer } from './apiServer'
+import { registerCloudBackupIpc } from './cloudBackup/cloudBackupIpc'
 
 installLogInterceptor()
 
@@ -226,6 +227,7 @@ registerDiagnosticsIpc({
 })
 
 registerSafeStorageIpc(ipcMain)
+registerCloudBackupIpc(ipcMain)
 
 registerApiIpc({
   ipcMain,

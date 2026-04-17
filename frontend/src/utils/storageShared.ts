@@ -160,5 +160,10 @@ export function getDefaultSettings(): AppSettings {
       enabled: false,
       token: '',
     },
+    cloudBackup: {
+      enabled: false,
+      provider: 's3',
+      autoBackupOnComplete: false,
+    },
   }
 }

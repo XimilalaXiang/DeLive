@@ -221,6 +221,33 @@ export interface ApiTagData {
   color: string
 }
 
+// ─── Cloud Backup types ───
+
+export interface CloudBackupIpcConfig {
+  provider: 's3' | 'webdav'
+  s3?: {
+    endpoint: string
+    region: string
+    bucket: string
+    prefix: string
+    accessKeyId: string
+    secretAccessKey: string
+    forcePathStyle?: boolean
+  }
+  webdav?: {
+    url: string
+    username: string
+    password: string
+    basePath: string
+  }
+}
+
+export interface CloudBackupIpcFileInfo {
+  key: string
+  lastModified: string
+  size: number
+}
+
 // ─── Core types ───
 
 export interface ElectronAPI {
@@ -301,6 +328,12 @@ export interface ElectronAPI {
   apiRespondRecordingStatus: (status: ApiRecordingStatus) => void
 
   apiUpdateOpenApiConfig: (config: { enabled: boolean; token: string }) => void
+
+  cloudBackupTest: (config: CloudBackupIpcConfig) => Promise<{ ok: boolean; error?: string }>
+  cloudBackupUpload: (config: CloudBackupIpcConfig, jsonData: string) => Promise<{ ok: boolean; key?: string; error?: string }>
+  cloudBackupList: (config: CloudBackupIpcConfig) => Promise<{ ok: boolean; files?: CloudBackupIpcFileInfo[]; error?: string }>
+  cloudBackupDownload: (config: CloudBackupIpcConfig, key: string) => Promise<{ ok: boolean; data?: string; error?: string }>
+  cloudBackupDelete: (config: CloudBackupIpcConfig, key: string) => Promise<{ ok: boolean; error?: string }>
 
   isElectron: boolean
   platform: 'win32' | 'darwin' | 'linux'

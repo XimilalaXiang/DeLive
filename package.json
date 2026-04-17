@@ -1,6 +1,6 @@
 {
   "name": "delive",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "DeLive",
   "private": true,
   "main": "dist-electron/electron/main.js",
@@ -175,6 +175,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1031.0",
     "adm-zip": "^0.5.16",
     "cors": "^2.8.5",
     "electron-updater": "^6.7.3",

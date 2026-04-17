@@ -218,6 +218,12 @@ const electronAPI: ElectronAPI = {
     ipcRenderer.send('api-update-open-api-config', config)
   },
 
+  cloudBackupTest: (config) => ipcRenderer.invoke('cloud-backup-test', config),
+  cloudBackupUpload: (config, jsonData) => ipcRenderer.invoke('cloud-backup-upload', config, jsonData),
+  cloudBackupList: (config) => ipcRenderer.invoke('cloud-backup-list', config),
+  cloudBackupDownload: (config, key) => ipcRenderer.invoke('cloud-backup-download', config, key),
+  cloudBackupDelete: (config, key) => ipcRenderer.invoke('cloud-backup-delete', config, key),
+
   isElectron: true,
   platform: process.platform as 'win32' | 'darwin' | 'linux',
 

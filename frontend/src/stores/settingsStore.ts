@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type {
   AiPostProcessConfig,
   AppSettings,
+  CloudBackupConfig,
   OpenApiConfig,
   ProviderConfigData,
   CaptionStyle,
@@ -34,6 +35,7 @@ export interface SettingsState {
   updateSettings: (settings: Partial<AppSettings>) => void
   updateAiPostProcessConfig: (config: Partial<AiPostProcessConfig>) => Promise<void>
   updateOpenApiConfig: (config: Partial<OpenApiConfig>) => void
+  updateCloudBackupConfig: (config: Partial<CloudBackupConfig>) => Promise<void>
 
   availableProviders: ASRProviderInfo[]
   setCurrentVendor: (vendorId: string) => void
@@ -83,6 +85,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       openApi: {
         ...defaultSettings.openApi,
         ...(settings.openApi || {}),
+      },
+      cloudBackup: {
+        ...defaultSettings.cloudBackup,
+        ...(settings.cloudBackup || {}),
       },
     }
 
@@ -144,6 +150,33 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         token: nextConfig.token || '',
       })
     }
+  },
+  updateCloudBackupConfig: async (config) => {
+    const { settings } = get()
+    const currentConfig = settings.cloudBackup || {}
+    const nextConfig = { ...currentConfig, ...config }
+
+    if (config.s3) {
+      nextConfig.s3 = { ...(currentConfig.s3 || {}), ...config.s3 } as typeof nextConfig.s3
+    }
+    if (config.webdav) {
+      nextConfig.webdav = { ...(currentConfig.webdav || {}), ...config.webdav } as typeof nextConfig.webdav
+    }
+
+    const inMemorySettings = { ...settings, cloudBackup: nextConfig }
+    set({ settings: inMemorySettings })
+
+    const storageConfig = { ...nextConfig }
+    if (storageConfig.s3?.secretAccessKey) {
+      const encrypted = await encryptApiKeyForStorage('cloud_backup_s3', storageConfig.s3.secretAccessKey)
+      storageConfig.s3 = { ...storageConfig.s3, secretAccessKey: encrypted ?? '' }
+    }
+    if (storageConfig.webdav?.password) {
+      const encrypted = await encryptApiKeyForStorage('cloud_backup_webdav', storageConfig.webdav.password)
+      storageConfig.webdav = { ...storageConfig.webdav, password: encrypted ?? '' }
+    }
+
+    saveSettings({ ...inMemorySettings, cloudBackup: storageConfig })
   },
 
   availableProviders: providerRegistry.getAllProviders(),

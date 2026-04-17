@@ -195,6 +195,39 @@ export interface OpenApiConfig {
   token?: string
 }
 
+export type CloudBackupProviderType = 's3' | 'webdav'
+
+export interface S3BackupConfig {
+  endpoint: string
+  region: string
+  bucket: string
+  prefix: string
+  accessKeyId: string
+  secretAccessKey: string
+  forcePathStyle?: boolean
+}
+
+export interface WebDAVBackupConfig {
+  url: string
+  username: string
+  password: string
+  basePath: string
+}
+
+export interface CloudBackupConfig {
+  enabled?: boolean
+  provider?: CloudBackupProviderType
+  autoBackupOnComplete?: boolean
+  s3?: S3BackupConfig
+  webdav?: WebDAVBackupConfig
+}
+
+export interface CloudBackupFileInfo {
+  key: string
+  lastModified: string
+  size: number
+}
+
 // 应用设置（支持多提供商）
 export interface AppSettings {
   // 兼容旧版：保留单一 API Key（用于 Soniox）
@@ -214,4 +247,6 @@ export interface AppSettings {
   aiPostProcess?: AiPostProcessConfig
   // Open API
   openApi?: OpenApiConfig
+  // Cloud Backup
+  cloudBackup?: CloudBackupConfig
 }

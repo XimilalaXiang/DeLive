@@ -180,6 +180,16 @@ function normalizeSettings(value: unknown): AppSettings {
         token: typeof record.openApi.token === 'string' ? record.openApi.token : '',
       } : {}),
     },
+    cloudBackup: {
+      ...defaults.cloudBackup,
+      ...(isRecord(record.cloudBackup) ? {
+        enabled: typeof record.cloudBackup.enabled === 'boolean' ? record.cloudBackup.enabled : false,
+        provider: record.cloudBackup.provider === 's3' || record.cloudBackup.provider === 'webdav'
+          ? record.cloudBackup.provider : 's3',
+        autoBackupOnComplete: typeof record.cloudBackup.autoBackupOnComplete === 'boolean'
+          ? record.cloudBackup.autoBackupOnComplete : false,
+      } : {}),
+    },
   }
 }
 
