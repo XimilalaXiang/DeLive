@@ -53,6 +53,10 @@ coverage/
 
 # Temporary files
 tmp/
+
+# VitePress build output
+docs/.vitepress/dist/
+docs/.vitepress/cache/
 main.js
 
 # API documentation (private)

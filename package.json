@@ -27,7 +27,10 @@
     "dist:linux": "npm run build && electron-builder --linux",
     "dist:all": "npm run build && electron-builder --win --mac --linux",
     "install:all": "npm install && cd frontend && npm install && cd ../server && npm install",
-    "generate-icons": "node scripts/generate-icons.mjs"
+    "generate-icons": "node scripts/generate-icons.mjs",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
   },
   "devDependencies": {
     "@types/adm-zip": "^0.5.7",
@@ -42,6 +45,7 @@
     "png-to-ico": "^3.0.1",
     "sharp": "^0.34.5",
     "typescript": "^5.0.0",
+    "vitepress": "^1.6.4",
     "wait-on": "^8.0.0"
   },
   "build": {
