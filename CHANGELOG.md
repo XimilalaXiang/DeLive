@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0-beta.7] - 2026-04-17
+
+### Added / 新增
+- 🎬 Caption style settings panel in Settings — full inline editing (font size, font family, text color, background, shadow, width, max lines, bilingual mode)
+- 🎬 字幕样式设置面板 — Settings 中新增完整内嵌式字幕配置（字号、字族、文字颜色、背景色、阴影、宽度、行数、双语模式）
+- 🎤 CaptionControls restored to Live page — quick toggle + style popup below recording controls
+- 🎤 Live 页恢复字幕快捷控制 — 录制控制区下方的字幕开关 + 样式弹窗
+
+### Changed / 变更
+- 📋 Settings navigation expanded from 7 to 8 groups (added Caption Style after Appearance)
+- 📋 设置导航从 7 组扩展为 8 组（外观后新增字幕样式）
+
+---
+
 ## [2.0.0-beta.6] - 2026-04-17
 
 ### Fixed / 修复

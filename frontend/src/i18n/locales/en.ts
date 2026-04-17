@@ -63,6 +63,7 @@ export const en: Translations = {
     groupAppearance: 'Appearance',
     groupAi: 'AI Post-Processing',
     groupOpenApi: 'Open API',
+    groupCaption: 'Caption Style',
     groupCloudBackup: 'Cloud Backup',
     groupDataManagement: 'Data Management',
     groupAbout: 'About',
@@ -492,5 +493,6 @@ export const en: Translations = {
     fontSong: 'Serif',
     fontKai: 'Calligraphy',
     fontMono: 'Monospace',
+    notAvailable: 'Caption is only available in the desktop app.',
   },
 }

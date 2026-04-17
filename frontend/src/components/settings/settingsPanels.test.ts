@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest'
 
 describe('Settings panels – group navigation', () => {
-  const GROUPS = ['provider', 'appearance', 'aiPostProcess', 'openApi', 'cloudBackup', 'dataManagement', 'about'] as const
+  const GROUPS = ['provider', 'appearance', 'caption', 'aiPostProcess', 'openApi', 'cloudBackup', 'dataManagement', 'about'] as const
 
-  it('has exactly 7 settings groups', () => {
-    expect(GROUPS.length).toBe(7)
+  it('has exactly 8 settings groups', () => {
+    expect(GROUPS.length).toBe(8)
   })
 
   it('provider is the first group', () => {
@@ -25,6 +25,7 @@ describe('Settings panels – i18n keys', () => {
   const LABEL_KEYS = [
     'groupProvider',
     'groupAppearance',
+    'groupCaption',
     'groupAi',
     'groupOpenApi',
     'groupCloudBackup',
@@ -33,7 +34,7 @@ describe('Settings panels – i18n keys', () => {
   ]
 
   it('has a label key for each group', () => {
-    expect(LABEL_KEYS.length).toBe(7)
+    expect(LABEL_KEYS.length).toBe(8)
   })
 
   it('all label keys start with "group"', () => {
@@ -47,6 +48,7 @@ describe('Settings panels – nav item configuration', () => {
   const NAV_ITEMS = [
     { id: 'provider', labelKey: 'groupProvider' },
     { id: 'appearance', labelKey: 'groupAppearance' },
+    { id: 'caption', labelKey: 'groupCaption' },
     { id: 'aiPostProcess', labelKey: 'groupAi' },
     { id: 'openApi', labelKey: 'groupOpenApi' },
     { id: 'cloudBackup', labelKey: 'groupCloudBackup' },

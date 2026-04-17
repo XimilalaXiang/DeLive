@@ -61,6 +61,7 @@ export const zh = {
     groupAppearance: '外观',
     groupAi: 'AI 后处理',
     groupOpenApi: '开放 API',
+    groupCaption: '字幕样式',
     groupCloudBackup: '云端备份',
     groupDataManagement: '数据管理',
     groupAbout: '关于',
@@ -487,6 +488,7 @@ export const zh = {
     fontSong: '宋体',
     fontKai: '楷体',
     fontMono: '等宽',
+    notAvailable: '字幕功能仅在桌面端可用。',
   },
 }
 
