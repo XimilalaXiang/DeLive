@@ -9,6 +9,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.0] - 2026-04-17
+
+### Added / 新增
+- 🌐 Open API ecosystem — local REST API with 8 endpoints (`/api/v1/sessions`, `/status`, `/topics`, `/tags`, etc.) allowing external programs to access DeLive data
+- 🌐 开放 API 生态 — 本地 REST API 提供 8 个端点，允许外部程序访问 DeLive 数据
+- 📡 WebSocket live transcript stream at `/ws/live` for real-time caption broadcasting to external clients
+- 📡 WebSocket 实时转录流（`/ws/live`），向外部客户端广播实时字幕
+- 🤖 Standalone MCP server (`mcp/delive-mcp-server.js`) exposing 6 tools and 2 resources for AI agents (Claude Desktop, Cursor, etc.)
+- 🤖 独立 MCP 服务器（`mcp/delive-mcp-server.js`）封装 6 个 Tools 和 2 个 Resources，供 AI Agent 使用
+- 🛡️ Open API toggle in Settings with optional Bearer token authentication — API is disabled by default, token supports both REST headers and WebSocket query params
+- 🛡️ 设置页新增 Open API 开关与可选 Bearer Token 鉴权 — API 默认关闭，Token 同时支持 REST 请求头和 WebSocket 查询参数
+- 📋 Agent Skill definition (`skills/delive-transcript-analyzer/SKILL.md`) providing structured guidance for AI agents
+- 📋 Agent Skill 定义文件，为 AI Agent 提供使用 DeLive 的结构化指引
+- 🐍 Python demo scripts (`demo/`) for REST API and WebSocket integration examples
+- 🐍 Python 演示脚本（`demo/`），展示 REST API 和 WebSocket 集成方式
+
+### Changed / 变更
+- 🔌 Default server port changed from 3001 to 23456 to reduce conflicts with common development tools
+- 🔌 默认服务端口从 3001 改为 23456，减少与常用开发工具的端口冲突
+- 🏗️ Refactored `apiIpc.ts` to internalize `getMainWindow` reference, simplifying the API server's dependency structure
+- 🏗️ 重构 `apiIpc.ts`，内置 `getMainWindow` 引用，简化 API 服务器依赖结构
+- 📝 Updated README.md and README_ZH.md with Open API documentation, new project structure entries, and security table additions
+- 📝 更新中英文 README，新增 Open API 文档、项目结构条目和安全表条目
+
+---
+
 ## [1.6.1] - 2026-03-12
 
 ### Fixed / 修复
