@@ -15,6 +15,7 @@ import type {
   CloudBackupConfig,
   CloudBackupProviderType,
   S3BackupConfig,
+  WebDAVBackupConfig,
 } from '../../types'
 import type { CloudBackupIpcConfig, CloudBackupIpcFileInfo } from '../../../../shared/electronApi'
 import {
@@ -24,7 +25,7 @@ import {
   type BackupData,
 } from '../../utils/storage'
 import { getSessions } from '../../utils/sessionStorage'
-import { getSettings, getTags } from '../../utils/settingsStorage'
+import { getSettings, getTags, getTopics } from '../../utils/settingsStorage'
 import { normalizeTranscriptSessions } from '../../utils/sessionSchema'
 import { CURRENT_BACKUP_VERSION, CURRENT_BACKUP_SCHEMA_VERSION } from '../../utils/backupStorage'
 
@@ -59,6 +60,7 @@ async function buildBackupJson(): Promise<string> {
   const sessions = normalizeTranscriptSessions(await getSessions())
   const tags = getTags()
   const settings = getSettings()
+  const topics = getTopics()
   const data: BackupData = {
     version: CURRENT_BACKUP_VERSION,
     schemaVersion: CURRENT_BACKUP_SCHEMA_VERSION,
@@ -66,6 +68,7 @@ async function buildBackupJson(): Promise<string> {
     sessions,
     tags,
     settings,
+    topics,
   }
   return JSON.stringify(data, null, 2)
 }
@@ -100,12 +103,19 @@ export function CloudBackupPanel({
 
   const provider = cloudBackupConfig.provider || 's3'
   const s3 = cloudBackupConfig.s3 || {} as Partial<S3BackupConfig>
+  const webdav = cloudBackupConfig.webdav || {} as Partial<WebDAVBackupConfig>
 
   const updateS3 = useCallback((updates: Partial<S3BackupConfig>) => {
     return updateCloudBackupConfig({
       s3: { ...s3, ...updates } as S3BackupConfig,
     })
   }, [s3, updateCloudBackupConfig])
+
+  const updateWebdav = useCallback((updates: Partial<WebDAVBackupConfig>) => {
+    return updateCloudBackupConfig({
+      webdav: { ...webdav, ...updates } as WebDAVBackupConfig,
+    })
+  }, [webdav, updateCloudBackupConfig])
 
   const handleTest = useCallback(async () => {
     if (!window.electronAPI) return
@@ -302,10 +312,49 @@ export function CloudBackupPanel({
             </div>
           )}
 
-          {/* WebDAV config (placeholder for future) */}
+          {/* WebDAV config */}
           {provider === 'webdav' && (
-            <div className="p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground">
-              WebDAV support coming soon.
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium mb-1">{ts.cloudBackupWebdavUrl}</label>
+                <input
+                  type="text"
+                  value={webdav.url || ''}
+                  onChange={(e) => void updateWebdav({ url: e.target.value })}
+                  placeholder={ts.cloudBackupWebdavUrlPlaceholder}
+                  className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm placeholder:text-muted-foreground"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium mb-1">{ts.cloudBackupWebdavUsername}</label>
+                  <input
+                    type="text"
+                    value={webdav.username || ''}
+                    onChange={(e) => void updateWebdav({ username: e.target.value })}
+                    className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1">{ts.cloudBackupWebdavPassword}</label>
+                  <input
+                    type="password"
+                    value={webdav.password || ''}
+                    onChange={(e) => void updateWebdav({ password: e.target.value })}
+                    className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">{ts.cloudBackupWebdavBasePath}</label>
+                <input
+                  type="text"
+                  value={webdav.basePath || ''}
+                  onChange={(e) => void updateWebdav({ basePath: e.target.value })}
+                  placeholder={ts.cloudBackupWebdavBasePathPlaceholder}
+                  className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm placeholder:text-muted-foreground"
+                />
+              </div>
             </div>
           )}
 

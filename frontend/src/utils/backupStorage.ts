@@ -4,15 +4,16 @@ import type {
   CaptionStyle,
   ProviderConfigData,
   Tag,
+  Topic,
   TranscriptSession,
 } from '../types'
 import { getSessions, saveSessions } from './sessionStorage'
-import { getSettings, getTags, saveSettings, saveTags } from './settingsStorage'
+import { getSettings, getTags, getTopics, saveSettings, saveTags, saveTopics } from './settingsStorage'
 import { normalizeTranscriptSessions } from './sessionSchema'
 import { getDefaultSettings } from './storageShared'
 
-export const CURRENT_BACKUP_VERSION = '2.0'
-export const CURRENT_BACKUP_SCHEMA_VERSION = 2
+export const CURRENT_BACKUP_VERSION = '3.0'
+export const CURRENT_BACKUP_SCHEMA_VERSION = 3
 
 export interface BackupData {
   version: string
@@ -21,6 +22,7 @@ export interface BackupData {
   sessions: TranscriptSession[]
   tags: Tag[]
   settings: AppSettings
+  topics?: Topic[]
 }
 
 export function getBackupValidationErrors(data: unknown): string[] {
@@ -201,6 +203,7 @@ export async function exportAllData(): Promise<void> {
     sessions: normalizeTranscriptSessions(await getSessions()),
     tags: getTags(),
     settings: getSettings(),
+    topics: getTopics(),
   }
 
   const blob = new Blob([JSON.stringify(data, null, 2)], {
@@ -230,15 +233,21 @@ export function upgradeBackupData(data: BackupData): BackupData {
       .map(normalizeTag)
       .filter((tag): tag is Tag => tag !== null),
     settings: normalizeSettings(data.settings),
+    topics: Array.isArray(data.topics)
+      ? data.topics.filter((t): t is Topic => isRecord(t) && typeof (t as Record<string, unknown>).id === 'string' && typeof (t as Record<string, unknown>).name === 'string')
+      : [],
   }
 }
 
 export async function importDataOverwrite(
   data: BackupData,
-): Promise<{ sessions: number; tags: number }> {
+): Promise<{ sessions: number; tags: number; topics: number }> {
   const normalized = upgradeBackupData(data)
   await saveSessions(normalized.sessions)
   saveTags(normalized.tags)
+  if (normalized.topics?.length) {
+    saveTopics(normalized.topics)
+  }
 
   const currentSettings = getSettings()
   saveSettings({
@@ -249,15 +258,17 @@ export async function importDataOverwrite(
   return {
     sessions: normalized.sessions.length,
     tags: normalized.tags.length,
+    topics: normalized.topics?.length ?? 0,
   }
 }
 
 export async function importDataMerge(
   data: BackupData,
-): Promise<{ sessions: number; tags: number; newSessions: number; newTags: number }> {
+): Promise<{ sessions: number; tags: number; topics: number; newSessions: number; newTags: number; newTopics: number }> {
   const normalized = upgradeBackupData(data)
   const existingSessions = await getSessions()
   const existingTags = getTags()
+  const existingTopics = getTopics()
 
   const existingSessionIds = new Set(existingSessions.map((session) => session.id))
   const newSessions = normalized.sessions.filter((session) => !existingSessionIds.has(session.id))
@@ -269,10 +280,18 @@ export async function importDataMerge(
   const mergedTags = [...existingTags, ...newTags]
   saveTags(mergedTags)
 
+  const existingTopicIds = new Set(existingTopics.map((topic) => topic.id))
+  const incomingTopics = normalized.topics ?? []
+  const newTopicsArr = incomingTopics.filter((topic) => !existingTopicIds.has(topic.id))
+  const mergedTopics = [...existingTopics, ...newTopicsArr]
+  saveTopics(mergedTopics)
+
   return {
     sessions: mergedSessions.length,
     tags: mergedTags.length,
+    topics: mergedTopics.length,
     newSessions: newSessions.length,
     newTags: newTags.length,
+    newTopics: newTopicsArr.length,
   }
 }

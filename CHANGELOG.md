@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0-beta.9] - 2026-04-17
+
+### Added / 新增
+- 🌐 **WebDAV cloud backup** — full implementation (test, upload, list, download, delete) supporting Nutstore/Jianguoyun, Nextcloud, Alist, and any standard WebDAV server
+- 🌐 **WebDAV 云端备份** — 完整实现（测试/上传/列表/下载/删除），支持坚果云、Nextcloud、Alist 及任何标准 WebDAV 服务器
+- 📦 Backup now includes Topics (schema v3) — all themes/categories are backed up alongside sessions, tags, and settings
+- 📦 备份数据新增 Topics（schema v3） — 主题/分类现在与会话、标签、设置一起备份
+
+### Changed / 变更
+- Backup schema upgraded from v2 to v3 with backward compatibility for v2 imports
+- 备份 schema 从 v2 升级到 v3，兼容 v2 格式导入
+
+---
+
 ## [2.0.0-beta.8] - 2026-04-17
 
 ### Changed / 变更
