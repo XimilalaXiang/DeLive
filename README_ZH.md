@@ -493,7 +493,80 @@ DeLive 通过本地 API 对外开放转录数据，外部工具、脚本和 AI A
 
 ### MCP 服务器
 
-独立的 MCP 服务器（`mcp/delive-mcp-server.js`）将 DeLive API 封装为 AI Agent 可用的 Tools 和 Resources，兼容 Claude Desktop、Cursor 等。详见 [`mcp/`](./mcp/)。
+独立的 MCP 服务器（`mcp/delive-mcp-server.js`）将 DeLive API 封装为 AI Agent 可用的 Tools 和 Resources。使用 **stdio** 传输，兼容所有支持 MCP 的客户端。
+
+配置前先安装 MCP 服务器依赖：
+
+```bash
+cd mcp && npm install
+```
+
+#### Claude Desktop / Claude Code
+
+添加到 `claude_desktop_config.json`：
+
+```json
+{
+  "mcpServers": {
+    "delive": {
+      "command": "node",
+      "args": ["C:/path/to/DeLive/mcp/delive-mcp-server.js"],
+      "env": {
+        "DELIVE_API_URL": "http://localhost:23456",
+        "DELIVE_API_TOKEN": "在设置中获取的 Token"
+      }
+    }
+  }
+}
+```
+
+#### Cursor
+
+添加到 `.cursor/mcp.json`（项目级）或 `~/.cursor/mcp.json`（全局）：
+
+```json
+{
+  "mcpServers": {
+    "delive": {
+      "command": "node",
+      "args": ["C:/path/to/DeLive/mcp/delive-mcp-server.js"],
+      "env": {
+        "DELIVE_API_URL": "http://localhost:23456",
+        "DELIVE_API_TOKEN": "在设置中获取的 Token"
+      }
+    }
+  }
+}
+```
+
+#### Cherry Studio
+
+1. 打开 **设置 > MCP 服务器 > 添加**。
+2. 选择 **stdio** 类型。
+3. 填写：
+   - **命令**：`node`
+   - **参数**：`C:/path/to/DeLive/mcp/delive-mcp-server.js`
+   - **环境变量**：`DELIVE_API_URL=http://localhost:23456`、`DELIVE_API_TOKEN=your-token`
+4. 保存并启用。
+
+#### OpenAI Codex CLI / 其他 MCP 客户端
+
+任何支持 stdio 传输的 MCP 客户端都可以使用相同模式：
+
+```bash
+DELIVE_API_URL=http://localhost:23456 \
+DELIVE_API_TOKEN=your-token \
+node /path/to/DeLive/mcp/delive-mcp-server.js
+```
+
+| 变量 | 默认值 | 说明 |
+|------|--------|------|
+| `DELIVE_API_URL` | `http://localhost:23456` | DeLive REST API 基础 URL |
+| `DELIVE_API_TOKEN` | *(空)* | 鉴权 Bearer Token |
+
+> **注意**：MCP 服务器需要 DeLive 正在运行且 **Open API 已启用**。Token 在 DeLive **设置 > 通用 > 开放 API** 中配置。
+
+完整的 Tools 和 Resources 参考详见 [`mcp/`](./mcp/)。
 
 ### Agent Skill
 

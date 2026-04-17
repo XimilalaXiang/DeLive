@@ -23,10 +23,20 @@ DeLive 应用（Electron，端口 23456）
 
 ### 前置条件
 
-- DeLive 运行中且 **Open API 已启用**
+- DeLive 运行中且 **Open API 已启用**（设置 > 通用 > 开放 API）
 - Node.js 18+
+- 已安装 MCP 服务器依赖：`cd mcp && npm install`
 
-### Claude Desktop 配置
+### 环境变量
+
+| 变量 | 默认值 | 说明 |
+|------|--------|------|
+| `DELIVE_API_URL` | `http://localhost:23456` | DeLive REST API 基础 URL |
+| `DELIVE_API_TOKEN` | *(空)* | 鉴权 Bearer Token（在 DeLive 设置中获取） |
+
+## 客户端配置
+
+### Claude Desktop / Claude Code
 
 添加到 Claude Desktop MCP 配置（`claude_desktop_config.json`）：
 
@@ -35,22 +45,54 @@ DeLive 应用（Electron，端口 23456）
   "mcpServers": {
     "delive": {
       "command": "node",
-      "args": ["/path/to/DeLive/mcp/delive-mcp-server.js"],
+      "args": ["C:/path/to/DeLive/mcp/delive-mcp-server.js"],
       "env": {
         "DELIVE_API_URL": "http://localhost:23456",
-        "DELIVE_API_TOKEN": "your-token-from-settings"
+        "DELIVE_API_TOKEN": "在设置中获取的 Token"
       }
     }
   }
 }
 ```
 
-### 环境变量
+### Cursor
 
-| 变量 | 默认值 | 说明 |
-|------|--------|------|
-| `DELIVE_API_URL` | `http://localhost:23456` | DeLive REST API 基础 URL |
-| `DELIVE_API_TOKEN` | *(空)* | 鉴权 Bearer Token |
+添加到 `.cursor/mcp.json`（项目级）或 `~/.cursor/mcp.json`（全局）：
+
+```json
+{
+  "mcpServers": {
+    "delive": {
+      "command": "node",
+      "args": ["C:/path/to/DeLive/mcp/delive-mcp-server.js"],
+      "env": {
+        "DELIVE_API_URL": "http://localhost:23456",
+        "DELIVE_API_TOKEN": "在设置中获取的 Token"
+      }
+    }
+  }
+}
+```
+
+### Cherry Studio
+
+1. 打开 **设置 > MCP 服务器 > 添加**。
+2. 选择 **stdio** 类型。
+3. 填写：
+   - **命令**：`node`
+   - **参数**：`C:/path/to/DeLive/mcp/delive-mcp-server.js`
+   - **环境变量**：`DELIVE_API_URL=http://localhost:23456`、`DELIVE_API_TOKEN=your-token`
+4. 保存并启用开关。
+
+### OpenAI Codex CLI / 其他 MCP 客户端
+
+任何支持 stdio 传输的 MCP 客户端都可以直接启动：
+
+```bash
+DELIVE_API_URL=http://localhost:23456 \
+DELIVE_API_TOKEN=your-token \
+node /path/to/DeLive/mcp/delive-mcp-server.js
+```
 
 ## 工具
 

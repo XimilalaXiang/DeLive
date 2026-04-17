@@ -494,7 +494,80 @@ Real-time transcript streaming is available at `ws://localhost:23456/ws/live`. A
 
 ### MCP Server
 
-A standalone MCP server (`mcp/delive-mcp-server.js`) exposes DeLive's API as tools and resources for AI agents (Claude Desktop, Cursor, etc.). See [`mcp/`](./mcp/) for setup instructions.
+A standalone MCP server (`mcp/delive-mcp-server.js`) exposes DeLive's API as tools and resources for AI agents. It uses **stdio** transport and works with any MCP-compatible client.
+
+Before configuring, install the MCP server dependencies:
+
+```bash
+cd mcp && npm install
+```
+
+#### Claude Desktop / Claude Code
+
+Add to `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "delive": {
+      "command": "node",
+      "args": ["C:/path/to/DeLive/mcp/delive-mcp-server.js"],
+      "env": {
+        "DELIVE_API_URL": "http://localhost:23456",
+        "DELIVE_API_TOKEN": "your-token-from-settings"
+      }
+    }
+  }
+}
+```
+
+#### Cursor
+
+Add to `.cursor/mcp.json` (project-level) or `~/.cursor/mcp.json` (global):
+
+```json
+{
+  "mcpServers": {
+    "delive": {
+      "command": "node",
+      "args": ["C:/path/to/DeLive/mcp/delive-mcp-server.js"],
+      "env": {
+        "DELIVE_API_URL": "http://localhost:23456",
+        "DELIVE_API_TOKEN": "your-token-from-settings"
+      }
+    }
+  }
+}
+```
+
+#### Cherry Studio
+
+1. Open **Settings > MCP Servers > Add**.
+2. Select **stdio** type.
+3. Fill in:
+   - **Command**: `node`
+   - **Args**: `C:/path/to/DeLive/mcp/delive-mcp-server.js`
+   - **Env**: `DELIVE_API_URL=http://localhost:23456`, `DELIVE_API_TOKEN=your-token`
+4. Save and enable.
+
+#### OpenAI Codex CLI / Other MCP Clients
+
+Any MCP client that supports stdio transport can use the same pattern:
+
+```bash
+DELIVE_API_URL=http://localhost:23456 \
+DELIVE_API_TOKEN=your-token \
+node /path/to/DeLive/mcp/delive-mcp-server.js
+```
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DELIVE_API_URL` | `http://localhost:23456` | DeLive REST API base URL |
+| `DELIVE_API_TOKEN` | *(empty)* | Bearer token for authentication |
+
+> **Note**: DeLive must be running with **Open API enabled** for the MCP server to function. Set the token in DeLive **Settings > General > Open API**.
+
+See [`mcp/`](./mcp/) for the full tools and resources reference.
 
 ### Agent Skill
 

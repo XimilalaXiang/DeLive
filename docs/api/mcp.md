@@ -23,10 +23,20 @@ DeLive App (Electron, port 23456)
 
 ### Prerequisites
 
-- DeLive running with **Open API enabled**
+- DeLive running with **Open API enabled** (Settings > General > Open API)
 - Node.js 18+
+- MCP server dependencies installed: `cd mcp && npm install`
 
-### Claude Desktop Configuration
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DELIVE_API_URL` | `http://localhost:23456` | DeLive REST API base URL |
+| `DELIVE_API_TOKEN` | *(empty)* | Bearer token for authentication (set in DeLive Settings) |
+
+## Client Configuration
+
+### Claude Desktop / Claude Code
 
 Add to your Claude Desktop MCP config (`claude_desktop_config.json`):
 
@@ -35,7 +45,7 @@ Add to your Claude Desktop MCP config (`claude_desktop_config.json`):
   "mcpServers": {
     "delive": {
       "command": "node",
-      "args": ["/path/to/DeLive/mcp/delive-mcp-server.js"],
+      "args": ["C:/path/to/DeLive/mcp/delive-mcp-server.js"],
       "env": {
         "DELIVE_API_URL": "http://localhost:23456",
         "DELIVE_API_TOKEN": "your-token-from-settings"
@@ -45,12 +55,44 @@ Add to your Claude Desktop MCP config (`claude_desktop_config.json`):
 }
 ```
 
-### Environment Variables
+### Cursor
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `DELIVE_API_URL` | `http://localhost:23456` | DeLive REST API base URL |
-| `DELIVE_API_TOKEN` | *(empty)* | Bearer token for authentication |
+Add to `.cursor/mcp.json` (project-level) or `~/.cursor/mcp.json` (global):
+
+```json
+{
+  "mcpServers": {
+    "delive": {
+      "command": "node",
+      "args": ["C:/path/to/DeLive/mcp/delive-mcp-server.js"],
+      "env": {
+        "DELIVE_API_URL": "http://localhost:23456",
+        "DELIVE_API_TOKEN": "your-token-from-settings"
+      }
+    }
+  }
+}
+```
+
+### Cherry Studio
+
+1. Open **Settings > MCP Servers > Add**.
+2. Select **stdio** type.
+3. Fill in the fields:
+   - **Command**: `node`
+   - **Args**: `C:/path/to/DeLive/mcp/delive-mcp-server.js`
+   - **Env**: `DELIVE_API_URL=http://localhost:23456`, `DELIVE_API_TOKEN=your-token`
+4. Save and enable the toggle.
+
+### OpenAI Codex CLI / Other MCP Clients
+
+Any MCP client supporting stdio transport can launch the server directly:
+
+```bash
+DELIVE_API_URL=http://localhost:23456 \
+DELIVE_API_TOKEN=your-token \
+node /path/to/DeLive/mcp/delive-mcp-server.js
+```
 
 ## Tools
 
