@@ -5,9 +5,9 @@ export default withMermaid(
   defineConfig({
     title: 'DeLive',
     description: 'System Audio Capture · Multi-Provider ASR · Local-First AI Review Workspace',
-    base: '/DeLive/',
+    base: '/',
     head: [
-      ['link', { rel: 'icon', href: '/DeLive/logo.svg' }],
+      ['link', { rel: 'icon', href: '/logo.svg' }],
       ['meta', { property: 'og:title', content: 'DeLive — Desktop Transcription Workspace' }],
       ['meta', { property: 'og:description', content: 'Capture system audio, transcribe with six ASR backends, and review with AI — summaries, chat, mind maps. All local-first.' }],
       ['meta', { property: 'og:image', content: 'https://raw.githubusercontent.com/XimilalaXiang/DeLive/main/assets/header.png' }],
