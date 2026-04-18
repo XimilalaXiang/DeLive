@@ -16,7 +16,13 @@ English | [简体中文](./README_ZH.md) | [繁體中文](./README_TW.md) | [日
 [![Downloads](https://img.shields.io/github/downloads/XimilalaXiang/DeLive/total?label=Downloads&color=orange)](https://github.com/XimilalaXiang/DeLive/releases)
 [![Stars](https://img.shields.io/github/stars/XimilalaXiang/DeLive?style=social)](https://github.com/XimilalaXiang/DeLive)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/XimilalaXiang/DeLive)
-[![Docs](https://img.shields.io/badge/Docs-VitePress-646cff?logo=vitepress&logoColor=white)](https://ximilalaxiang.github.io/DeLive/)
+[![Docs](https://img.shields.io/badge/Docs-VitePress-646cff?logo=vitepress&logoColor=white)](https://docs.delive.me/)
+
+</div>
+
+<div align="center">
+
+🌐 **[Official Website](https://delive.me)** · 📖 **[Documentation](https://docs.delive.me)** · ⬇️ **[Download](https://github.com/XimilalaXiang/DeLive/releases/latest)**
 
 </div>
 
