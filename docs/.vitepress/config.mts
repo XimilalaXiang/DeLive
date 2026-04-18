@@ -17,10 +17,10 @@ export default withMermaid(
           if (typeof window === 'undefined') return;
           var p = window.location.pathname;
           if (p.startsWith('/zh/')) return;
-          if (localStorage.getItem('vitepress-locale-choice')) return;
+          if (sessionStorage.getItem('lang-detected')) return;
+          sessionStorage.setItem('lang-detected', '1');
           var lang = navigator.language || navigator.userLanguage || '';
           if (lang.startsWith('zh')) {
-            localStorage.setItem('vitepress-locale-choice', 'zh');
             window.location.replace('/zh/' + p.slice(1));
           }
         })();
