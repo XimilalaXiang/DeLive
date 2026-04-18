@@ -6,8 +6,9 @@
 
 2. **Runtime-managed assets**
    - Stored under Electron `userData/local-runtimes/whisper_cpp/`
+   - Electron-managed binaries are stored under `bin/`
+   - Managed model files are stored under `models/`
    - DeLive can import or download binaries and models here from the setup UI.
-   - Managed model files are stored under `models/`.
 
 Expected canonical binary names:
 

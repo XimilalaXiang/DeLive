@@ -9,6 +9,7 @@ Relevant behavior:
 - If `whisper-server(.exe)` exists here at build time, `electron-builder` copies it into app resources.
 - At runtime, DeLive can still import or download binaries and models into the user data directory.
 - User-managed runtime assets are stored separately under the Electron `userData` path, not inside this repository checkout.
+- For `whisper.cpp`, Electron-managed binaries live under `userData/local-runtimes/whisper_cpp/bin/` and models live under `userData/local-runtimes/whisper_cpp/models/`.
 
 Useful commands:
 

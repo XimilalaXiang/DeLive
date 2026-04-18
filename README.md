@@ -31,7 +31,7 @@ DeLive is a desktop transcription workspace for system audio. It captures whatev
 | Real-time transcription with floating caption overlay | Session history with activity heatmap and search | Project-based session organization |
 | <img width="300" src="assets/screenshot-live.png" alt="Live Transcription" /> | <img width="300" src="assets/screenshot-review-history.png" alt="Review & History" /> | <img width="300" src="assets/screenshot-topics-view.png" alt="Topics" /> |
 
-| AI Overview | AI Chat | Mind Map & Export |
+| AI Overview | AI Chat | Caption Style |
 |:---:|:---:|:---:|
 | Summary, action items, keywords, and chapters | Multi-thread conversation with cited references | Caption style editor with live preview |
 | <img width="300" src="assets/screenshot-ai-overview.png" alt="AI Overview" /> | <img width="300" src="assets/screenshot-ai-chat.png" alt="AI Chat" /> | <img width="300" src="assets/screenshot-caption-style.png" alt="Caption Style" /> |
@@ -78,7 +78,7 @@ DeLive is a desktop transcription workspace for system audio. It captures whatev
 - [x] **Topics** — organize sessions into project-based containers with emoji icons
 - [x] **Local model workflows** — detect local services, discover models, pull from Ollama, import/download `whisper.cpp` assets
 - [x] **5 color themes** — Cyan, Violet, Rose, Green, Amber — each with full light and dark mode
-- [x] **Local-first persistence** — sessions, tags, topics, and settings in IndexedDB/localStorage; secrets via Electron `safeStorage`
+- [x] **Local-first persistence & optional cloud backup** — sessions, tags, topics, and settings in IndexedDB/localStorage; optional S3-compatible/WebDAV backup workflows; secrets via Electron `safeStorage`
 - [x] **Desktop integration** — tray, global shortcut, auto-launch, updater, diagnostics export
 - [x] **Security hardening** — trusted-window IPC, CSP injection, navigation guard, path allowlist, encrypted secret storage
 - [x] **Open API & MCP ecosystem** — local REST API, real-time WebSocket, MCP server for AI agents, token-based authentication, and agent skill definition
@@ -99,7 +99,7 @@ Get the latest release for your platform:
 | Platform | Files |
 |----------|-------|
 | Windows | `.exe` installer, portable `.exe` |
-| macOS | `.dmg` (Intel x64 and Apple Silicon arm64) |
+| macOS | `.dmg`, `.zip` (Intel x64 and Apple Silicon arm64) |
 | Linux | `.AppImage`, `.deb` |
 
 > All downloads are available on the [Releases](https://github.com/XimilalaXiang/DeLive/releases/latest) page.
@@ -164,7 +164,7 @@ To run just the frontend tests:
 npm run test:frontend
 ```
 
-Current suite status: **184 tests across 22 files** with coverage around provider config, transcript state/stabilization, subtitle export, session lifecycle/repository, storage, and AI post-process parsing.
+Current suite status: **256 tests across 29 files** with coverage around provider config, transcript state/stabilization, subtitle export, session lifecycle/repository, storage, cloud backup, Open API IPC responses, and AI post-process parsing.
 
 ### Build
 
@@ -247,6 +247,7 @@ Completed sessions open in a dedicated full-page Review Desk (not a modal) with 
 - Sessions can be renamed, tagged, organized by topic, searched, and exported as TXT, Markdown, SRT, or VTT.
 - Recording drafts are autosaved and incomplete sessions can be restored after an interrupted launch.
 - Full local data can be exported/imported for backup or migration.
+- Optional cloud backup can upload sessions, topics, tags, and settings to S3-compatible or WebDAV storage from **Settings > Cloud Backup**, with remote list/restore/delete controls.
 - Diagnostics export generates a redacted JSON bundle with system info and recent logs for troubleshooting.
 
 ## 🧩 Project Map
@@ -261,7 +262,7 @@ Completed sessions open in a dedicated full-page Review Desk (not a modal) with 
 | Session intelligence | `frontend/src/services/aiPostProcess.ts`, `frontend/src/components/ReviewDeskView.tsx`, `frontend/src/components/PreviewModal.tsx` | AI briefing, Q&A, mind maps, tagging, and speaker label editing. |
 | Topics | `frontend/src/components/TopicsView.tsx`, `frontend/src/components/TopicDetailView.tsx`, `frontend/src/components/TopicDialog.tsx`, `frontend/src/components/TopicPicker.tsx` | Card-grid topic browser, per-topic session list, CRUD dialogs, and Live-view topic selection. |
 | Review Desk UI | `frontend/src/components/review/SessionTabBar.tsx`, `frontend/src/components/review/SessionHeader.tsx`, `frontend/src/components/review/OverviewTab.tsx`, `frontend/src/components/review/TranscriptTab.tsx`, `frontend/src/components/review/ChatTab.tsx`, `frontend/src/components/review/MindMapTab.tsx`, `frontend/src/components/review/MarkdownRenderer.tsx` | Animated tab bar with keyboard navigation, session header with multi-format export (TXT/Markdown/SRT/VTT), per-tab content views, GFM Markdown rendering with syntax highlighting, and mind map editing. |
-| Settings UI | `frontend/src/components/settings/ServiceSettingsPanel.tsx`, `frontend/src/components/settings/GeneralSettingsPanel.tsx` | Provider credential configuration and general app settings (language, theme, AI config, backup/restore). |
+| Settings UI | `frontend/src/components/ApiKeyConfig.tsx`, `frontend/src/components/settings/*` | Multi-section settings workspace for provider setup, appearance, caption style, AI post-process, Open API, cloud backup, data import/export, and about/update panels. |
 | Runtime UI | `frontend/src/components/runtime/BundledRuntimeSummaryCard.tsx`, `frontend/src/components/runtime/BundledRuntimeAdvancedPanel.tsx` | Status card and advanced panel for managing bundled `whisper.cpp` runtime assets. |
 | Shared UI system | `frontend/src/components/ui/*` | Button, Badge, Switch, EmptyState, StatusIndicator, DialogShell primitives with semantic color tokens across five themes. |
 | Local model/runtime tooling | `frontend/src/utils/localModelSetup.ts`, `frontend/src/utils/localRuntimeManager.ts`, `frontend/src/components/LocalModelSetupGuide.tsx`, `frontend/src/components/BundledRuntimeSetupGuide.tsx`, `electron/localRuntime.ts`, `electron/localRuntimeFiles.ts`, `electron/localRuntimeShared.ts`, `electron/localRuntimeIpc.ts` | Detects local services, checks models, supports Ollama pull, imports/downloads `whisper.cpp` assets, manages runtime files, and starts/stops the local runtime. |
@@ -270,7 +271,6 @@ Completed sessions open in a dedicated full-page Review Desk (not a modal) with 
 | MCP & agent ecosystem | `mcp/delive-mcp-server.js`, `skills/delive-transcript-analyzer/SKILL.md` | Standalone MCP server exposing DeLive as tools/resources and agent skill definition. |
 | Shared contracts | `shared/electronApi.ts`, `electron/preload.ts`, `shared/volcProxyCore.ts` | Typed bridge between renderer and main process plus shared protocol helpers for the embedded Volcengine proxy. |
 | Debug and release support | `server/`, `scripts/`, `.github/workflows/release.yml`, `.github/workflows/ci.yml` | Standalone Volc proxy debugging, icon/runtime staging scripts, continuous integration, and tagged multi-platform release builds. |
-| Design references | `design-system/delive/MASTER.md` | Product and visual reference material used during UI iteration. Not part of the runtime path. |
 
 ## 🔄 Recording Lifecycle
 
@@ -415,7 +415,6 @@ DeLive/
 ├── skills/                           # Agent skill definitions
 ├── local-runtimes/                   # Optional packaged runtime assets (for whisper.cpp staging)
 ├── scripts/                          # Icon generation, runtime fetch/stage, release notes
-├── design-system/                    # Design reference material
 ├── assets/                           # README and branding assets
 ├── build/                            # Electron-builder icons and packaging resources
 ├── .github/workflows/ci.yml          # Push/PR continuous integration pipeline
@@ -467,7 +466,7 @@ DeLive exposes its transcription data through a local API, enabling external too
 
 ### Enabling the API
 
-1. Go to **Settings > General > Open API**.
+1. Go to **Settings > Open API**.
 2. Toggle **Enable Open API** to on.
 3. Optionally set an **Access Token** for authentication (recommended).
 
@@ -565,7 +564,7 @@ node /path/to/DeLive/mcp/delive-mcp-server.js
 | `DELIVE_API_URL` | `http://localhost:23456` | DeLive REST API base URL |
 | `DELIVE_API_TOKEN` | *(empty)* | Bearer token for authentication |
 
-> **Note**: DeLive must be running with **Open API enabled** for the MCP server to function. Set the token in DeLive **Settings > General > Open API**.
+> **Note**: DeLive must be running with **Open API enabled** for the MCP server to function. Set the token in DeLive **Settings > Open API**.
 
 See [`mcp/`](./mcp/) for the full tools and resources reference.
 
