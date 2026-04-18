@@ -45,6 +45,9 @@
     @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
     @keyframes border-rotate { 0% { --border-angle: 0deg; } 100% { --border-angle: 360deg; } }
     @keyframes grain { 0%, 100% { transform: translate(0, 0); } 10% { transform: translate(-5%, -10%); } 20% { transform: translate(-15%, 5%); } 30% { transform: translate(7%, -25%); } 40% { transform: translate(-5%, 25%); } 50% { transform: translate(-15%, 10%); } 60% { transform: translate(15%, 0%); } 70% { transform: translate(0%, 15%); } 80% { transform: translate(3%, 35%); } 90% { transform: translate(-10%, 10%); } }
+    @keyframes aurora { 0% { transform: rotate(0deg) scale(1.5); } 33% { transform: rotate(120deg) scale(1.8); } 66% { transform: rotate(240deg) scale(1.3); } 100% { transform: rotate(360deg) scale(1.5); } }
+    @keyframes typewriter { from { width: 0; } to { width: 100%; } }
+    @keyframes blink-caret { from, to { border-color: transparent; } 50% { border-color: #22d3ee; } }
 
     .animate-float { animation: float 6s ease-in-out infinite; }
     .animate-gradient { background-size: 200% 200%; animation: gradient-shift 8s ease infinite; }
@@ -241,6 +244,33 @@
       animation: shimmer 3s ease-in-out infinite;
     }
 
+    /* --- Aurora mesh background --- */
+    .aurora-bg {
+      position: absolute; inset: 0; overflow: hidden; z-index: 0;
+    }
+    .aurora-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.15;
+      animation: aurora 20s ease-in-out infinite;
+    }
+    .aurora-blob:nth-child(1) { width: 600px; height: 600px; background: #06b6d4; top: -20%; left: -10%; animation-delay: 0s; }
+    .aurora-blob:nth-child(2) { width: 500px; height: 500px; background: #6366f1; top: 10%; right: -15%; animation-delay: -7s; animation-duration: 25s; }
+    .aurora-blob:nth-child(3) { width: 400px; height: 400px; background: #8b5cf6; bottom: -10%; left: 30%; animation-delay: -14s; animation-duration: 22s; }
+
+    /* --- FAQ accordion --- */
+    .faq-item { border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .faq-item:last-child { border-bottom: none; }
+    .faq-toggle { cursor: pointer; }
+    .faq-toggle svg { transition: transform 0.3s ease; }
+    .faq-toggle[aria-expanded="true"] svg { transform: rotate(45deg); }
+    .faq-answer {
+      max-height: 0; overflow: hidden;
+      transition: max-height 0.4s ease, padding 0.3s ease;
+    }
+    .faq-answer.open { max-height: 300px; }
+
     /* --- Responsive screenshot tilt --- */
     @media (min-width: 768px) {
       .tilt-left { transform: perspective(1200px) rotateY(3deg); }
@@ -279,11 +309,13 @@
 
   <!-- Hero -->
   <section class="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
-    <div class="hero-glow bg-brand-500 w-[700px] h-[700px] top-[10%] left-[15%] opacity-[0.12] animate-pulse-glow"></div>
-    <div class="hero-glow bg-accent-500 w-[500px] h-[500px] top-[20%] right-[10%] opacity-[0.08] animate-pulse-glow" style="animation-delay: 2s;"></div>
-    <div class="hero-glow bg-emerald-500 w-[300px] h-[300px] bottom-[20%] left-[40%] opacity-[0.06] animate-pulse-glow" style="animation-delay: 4s;"></div>
+    <div class="aurora-bg">
+      <div class="aurora-blob"></div>
+      <div class="aurora-blob"></div>
+      <div class="aurora-blob"></div>
+    </div>
 
-    <div class="absolute inset-0 grid-bg opacity-60"></div>
+    <div class="absolute inset-0 grid-bg opacity-40"></div>
 
     <div class="relative z-10 max-w-6xl mx-auto px-6 pt-20 pb-16 text-center">
       <!-- Badge -->
@@ -629,6 +661,60 @@
 
   <div class="section-divider"></div>
 
+  <!-- FAQ -->
+  <section class="py-28">
+    <div class="max-w-3xl mx-auto px-6">
+      <div class="text-center mb-16 reveal">
+        <div class="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 rounded-full px-4 py-1.5 text-sm text-amber-400 font-medium mb-6">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"/></svg>
+          <span data-i18n="faq.label">FAQ</span>
+        </div>
+        <h2 class="text-4xl sm:text-5xl font-bold tracking-tight mb-5" data-i18n="faq.title">Common Questions</h2>
+      </div>
+
+      <div class="glass-card p-0 overflow-hidden reveal">
+        <div class="faq-item">
+          <button class="faq-toggle w-full flex items-center justify-between px-6 py-5 text-left" aria-expanded="false" onclick="this.setAttribute('aria-expanded', this.getAttribute('aria-expanded')==='true'?'false':'true'); this.nextElementSibling.classList.toggle('open')">
+            <span class="font-medium text-white" data-i18n="faq.q1">Is DeLive free?</span>
+            <svg class="w-5 h-5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          </button>
+          <div class="faq-answer px-6 text-gray-400 text-[15px] leading-relaxed">
+            <div class="pb-5" data-i18n="faq.a1">Yes! DeLive is completely free and open source under the Apache-2.0 License. You can use it for personal or commercial purposes without any restrictions.</div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-toggle w-full flex items-center justify-between px-6 py-5 text-left" aria-expanded="false" onclick="this.setAttribute('aria-expanded', this.getAttribute('aria-expanded')==='true'?'false':'true'); this.nextElementSibling.classList.toggle('open')">
+            <span class="font-medium text-white" data-i18n="faq.q2">Does my data leave my device?</span>
+            <svg class="w-5 h-5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          </button>
+          <div class="faq-answer px-6 text-gray-400 text-[15px] leading-relaxed">
+            <div class="pb-5" data-i18n="faq.a2">Audio is processed by the ASR provider you choose (cloud or local). Transcripts and AI review data are stored entirely in your local IndexedDB — nothing is sent to our servers.</div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-toggle w-full flex items-center justify-between px-6 py-5 text-left" aria-expanded="false" onclick="this.setAttribute('aria-expanded', this.getAttribute('aria-expanded')==='true'?'false':'true'); this.nextElementSibling.classList.toggle('open')">
+            <span class="font-medium text-white" data-i18n="faq.q3">Which ASR provider should I use?</span>
+            <svg class="w-5 h-5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          </button>
+          <div class="faq-answer px-6 text-gray-400 text-[15px] leading-relaxed">
+            <div class="pb-5" data-i18n="faq.a3">Soniox offers the best real-time streaming with speaker diarization and translation. Groq provides the fastest Whisper inference. For fully offline use, choose whisper.cpp — no API key needed.</div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-toggle w-full flex items-center justify-between px-6 py-5 text-left" aria-expanded="false" onclick="this.setAttribute('aria-expanded', this.getAttribute('aria-expanded')==='true'?'false':'true'); this.nextElementSibling.classList.toggle('open')">
+            <span class="font-medium text-white" data-i18n="faq.q4">Can I use DeLive with my own AI model?</span>
+            <svg class="w-5 h-5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          </button>
+          <div class="faq-answer px-6 text-gray-400 text-[15px] leading-relaxed">
+            <div class="pb-5" data-i18n="faq.a4">Absolutely. DeLive supports any OpenAI-compatible API for AI review. Connect it to your self-hosted models, Ollama, or any provider that follows the OpenAI chat completion format.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
   <!-- Community / Feedback -->
   <section class="py-28">
     <div class="max-w-4xl mx-auto px-6 text-center reveal">
@@ -656,7 +742,7 @@
     <div class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-2.5 text-sm text-gray-500">
         <img src="https://raw.githubusercontent.com/XimilalaXiang/DeLive/main/assets/icon.svg" alt="DeLive" class="w-5 h-5 opacity-60" />
-        <span data-i18n="footer.copyright">&copy; 2025 DeLive. Open source under Apache-2.0 License.</span>
+        <span data-i18n="footer.copyright">&copy; 2026 DeLive. Open source under Apache-2.0 License.</span>
       </div>
       <div class="flex items-center gap-6 text-sm text-gray-500">
         <a href="https://github.com/XimilalaXiang/DeLive" target="_blank" class="hover:text-gray-300 transition-colors" data-i18n="footer.github">GitHub</a>
@@ -738,12 +824,22 @@
         'download.linux.sub': '.AppImage / .deb',
         'download.license': 'Open source under Apache-2.0 License.',
         'download.all-releases': 'View all releases →',
+        'faq.label': 'FAQ',
+        'faq.title': 'Common Questions',
+        'faq.q1': 'Is DeLive free?',
+        'faq.a1': 'Yes! DeLive is completely free and open source under the Apache-2.0 License. You can use it for personal or commercial purposes without any restrictions.',
+        'faq.q2': 'Does my data leave my device?',
+        'faq.a2': 'Audio is processed by the ASR provider you choose (cloud or local). Transcripts and AI review data are stored entirely in your local IndexedDB — nothing is sent to our servers.',
+        'faq.q3': 'Which ASR provider should I use?',
+        'faq.a3': 'Soniox offers the best real-time streaming with speaker diarization and translation. Groq provides the fastest Whisper inference. For fully offline use, choose whisper.cpp — no API key needed.',
+        'faq.q4': 'Can I use DeLive with my own AI model?',
+        'faq.a4': 'Absolutely. DeLive supports any OpenAI-compatible API for AI review. Connect it to your self-hosted models, Ollama, or any provider that follows the OpenAI chat completion format.',
         'community.title': 'Built in the open.',
         'community.desc': 'DeLive is fully open source. Star us on GitHub, report issues, or contribute to the project.',
         'community.star': 'Star on GitHub',
         'community.feedback': 'Give Feedback',
         'community.docs': 'Documentation',
-        'footer.copyright': '© 2025 DeLive. Open source under Apache-2.0 License.',
+        'footer.copyright': '© 2026 DeLive. Open source under Apache-2.0 License.',
         'footer.github': 'GitHub',
         'footer.docs': 'Docs',
         'footer.releases': 'Releases',
@@ -817,12 +913,22 @@
         'download.linux.sub': '.AppImage / .deb',
         'download.license': '基于 Apache-2.0 许可证开源。',
         'download.all-releases': '查看所有版本 →',
-        'community.title': '开放构建。',
+        'faq.label': '常见问题',
+        'faq.title': '常见问题',
+        'faq.q1': 'DeLive 是免费的吗？',
+        'faq.a1': '是的！DeLive 完全免费且开源，基于 Apache-2.0 许可证。你可以将其用于个人或商业用途，没有任何限制。',
+        'faq.q2': '我的数据会离开我的设备吗？',
+        'faq.a2': '音频由你选择的 ASR 提供商处理（云端或本地）。转录文本和 AI 回顾数据完全存储在本地 IndexedDB 中 — 不会发送到我们的服务器。',
+        'faq.q3': '应该使用哪个 ASR 提供商？',
+        'faq.a3': 'Soniox 提供最佳的实时流式转录，支持说话人分离和翻译。Groq 提供最快的 Whisper 推理。如需完全离线使用，选择 whisper.cpp — 无需 API 密钥。',
+        'faq.q4': '我可以使用自己的 AI 模型吗？',
+        'faq.a4': '当然可以。DeLive 支持任何 OpenAI 兼容的 API 进行 AI 回顾。你可以连接自部署的模型、Ollama，或任何遵循 OpenAI 对话补全格式的提供商。',
+        'community.title': '开放构建',
         'community.desc': 'DeLive 完全开源。在 GitHub 上给我们 Star、提交问题或参与贡献。',
         'community.star': '在 GitHub 上 Star',
         'community.feedback': '提供反馈',
         'community.docs': '文档',
-        'footer.copyright': '© 2025 DeLive. 基于 Apache-2.0 许可证开源。',
+        'footer.copyright': '© 2026 DeLive. 基于 Apache-2.0 许可证开源。',
         'footer.github': 'GitHub',
         'footer.docs': '文档',
         'footer.releases': '版本',
