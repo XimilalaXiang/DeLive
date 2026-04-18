@@ -4,7 +4,13 @@ export default defineConfig({
   title: 'DeLive',
   description: 'System Audio Capture · Multi-Provider ASR · Local-First AI Review Workspace',
   base: '/DeLive/',
-  head: [['link', { rel: 'icon', href: '/DeLive/logo.svg' }]],
+  head: [
+    ['link', { rel: 'icon', href: '/DeLive/logo.svg' }],
+    ['meta', { property: 'og:title', content: 'DeLive — Desktop Transcription Workspace' }],
+    ['meta', { property: 'og:description', content: 'Capture system audio, transcribe with six ASR backends, and review with AI — summaries, chat, mind maps. All local-first.' }],
+    ['meta', { property: 'og:image', content: 'https://raw.githubusercontent.com/XimilalaXiang/DeLive/main/assets/header.png' }],
+    ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+  ],
   locales: {
     root: {
       label: 'English',
@@ -15,6 +21,13 @@ export default defineConfig({
           { text: 'API Reference', link: '/api/rest' },
           { text: 'Architecture', link: '/architecture/overview' },
           { text: 'Development', link: '/development/setup' },
+          {
+            text: 'v2.0.0',
+            items: [
+              { text: 'Changelog', link: 'https://github.com/XimilalaXiang/DeLive/blob/main/CHANGELOG.md' },
+              { text: 'Download', link: 'https://github.com/XimilalaXiang/DeLive/releases/latest' },
+            ],
+          },
         ],
         sidebar: {
           '/guide/': [
@@ -91,6 +104,13 @@ export default defineConfig({
           { text: 'API 参考', link: '/zh/api/rest' },
           { text: '架构', link: '/zh/architecture/overview' },
           { text: '开发', link: '/zh/development/setup' },
+          {
+            text: 'v2.0.0',
+            items: [
+              { text: '更新日志', link: 'https://github.com/XimilalaXiang/DeLive/blob/main/CHANGELOG.md' },
+              { text: '下载', link: 'https://github.com/XimilalaXiang/DeLive/releases/latest' },
+            ],
+          },
         ],
         sidebar: {
           '/zh/guide/': [
