@@ -547,41 +547,40 @@
         <p class="font-bold text-sm md:text-base mb-10 md:mb-14" data-i18n="download.desc">Free and open source. Windows, macOS, Linux.</p>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 max-w-2xl mx-auto mb-10" id="download-cards">
-          <a id="dl-win" href="https://github.com/XimilalaXiang/DeLive/releases/latest" class="comic-card bg-cream text-ink flex flex-col items-center justify-center gap-3 py-6 sm:py-10 px-6 sm:aspect-square cursor-pointer">
-            <div class="icon-comic bg-bam flex-shrink-0">
+          <div class="comic-card bg-cream text-ink flex flex-col items-center gap-2 py-6 sm:py-8 px-5">
+            <div class="icon-comic bg-bam flex-shrink-0 mb-1">
               <svg class="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
             </div>
-            <div class="text-center">
-              <span class="font-sans text-xl tracking-wide" data-i18n="download.win">Windows</span>
-              <p class="font-bold text-xs mt-0.5">.exe</p>
-            </div>
-            <p class="font-bold text-[10px] text-ink/40" id="dl-win-size"></p>
-          </a>
-          <div class="comic-card bg-cream text-ink flex flex-col items-center justify-center gap-3 py-6 sm:py-10 px-6 sm:aspect-square">
-            <div class="icon-comic bg-ink flex-shrink-0">
+            <span class="font-sans text-xl tracking-wide" data-i18n="download.win">Windows</span>
+            <a id="dl-win" href="https://github.com/XimilalaXiang/DeLive/releases/latest" class="comic-btn bg-bam text-white px-5 py-2 text-sm mt-1 flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              <span>.exe</span>
+            </a>
+            <p class="font-bold text-[10px] text-ink/50 mt-0.5" id="dl-win-size"></p>
+          </div>
+          <div class="comic-card bg-cream text-ink flex flex-col items-center gap-2 py-6 sm:py-8 px-5">
+            <div class="icon-comic bg-ink flex-shrink-0 mb-1">
               <svg class="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
             </div>
-            <div class="text-center">
-              <a id="dl-mac" href="https://github.com/XimilalaXiang/DeLive/releases/latest" class="font-sans text-xl tracking-wide hover:text-pow transition-colors" data-i18n="download.mac">macOS</a>
-              <p class="font-bold text-xs mt-0.5">.dmg</p>
-            </div>
-            <div class="flex flex-col items-center gap-0.5">
-              <a id="dl-mac-intel" href="https://github.com/XimilalaXiang/DeLive/releases/latest" class="font-bold text-[10px] text-ink/50 underline hover:text-pow transition-colors" data-i18n="download.mac.intel">Intel Mac →</a>
-              <p class="font-bold text-[10px] text-ink/40" id="dl-mac-size"></p>
-            </div>
+            <span class="font-sans text-xl tracking-wide" data-i18n="download.mac">macOS</span>
+            <a id="dl-mac" href="https://github.com/XimilalaXiang/DeLive/releases/latest" class="comic-btn bg-ink text-white px-5 py-2 text-sm mt-1 flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              <span>Apple Silicon</span>
+            </a>
+            <a id="dl-mac-intel" href="https://github.com/XimilalaXiang/DeLive/releases/latest" class="font-bold text-[11px] text-ink/60 underline hover:text-pow transition-colors mt-0.5" data-i18n="download.mac.intel">Intel Mac →</a>
+            <p class="font-bold text-[10px] text-ink/50" id="dl-mac-size"></p>
           </div>
-          <div class="comic-card bg-cream text-ink flex flex-col items-center justify-center gap-3 py-6 sm:py-10 px-6 sm:aspect-square">
-            <div class="icon-comic bg-zap flex-shrink-0">
+          <div class="comic-card bg-cream text-ink flex flex-col items-center gap-2 py-6 sm:py-8 px-5">
+            <div class="icon-comic bg-zap flex-shrink-0 mb-1">
               <svg class="w-6 h-6 sm:w-8 sm:h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M12.504 0c-.155 0-.311.015-.466.044C9.726.465 8.088 2.007 7.065 3.992c-.39.752-.563 1.424-.742 2.123-.12.468-.204.95-.286 1.434-.084.496-.153 1.054-.383 1.501-.046.089-.102.178-.158.267a.5.5 0 01-.103.148c-.049.051-.09.094-.143.155-.054.062-.124.12-.15.19-.027.074-.015.154-.015.234.002.082-.001.166-.018.247-.037.178-.061.352-.062.536-.002.197.021.39.059.582.039.195.098.39.175.568.123.291.262.581.467.819.234.271.523.464.842.559.32.095.644.115.971.069.319-.045.618-.16.894-.324.282-.169.534-.381.789-.602.095-.081.186-.157.272-.222.002.021.004.044.006.066.168 1.879 1.098 3.587 2.462 4.791.552.489 1.168.914 1.811 1.254.317.168.641.315.971.445.283.11.573.207.867.286a7.29 7.29 0 001.08.216c.397.05.8.063 1.2.04.4-.024.795-.087 1.18-.192a6.042 6.042 0 001.558-.703c.512-.316.994-.697 1.413-1.147.42-.452.787-.968 1.078-1.533.154-.3.288-.61.397-.931.064-.186.118-.374.165-.564.041-.17.089-.337.106-.512.017-.172.008-.345-.019-.513a2.285 2.285 0 00-.116-.46c-.046-.121-.093-.245-.126-.373a.6.6 0 01-.017-.201c.004-.057.011-.117.005-.175A.594.594 0 0020.19 11a1.03 1.03 0 00-.175-.267c-.083-.098-.177-.18-.269-.275a1.613 1.613 0 01-.3-.418c-.153-.31-.24-.645-.317-.99-.061-.278-.117-.558-.187-.833-.136-.539-.313-1.053-.56-1.544C17.368 4.686 15.73 3.143 13.66 2.569 13.277 2.46 12.888 2.384 12.504 0z"/></svg>
             </div>
-            <div class="text-center">
-              <a id="dl-linux" href="https://github.com/XimilalaXiang/DeLive/releases/latest" class="font-sans text-xl tracking-wide hover:text-pow transition-colors" data-i18n="download.linux">Linux</a>
-              <p class="font-bold text-xs mt-0.5">.AppImage</p>
-            </div>
-            <div class="flex flex-col items-center gap-0.5">
-              <a id="dl-linux-deb" href="https://github.com/XimilalaXiang/DeLive/releases/latest" class="font-bold text-[10px] text-ink/50 underline hover:text-pow transition-colors">.deb →</a>
-              <p class="font-bold text-[10px] text-ink/40" id="dl-linux-size"></p>
-            </div>
+            <span class="font-sans text-xl tracking-wide" data-i18n="download.linux">Linux</span>
+            <a id="dl-linux" href="https://github.com/XimilalaXiang/DeLive/releases/latest" class="comic-btn bg-zap text-ink px-5 py-2 text-sm mt-1 flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              <span>.AppImage</span>
+            </a>
+            <a id="dl-linux-deb" href="https://github.com/XimilalaXiang/DeLive/releases/latest" class="font-bold text-[11px] text-ink/60 underline hover:text-pow transition-colors mt-0.5">.deb (Debian/Ubuntu) →</a>
+            <p class="font-bold text-[10px] text-ink/50" id="dl-linux-size"></p>
           </div>
         </div>
         <p class="font-bold text-xs md:text-sm">
@@ -824,21 +823,15 @@
             document.getElementById('dl-win').href = win.browser_download_url;
             document.getElementById('dl-win-size').textContent = fmtSize(win.size);
           }
-          var macEl = document.getElementById('dl-mac');
           if (macArm) {
-            macEl.href = macArm.browser_download_url;
-            macEl.parentElement.parentElement.onclick = function(e) { if (e.target.closest('#dl-mac-intel')) return; window.location.href = macArm.browser_download_url; };
-            macEl.parentElement.parentElement.style.cursor = 'pointer';
+            document.getElementById('dl-mac').href = macArm.browser_download_url;
             document.getElementById('dl-mac-size').textContent = fmtSize(macArm.size);
           }
           if (macIntel) {
             document.getElementById('dl-mac-intel').href = macIntel.browser_download_url;
           }
-          var linEl = document.getElementById('dl-linux');
           if (linuxAI) {
-            linEl.href = linuxAI.browser_download_url;
-            linEl.parentElement.parentElement.onclick = function(e) { if (e.target.closest('#dl-linux-deb')) return; window.location.href = linuxAI.browser_download_url; };
-            linEl.parentElement.parentElement.style.cursor = 'pointer';
+            document.getElementById('dl-linux').href = linuxAI.browser_download_url;
             document.getElementById('dl-linux-size').textContent = fmtSize(linuxAI.size);
           }
           if (linuxDeb) {
