@@ -5,41 +5,59 @@ DeLive is an Electron desktop application with a clear separation between the **
 ## Architecture Diagram
 
 ```mermaid
-block-beta
-  columns 1
-
-  block:shell["🖥️ Desktop Shell — Electron Main Process"]
-    columns 3
-    entry["main.ts → mainWindow\ncaptionWindow · tray · shortcuts"]
-    space
-    security["IPC Security · safeStorage\nAuto Updater · Diagnostics"]
-
-    volc["🌐 Volc Proxy\n/ws/volc\nPort 23456"]
-    api["⚡ API Server\n/api/v1/*\n/ws/live"]
-    runtime["🔧 Local Runtime\nwhisper.cpp\nLifecycle Mgmt"]
+flowchart TB
+  subgraph shell["🖥️ Desktop Shell — Electron Main Process"]
+    direction TB
+    entry["main.ts → mainWindow · captionWindow · tray · shortcuts"]
+    subgraph services["Core Services"]
+      direction LR
+      volc["🌐 Volc Proxy\n/ws/volc · Port 23456"]
+      api["⚡ API Server\n/api/v1/* · /ws/live"]
+      runtime["🔧 Local Runtime\nwhisper.cpp Lifecycle"]
+    end
+    infra["IPC Security · safeStorage · Auto Updater · Diagnostics"]
   end
 
-  shell -- "IPC (contextBridge)" --> renderer
+  shell -->|"IPC (contextBridge)"| renderer
 
-  block:renderer["⚛️ Renderer — React SPA"]
-    columns 3
-    hooks["useASR\nCaptureManager\nProviderSession"]
-    stores["Zustand Stores\nsessionStore · settingsStore\nuiStore · topicStore · tagStore"]
-    ui["UI Components\nLive · Review · Topics\n5 Themes × 2 Modes"]
-
-    providers["Provider Registry\n6 ASR Backends"]
-    persistence["Session Repository\nIndexedDB + Memory Cache"]
-    space
+  subgraph renderer["⚛️ Renderer — React SPA"]
+    direction TB
+    subgraph orchestration["Orchestration Layer"]
+      direction LR
+      hooks["useASR\nCaptureManager\nProviderSession"]
+      stores["Zustand Stores\nsessionStore · settingsStore\nuiStore · topicStore · tagStore"]
+      ui["UI Components\nLive · Review · Topics\n5 Themes × 2 Modes"]
+    end
+    subgraph data["Data Layer"]
+      direction LR
+      providers["Provider Registry\n(6 ASR Backends)"]
+      persistence["Session Repository\nIndexedDB + Memory Cache"]
+    end
   end
 
-  renderer -- "REST API / WebSocket" --> ecosystem
+  renderer -->|"REST API / WebSocket"| ecosystem
 
-  block:ecosystem["🌍 External Ecosystem"]
-    columns 3
-    mcp["MCP Server\n(stdio)"]
-    skill["Agent Skill\nDefinition"]
-    ws["WebSocket\nClients"]
+  subgraph ecosystem["🌍 External Ecosystem"]
+    direction LR
+    mcp["MCP Server (stdio)"]
+    skill["Agent Skill Definition"]
+    ws["WebSocket Clients"]
   end
+
+  style shell fill:#1e293b,stroke:#0ea5e9,stroke-width:2px,color:#e2e8f0
+  style renderer fill:#1e1b2e,stroke:#8b5cf6,stroke-width:2px,color:#e2e8f0
+  style ecosystem fill:#1a2e1a,stroke:#10b981,stroke-width:2px,color:#e2e8f0
+  style services fill:#0f172a,stroke:#334155,color:#e2e8f0
+  style orchestration fill:#1e1b3a,stroke:#4c1d95,color:#e2e8f0
+  style data fill:#1e1b3a,stroke:#4c1d95,color:#e2e8f0
+  style volc fill:#0c4a6e,stroke:#0ea5e9,color:#e2e8f0
+  style api fill:#0c4a6e,stroke:#0ea5e9,color:#e2e8f0
+  style runtime fill:#0c4a6e,stroke:#0ea5e9,color:#e2e8f0
+  style providers fill:#312e81,stroke:#8b5cf6,color:#e2e8f0
+  style persistence fill:#312e81,stroke:#8b5cf6,color:#e2e8f0
+  style mcp fill:#064e3b,stroke:#10b981,color:#e2e8f0
+  style skill fill:#064e3b,stroke:#10b981,color:#e2e8f0
+  style ws fill:#064e3b,stroke:#10b981,color:#e2e8f0
 ```
 
 ## Recording Data Flow
@@ -106,8 +124,8 @@ flowchart TB
 
   style registry fill:#6366f1,color:#fff
   style capture fill:#0ea5e9,color:#fff
-  style cloud fill:#f0f9ff,stroke:#0ea5e9
-  style local fill:#f0fdf4,stroke:#10b981
+  style cloud fill:#eff6ff,stroke:#3b82f6,stroke-width:2px
+  style local fill:#f0fdf4,stroke:#22c55e,stroke-width:2px
 ```
 
 ## Key Architectural Decisions
