@@ -436,7 +436,7 @@
       </div>
 
       <!-- Chat with Transcript -->
-      <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center reveal">
+      <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center mb-16 md:mb-24 reveal">
         <div>
           <div class="pow-badge bg-[#00d4aa] text-ink mb-4" data-i18n="showcase.chat.badge">Conversational</div>
           <h3 class="font-sans text-2xl md:text-4xl tracking-wide uppercase mb-4" data-i18n="showcase.chat.title">Chat with Transcript</h3>
@@ -449,6 +449,57 @@
         </div>
         <div class="screenshot-comic">
           <img src="https://raw.githubusercontent.com/XimilalaXiang/DeLive/main/assets/screenshot-ai-chat.png" alt="AI Chat" class="w-full block" loading="lazy" />
+        </div>
+      </div>
+
+      <!-- Mind Map -->
+      <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center mb-16 md:mb-24 reveal">
+        <div class="order-2 md:order-1 screenshot-comic">
+          <img src="https://raw.githubusercontent.com/XimilalaXiang/DeLive/main/assets/screenshot-mindmap.png" alt="Mind Map" class="w-full block" loading="lazy" />
+        </div>
+        <div class="order-1 md:order-2">
+          <div class="pow-badge bg-white text-ink mb-4" data-i18n="showcase.mindmap.badge">Visual</div>
+          <h3 class="font-sans text-2xl md:text-4xl tracking-wide uppercase mb-4" data-i18n="showcase.mindmap.title">Mind Maps</h3>
+          <p class="font-bold text-sm md:text-base mb-6" data-i18n="showcase.mindmap.desc">Auto-generate interactive mind maps from your transcripts. Powered by Markmap for a visual overview.</p>
+          <ul class="space-y-3 font-bold text-sm">
+            <li class="flex items-center gap-3"><span class="check-comic"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span> <span data-i18n="showcase.mindmap.f1">One-click generation</span></li>
+            <li class="flex items-center gap-3"><span class="check-comic"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span> <span data-i18n="showcase.mindmap.f2">Interactive zoom & pan</span></li>
+            <li class="flex items-center gap-3"><span class="check-comic"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span> <span data-i18n="showcase.mindmap.f3">Powered by Markmap</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Caption Overlay -->
+      <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center mb-16 md:mb-24 reveal">
+        <div>
+          <div class="pow-badge bg-boom text-white mb-4" data-i18n="showcase.caption.badge">Always-on-top</div>
+          <h3 class="font-sans text-2xl md:text-4xl tracking-wide uppercase mb-4" data-i18n="showcase.caption.title">Caption Overlay</h3>
+          <p class="font-bold text-sm md:text-base mb-6" data-i18n="showcase.caption.desc">A draggable floating subtitle window that stays on top of all apps. Supports source, translated, and bilingual modes.</p>
+          <ul class="space-y-3 font-bold text-sm">
+            <li class="flex items-center gap-3"><span class="check-comic"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span> <span data-i18n="showcase.caption.f1">Draggable & resizable</span></li>
+            <li class="flex items-center gap-3"><span class="check-comic"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span> <span data-i18n="showcase.caption.f2">Custom font, color & background</span></li>
+            <li class="flex items-center gap-3"><span class="check-comic"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span> <span data-i18n="showcase.caption.f3">Bilingual mode</span></li>
+          </ul>
+        </div>
+        <div class="screenshot-comic">
+          <img src="https://raw.githubusercontent.com/XimilalaXiang/DeLive/main/assets/screenshot-caption-overlay.png" alt="Caption Overlay" class="w-full block" loading="lazy" />
+        </div>
+      </div>
+
+      <!-- MCP Integration -->
+      <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center reveal">
+        <div class="order-2 md:order-1 screenshot-comic">
+          <img src="https://raw.githubusercontent.com/XimilalaXiang/DeLive/main/assets/screenshot-mcp-integration.png" alt="MCP Integration" class="w-full block" loading="lazy" />
+        </div>
+        <div class="order-1 md:order-2">
+          <div class="pow-badge bg-[#6E29F5] text-white mb-4" data-i18n="showcase.mcp.badge">Developer</div>
+          <h3 class="font-sans text-2xl md:text-4xl tracking-wide uppercase mb-4" data-i18n="showcase.mcp.title">MCP Integration</h3>
+          <p class="font-bold text-sm md:text-base mb-6" data-i18n="showcase.mcp.desc">External AI tools access DeLive transcription data via the Model Context Protocol. Works with Claude Desktop and Cursor.</p>
+          <ul class="space-y-3 font-bold text-sm">
+            <li class="flex items-center gap-3"><span class="check-comic"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span> <span data-i18n="showcase.mcp.f1">Claude Desktop & Cursor</span></li>
+            <li class="flex items-center gap-3"><span class="check-comic"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span> <span data-i18n="showcase.mcp.f2">REST API + WebSocket</span></li>
+            <li class="flex items-center gap-3"><span class="check-comic"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span> <span data-i18n="showcase.mcp.f3">8 API endpoints</span></li>
+          </ul>
         </div>
       </div>
     </div>
@@ -695,6 +746,15 @@
         'showcase.chat.badge':'Conversational','showcase.chat.title':'Chat with Transcript',
         'showcase.chat.desc':'Ask questions, get clarifications, extract info — through a natural chat interface with Markdown rendering.',
         'showcase.chat.f1':'Natural language Q&A','showcase.chat.f2':'Rich Markdown rendering','showcase.chat.f3':'Multi-thread conversations',
+        'showcase.mindmap.badge':'Visual','showcase.mindmap.title':'Mind Maps',
+        'showcase.mindmap.desc':'Auto-generate interactive mind maps from your transcripts. Powered by Markmap for a visual overview.',
+        'showcase.mindmap.f1':'One-click generation','showcase.mindmap.f2':'Interactive zoom & pan','showcase.mindmap.f3':'Powered by Markmap',
+        'showcase.caption.badge':'Always-on-top','showcase.caption.title':'Caption Overlay',
+        'showcase.caption.desc':'A draggable floating subtitle window that stays on top of all apps. Supports source, translated, and bilingual modes.',
+        'showcase.caption.f1':'Draggable & resizable','showcase.caption.f2':'Custom font, color & background','showcase.caption.f3':'Bilingual mode',
+        'showcase.mcp.badge':'Developer','showcase.mcp.title':'MCP Integration',
+        'showcase.mcp.desc':'External AI tools access DeLive transcription data via the Model Context Protocol. Works with Claude Desktop and Cursor.',
+        'showcase.mcp.f1':'Claude Desktop & Cursor','showcase.mcp.f2':'REST API + WebSocket','showcase.mcp.f3':'8 API endpoints',
         'integrations.label':'Ecosystem','integrations.title':'Works with your stack!',
         'integrations.desc':'Six ASR providers, any OpenAI-compatible AI model, and MCP integration.',
         'stats.api':'API Endpoints','stats.lang':'Languages','stats.tests':'Tests Passing',
@@ -736,6 +796,15 @@
         'showcase.chat.badge':'对话式','showcase.chat.title':'与转录稿对话',
         'showcase.chat.desc':'询问问题、获取澄清、提取信息 — 自然对话界面，完整 Markdown 渲染。',
         'showcase.chat.f1':'自然语言问答','showcase.chat.f2':'完整 Markdown 渲染','showcase.chat.f3':'多线程对话',
+        'showcase.mindmap.badge':'可视化','showcase.mindmap.title':'思维导图',
+        'showcase.mindmap.desc':'从转录内容自动生成交互式思维导图。基于 Markmap，一目了然。',
+        'showcase.mindmap.f1':'一键生成','showcase.mindmap.f2':'交互式缩放与平移','showcase.mindmap.f3':'基于 Markmap',
+        'showcase.caption.badge':'始终置顶','showcase.caption.title':'浮动字幕',
+        'showcase.caption.desc':'可拖拽的浮动字幕窗口，始终置顶显示。支持原文、翻译和双语模式。',
+        'showcase.caption.f1':'可拖拽、可调整大小','showcase.caption.f2':'自定义字体、颜色和背景','showcase.caption.f3':'双语模式',
+        'showcase.mcp.badge':'开发者','showcase.mcp.title':'MCP 集成',
+        'showcase.mcp.desc':'外部 AI 工具通过 MCP 协议访问 DeLive 转录数据。支持 Claude Desktop 和 Cursor。',
+        'showcase.mcp.f1':'Claude Desktop & Cursor','showcase.mcp.f2':'REST API + WebSocket','showcase.mcp.f3':'8 个 API 端点',
         'integrations.label':'生态系统','integrations.title':'与你的技术栈集成！',
         'integrations.desc':'六大 ASR 引擎、任何 OpenAI 兼容 AI 模型、MCP 集成。',
         'stats.api':'API 端点','stats.lang':'语言支持','stats.tests':'测试通过',
