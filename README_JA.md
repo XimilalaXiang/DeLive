@@ -2,8 +2,6 @@
 
 <img src="assets/header.png" width="100%" alt="DeLive Banner" />
 
-<img src="assets/icon.svg" width="80" height="80" alt="DeLive Logo">
-
 # DeLive
 
 **システム音声キャプチャ | マルチプロバイダー ASR | ローカルファーストの AI レビューワークスペース**

@@ -2,8 +2,6 @@
 
 <img src="assets/header.png" width="100%" alt="DeLive Banner" />
 
-<img src="assets/icon.svg" width="80" height="80" alt="DeLive Logo">
-
 # DeLive
 
 **系统音频捕获 | 多 Provider ASR | 本地优先的 AI 复盘工作台**
