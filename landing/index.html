@@ -996,11 +996,11 @@
       var currentIdx = 0;
       var touchStartX = 0;
 
-      document.querySelectorAll('.screenshot-comic img').forEach(function(img) {
+      document.querySelectorAll('.screenshot-comic img').forEach(function(img, idx) {
         images.push(img.src);
         img.parentElement.addEventListener('click', function(e) {
           e.preventDefault();
-          currentIdx = images.indexOf(img.src);
+          currentIdx = idx;
           openLightbox();
         });
       });
