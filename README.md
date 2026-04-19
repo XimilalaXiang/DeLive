@@ -42,6 +42,11 @@ DeLive is a desktop transcription workspace for system audio. It captures whatev
 | Summary, action items, keywords, and chapters | Multi-thread conversation with cited references | Caption style editor with live preview |
 | <img width="300" src="assets/screenshot-ai-overview.png" alt="AI Overview" /> | <img width="300" src="assets/screenshot-ai-chat.png" alt="AI Chat" /> | <img width="300" src="assets/screenshot-caption-style.png" alt="Caption Style" /> |
 
+| Mind Map | Transcript Detail | MCP Integration |
+|:---:|:---:|:---:|
+| Auto-generated mind maps from transcripts | Timestamped transcript with speaker diarization | External AI tools access DeLive via MCP protocol |
+| <img width="300" src="assets/screenshot-mindmap.png" alt="Mind Map" /> | <img width="300" src="assets/screenshot-transcript-detail.png" alt="Transcript Detail" /> | <img width="300" src="assets/screenshot-mcp-integration.png" alt="MCP Integration" /> |
+
 | Settings | Caption Overlay |
 |:---:|:---:|
 | Provider configuration with credential management | Draggable always-on-top floating caption window |
