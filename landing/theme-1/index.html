@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DeLive — Desktop Transcription Workspace</title>
+  <meta name="description" content="Capture system audio. Transcribe with six ASR backends. Review with AI — summaries, chat, mind maps. All local-first." />
+  <meta property="og:title" content="DeLive — Desktop Transcription Workspace" />
+  <meta property="og:description" content="Real-time desktop audio transcription with AI review. Six ASR backends, floating captions, and local-first privacy." />
+  <meta property="og:image" content="https://raw.githubusercontent.com/XimilalaXiang/DeLive/main/assets/header.png" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" type="image/svg+xml" href="https://raw.githubusercontent.com/XimilalaXiang/DeLive/main/assets/icon.svg" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { 50: '#ecfeff', 100: '#cffafe', 200: '#a5f3fc', 300: '#67e8f9', 400: '#22d3ee', 500: '#06b6d4', 600: '#0891b2', 700: '#0e7490', 800: '#155e75', 900: '#164e63' },
+            accent: { 400: '#818cf8', 500: '#6366f1', 600: '#4f46e5' },
+            surface: { 50: 'rgba(255,255,255,0.03)', 100: 'rgba(255,255,255,0.05)', 200: 'rgba(255,255,255,0.08)' },
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+          },
+        },
+      },
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    ::selection { background: rgba(6, 182, 212, 0.3); color: #fff; }
+
+    /* --- Animations --- */
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+    @keyframes fade-in-up { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes gradient-shift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    @keyframes pulse-glow { 0%, 100% { opacity: 0.12; transform: scale(1); } 50% { opacity: 0.2; transform: scale(1.05); } }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+    @keyframes border-rotate { 0% { --border-angle: 0deg; } 100% { --border-angle: 360deg; } }
+    @keyframes grain { 0%, 100% { transform: translate(0, 0); } 10% { transform: translate(-5%, -10%); } 20% { transform: translate(-15%, 5%); } 30% { transform: translate(7%, -25%); } 40% { transform: translate(-5%, 25%); } 50% { transform: translate(-15%, 10%); } 60% { transform: translate(15%, 0%); } 70% { transform: translate(0%, 15%); } 80% { transform: translate(3%, 35%); } 90% { transform: translate(-10%, 10%); } }
+    @keyframes aurora { 0% { transform: rotate(0deg) scale(1.5); } 33% { transform: rotate(120deg) scale(1.8); } 66% { transform: rotate(240deg) scale(1.3); } 100% { transform: rotate(360deg) scale(1.5); } }
+    @keyframes typewriter { from { width: 0; } to { width: 100%; } }
+    @keyframes blink-caret { from, to { border-color: transparent; } 50% { border-color: #22d3ee; } }
+
+    .animate-float { animation: float 6s ease-in-out infinite; }
+    .animate-gradient { background-size: 200% 200%; animation: gradient-shift 8s ease infinite; }
+    .animate-pulse-glow { animation: pulse-glow 4s ease-in-out infinite; }
+
+    /* --- Reveal / Scroll --- */
+    .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+
+    /* --- Hero Glow --- */
+    .hero-glow {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(140px);
+      pointer-events: none;
+    }
+
+    /* --- Film Grain Overlay --- */
+    .grain-overlay::before {
+      content: '';
+      position: fixed; top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      opacity: 0.025;
+      pointer-events: none;
+      z-index: 9999;
+      animation: grain 8s steps(10) infinite;
+    }
+
+    /* --- Grid background --- */
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    /* --- Dot pattern --- */
+    .dot-pattern {
+      background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    /* --- Screenshot frame --- */
+    .screenshot-frame {
+      border-radius: 16px;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.06),
+        0 30px 80px -20px rgba(0, 0, 0, 0.5),
+        0 0 40px -10px rgba(6, 182, 212, 0.1);
+      overflow: hidden;
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s ease;
+    }
+    .screenshot-frame:hover {
+      transform: translateY(-4px);
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.1),
+        0 40px 100px -20px rgba(0, 0, 0, 0.6),
+        0 0 60px -10px rgba(6, 182, 212, 0.15);
+    }
+
+    /* --- Bento Card --- */
+    .bento-card {
+      position: relative;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 20px;
+      padding: 32px;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow: hidden;
+    }
+    .bento-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      border-radius: 20px;
+      background: radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(6,182,212,0.06), transparent 40%);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      pointer-events: none;
+    }
+    .bento-card:hover::before { opacity: 1; }
+    .bento-card:hover {
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(255,255,255,0.12);
+      transform: translateY(-3px);
+    }
+
+    /* --- Glassmorphism card --- */
+    .glass-card {
+      background: rgba(255,255,255,0.03);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+    }
+
+    /* --- Icon container --- */
+    .icon-wrap {
+      width: 48px; height: 48px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(6,182,212,0.12), rgba(99,102,241,0.12));
+      border: 1px solid rgba(255,255,255,0.08);
+      flex-shrink: 0;
+    }
+    .icon-wrap svg {
+      width: 24px; height: 24px;
+    }
+
+    /* --- Provider pill --- */
+    .provider-pill {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 24px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      flex-shrink: 0;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .provider-pill:hover {
+      background: rgba(255,255,255,0.07);
+      border-color: rgba(6,182,212,0.3);
+      transform: translateY(-2px);
+    }
+
+    /* --- Provider marquee --- */
+    .provider-marquee {
+      overflow: hidden;
+      mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+      -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    }
+    .provider-marquee-track {
+      display: flex;
+      gap: 20px;
+      animation: marquee 25s linear infinite;
+      width: max-content;
+    }
+    .provider-marquee:hover .provider-marquee-track {
+      animation-play-state: paused;
+    }
+
+    /* --- Stat card animated number --- */
+    .stat-number {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* --- Smooth nav --- */
+    .nav-blur {
+      background: rgba(3, 7, 18, 0.7);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+    }
+
+    /* --- Section divider --- */
+    .section-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06) 50%, transparent);
+    }
+
+    /* --- CTA Button glow --- */
+    .btn-glow {
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-glow::after {
+      content: '';
+      position: absolute; inset: -2px;
+      background: linear-gradient(135deg, rgba(6,182,212,0.4), rgba(99,102,241,0.4));
+      border-radius: inherit;
+      filter: blur(16px);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      z-index: -1;
+    }
+    .btn-glow:hover::after { opacity: 1; }
+
+    /* --- Marquee --- */
+    .marquee-track {
+      display: flex; gap: 48px;
+      animation: marquee 30s linear infinite;
+    }
+
+    /* --- Badge shimmer --- */
+    .badge-shimmer {
+      background: linear-gradient(110deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0) 70%);
+      background-size: 200% 100%;
+      animation: shimmer 3s ease-in-out infinite;
+    }
+
+    /* --- Aurora mesh background --- */
+    .aurora-bg {
+      position: absolute; inset: 0; overflow: hidden; z-index: 0;
+    }
+    .aurora-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.15;
+      animation: aurora 20s ease-in-out infinite;
+    }
+    .aurora-blob:nth-child(1) { width: 600px; height: 600px; background: #06b6d4; top: -20%; left: -10%; animation-delay: 0s; }
+    .aurora-blob:nth-child(2) { width: 500px; height: 500px; background: #6366f1; top: 10%; right: -15%; animation-delay: -7s; animation-duration: 25s; }
+    .aurora-blob:nth-child(3) { width: 400px; height: 400px; background: #8b5cf6; bottom: -10%; left: 30%; animation-delay: -14s; animation-duration: 22s; }
+
+    /* --- FAQ accordion --- */
+    .faq-item { border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .faq-item:last-child { border-bottom: none; }
+    .faq-toggle { cursor: pointer; }
+    .faq-toggle svg { transition: transform 0.3s ease; }
+    .faq-toggle[aria-expanded="true"] svg { transform: rotate(45deg); }
+    .faq-answer {
+      max-height: 0; overflow: hidden;
+      transition: max-height 0.4s ease, padding 0.3s ease;
+    }
+    .faq-answer.open { max-height: 300px; }
+
+    /* --- Mobile hamburger menu --- */
+    .mobile-menu-overlay {
+      position: fixed; inset: 0; z-index: 40;
+      background: rgba(3, 7, 18, 0.85);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .mobile-menu-overlay.open { opacity: 1; pointer-events: auto; }
+    .mobile-menu-panel {
+      position: fixed; top: 0; right: 0; z-index: 50;
+      width: 280px; max-width: 80vw; height: 100%;
+      background: rgba(10, 15, 30, 0.95);
+      border-left: 1px solid rgba(255,255,255,0.06);
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow-y: auto;
+    }
+    .mobile-menu-panel.open { transform: translateX(0); }
+
+    /* --- Responsive screenshot tilt --- */
+    @media (min-width: 768px) {
+      .tilt-left { transform: perspective(1200px) rotateY(3deg); }
+      .tilt-right { transform: perspective(1200px) rotateY(-3deg); }
+      .tilt-left:hover, .tilt-right:hover { transform: perspective(1200px) rotateY(0); }
+    }
+
+    /* --- Mobile optimizations --- */
+    @media (max-width: 639px) {
+      .aurora-blob:nth-child(1) { width: 300px; height: 300px; }
+      .aurora-blob:nth-child(2) { width: 250px; height: 250px; }
+      .aurora-blob:nth-child(3) { width: 200px; height: 200px; }
+      .bento-card { padding: 24px; }
+      .provider-pill { padding: 10px 16px; gap: 8px; }
+      .provider-pill .text-xs { display: none; }
+      .screenshot-frame { border-radius: 12px; }
+      .hero-glow { display: none; }
+    }
+  </style>
+</head>
+<body class="bg-gray-950 text-gray-100 antialiased grain-overlay">
+
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 right-0 z-50 nav-blur border-b border-white/5">
+    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2.5 text-lg font-bold tracking-tight group">
+        <img src="https://raw.githubusercontent.com/XimilalaXiang/DeLive/main/assets/icon.svg" alt="DeLive" class="w-7 h-7 group-hover:scale-110 transition-transform" />
+        DeLive
+      </a>
+      <div class="hidden md:flex items-center gap-8 text-sm text-gray-400">
+        <a href="#features" class="hover:text-white transition-colors duration-200" data-i18n="nav.features">Features</a>
+        <a href="#showcase" class="hover:text-white transition-colors duration-200" data-i18n="nav.showcase">Showcase</a>
+        <a href="#integrations" class="hover:text-white transition-colors duration-200" data-i18n="nav.integrations">Integrations</a>
+        <a href="#download" class="hover:text-white transition-colors duration-200" data-i18n="nav.download">Download</a>
+        <a href="https://ximilalaxiang.github.io/DeLive/" target="_blank" class="hover:text-white transition-colors duration-200" data-i18n="nav.docs">Docs</a>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="https://github.com/XimilalaXiang/DeLive" target="_blank" class="hidden sm:flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          <span data-i18n="nav.github">GitHub</span>
+        </a>
+        <button onclick="toggleLanguage()" class="lang-toggle text-sm text-gray-400 hover:text-white transition-colors font-medium px-2.5 py-1 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5">EN</button>
+        <a href="#download" class="hidden sm:inline-flex btn-glow bg-brand-500 hover:bg-brand-400 text-gray-950 font-semibold text-sm px-4 py-2 rounded-lg transition-colors" data-i18n="nav.download-btn">
+          Download
+        </a>
+        <button onclick="toggleMobileMenu()" class="md:hidden flex items-center justify-center w-9 h-9 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors" aria-label="Menu">
+          <svg class="w-5 h-5 hamburger-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+          <svg class="w-5 h-5 close-icon hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu-overlay" onclick="toggleMobileMenu()"></div>
+  <div class="mobile-menu-panel">
+    <div class="flex items-center justify-between p-5 border-b border-white/6">
+      <span class="text-lg font-bold">DeLive</span>
+      <button onclick="toggleMobileMenu()" class="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors" aria-label="Close menu">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <nav class="flex flex-col p-5 gap-1">
+      <a href="#features" onclick="toggleMobileMenu()" class="px-4 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 transition-colors" data-i18n="nav.features">Features</a>
+      <a href="#showcase" onclick="toggleMobileMenu()" class="px-4 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 transition-colors" data-i18n="nav.showcase">Showcase</a>
+      <a href="#integrations" onclick="toggleMobileMenu()" class="px-4 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 transition-colors" data-i18n="nav.integrations">Integrations</a>
+      <a href="#download" onclick="toggleMobileMenu()" class="px-4 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 transition-colors" data-i18n="nav.download">Download</a>
+      <a href="https://ximilalaxiang.github.io/DeLive/" target="_blank" class="px-4 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 transition-colors" data-i18n="nav.docs">Docs</a>
+      <div class="my-3 h-px bg-white/6"></div>
+      <a href="https://github.com/XimilalaXiang/DeLive" target="_blank" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 transition-colors">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        <span data-i18n="nav.github">GitHub</span>
+      </a>
+      <a href="#download" onclick="toggleMobileMenu()" class="mt-3 btn-glow bg-brand-500 hover:bg-brand-400 text-gray-950 font-semibold text-sm px-4 py-3 rounded-xl text-center transition-colors" data-i18n="nav.download-btn">
+        Download
+      </a>
+    </nav>
+  </div>
+
+  <!-- Hero -->
+  <section class="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
+    <div class="aurora-bg">
+      <div class="aurora-blob"></div>
+      <div class="aurora-blob"></div>
+      <div class="aurora-blob"></div>
+    </div>
+
+    <div class="absolute inset-0 grid-bg opacity-40"></div>
+
+    <div class="relative z-10 max-w-6xl mx-auto px-5 sm:px-6 pt-12 sm:pt-20 pb-12 sm:pb-16 text-center">
+      <!-- Badge -->
+      <div class="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-3 sm:px-4 py-1.5 text-xs sm:text-sm text-gray-300 mb-6 sm:mb-8 badge-shimmer">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span data-i18n="hero.badge">v2.0 — Now with AI Review Desk</span>
+      </div>
+
+      <!-- Headline -->
+      <h1 class="text-4xl sm:text-6xl lg:text-[5rem] font-extrabold tracking-tight leading-[1.08] mb-5 sm:mb-6">
+        <span class="bg-gradient-to-r from-brand-300 via-brand-400 to-accent-400 bg-clip-text text-transparent animate-gradient" data-i18n="hero.title1">Hear Everything.</span><br />
+        <span class="text-white" data-i18n="hero.title2">Review Smarter.</span>
+      </h1>
+
+      <!-- Subheading -->
+      <p class="text-lg sm:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed" data-i18n="hero.desc">
+        Capture system audio. Transcribe with six ASR backends.
+        Review with AI — summaries, chat, mind maps. All local-first.
+      </p>
+
+      <!-- CTA -->
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-12 sm:mb-20">
+        <a href="#download" class="btn-glow group flex items-center justify-center gap-2.5 bg-brand-500 hover:bg-brand-400 text-gray-950 font-semibold px-8 py-3.5 rounded-xl text-base transition-all hover:shadow-lg hover:shadow-brand-500/20 w-full sm:w-auto">
+          <svg class="w-5 h-5 transition-transform group-hover:translate-y-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          <span data-i18n="hero.cta-download">Download for Free</span>
+        </a>
+        <div class="flex items-center gap-3 w-full sm:w-auto">
+          <a href="https://github.com/XimilalaXiang/DeLive" target="_blank" class="group flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white font-medium px-5 sm:px-8 py-3.5 rounded-xl text-sm sm:text-base transition-all flex-1 sm:flex-initial">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            <span data-i18n="hero.cta-github">View on GitHub</span>
+          </a>
+          <a href="https://ximilalaxiang.github.io/DeLive/" target="_blank" class="group flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white font-medium px-5 sm:px-8 py-3.5 rounded-xl text-sm sm:text-base transition-all flex-1 sm:flex-initial">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+            <span data-i18n="hero.cta-docs">Documentation</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Product Screenshot -->
+      <div class="relative max-w-5xl mx-auto">
+        <div class="absolute -inset-4 bg-gradient-to-r from-brand-500/10 via-accent-500/10 to-brand-500/10 rounded-3xl blur-2xl opacity-60"></div>
+        <div class="relative screenshot-frame animate-float">
+          <img src="https://raw.githubusercontent.com/XimilalaXiang/DeLive/main/assets/screenshot-live.png" alt="DeLive — Live Transcription" class="w-full" loading="lazy" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Scroll indicator -->
+    <div class="absolute bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-gray-500 text-xs hidden sm:flex">
+      <span data-i18n="hero.scroll">Scroll to explore</span>
+      <svg class="w-4 h-4 animate-bounce" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- Features Bento Grid -->
+  <section id="features" class="relative py-20 sm:py-32 overflow-hidden">
+    <div class="absolute inset-0 dot-pattern opacity-30"></div>
+    <div class="relative max-w-6xl mx-auto px-6">
+      <div class="text-center mb-12 sm:mb-20 reveal">
+        <div class="inline-flex items-center gap-2 bg-brand-500/10 border border-brand-500/20 rounded-full px-4 py-1.5 text-sm text-brand-400 font-medium mb-6">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+          <span data-i18n="features.label">Capabilities</span>
+        </div>
+        <h2 class="text-3xl sm:text-5xl lg:text-[3.5rem] font-bold tracking-tight mb-5" data-i18n="features.title" data-i18n-html>Everything you need,<br />nothing you don't.</h2>
+        <p class="text-gray-400 text-lg max-w-xl mx-auto" data-i18n="features.desc">Six ASR engines, AI-powered review, floating captions — all running locally on your machine.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+        <!-- Large Card: ASR -->
+        <div class="bento-card lg:col-span-2 reveal reveal-delay-1">
+          <div class="flex items-start gap-5">
+            <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="url(#g1)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><defs><linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#22d3ee"/><stop offset="100%" stop-color="#818cf8"/></linearGradient></defs><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></div>
+            <div>
+              <h3 class="text-xl font-semibold mb-2.5" data-i18n="f.asr.title">Six ASR Backends, One UI</h3>
+              <p class="text-gray-400 leading-relaxed text-[15px]" data-i18n="f.asr.desc">Soniox (real-time streaming with translation & diarization), Volcengine, Groq, SiliconFlow, local OpenAI-compatible, and local whisper.cpp. Three execution modes — real-time streaming, chunked batch, and local inference.</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-2 mt-6">
+            <span class="text-xs px-2.5 py-1 rounded-full bg-brand-500/10 text-brand-300 border border-brand-500/20">Streaming</span>
+            <span class="text-xs px-2.5 py-1 rounded-full bg-accent-500/10 text-accent-400 border border-accent-500/20">Batch</span>
+            <span class="text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">Local</span>
+          </div>
+        </div>
+
+        <!-- Card: Local First -->
+        <div class="bento-card reveal reveal-delay-2">
+          <div class="icon-wrap mb-5"><svg viewBox="0 0 24 24" fill="none" stroke="url(#g2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><defs><linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#ef4444"/></linearGradient></defs><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1"/></svg></div>
+          <h3 class="text-xl font-semibold mb-2.5" data-i18n="f.local.title">Local-First & Secure</h3>
+          <p class="text-gray-400 leading-relaxed text-[15px]" data-i18n="f.local.desc">Sessions in IndexedDB, secrets in Electron safeStorage, context isolation, and navigation guards. Your data never leaves your machine.</p>
+        </div>
+
+        <!-- Card: AI Review -->
+        <div class="bento-card reveal reveal-delay-1">
+          <div class="icon-wrap mb-5"><svg viewBox="0 0 24 24" fill="none" stroke="url(#g3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><defs><linearGradient id="g3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs><path d="M9.5 2A6.5 6.5 0 0 0 3 8.5C3 12.58 5.77 14 7 15.5V17h4v-1.5c1.23-1.5 4-2.92 4-6.5A6.5 6.5 0 0 0 8.5 2"/><path d="M12 8.5C12 6 10.21 4 8.5 4"/><path d="M8 17v1a3 3 0 0 0 6 0v-1"/><path d="M14.5 2A6.5 6.5 0 0 1 21 8.5c0 4.08-2.77 5.5-4 7V17h-4"/><path d="M12 8.5c0-2.5 1.79-4.5 3.5-4.5"/></svg></div>
+          <h3 class="text-xl font-semibold mb-2.5" data-i18n="f.ai.title">AI Review Desk</h3>
+          <p class="text-gray-400 leading-relaxed text-[15px]" data-i18n="f.ai.desc">Overview with summary, action items, keywords, and chapters. Multi-thread chat with Markdown rendering. Mind maps powered by Markmap.</p>
+        </div>
+
+        <!-- Large Card: Captions -->
+        <div class="bento-card lg:col-span-2 reveal reveal-delay-2">
+          <div class="flex items-start gap-5">
+            <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="url(#g4)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><defs><linearGradient id="g4" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#06b6d4"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8"/><path d="M8 13h6"/></svg></div>
+            <div>
+              <h3 class="text-xl font-semibold mb-2.5" data-i18n="f.caption.title">Floating Caption Overlay</h3>
+              <p class="text-gray-400 leading-relaxed text-[15px]" data-i18n="f.caption.desc">Always-on-top, draggable subtitle window with source, translated, and dual-line bilingual modes. Fully customizable font, color, shadow, and background. Perfect for meetings, lectures, and live events.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card: Open API -->
+        <div class="bento-card reveal reveal-delay-1">
+          <div class="icon-wrap mb-5"><svg viewBox="0 0 24 24" fill="none" stroke="url(#g5)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><defs><linearGradient id="g5" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#10b981"/><stop offset="100%" stop-color="#06b6d4"/></linearGradient></defs><path d="M4 11h16"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/></svg></div>
+          <h3 class="text-xl font-semibold mb-2.5" data-i18n="f.api.title">Open API & MCP</h3>
+          <p class="text-gray-400 leading-relaxed text-[15px]" data-i18n="f.api.desc">Local REST API with 8 endpoints, real-time WebSocket streaming, standalone MCP server for Claude Desktop and Cursor.</p>
+        </div>
+
+        <!-- Card: Themes -->
+        <div class="bento-card reveal reveal-delay-2">
+          <div class="icon-wrap mb-5"><svg viewBox="0 0 24 24" fill="none" stroke="url(#g6)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><defs><linearGradient id="g6" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f43f5e"/><stop offset="100%" stop-color="#a855f7"/></linearGradient></defs><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 22C6.5 22 2 17.5 2 12S6.5 2 12 2s10 4.5 10 10c0 2-1 3.5-3 3.5h-2.5c-1.1 0-2 .9-2 2 0 .5.2 1 .5 1.3.3.4.5.8.5 1.2 0 1.1-.9 2-2 2z"/></svg></div>
+          <h3 class="text-xl font-semibold mb-2.5" data-i18n="f.themes.title">Five Themes</h3>
+          <p class="text-gray-400 leading-relaxed text-[15px]" data-i18n="f.themes.desc">Cyan, Violet, Rose, Green, and Amber accent palettes — each with light and dark mode. Persistent sidebar navigation and Command Palette.</p>
+        </div>
+
+        <!-- Card: Cloud Backup -->
+        <div class="bento-card reveal reveal-delay-3">
+          <div class="icon-wrap mb-5"><svg viewBox="0 0 24 24" fill="none" stroke="url(#g7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><defs><linearGradient id="g7" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#6366f1"/><stop offset="100%" stop-color="#06b6d4"/></linearGradient></defs><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/><path d="M12 13v5"/><path d="M9 16l3-3 3 3"/></svg></div>
+          <h3 class="text-xl font-semibold mb-2.5" data-i18n="f.backup.title">Cloud Backup</h3>
+          <p class="text-gray-400 leading-relaxed text-[15px]" data-i18n="f.backup.desc">WebDAV + S3-compatible storage — Nutstore, Nextcloud, Alist, Amazon S3, MinIO. Auto-create directories.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- Showcase -->
+  <section id="showcase" class="py-20 sm:py-32 relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-b from-gray-950 via-gray-900/40 to-gray-950"></div>
+    <div class="relative max-w-6xl mx-auto px-6">
+      <div class="text-center mb-12 sm:mb-20 reveal">
+        <div class="inline-flex items-center gap-2 bg-accent-500/10 border border-accent-500/20 rounded-full px-4 py-1.5 text-sm text-accent-400 font-medium mb-6">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5"/></svg>
+          <span data-i18n="showcase.label">See it in action</span>
+        </div>
+        <h2 class="text-3xl sm:text-5xl lg:text-[3.5rem] font-bold tracking-tight mb-5" data-i18n="showcase.title">Built for how you work.</h2>
+        <p class="text-gray-400 text-lg max-w-xl mx-auto" data-i18n="showcase.desc">From live transcription to AI-powered insights — see what DeLive can do.</p>
+      </div>
+
+      <!-- Feature 1: Live Transcription -->
+      <div class="grid md:grid-cols-2 gap-10 md:gap-16 items-center mb-20 md:mb-32 reveal">
+        <div>
+          <div class="inline-flex items-center gap-2 bg-brand-500/10 text-brand-400 text-sm font-medium px-3 py-1 rounded-full mb-5 border border-brand-500/20" data-i18n="showcase.live.badge">Real-time</div>
+          <h3 class="text-2xl sm:text-3xl font-bold mb-4 tracking-tight" data-i18n="showcase.live.title">Live Transcription</h3>
+          <p class="text-gray-400 text-base sm:text-lg leading-relaxed mb-6 sm:mb-8" data-i18n="showcase.live.desc">Capture any system audio — meetings, lectures, podcasts — and see words appear in real-time. Support for 60+ languages with automatic speaker detection.</p>
+          <ul class="space-y-4 text-gray-300">
+            <li class="flex items-center gap-3"><div class="w-6 h-6 rounded-full bg-brand-500/15 flex items-center justify-center flex-shrink-0"><svg class="w-3.5 h-3.5 text-brand-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div> <span data-i18n="showcase.live.f1">System audio capture — no microphone needed</span></li>
+            <li class="flex items-center gap-3"><div class="w-6 h-6 rounded-full bg-brand-500/15 flex items-center justify-center flex-shrink-0"><svg class="w-3.5 h-3.5 text-brand-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div> <span data-i18n="showcase.live.f2">Real-time streaming with word-level timestamps</span></li>
+            <li class="flex items-center gap-3"><div class="w-6 h-6 rounded-full bg-brand-500/15 flex items-center justify-center flex-shrink-0"><svg class="w-3.5 h-3.5 text-brand-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div> <span data-i18n="showcase.live.f3">Speaker diarization & live translation</span></li>
+          </ul>
+        </div>
+        <div class="screenshot-frame tilt-right">
+          <img src="https://raw.githubusercontent.com/XimilalaXiang/DeLive/main/assets/screenshot-live.png" alt="Live Transcription" class="w-full" loading="lazy" />
+        </div>
+      </div>
+
+      <!-- Feature 2: AI Review -->
+      <div class="grid md:grid-cols-2 gap-10 md:gap-16 items-center mb-20 md:mb-32 reveal">
+        <div class="order-2 md:order-1 screenshot-frame tilt-left">
+          <img src="https://raw.githubusercontent.com/XimilalaXiang/DeLive/main/assets/screenshot-ai-overview.png" alt="AI Overview" class="w-full" loading="lazy" />
+        </div>
+        <div class="order-1 md:order-2">
+          <div class="inline-flex items-center gap-2 bg-accent-500/10 text-accent-400 text-sm font-medium px-3 py-1 rounded-full mb-5 border border-accent-500/20" data-i18n="showcase.ai.badge">AI-Powered</div>
+          <h3 class="text-2xl sm:text-3xl font-bold mb-4 tracking-tight" data-i18n="showcase.ai.title">AI Review Desk</h3>
+          <p class="text-gray-400 text-base sm:text-lg leading-relaxed mb-6 sm:mb-8" data-i18n="showcase.ai.desc">After each session, dive into an AI-generated overview — summaries, action items, key topics, and auto-chaptered transcripts. Chat with your transcript or generate mind maps.</p>
+          <ul class="space-y-4 text-gray-300">
+            <li class="flex items-center gap-3"><div class="w-6 h-6 rounded-full bg-accent-500/15 flex items-center justify-center flex-shrink-0"><svg class="w-3.5 h-3.5 text-accent-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div> <span data-i18n="showcase.ai.f1">One-click summary, action items & keywords</span></li>
+            <li class="flex items-center gap-3"><div class="w-6 h-6 rounded-full bg-accent-500/15 flex items-center justify-center flex-shrink-0"><svg class="w-3.5 h-3.5 text-accent-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div> <span data-i18n="showcase.ai.f2">Multi-thread chat with transcript context</span></li>
+            <li class="flex items-center gap-3"><div class="w-6 h-6 rounded-full bg-accent-500/15 flex items-center justify-center flex-shrink-0"><svg class="w-3.5 h-3.5 text-accent-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div> <span data-i18n="showcase.ai.f3">Interactive mind maps via Markmap</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Feature 3: AI Chat -->
+      <div class="grid md:grid-cols-2 gap-10 md:gap-16 items-center reveal">
+        <div>
+          <div class="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-400 text-sm font-medium px-3 py-1 rounded-full mb-5 border border-emerald-500/20" data-i18n="showcase.chat.badge">Conversational</div>
+          <h3 class="text-2xl sm:text-3xl font-bold mb-4 tracking-tight" data-i18n="showcase.chat.title">Chat with Your Transcript</h3>
+          <p class="text-gray-400 text-base sm:text-lg leading-relaxed mb-6 sm:mb-8" data-i18n="showcase.chat.desc">Ask questions about your meeting, get clarifications, extract specific information — all through a natural chat interface with full Markdown rendering.</p>
+          <ul class="space-y-4 text-gray-300">
+            <li class="flex items-center gap-3"><div class="w-6 h-6 rounded-full bg-emerald-500/15 flex items-center justify-center flex-shrink-0"><svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div> <span data-i18n="showcase.chat.f1">Natural language Q&A</span></li>
+            <li class="flex items-center gap-3"><div class="w-6 h-6 rounded-full bg-emerald-500/15 flex items-center justify-center flex-shrink-0"><svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div> <span data-i18n="showcase.chat.f2">Rich Markdown rendering</span></li>
+            <li class="flex items-center gap-3"><div class="w-6 h-6 rounded-full bg-emerald-500/15 flex items-center justify-center flex-shrink-0"><svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div> <span data-i18n="showcase.chat.f3">Multi-thread conversations</span></li>
+          </ul>
+        </div>
+        <div class="screenshot-frame tilt-right">
+          <img src="https://raw.githubusercontent.com/XimilalaXiang/DeLive/main/assets/screenshot-ai-chat.png" alt="AI Chat" class="w-full" loading="lazy" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- Integrations / Providers -->
+  <section id="integrations" class="py-20 sm:py-32 relative overflow-hidden">
+    <div class="absolute inset-0 grid-bg opacity-40"></div>
+    <div class="relative max-w-6xl mx-auto px-6">
+      <div class="text-center mb-12 sm:mb-20 reveal">
+        <div class="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-1.5 text-sm text-emerald-400 font-medium mb-6">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-7.94a4.5 4.5 0 00-6.364 6.364L11.25 12l4.5 4.5"/></svg>
+          <span data-i18n="integrations.label">Ecosystem</span>
+        </div>
+        <h2 class="text-3xl sm:text-5xl lg:text-[3.5rem] font-bold tracking-tight mb-5" data-i18n="integrations.title">Works with your stack.</h2>
+        <p class="text-gray-400 text-lg max-w-xl mx-auto" data-i18n="integrations.desc">Six ASR providers, any OpenAI-compatible AI model, and MCP integration for AI agents.</p>
+      </div>
+
+      <!-- Provider marquee -->
+      <div class="provider-marquee mb-16 reveal">
+        <div class="provider-marquee-track">
+          <a href="https://soniox.com" target="_blank" rel="noopener noreferrer" class="provider-pill">
+            <svg class="w-6 h-6 flex-shrink-0" viewBox="-1 -1 16 19" xmlns="http://www.w3.org/2000/svg"><path d="m0 14.866 2.1606-3.5214c1.8927 1.2576 3.9669 1.8995 5.6694 1.8995 1.0025 0 1.4606-0.3036 1.4606-0.8847v-0.0607c0-0.6419-0.9161-0.9194-2.6532-1.4138-3.2582-0.8587-5.8509-1.9602-5.8509-5.2995v-0.06938c0-3.5214 2.8088-5.4903 6.6114-5.4903 2.4112 0 4.9089 0.70255 6.8016 1.9342l-1.9791 3.6775c-1.7112-0.95408-3.5693-1.5352-4.8744-1.5352-0.88152 0-1.3396 0.33827-1.3396 0.79796v0.06071c0 0.64184 0.94202 0.95409 2.6792 1.4745 3.2582 0.91939 5.8509 2.0556 5.8509 5.2735v0.0607c0 3.6515-2.7137 5.551-6.741 5.551-2.7656-0.0087-5.5052-0.798-7.7955-2.4546z" fill="#3B82F6"/></svg>
+            <div><p class="text-sm font-medium text-white">Soniox</p><p class="text-xs text-gray-500">Streaming</p></div>
+          </a>
+          <a href="https://groq.com" target="_blank" rel="noopener noreferrer" class="provider-pill">
+            <svg class="w-6 h-6 flex-shrink-0" viewBox="0 0 201 201" xmlns="http://www.w3.org/2000/svg"><rect width="201" height="201" rx="8" fill="#F54F35"/><path fill="#FEFBFB" d="m128 49 1.895 1.52C136.336 56.288 140.602 64.49 142 73c.097 1.823.148 3.648.161 5.474l.03 3.247.012 3.482.017 3.613c.01 2.522.016 5.044.02 7.565.01 3.84.041 7.68.072 11.521.007 2.455.012 4.91.016 7.364l.038 3.457c-.033 11.717-3.373 21.83-11.475 30.547-4.552 4.23-9.148 7.372-14.891 9.73l-2.387 1.055c-9.275 3.355-20.3 2.397-29.379-1.13-5.016-2.38-9.156-5.17-13.234-8.925 3.678-4.526 7.41-8.394 12-12l3.063 2.375c5.572 3.958 11.135 5.211 17.937 4.625 6.96-1.384 12.455-4.502 17-10 4.174-6.784 4.59-12.222 4.531-20.094l.012-3.473c.003-2.414-.005-4.827-.022-7.241-.02-3.68 0-7.36.026-11.04-.003-2.353-.008-4.705-.016-7.058l.025-3.312c-.098-7.996-1.732-13.21-6.681-19.47-6.786-5.458-13.105-8.211-21.914-7.792-7.327 1.188-13.278 4.7-17.777 10.601C75.472 72.012 73.86 78.07 75 85c2.191 7.547 5.019 13.948 12 18 5.848 3.061 10.892 3.523 17.438 3.688l2.794.103c2.256.082 4.512.147 6.768.209v16c-16.682.673-29.615.654-42.852-10.848-8.28-8.296-13.338-19.55-13.71-31.277.394-9.87 3.93-17.894 9.562-25.875l1.688-2.563C84.698 35.563 110.05 34.436 128 49Z"/></svg>
+            <div><p class="text-sm font-medium text-white">Groq</p><p class="text-xs text-gray-500">Whisper</p></div>
+          </a>
+          <a href="https://www.volcengine.com/product/speech-to-text" target="_blank" rel="noopener noreferrer" class="provider-pill">
+            <svg class="w-6 h-6 flex-shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.44 10.153l-2.936 11.586a.215.215 0 00.214.261h5.87a.215.215 0 00.214-.261l-2.95-11.586a.214.214 0 00-.412 0zM3.28 12.778l-2.275 8.96A.214.214 0 001.22 22h4.532a.212.212 0 00.214-.165.214.214 0 000-.097l-2.276-8.96a.214.214 0 00-.41 0z" fill="#00E5E5"/><path d="M7.29 5.359L3.148 21.738a.215.215 0 00.203.261h8.29a.214.214 0 00.215-.261L7.7 5.358a.214.214 0 00-.41 0z" fill="#006EFF"/><path d="M14.44.15a.214.214 0 00-.41 0L8.366 21.739a.214.214 0 00.214.261H19.9a.216.216 0 00.171-.078.214.214 0 00.044-.183L14.439.15z" fill="#006EFF"/><path d="M10.278 7.741L6.685 21.736a.214.214 0 00.214.264h7.17a.215.215 0 00.214-.264L10.688 7.741a.214.214 0 00-.41 0z" fill="#00E5E5"/></svg>
+            <div><p class="text-sm font-medium text-white">Volcengine</p><p class="text-xs text-gray-500">Realtime</p></div>
+          </a>
+          <a href="https://siliconflow.cn" target="_blank" rel="noopener noreferrer" class="provider-pill">
+            <svg class="w-6 h-6 flex-shrink-0" viewBox="0 0 56 27" xmlns="http://www.w3.org/2000/svg"><path d="M52.988 0.0947418H28.9026C27.5711 0.0947418 26.494 1.17186 26.494 2.50329V9.72894C26.494 11.0604 25.4169 12.1375 24.0855 12.1375H2.40856C1.07712 12.1375 0 13.2146 0 14.546V24.1802C0 25.5117 1.07712 26.5888 2.40856 26.5888H26.494C27.8255 26.5888 28.9026 25.5117 28.9026 24.1802V16.9546C28.9026 15.6231 29.9797 14.546 31.3111 14.546H52.988C54.3195 14.546 55.3966 13.4689 55.3966 12.1375V2.50329C55.3966 1.17186 54.3195 0.0947418 52.988 0.0947418Z" fill="#6E29F5"/></svg>
+            <div><p class="text-sm font-medium text-white">SiliconFlow</p><p class="text-xs text-gray-500">SenseVoice</p></div>
+          </a>
+          <a href="https://platform.openai.com" target="_blank" rel="noopener noreferrer" class="provider-pill">
+            <svg class="w-6 h-6 flex-shrink-0" viewBox="0 0 256 260" xmlns="http://www.w3.org/2000/svg"><path fill="#fff" d="M239.184 106.203a64.716 64.716 0 0 0-5.576-53.103C219.452 28.459 191 15.784 163.213 21.74A65.586 65.586 0 0 0 52.096 45.22a64.716 64.716 0 0 0-43.23 31.36c-14.31 24.602-11.061 55.634 8.033 76.74a64.665 64.665 0 0 0 5.525 53.102c14.174 24.65 42.644 37.324 70.446 31.36a64.72 64.72 0 0 0 48.754 21.744c28.481.025 53.714-18.361 62.414-45.481a64.767 64.767 0 0 0 43.229-31.36c14.137-24.558 10.875-55.423-8.083-76.483Zm-97.56 136.338a48.397 48.397 0 0 1-31.105-11.255l1.535-.87 51.67-29.825a8.595 8.595 0 0 0 4.247-7.367v-72.85l21.845 12.636c.218.111.37.32.409.563v60.367c-.056 26.818-21.783 48.545-48.601 48.601Zm-104.466-44.61a48.345 48.345 0 0 1-5.781-32.589l1.534.921 51.722 29.826a8.339 8.339 0 0 0 8.441 0l63.181-36.425v25.221a.87.87 0 0 1-.358.665l-52.335 30.184c-23.257 13.398-52.97 5.431-66.404-17.803ZM23.549 85.38a48.499 48.499 0 0 1 25.58-21.333v61.39a8.288 8.288 0 0 0 4.195 7.316l62.874 36.272-21.845 12.636a.819.819 0 0 1-.767 0L41.353 151.53c-23.211-13.454-31.171-43.144-17.804-66.405v.256Zm179.466 41.695-63.08-36.63L161.73 77.86a.819.819 0 0 1 .768 0l52.233 30.184a48.6 48.6 0 0 1-7.316 87.635v-61.391a8.544 8.544 0 0 0-4.4-7.213Zm21.742-32.69-1.535-.922-51.619-30.081a8.39 8.39 0 0 0-8.492 0L99.98 99.808V74.587a.716.716 0 0 1 .307-.665l52.233-30.133a48.652 48.652 0 0 1 72.236 50.391v.205ZM88.061 139.097l-21.845-12.585a.87.87 0 0 1-.41-.614V65.685a48.652 48.652 0 0 1 79.757-37.346l-1.535.87-51.67 29.825a8.595 8.595 0 0 0-4.246 7.367l-.051 72.697Zm11.868-25.58 28.138-16.217 28.188 16.218v32.434l-28.086 16.218-28.188-16.218-.052-32.434Z"/></svg>
+            <div><p class="text-sm font-medium text-white">OpenAI API</p><p class="text-xs text-gray-500">Compatible</p></div>
+          </a>
+          <a href="https://github.com/ggerganov/whisper.cpp" target="_blank" rel="noopener noreferrer" class="provider-pill">
+            <svg class="w-6 h-6 flex-shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="6" width="20" height="12" rx="3" stroke="#10B981" stroke-width="1.5"/><path d="M6 10v4M9 9v6M12 10v4M15 9v6M18 10v4" stroke="#10B981" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <div><p class="text-sm font-medium text-white">whisper.cpp</p><p class="text-xs text-gray-500">Local</p></div>
+          </a>
+          <!-- Duplicate set for seamless loop -->
+          <a href="https://soniox.com" target="_blank" rel="noopener noreferrer" class="provider-pill" aria-hidden="true">
+            <svg class="w-6 h-6 flex-shrink-0" viewBox="-1 -1 16 19" xmlns="http://www.w3.org/2000/svg"><path d="m0 14.866 2.1606-3.5214c1.8927 1.2576 3.9669 1.8995 5.6694 1.8995 1.0025 0 1.4606-0.3036 1.4606-0.8847v-0.0607c0-0.6419-0.9161-0.9194-2.6532-1.4138-3.2582-0.8587-5.8509-1.9602-5.8509-5.2995v-0.06938c0-3.5214 2.8088-5.4903 6.6114-5.4903 2.4112 0 4.9089 0.70255 6.8016 1.9342l-1.9791 3.6775c-1.7112-0.95408-3.5693-1.5352-4.8744-1.5352-0.88152 0-1.3396 0.33827-1.3396 0.79796v0.06071c0 0.64184 0.94202 0.95409 2.6792 1.4745 3.2582 0.91939 5.8509 2.0556 5.8509 5.2735v0.0607c0 3.6515-2.7137 5.551-6.741 5.551-2.7656-0.0087-5.5052-0.798-7.7955-2.4546z" fill="#3B82F6"/></svg>
+            <div><p class="text-sm font-medium text-white">Soniox</p><p class="text-xs text-gray-500">Streaming</p></div>
+          </a>
+          <a href="https://groq.com" target="_blank" rel="noopener noreferrer" class="provider-pill" aria-hidden="true">
+            <svg class="w-6 h-6 flex-shrink-0" viewBox="0 0 201 201" xmlns="http://www.w3.org/2000/svg"><rect width="201" height="201" rx="8" fill="#F54F35"/><path fill="#FEFBFB" d="m128 49 1.895 1.52C136.336 56.288 140.602 64.49 142 73c.097 1.823.148 3.648.161 5.474l.03 3.247.012 3.482.017 3.613c.01 2.522.016 5.044.02 7.565.01 3.84.041 7.68.072 11.521.007 2.455.012 4.91.016 7.364l.038 3.457c-.033 11.717-3.373 21.83-11.475 30.547-4.552 4.23-9.148 7.372-14.891 9.73l-2.387 1.055c-9.275 3.355-20.3 2.397-29.379-1.13-5.016-2.38-9.156-5.17-13.234-8.925 3.678-4.526 7.41-8.394 12-12l3.063 2.375c5.572 3.958 11.135 5.211 17.937 4.625 6.96-1.384 12.455-4.502 17-10 4.174-6.784 4.59-12.222 4.531-20.094l.012-3.473c.003-2.414-.005-4.827-.022-7.241-.02-3.68 0-7.36.026-11.04-.003-2.353-.008-4.705-.016-7.058l.025-3.312c-.098-7.996-1.732-13.21-6.681-19.47-6.786-5.458-13.105-8.211-21.914-7.792-7.327 1.188-13.278 4.7-17.777 10.601C75.472 72.012 73.86 78.07 75 85c2.191 7.547 5.019 13.948 12 18 5.848 3.061 10.892 3.523 17.438 3.688l2.794.103c2.256.082 4.512.147 6.768.209v16c-16.682.673-29.615.654-42.852-10.848-8.28-8.296-13.338-19.55-13.71-31.277.394-9.87 3.93-17.894 9.562-25.875l1.688-2.563C84.698 35.563 110.05 34.436 128 49Z"/></svg>
+            <div><p class="text-sm font-medium text-white">Groq</p><p class="text-xs text-gray-500">Whisper</p></div>
+          </a>
+          <a href="https://www.volcengine.com/product/speech-to-text" target="_blank" rel="noopener noreferrer" class="provider-pill" aria-hidden="true">
+            <svg class="w-6 h-6 flex-shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.44 10.153l-2.936 11.586a.215.215 0 00.214.261h5.87a.215.215 0 00.214-.261l-2.95-11.586a.214.214 0 00-.412 0zM3.28 12.778l-2.275 8.96A.214.214 0 001.22 22h4.532a.212.212 0 00.214-.165.214.214 0 000-.097l-2.276-8.96a.214.214 0 00-.41 0z" fill="#00E5E5"/><path d="M7.29 5.359L3.148 21.738a.215.215 0 00.203.261h8.29a.214.214 0 00.215-.261L7.7 5.358a.214.214 0 00-.41 0z" fill="#006EFF"/><path d="M14.44.15a.214.214 0 00-.41 0L8.366 21.739a.214.214 0 00.214.261H19.9a.216.216 0 00.171-.078.214.214 0 00.044-.183L14.439.15z" fill="#006EFF"/><path d="M10.278 7.741L6.685 21.736a.214.214 0 00.214.264h7.17a.215.215 0 00.214-.264L10.688 7.741a.214.214 0 00-.41 0z" fill="#00E5E5"/></svg>
+            <div><p class="text-sm font-medium text-white">Volcengine</p><p class="text-xs text-gray-500">Realtime</p></div>
+          </a>
+          <a href="https://siliconflow.cn" target="_blank" rel="noopener noreferrer" class="provider-pill" aria-hidden="true">
+            <svg class="w-6 h-6 flex-shrink-0" viewBox="0 0 56 27" xmlns="http://www.w3.org/2000/svg"><path d="M52.988 0.0947418H28.9026C27.5711 0.0947418 26.494 1.17186 26.494 2.50329V9.72894C26.494 11.0604 25.4169 12.1375 24.0855 12.1375H2.40856C1.07712 12.1375 0 13.2146 0 14.546V24.1802C0 25.5117 1.07712 26.5888 2.40856 26.5888H26.494C27.8255 26.5888 28.9026 25.5117 28.9026 24.1802V16.9546C28.9026 15.6231 29.9797 14.546 31.3111 14.546H52.988C54.3195 14.546 55.3966 13.4689 55.3966 12.1375V2.50329C55.3966 1.17186 54.3195 0.0947418 52.988 0.0947418Z" fill="#6E29F5"/></svg>
+            <div><p class="text-sm font-medium text-white">SiliconFlow</p><p class="text-xs text-gray-500">SenseVoice</p></div>
+          </a>
+          <a href="https://platform.openai.com" target="_blank" rel="noopener noreferrer" class="provider-pill" aria-hidden="true">
+            <svg class="w-6 h-6 flex-shrink-0" viewBox="0 0 256 260" xmlns="http://www.w3.org/2000/svg"><path fill="#fff" d="M239.184 106.203a64.716 64.716 0 0 0-5.576-53.103C219.452 28.459 191 15.784 163.213 21.74A65.586 65.586 0 0 0 52.096 45.22a64.716 64.716 0 0 0-43.23 31.36c-14.31 24.602-11.061 55.634 8.033 76.74a64.665 64.665 0 0 0 5.525 53.102c14.174 24.65 42.644 37.324 70.446 31.36a64.72 64.72 0 0 0 48.754 21.744c28.481.025 53.714-18.361 62.414-45.481a64.767 64.767 0 0 0 43.229-31.36c14.137-24.558 10.875-55.423-8.083-76.483Zm-97.56 136.338a48.397 48.397 0 0 1-31.105-11.255l1.535-.87 51.67-29.825a8.595 8.595 0 0 0 4.247-7.367v-72.85l21.845 12.636c.218.111.37.32.409.563v60.367c-.056 26.818-21.783 48.545-48.601 48.601Zm-104.466-44.61a48.345 48.345 0 0 1-5.781-32.589l1.534.921 51.722 29.826a8.339 8.339 0 0 0 8.441 0l63.181-36.425v25.221a.87.87 0 0 1-.358.665l-52.335 30.184c-23.257 13.398-52.97 5.431-66.404-17.803ZM23.549 85.38a48.499 48.499 0 0 1 25.58-21.333v61.39a8.288 8.288 0 0 0 4.195 7.316l62.874 36.272-21.845 12.636a.819.819 0 0 1-.767 0L41.353 151.53c-23.211-13.454-31.171-43.144-17.804-66.405v.256Zm179.466 41.695-63.08-36.63L161.73 77.86a.819.819 0 0 1 .768 0l52.233 30.184a48.6 48.6 0 0 1-7.316 87.635v-61.391a8.544 8.544 0 0 0-4.4-7.213Zm21.742-32.69-1.535-.922-51.619-30.081a8.39 8.39 0 0 0-8.492 0L99.98 99.808V74.587a.716.716 0 0 1 .307-.665l52.233-30.133a48.652 48.652 0 0 1 72.236 50.391v.205ZM88.061 139.097l-21.845-12.585a.87.87 0 0 1-.41-.614V65.685a48.652 48.652 0 0 1 79.757-37.346l-1.535.87-51.67 29.825a8.595 8.595 0 0 0-4.246 7.367l-.051 72.697Zm11.868-25.58 28.138-16.217 28.188 16.218v32.434l-28.086 16.218-28.188-16.218-.052-32.434Z"/></svg>
+            <div><p class="text-sm font-medium text-white">OpenAI API</p><p class="text-xs text-gray-500">Compatible</p></div>
+          </a>
+          <a href="https://github.com/ggerganov/whisper.cpp" target="_blank" rel="noopener noreferrer" class="provider-pill" aria-hidden="true">
+            <svg class="w-6 h-6 flex-shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="6" width="20" height="12" rx="3" stroke="#10B981" stroke-width="1.5"/><path d="M6 10v4M9 9v6M12 10v4M15 9v6M18 10v4" stroke="#10B981" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <div><p class="text-sm font-medium text-white">whisper.cpp</p><p class="text-xs text-gray-500">Local</p></div>
+          </a>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="grid md:grid-cols-3 gap-5 reveal">
+        <div class="glass-card text-center py-10 px-6">
+          <div class="stat-number text-5xl font-bold text-brand-400 mb-2" data-count="8">0</div>
+          <p class="text-gray-400 text-sm" data-i18n="stats.api">REST API Endpoints</p>
+        </div>
+        <div class="glass-card text-center py-10 px-6">
+          <div class="stat-number text-5xl font-bold text-accent-400 mb-2" data-count="60" data-suffix="+">0</div>
+          <p class="text-gray-400 text-sm" data-i18n="stats.lang">Languages Supported</p>
+        </div>
+        <div class="glass-card text-center py-10 px-6">
+          <div class="stat-number text-5xl font-bold text-emerald-400 mb-2" data-count="256">0</div>
+          <p class="text-gray-400 text-sm" data-i18n="stats.tests">Tests Passing</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- Download -->
+  <section id="download" class="py-20 sm:py-32 relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-b from-gray-950 via-gray-900/30 to-gray-950"></div>
+    <div class="hero-glow bg-brand-500 w-[500px] h-[500px] top-[10%] left-[30%] opacity-[0.06]"></div>
+
+    <div class="relative max-w-4xl mx-auto px-6 text-center">
+      <div class="reveal">
+        <div class="inline-flex items-center gap-2 bg-brand-500/10 border border-brand-500/20 rounded-full px-4 py-1.5 text-sm text-brand-400 font-medium mb-6">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+          <span data-i18n="download.label">Get Started</span>
+        </div>
+        <h2 class="text-3xl sm:text-5xl lg:text-[3.5rem] font-bold tracking-tight mb-5" data-i18n="download.title">Download DeLive</h2>
+        <p class="text-gray-400 text-lg mb-14" data-i18n="download.desc">Free and open source. Available on Windows, macOS, and Linux.</p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 max-w-2xl mx-auto mb-10 sm:mb-14">
+          <a href="https://github.com/XimilalaXiang/DeLive/releases/latest" target="_blank"
+            class="group glass-card flex flex-row sm:flex-col items-center gap-4 py-6 sm:py-10 px-6 hover:border-blue-400/30 transition-all duration-300 hover:-translate-y-1">
+            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+              <svg class="w-6 h-6 sm:w-8 sm:h-8 text-blue-400" fill="currentColor" viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+            </div>
+            <div class="text-left sm:text-center">
+              <span class="font-semibold text-base sm:text-lg" data-i18n="download.win">Windows</span>
+              <p class="text-xs text-gray-500 mt-0.5 sm:mt-1" data-i18n="download.win.sub">.exe installer</p>
+            </div>
+          </a>
+          <a href="https://github.com/XimilalaXiang/DeLive/releases/latest" target="_blank"
+            class="group glass-card flex flex-row sm:flex-col items-center gap-4 py-6 sm:py-10 px-6 hover:border-gray-400/30 transition-all duration-300 hover:-translate-y-1">
+            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+              <svg class="w-6 h-6 sm:w-8 sm:h-8 text-gray-300" fill="currentColor" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+            </div>
+            <div class="text-left sm:text-center">
+              <span class="font-semibold text-base sm:text-lg" data-i18n="download.mac">macOS</span>
+              <p class="text-xs text-gray-500 mt-0.5 sm:mt-1" data-i18n="download.mac.sub">.dmg (Intel & Apple Silicon)</p>
+            </div>
+          </a>
+          <a href="https://github.com/XimilalaXiang/DeLive/releases/latest" target="_blank"
+            class="group glass-card flex flex-row sm:flex-col items-center gap-4 py-6 sm:py-10 px-6 hover:border-yellow-400/30 transition-all duration-300 hover:-translate-y-1">
+            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-yellow-500/10 flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+              <svg class="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12.504 0c-.155 0-.311.015-.466.044C9.726.465 8.088 2.007 7.065 3.992c-.39.752-.563 1.424-.742 2.123-.12.468-.204.95-.286 1.434-.084.496-.153 1.054-.383 1.501-.046.089-.102.178-.158.267a.5.5 0 01-.103.148c-.049.051-.09.094-.143.155-.054.062-.124.12-.15.19-.027.074-.015.154-.015.234.002.082-.001.166-.018.247-.037.178-.061.352-.062.536-.002.197.021.39.059.582.039.195.098.39.175.568.123.291.262.581.467.819.234.271.523.464.842.559.32.095.644.115.971.069.319-.045.618-.16.894-.324.282-.169.534-.381.789-.602.095-.081.186-.157.272-.222.002.021.004.044.006.066.168 1.879 1.098 3.587 2.462 4.791.552.489 1.168.914 1.811 1.254.317.168.641.315.971.445.283.11.573.207.867.286a7.29 7.29 0 001.08.216c.397.05.8.063 1.2.04.4-.024.795-.087 1.18-.192a6.042 6.042 0 001.558-.703c.512-.316.994-.697 1.413-1.147.42-.452.787-.968 1.078-1.533.154-.3.288-.61.397-.931.064-.186.118-.374.165-.564.041-.17.089-.337.106-.512.017-.172.008-.345-.019-.513a2.285 2.285 0 00-.116-.46c-.046-.121-.093-.245-.126-.373a.6.6 0 01-.017-.201c.004-.057.011-.117.005-.175A.594.594 0 0020.19 11a1.03 1.03 0 00-.175-.267c-.083-.098-.177-.18-.269-.275a1.613 1.613 0 01-.3-.418c-.153-.31-.24-.645-.317-.99-.061-.278-.117-.558-.187-.833-.136-.539-.313-1.053-.56-1.544C17.368 4.686 15.73 3.143 13.66 2.569 13.277 2.46 12.888 2.384 12.504 0z"/></svg>
+            </div>
+            <div class="text-left sm:text-center">
+              <span class="font-semibold text-base sm:text-lg" data-i18n="download.linux">Linux</span>
+              <p class="text-xs text-gray-500 mt-0.5 sm:mt-1" data-i18n="download.linux.sub">.AppImage / .deb</p>
+            </div>
+          </a>
+        </div>
+
+        <p class="text-sm text-gray-500">
+          <span data-i18n="download.license">Open source under Apache-2.0 License.</span>
+          <a href="https://github.com/XimilalaXiang/DeLive/releases" target="_blank" class="text-brand-400 hover:text-brand-300 hover:underline ml-1 transition-colors" data-i18n="download.all-releases">View all releases →</a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- FAQ -->
+  <section class="py-16 sm:py-28">
+    <div class="max-w-3xl mx-auto px-6">
+      <div class="text-center mb-16 reveal">
+        <div class="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 rounded-full px-4 py-1.5 text-sm text-amber-400 font-medium mb-6">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"/></svg>
+          <span data-i18n="faq.label">FAQ</span>
+        </div>
+        <h2 class="text-4xl sm:text-5xl font-bold tracking-tight mb-5" data-i18n="faq.title">Common Questions</h2>
+      </div>
+
+      <div class="glass-card p-0 overflow-hidden reveal">
+        <div class="faq-item">
+          <button class="faq-toggle w-full flex items-center justify-between px-6 py-5 text-left" aria-expanded="false" onclick="this.setAttribute('aria-expanded', this.getAttribute('aria-expanded')==='true'?'false':'true'); this.nextElementSibling.classList.toggle('open')">
+            <span class="font-medium text-white" data-i18n="faq.q1">Is DeLive free?</span>
+            <svg class="w-5 h-5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          </button>
+          <div class="faq-answer px-6 text-gray-400 text-[15px] leading-relaxed">
+            <div class="pb-5" data-i18n="faq.a1">Yes! DeLive is completely free and open source under the Apache-2.0 License. You can use it for personal or commercial purposes without any restrictions.</div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-toggle w-full flex items-center justify-between px-6 py-5 text-left" aria-expanded="false" onclick="this.setAttribute('aria-expanded', this.getAttribute('aria-expanded')==='true'?'false':'true'); this.nextElementSibling.classList.toggle('open')">
+            <span class="font-medium text-white" data-i18n="faq.q2">Does my data leave my device?</span>
+            <svg class="w-5 h-5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          </button>
+          <div class="faq-answer px-6 text-gray-400 text-[15px] leading-relaxed">
+            <div class="pb-5" data-i18n="faq.a2">Audio is processed by the ASR provider you choose (cloud or local). Transcripts and AI review data are stored entirely in your local IndexedDB — nothing is sent to our servers.</div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-toggle w-full flex items-center justify-between px-6 py-5 text-left" aria-expanded="false" onclick="this.setAttribute('aria-expanded', this.getAttribute('aria-expanded')==='true'?'false':'true'); this.nextElementSibling.classList.toggle('open')">
+            <span class="font-medium text-white" data-i18n="faq.q3">Which ASR provider should I use?</span>
+            <svg class="w-5 h-5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          </button>
+          <div class="faq-answer px-6 text-gray-400 text-[15px] leading-relaxed">
+            <div class="pb-5" data-i18n="faq.a3">Soniox offers the best real-time streaming with speaker diarization and translation. Groq provides the fastest Whisper inference. For fully offline use, choose whisper.cpp — no API key needed.</div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-toggle w-full flex items-center justify-between px-6 py-5 text-left" aria-expanded="false" onclick="this.setAttribute('aria-expanded', this.getAttribute('aria-expanded')==='true'?'false':'true'); this.nextElementSibling.classList.toggle('open')">
+            <span class="font-medium text-white" data-i18n="faq.q4">Can I use DeLive with my own AI model?</span>
+            <svg class="w-5 h-5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          </button>
+          <div class="faq-answer px-6 text-gray-400 text-[15px] leading-relaxed">
+            <div class="pb-5" data-i18n="faq.a4">Absolutely. DeLive supports any OpenAI-compatible API for AI review. Connect it to your self-hosted models, Ollama, or any provider that follows the OpenAI chat completion format.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- Community / Feedback -->
+  <section class="py-16 sm:py-28">
+    <div class="max-w-4xl mx-auto px-6 text-center reveal">
+      <h2 class="text-3xl sm:text-4xl font-bold tracking-tight mb-5" data-i18n="community.title">Built in the open.</h2>
+      <p class="text-gray-400 text-base sm:text-lg mb-8 sm:mb-12 max-w-lg mx-auto" data-i18n="community.desc">DeLive is fully open source. Star us on GitHub, report issues, or contribute to the project.</p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="https://github.com/XimilalaXiang/DeLive" target="_blank" class="group flex items-center gap-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white font-medium px-6 py-3 rounded-xl transition-all">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          <span data-i18n="community.star">Star on GitHub</span>
+        </a>
+        <a href="https://github.com/XimilalaXiang/DeLive/issues/new" target="_blank" class="flex items-center gap-2.5 text-gray-400 hover:text-white font-medium px-6 py-3 rounded-xl transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+          <span data-i18n="community.feedback">Give Feedback</span>
+        </a>
+        <a href="https://ximilalaxiang.github.io/DeLive/" target="_blank" class="flex items-center gap-2.5 text-gray-400 hover:text-white font-medium px-6 py-3 rounded-xl transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+          <span data-i18n="community.docs">Documentation</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="border-t border-white/5 py-10">
+    <div class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2.5 text-sm text-gray-500">
+        <img src="https://raw.githubusercontent.com/XimilalaXiang/DeLive/main/assets/icon.svg" alt="DeLive" class="w-5 h-5 opacity-60" />
+        <span data-i18n="footer.copyright">&copy; 2026 DeLive. Open source under Apache-2.0 License.</span>
+      </div>
+      <div class="flex items-center gap-6 text-sm text-gray-500">
+        <a href="https://github.com/XimilalaXiang/DeLive" target="_blank" class="hover:text-gray-300 transition-colors" data-i18n="footer.github">GitHub</a>
+        <a href="https://ximilalaxiang.github.io/DeLive/" target="_blank" class="hover:text-gray-300 transition-colors" data-i18n="footer.docs">Docs</a>
+        <a href="https://github.com/XimilalaXiang/DeLive/releases" target="_blank" class="hover:text-gray-300 transition-colors" data-i18n="footer.releases">Releases</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script>
+    const i18n = {
+      en: {
+        'nav.features': 'Features',
+        'nav.showcase': 'Showcase',
+        'nav.integrations': 'Integrations',
+        'nav.download': 'Download',
+        'nav.github': 'GitHub',
+        'nav.download-btn': 'Download',
+        'hero.badge': 'v2.0 — Now with AI Review Desk',
+        'hero.title1': 'Hear Everything.',
+        'hero.title2': 'Review Smarter.',
+        'hero.desc': 'Capture system audio. Transcribe with six ASR backends. Review with AI — summaries, chat, mind maps. All local-first.',
+        'hero.cta-download': 'Download for Free',
+        'hero.cta-github': 'View on GitHub',
+        'hero.cta-docs': 'Documentation',
+        'nav.docs': 'Docs',
+        'hero.scroll': 'Scroll to explore',
+        'features.label': 'Capabilities',
+        'features.title': 'Everything you need,<br />nothing you don\'t.',
+        'features.desc': 'Six ASR engines, AI-powered review, floating captions — all running locally on your machine.',
+        'f.asr.title': 'Six ASR Backends, One UI',
+        'f.asr.desc': 'Soniox (real-time streaming with translation & diarization), Volcengine, Groq, SiliconFlow, local OpenAI-compatible, and local whisper.cpp. Three execution modes — real-time streaming, chunked batch, and local inference.',
+        'f.local.title': 'Local-First & Secure',
+        'f.local.desc': 'Sessions in IndexedDB, secrets in Electron safeStorage, context isolation, and navigation guards. Your data never leaves your machine.',
+        'f.ai.title': 'AI Review Desk',
+        'f.ai.desc': 'Overview with summary, action items, keywords, and chapters. Multi-thread chat with Markdown rendering. Mind maps powered by Markmap.',
+        'f.caption.title': 'Floating Caption Overlay',
+        'f.caption.desc': 'Always-on-top, draggable subtitle window with source, translated, and dual-line bilingual modes. Fully customizable font, color, shadow, and background. Perfect for meetings, lectures, and live events.',
+        'f.api.title': 'Open API & MCP',
+        'f.api.desc': 'Local REST API with 8 endpoints, real-time WebSocket streaming, standalone MCP server for Claude Desktop and Cursor.',
+        'f.themes.title': 'Five Themes',
+        'f.themes.desc': 'Cyan, Violet, Rose, Green, and Amber accent palettes — each with light and dark mode. Persistent sidebar navigation and Command Palette.',
+        'f.backup.title': 'Cloud Backup',
+        'f.backup.desc': 'WebDAV + S3-compatible storage — Nutstore, Nextcloud, Alist, Amazon S3, MinIO. Auto-create directories.',
+        'showcase.label': 'See it in action',
+        'showcase.title': 'Built for how you work.',
+        'showcase.desc': 'From live transcription to AI-powered insights — see what DeLive can do.',
+        'showcase.live.badge': 'Real-time',
+        'showcase.live.title': 'Live Transcription',
+        'showcase.live.desc': 'Capture any system audio — meetings, lectures, podcasts — and see words appear in real-time. Support for 60+ languages with automatic speaker detection.',
+        'showcase.live.f1': 'System audio capture — no microphone needed',
+        'showcase.live.f2': 'Real-time streaming with word-level timestamps',
+        'showcase.live.f3': 'Speaker diarization & live translation',
+        'showcase.ai.badge': 'AI-Powered',
+        'showcase.ai.title': 'AI Review Desk',
+        'showcase.ai.desc': 'After each session, dive into an AI-generated overview — summaries, action items, key topics, and auto-chaptered transcripts. Chat with your transcript or generate mind maps.',
+        'showcase.ai.f1': 'One-click summary, action items & keywords',
+        'showcase.ai.f2': 'Multi-thread chat with transcript context',
+        'showcase.ai.f3': 'Interactive mind maps via Markmap',
+        'showcase.chat.badge': 'Conversational',
+        'showcase.chat.title': 'Chat with Your Transcript',
+        'showcase.chat.desc': 'Ask questions about your meeting, get clarifications, extract specific information — all through a natural chat interface with full Markdown rendering.',
+        'showcase.chat.f1': 'Natural language Q&A',
+        'showcase.chat.f2': 'Rich Markdown rendering',
+        'showcase.chat.f3': 'Multi-thread conversations',
+        'integrations.label': 'Ecosystem',
+        'integrations.title': 'Works with your stack.',
+        'integrations.desc': 'Six ASR providers, any OpenAI-compatible AI model, and MCP integration for AI agents.',
+        'stats.api': 'REST API Endpoints',
+        'stats.lang': 'Languages Supported',
+        'stats.tests': 'Tests Passing',
+        'download.label': 'Get Started',
+        'download.title': 'Download DeLive',
+        'download.desc': 'Free and open source. Available on Windows, macOS, and Linux.',
+        'download.win': 'Windows',
+        'download.win.sub': '.exe installer',
+        'download.mac': 'macOS',
+        'download.mac.sub': '.dmg (Intel & Apple Silicon)',
+        'download.linux': 'Linux',
+        'download.linux.sub': '.AppImage / .deb',
+        'download.license': 'Open source under Apache-2.0 License.',
+        'download.all-releases': 'View all releases →',
+        'faq.label': 'FAQ',
+        'faq.title': 'Common Questions',
+        'faq.q1': 'Is DeLive free?',
+        'faq.a1': 'Yes! DeLive is completely free and open source under the Apache-2.0 License. You can use it for personal or commercial purposes without any restrictions.',
+        'faq.q2': 'Does my data leave my device?',
+        'faq.a2': 'Audio is processed by the ASR provider you choose (cloud or local). Transcripts and AI review data are stored entirely in your local IndexedDB — nothing is sent to our servers.',
+        'faq.q3': 'Which ASR provider should I use?',
+        'faq.a3': 'Soniox offers the best real-time streaming with speaker diarization and translation. Groq provides the fastest Whisper inference. For fully offline use, choose whisper.cpp — no API key needed.',
+        'faq.q4': 'Can I use DeLive with my own AI model?',
+        'faq.a4': 'Absolutely. DeLive supports any OpenAI-compatible API for AI review. Connect it to your self-hosted models, Ollama, or any provider that follows the OpenAI chat completion format.',
+        'community.title': 'Built in the open.',
+        'community.desc': 'DeLive is fully open source. Star us on GitHub, report issues, or contribute to the project.',
+        'community.star': 'Star on GitHub',
+        'community.feedback': 'Give Feedback',
+        'community.docs': 'Documentation',
+        'footer.copyright': '© 2026 DeLive. Open source under Apache-2.0 License.',
+        'footer.github': 'GitHub',
+        'footer.docs': 'Docs',
+        'footer.releases': 'Releases',
+      },
+      zh: {
+        'nav.features': '功能',
+        'nav.showcase': '展示',
+        'nav.integrations': '生态',
+        'nav.download': '下载',
+        'nav.github': 'GitHub',
+        'nav.download-btn': '下载',
+        'hero.badge': 'v2.0 — 全新 AI 回顾工作台',
+        'hero.title1': '听见一切',
+        'hero.title2': '智能回顾',
+        'hero.desc': '捕获系统音频，六大 ASR 引擎实时转录，AI 生成总结、对话、思维导图。数据完全本地存储。',
+        'hero.cta-download': '免费下载',
+        'hero.cta-github': '在 GitHub 上查看',
+        'hero.cta-docs': '查看文档',
+        'nav.docs': '文档',
+        'hero.scroll': '向下滚动探索',
+        'features.label': '核心能力',
+        'features.title': '你需要的一切<br />没有多余',
+        'features.desc': '六大 ASR 引擎、AI 驱动的回顾工具、浮动字幕 — 全部在你的设备上本地运行。',
+        'f.asr.title': '六大 ASR 引擎，统一界面',
+        'f.asr.desc': 'Soniox（实时流式 + 翻译 + 说话人识别）、火山引擎、Groq、硅基流动、本地 OpenAI 兼容接口、本地 whisper.cpp。三种执行模式 — 实时流式、分块批处理、本地推理。',
+        'f.local.title': '本地优先 & 安全',
+        'f.local.desc': '会话存储在 IndexedDB，密钥通过 Electron safeStorage 加密，上下文隔离和导航守卫。你的数据永远不会离开你的设备。',
+        'f.ai.title': 'AI 回顾工作台',
+        'f.ai.desc': '一键生成总结、待办事项、关键词和章节。多线程对话，支持 Markdown 渲染。通过 Markmap 生成思维导图。',
+        'f.caption.title': '浮动字幕叠加',
+        'f.caption.desc': '始终置顶、可拖拽的字幕窗口，支持原文、翻译、双语三种模式。完全自定义字体、颜色、阴影和背景。适合会议、讲座和直播活动。',
+        'f.api.title': 'Open API & MCP',
+        'f.api.desc': '本地 REST API（8 个端点）、实时 WebSocket 推流、独立 MCP Server 支持 Claude Desktop 和 Cursor。',
+        'f.themes.title': '五种主题',
+        'f.themes.desc': '青色、紫罗兰、玫瑰、绿色和琥珀色调 — 每种都有亮色和暗色模式。持久化侧边栏导航和命令面板。',
+        'f.backup.title': '云端备份',
+        'f.backup.desc': 'WebDAV + S3 兼容存储 — 坚果云、Nextcloud、Alist、Amazon S3、MinIO。自动创建目录。',
+        'showcase.label': '功能展示',
+        'showcase.title': '为你的工作方式而生',
+        'showcase.desc': '从实时转录到 AI 智能洞察 — 看看 DeLive 能为你做什么。',
+        'showcase.live.badge': '实时',
+        'showcase.live.title': '实时转录',
+        'showcase.live.desc': '捕获任何系统音频 — 会议、讲座、播客 — 文字实时出现。支持 60+ 种语言，自动说话人检测。',
+        'showcase.live.f1': '系统音频捕获 — 无需麦克风',
+        'showcase.live.f2': '实时流式传输，精确到词级时间戳',
+        'showcase.live.f3': '说话人分离 & 实时翻译',
+        'showcase.ai.badge': 'AI 驱动',
+        'showcase.ai.title': 'AI 回顾工作台',
+        'showcase.ai.desc': '每次会话后，深入 AI 生成的概览 — 摘要、待办事项、关键话题和自动分章转录稿。与转录稿对话或生成思维导图。',
+        'showcase.ai.f1': '一键总结、待办事项和关键词',
+        'showcase.ai.f2': '基于转录上下文的多线程对话',
+        'showcase.ai.f3': '通过 Markmap 生成交互式思维导图',
+        'showcase.chat.badge': '对话式',
+        'showcase.chat.title': '与转录稿对话',
+        'showcase.chat.desc': '询问会议内容、获取澄清、提取特定信息 — 通过自然对话界面，完整 Markdown 渲染。',
+        'showcase.chat.f1': '自然语言问答',
+        'showcase.chat.f2': '完整 Markdown 渲染',
+        'showcase.chat.f3': '多线程对话',
+        'integrations.label': '生态系统',
+        'integrations.title': '与你的技术栈无缝集成',
+        'integrations.desc': '六大 ASR 引擎、任何 OpenAI 兼容 AI 模型、AI Agent MCP 集成。',
+        'stats.api': 'REST API 端点',
+        'stats.lang': '支持语言',
+        'stats.tests': '测试通过',
+        'download.label': '开始使用',
+        'download.title': '下载 DeLive',
+        'download.desc': '免费开源。支持 Windows、macOS 和 Linux。',
+        'download.win': 'Windows',
+        'download.win.sub': '.exe 安装包',
+        'download.mac': 'macOS',
+        'download.mac.sub': '.dmg（Intel 和 Apple Silicon）',
+        'download.linux': 'Linux',
+        'download.linux.sub': '.AppImage / .deb',
+        'download.license': '基于 Apache-2.0 许可证开源。',
+        'download.all-releases': '查看所有版本 →',
+        'faq.label': '常见问题',
+        'faq.title': '常见问题',
+        'faq.q1': 'DeLive 是免费的吗？',
+        'faq.a1': '是的！DeLive 完全免费且开源，基于 Apache-2.0 许可证。你可以将其用于个人或商业用途，没有任何限制。',
+        'faq.q2': '我的数据会离开我的设备吗？',
+        'faq.a2': '音频由你选择的 ASR 提供商处理（云端或本地）。转录文本和 AI 回顾数据完全存储在本地 IndexedDB 中 — 不会发送到我们的服务器。',
+        'faq.q3': '应该使用哪个 ASR 提供商？',
+        'faq.a3': 'Soniox 提供最佳的实时流式转录，支持说话人分离和翻译。Groq 提供最快的 Whisper 推理。如需完全离线使用，选择 whisper.cpp — 无需 API 密钥。',
+        'faq.q4': '我可以使用自己的 AI 模型吗？',
+        'faq.a4': '当然可以。DeLive 支持任何 OpenAI 兼容的 API 进行 AI 回顾。你可以连接自部署的模型、Ollama，或任何遵循 OpenAI 对话补全格式的提供商。',
+        'community.title': '开放构建',
+        'community.desc': 'DeLive 完全开源。在 GitHub 上给我们 Star、提交问题或参与贡献。',
+        'community.star': '在 GitHub 上 Star',
+        'community.feedback': '提供反馈',
+        'community.docs': '文档',
+        'footer.copyright': '© 2026 DeLive. 基于 Apache-2.0 许可证开源。',
+        'footer.github': 'GitHub',
+        'footer.docs': '文档',
+        'footer.releases': '版本',
+      }
+    };
+
+    let currentLang = 'en';
+
+    function toggleMobileMenu() {
+      const overlay = document.querySelector('.mobile-menu-overlay');
+      const panel = document.querySelector('.mobile-menu-panel');
+      const isOpen = panel.classList.contains('open');
+      overlay.classList.toggle('open', !isOpen);
+      panel.classList.toggle('open', !isOpen);
+      document.body.style.overflow = isOpen ? '' : 'hidden';
+    }
+
+    function detectLanguage() {
+      const nav = navigator.language || navigator.userLanguage || 'en';
+      return nav.startsWith('zh') ? 'zh' : 'en';
+    }
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      document.documentElement.lang = lang;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        const text = i18n[lang]?.[key];
+        if (text) {
+          if (el.hasAttribute('data-i18n-html')) {
+            el.innerHTML = text;
+          } else {
+            el.textContent = text;
+          }
+        }
+      });
+      document.querySelectorAll('.lang-toggle').forEach(btn => {
+        btn.textContent = lang === 'zh' ? 'EN' : '中文';
+      });
+    }
+
+    function toggleLanguage() {
+      setLanguage(currentLang === 'en' ? 'zh' : 'en');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      setLanguage(detectLanguage());
+    });
+
+    /* Scroll reveal */
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -60px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    /* Animated counter */
+    const counterObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const el = entry.target;
+          const target = parseInt(el.dataset.count);
+          const suffix = el.dataset.suffix || '';
+          const duration = 1800;
+          const start = performance.now();
+
+          function tick(now) {
+            const elapsed = now - start;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            el.textContent = Math.floor(target * eased) + suffix;
+            if (progress < 1) requestAnimationFrame(tick);
+          }
+          requestAnimationFrame(tick);
+          counterObserver.unobserve(el);
+        }
+      });
+    }, { threshold: 0.5 });
+
+    document.querySelectorAll('[data-count]').forEach(el => counterObserver.observe(el));
+
+    /* Bento card mouse tracking */
+    document.querySelectorAll('.bento-card').forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        card.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+        card.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+      });
+    });
+
+    /* Smooth nav highlight on scroll */
+    const navLinks = document.querySelectorAll('nav a[href^="#"]');
+    const sections = document.querySelectorAll('section[id]');
+
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(section => {
+        const top = section.offsetTop - 100;
+        if (window.scrollY >= top) current = section.getAttribute('id');
+      });
+      navLinks.forEach(link => {
+        link.classList.toggle('text-white', link.getAttribute('href') === `#${current}`);
+      });
+    });
+  </script>
+
+</body>
+</html>

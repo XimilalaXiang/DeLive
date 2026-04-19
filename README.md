@@ -32,20 +32,15 @@ DeLive is a desktop transcription workspace for system audio. It captures whatev
 
 #
 
-| Live Transcription | Review & History | Topics |
+| Live Transcription | Caption Overlay | MCP Integration |
 |:---:|:---:|:---:|
-| Real-time transcription with floating caption overlay | Session history with activity heatmap and search | Project-based session organization |
-| <img width="300" src="assets/screenshot-live.png" alt="Live Transcription" /> | <img width="300" src="assets/screenshot-review-history.png" alt="Review & History" /> | <img width="300" src="assets/screenshot-topics-view.png" alt="Topics" /> |
+| Real-time transcription with multi-provider ASR | Draggable always-on-top floating caption window | External AI tools access DeLive via MCP protocol |
+| <img width="300" src="assets/screenshot-live.png" alt="Live Transcription" /> | <img width="300" src="assets/screenshot-caption-overlay.png" alt="Caption Overlay" /> | <img width="300" src="assets/screenshot-mcp-integration.png" alt="MCP Integration" /> |
 
-| AI Overview | AI Chat | Caption Style |
+| AI Overview | AI Chat | Mind Map |
 |:---:|:---:|:---:|
-| Summary, action items, keywords, and chapters | Multi-thread conversation with cited references | Caption style editor with live preview |
-| <img width="300" src="assets/screenshot-ai-overview.png" alt="AI Overview" /> | <img width="300" src="assets/screenshot-ai-chat.png" alt="AI Chat" /> | <img width="300" src="assets/screenshot-caption-style.png" alt="Caption Style" /> |
-
-| Settings | Caption Overlay |
-|:---:|:---:|
-| Provider configuration with credential management | Draggable always-on-top floating caption window |
-| <img width="400" src="assets/screenshot-settings-api.png" alt="Settings" /> | <img width="400" src="assets/screenshot-caption-overlay.png" alt="Caption Overlay" /> |
+| Summary, action items, keywords, and chapters | Multi-thread conversation with cited references | Auto-generated mind maps from transcripts |
+| <img width="300" src="assets/screenshot-ai-overview.png" alt="AI Overview" /> | <img width="300" src="assets/screenshot-ai-chat.png" alt="AI Chat" /> | <img width="300" src="assets/screenshot-mindmap.png" alt="Mind Map" /> |
 
 #
 
