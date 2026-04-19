@@ -32,15 +32,10 @@ DeLive is a desktop transcription workspace for system audio. It captures whatev
 
 #
 
-| Live Transcription | Caption Overlay |
-|:---:|:---:|
-| Real-time transcription with multi-provider ASR | Draggable always-on-top floating caption window |
-| <img width="400" src="assets/screenshot-live.png" alt="Live Transcription" /> | <img width="400" src="assets/screenshot-caption-overlay.png" alt="Caption Overlay" /> |
-
-| MCP Integration |
-|:---:|
-| External AI tools access DeLive transcripts via MCP protocol |
-| <img width="600" src="assets/screenshot-mcp-integration.png" alt="MCP Integration" /> |
+| Live Transcription | Caption Overlay | MCP Integration |
+|:---:|:---:|:---:|
+| Real-time transcription with multi-provider ASR | Draggable always-on-top floating caption window | External AI tools access DeLive via MCP protocol |
+| <img width="300" src="assets/screenshot-live.png" alt="Live Transcription" /> | <img width="300" src="assets/screenshot-caption-overlay.png" alt="Caption Overlay" /> | <img width="300" src="assets/screenshot-mcp-integration.png" alt="MCP Integration" /> |
 
 | AI Overview | AI Chat | Mind Map |
 |:---:|:---:|:---:|
