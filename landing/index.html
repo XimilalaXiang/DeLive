@@ -115,6 +115,7 @@
       display: inline-block;
     }
 
+    .screenshot-comic { cursor: zoom-in; }
     .screenshot-comic {
       border: 4px solid #1a1a1a;
       border-radius: 0.5rem;
@@ -908,6 +909,157 @@
           }
         })
         .catch(function() {});
+    })();
+  </script>
+
+  <!-- Lightbox Overlay -->
+  <div id="lightbox" class="lightbox-overlay" aria-hidden="true">
+    <div class="lightbox-backdrop"></div>
+    <button class="lightbox-close" aria-label="Close">&times;</button>
+    <button class="lightbox-prev" aria-label="Previous">&#8249;</button>
+    <button class="lightbox-next" aria-label="Next">&#8250;</button>
+    <div class="lightbox-img-wrap">
+      <img id="lightbox-img" src="" alt="" />
+    </div>
+    <div class="lightbox-dots" id="lightbox-dots"></div>
+  </div>
+
+  <style>
+    .lightbox-overlay {
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity .3s ease;
+    }
+    .lightbox-overlay.active { opacity: 1; pointer-events: auto; }
+    .lightbox-backdrop {
+      position: absolute; inset: 0;
+      background: rgba(26,26,26,.7);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    }
+    .lightbox-close {
+      position: absolute; top: 1rem; right: 1.5rem; z-index: 10;
+      font-size: 2.5rem; color: #fff; background: none; border: none;
+      cursor: pointer; line-height: 1; text-shadow: 0 2px 8px rgba(0,0,0,.5);
+      transition: transform .2s;
+    }
+    .lightbox-close:hover { transform: scale(1.2); }
+    .lightbox-prev, .lightbox-next {
+      position: absolute; top: 50%; z-index: 10;
+      transform: translateY(-50%);
+      font-size: 3rem; color: #fff; background: rgba(0,0,0,.3);
+      border: none; cursor: pointer; padding: .2rem .8rem; border-radius: 8px;
+      transition: background .2s, transform .2s;
+      text-shadow: 0 2px 8px rgba(0,0,0,.5);
+    }
+    .lightbox-prev { left: 1rem; }
+    .lightbox-next { right: 1rem; }
+    .lightbox-prev:hover, .lightbox-next:hover { background: rgba(255,0,110,.6); }
+    .lightbox-img-wrap {
+      position: relative; z-index: 5;
+      max-width: 90vw; max-height: 85vh;
+      border: 4px solid #1a1a1a; border-radius: 12px;
+      box-shadow: 8px 8px 0 0 rgba(255,0,110,1);
+      overflow: hidden; background: #1a1a1a;
+      transform: scale(.7);
+      transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+    }
+    .lightbox-overlay.active .lightbox-img-wrap { transform: scale(1); }
+    .lightbox-img-wrap img {
+      display: block; max-width: 90vw; max-height: 85vh;
+      object-fit: contain;
+    }
+    .lightbox-dots {
+      position: absolute; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+      z-index: 10; display: flex; gap: .5rem;
+    }
+    .lightbox-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: rgba(255,255,255,.4); border: 2px solid #fff;
+      cursor: pointer; transition: background .2s, transform .2s;
+    }
+    .lightbox-dot.active { background: #ff006e; transform: scale(1.3); }
+    @media(max-width:768px) {
+      .lightbox-prev, .lightbox-next { font-size: 2rem; padding: .1rem .5rem; }
+      .lightbox-close { font-size: 2rem; top: .5rem; right: 1rem; }
+      .lightbox-img-wrap { max-width: 95vw; max-height: 80vh; border-width: 3px; box-shadow: 5px 5px 0 0 rgba(255,0,110,1); }
+      .lightbox-img-wrap img { max-width: 95vw; max-height: 80vh; }
+    }
+  </style>
+
+  <script>
+    (function() {
+      var overlay = document.getElementById('lightbox');
+      var lbImg = document.getElementById('lightbox-img');
+      var dotsWrap = document.getElementById('lightbox-dots');
+      var images = [];
+      var currentIdx = 0;
+      var touchStartX = 0;
+
+      document.querySelectorAll('.screenshot-comic img').forEach(function(img) {
+        images.push(img.src);
+        img.parentElement.addEventListener('click', function(e) {
+          e.preventDefault();
+          currentIdx = images.indexOf(img.src);
+          openLightbox();
+        });
+      });
+
+      function buildDots() {
+        dotsWrap.innerHTML = '';
+        images.forEach(function(_, i) {
+          var dot = document.createElement('span');
+          dot.className = 'lightbox-dot' + (i === currentIdx ? ' active' : '');
+          dot.addEventListener('click', function() { goTo(i); });
+          dotsWrap.appendChild(dot);
+        });
+      }
+
+      function updateDots() {
+        dotsWrap.querySelectorAll('.lightbox-dot').forEach(function(d, i) {
+          d.classList.toggle('active', i === currentIdx);
+        });
+      }
+
+      function openLightbox() {
+        lbImg.src = images[currentIdx];
+        lbImg.alt = 'Screenshot ' + (currentIdx + 1);
+        buildDots();
+        overlay.classList.add('active');
+        overlay.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeLightbox() {
+        overlay.classList.remove('active');
+        overlay.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      }
+
+      function goTo(idx) {
+        currentIdx = ((idx % images.length) + images.length) % images.length;
+        lbImg.src = images[currentIdx];
+        lbImg.alt = 'Screenshot ' + (currentIdx + 1);
+        updateDots();
+      }
+
+      overlay.querySelector('.lightbox-close').addEventListener('click', closeLightbox);
+      overlay.querySelector('.lightbox-backdrop').addEventListener('click', closeLightbox);
+      overlay.querySelector('.lightbox-prev').addEventListener('click', function() { goTo(currentIdx - 1); });
+      overlay.querySelector('.lightbox-next').addEventListener('click', function() { goTo(currentIdx + 1); });
+
+      document.addEventListener('keydown', function(e) {
+        if (!overlay.classList.contains('active')) return;
+        if (e.key === 'Escape') closeLightbox();
+        if (e.key === 'ArrowLeft') goTo(currentIdx - 1);
+        if (e.key === 'ArrowRight') goTo(currentIdx + 1);
+      });
+
+      overlay.addEventListener('touchstart', function(e) { touchStartX = e.changedTouches[0].clientX; }, { passive: true });
+      overlay.addEventListener('touchend', function(e) {
+        var dx = e.changedTouches[0].clientX - touchStartX;
+        if (Math.abs(dx) > 50) { dx > 0 ? goTo(currentIdx - 1) : goTo(currentIdx + 1); }
+      }, { passive: true });
     })();
   </script>
 </body>
