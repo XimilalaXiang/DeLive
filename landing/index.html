@@ -1004,9 +1004,10 @@
     .lightbox-zoom-btn:hover { background: #ff006e; color: #fff; transform: translateY(-2px); box-shadow: 4px 4px 0 0 rgba(26,26,26,1); }
     .lightbox-zoom-btn:hover svg { stroke: #fff; }
     .lightbox-zoom-btn:active { transform: translateY(1px); box-shadow: 1px 1px 0 0 rgba(26,26,26,1); }
-    .lightbox-img-wrap.zoomed { cursor: grab; overflow: auto; }
-    .lightbox-img-wrap.zoomed:active { cursor: grabbing; }
-    .lightbox-img-wrap.zoomed img { max-width: none; max-height: none; transform-origin: 0 0; }
+    .lightbox-img-wrap.zoomed { cursor: grab; overflow: hidden; }
+    .lightbox-img-wrap.dragging { cursor: grabbing; }
+    .lightbox-img-wrap img { transition: transform .15s ease; }
+    .lightbox-img-wrap.dragging img { transition: none; }
     @media(max-width:768px) {
       .lightbox-prev, .lightbox-next { font-size: 2rem; padding: .1rem .5rem; }
       .lightbox-close { font-size: 2rem; top: .5rem; right: 1rem; }
@@ -1027,7 +1028,9 @@
       var currentIdx = 0;
       var touchStartX = 0;
       var zoomLevel = 1;
-      var MIN_ZOOM = 0.5, MAX_ZOOM = 3, ZOOM_STEP = 0.25;
+      var panX = 0, panY = 0;
+      var isDragging = false, dragStartX = 0, dragStartY = 0, dragPanX = 0, dragPanY = 0;
+      var MIN_ZOOM = 1, MAX_ZOOM = 3, ZOOM_STEP = 0.25;
 
       document.querySelectorAll('.screenshot-comic img').forEach(function(img, idx) {
         images.push(img.src);
@@ -1055,23 +1058,22 @@
       }
 
       function resetZoom() {
-        zoomLevel = 1;
+        zoomLevel = 1; panX = 0; panY = 0;
         lbImg.style.transform = '';
-        lbImg.style.width = '';
-        lbImg.style.height = '';
         imgWrap.classList.remove('zoomed');
-        imgWrap.scrollTop = 0;
-        imgWrap.scrollLeft = 0;
+        imgWrap.classList.remove('dragging');
       }
 
       function applyZoom() {
-        if (zoomLevel <= 1) {
-          resetZoom();
-          return;
-        }
+        if (zoomLevel <= 1) { resetZoom(); return; }
         imgWrap.classList.add('zoomed');
-        lbImg.style.width = (zoomLevel * 100) + '%';
-        lbImg.style.height = 'auto';
+        var maxPanX = (lbImg.naturalWidth * zoomLevel - imgWrap.clientWidth) / 2;
+        var maxPanY = (lbImg.naturalHeight * zoomLevel - imgWrap.clientHeight) / 2;
+        if (maxPanX < 0) maxPanX = 0;
+        if (maxPanY < 0) maxPanY = 0;
+        panX = Math.max(-maxPanX, Math.min(maxPanX, panX));
+        panY = Math.max(-maxPanY, Math.min(maxPanY, panY));
+        lbImg.style.transform = 'scale(' + zoomLevel + ') translate(' + (panX / zoomLevel) + 'px,' + (panY / zoomLevel) + 'px)';
       }
 
       function openLightbox() {
@@ -1114,16 +1116,36 @@
 
       lbImg.addEventListener('dblclick', function(e) {
         e.stopPropagation();
-        if (zoomLevel > 1) { resetZoom(); } else { zoomLevel = 2; applyZoom(); }
+        if (zoomLevel > 1) { resetZoom(); } else { zoomLevel = 2; panX = 0; panY = 0; applyZoom(); }
       });
 
       imgWrap.addEventListener('wheel', function(e) {
         if (!overlay.classList.contains('active')) return;
         e.preventDefault();
+        var oldZoom = zoomLevel;
         if (e.deltaY < 0 && zoomLevel < MAX_ZOOM) { zoomLevel = Math.min(MAX_ZOOM, zoomLevel + ZOOM_STEP); }
         else if (e.deltaY > 0 && zoomLevel > MIN_ZOOM) { zoomLevel = Math.max(MIN_ZOOM, zoomLevel - ZOOM_STEP); }
-        applyZoom();
+        if (zoomLevel !== oldZoom) applyZoom();
       }, { passive: false });
+
+      imgWrap.addEventListener('mousedown', function(e) {
+        if (zoomLevel <= 1) return;
+        e.preventDefault();
+        isDragging = true; dragStartX = e.clientX; dragStartY = e.clientY;
+        dragPanX = panX; dragPanY = panY;
+        imgWrap.classList.add('dragging');
+      });
+      document.addEventListener('mousemove', function(e) {
+        if (!isDragging) return;
+        panX = dragPanX + (e.clientX - dragStartX);
+        panY = dragPanY + (e.clientY - dragStartY);
+        applyZoom();
+      });
+      document.addEventListener('mouseup', function() {
+        if (!isDragging) return;
+        isDragging = false;
+        imgWrap.classList.remove('dragging');
+      });
 
       overlay.querySelector('.lightbox-close').addEventListener('click', closeLightbox);
       overlay.querySelector('.lightbox-backdrop').addEventListener('click', closeLightbox);
