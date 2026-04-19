@@ -12,6 +12,8 @@ DeLive 设置分为两个标签页：**服务**（Provider 配置）和 **通用
 
 所有 Provider 都支持 **测试配置** 按钮，在录制前验证凭证和连通性。
 
+![设置 — 服务标签页](/images/screenshot-settings-api.png)
+
 ### 本地服务发现
 
 对于 **本地 OpenAI 兼容**，DeLive 可以：

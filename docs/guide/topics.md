@@ -10,6 +10,8 @@ Topics are project-like containers for organizing recording sessions.
 2. Click **Create Topic**
 3. Enter a name, choose an emoji icon, and optionally add a description
 
+![Topics View](/images/screenshot-topics-view.png)
+
 ### Recording into a Topic
 
 Two ways to associate a recording with a topic:

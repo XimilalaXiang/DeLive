@@ -27,6 +27,8 @@ DeLive App (Electron, port 23456)
 - Node.js 18+
 - MCP server dependencies installed: `cd mcp && npm install`
 
+![MCP Integration](/images/screenshot-mcp-integration.png)
+
 ### Environment Variables
 
 | Variable | Default | Description |

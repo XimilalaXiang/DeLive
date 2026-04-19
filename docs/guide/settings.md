@@ -12,6 +12,8 @@ Choose from six ASR providers. Each provider has its own set of configuration fi
 
 All providers support **Test Config**, a button that verifies credentials and connectivity before recording.
 
+![Settings — Service Tab](/images/screenshot-settings-api.png)
+
 ### Local Service Discovery
 
 For **Local OpenAI-compatible**, DeLive can:

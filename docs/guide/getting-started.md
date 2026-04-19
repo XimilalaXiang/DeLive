@@ -18,6 +18,8 @@ Get the latest release from [GitHub Releases](https://github.com/XimilalaXiang/D
 4. **Test configuration** — click **Test Config** to verify connectivity.
 5. **Start recording** — go to the Live view, click **Start Recording**, pick a screen/window with audio sharing enabled.
 
+![Live Transcription View](/images/screenshot-live.png)
+
 ::: tip Windows SmartScreen
 Windows may show a SmartScreen warning on first launch. Click **More info** → **Run anyway**. This is normal for newly distributed unsigned apps.
 :::

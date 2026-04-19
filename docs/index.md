@@ -210,27 +210,39 @@ features:
   <p class="subtitle">Real-time transcription, AI review, and more — all in one desktop app</p>
   <div class="screenshot-grid">
     <div class="screenshot-card">
-      <img src="https://raw.githubusercontent.com/XimilalaXiang/DeLive/main/assets/screenshot-live.png" alt="Live Transcription" />
+      <img src="/images/screenshot-live.png" alt="Live Transcription" />
       <div class="caption">Live Transcription</div>
     </div>
     <div class="screenshot-card">
-      <img src="https://raw.githubusercontent.com/XimilalaXiang/DeLive/main/assets/screenshot-ai-overview.png" alt="AI Overview" />
+      <img src="/images/screenshot-caption-overlay.png" alt="Caption Overlay" />
+      <div class="caption">Floating Caption Overlay</div>
+    </div>
+    <div class="screenshot-card">
+      <img src="/images/screenshot-mcp-integration.png" alt="MCP Integration" />
+      <div class="caption">MCP Integration</div>
+    </div>
+    <div class="screenshot-card">
+      <img src="/images/screenshot-ai-overview.png" alt="AI Overview" />
       <div class="caption">AI Overview & Briefing</div>
     </div>
     <div class="screenshot-card">
-      <img src="https://raw.githubusercontent.com/XimilalaXiang/DeLive/main/assets/screenshot-ai-chat.png" alt="AI Chat" />
+      <img src="/images/screenshot-ai-chat.png" alt="AI Chat" />
       <div class="caption">AI Chat with References</div>
     </div>
     <div class="screenshot-card">
-      <img src="https://raw.githubusercontent.com/XimilalaXiang/DeLive/main/assets/screenshot-review-history.png" alt="Review History" />
+      <img src="/images/screenshot-mindmap.png" alt="Mind Map" />
+      <div class="caption">Mind Map Visualization</div>
+    </div>
+    <div class="screenshot-card">
+      <img src="/images/screenshot-review-history.png" alt="Review History" />
       <div class="caption">Review & History</div>
     </div>
     <div class="screenshot-card">
-      <img src="https://raw.githubusercontent.com/XimilalaXiang/DeLive/main/assets/screenshot-topics-view.png" alt="Topics" />
+      <img src="/images/screenshot-topics-view.png" alt="Topics" />
       <div class="caption">Topics Organization</div>
     </div>
     <div class="screenshot-card">
-      <img src="https://raw.githubusercontent.com/XimilalaXiang/DeLive/main/assets/screenshot-settings-api.png" alt="Settings" />
+      <img src="/images/screenshot-settings-api.png" alt="Settings" />
       <div class="caption">Settings & Configuration</div>
     </div>
   </div>

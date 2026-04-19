@@ -27,6 +27,8 @@ DeLive 应用（Electron，端口 23456）
 - Node.js 18+
 - 已安装 MCP 服务器依赖：`cd mcp && npm install`
 
+![MCP 集成](/images/screenshot-mcp-integration.png)
+
 ### 环境变量
 
 | 变量 | 默认值 | 说明 |

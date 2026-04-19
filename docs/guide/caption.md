@@ -10,6 +10,10 @@ DeLive provides a floating caption window that displays real-time transcription 
 - **Fully customizable** — font size, font family, text color, background color, text shadow, max lines, and width
 - **Draggable** — toggle drag mode to reposition the window
 
+![Caption Overlay](/images/screenshot-caption-overlay.png)
+
+![Caption Style Customization](/images/screenshot-caption-style.png)
+
 ## Display Modes
 
 | Mode | Description |

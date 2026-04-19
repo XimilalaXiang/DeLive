@@ -9,6 +9,8 @@
 5. 观察部分文本和最终文本在主窗口及可选悬浮字幕窗中实时更新。
 6. 点击 **停止录制**。会话被保存，可在历史记录中查看。
 
+![实时转录](/images/screenshot-live.png)
+
 ## 音频捕获
 
 DeLive 通过 `getDisplayMedia` 的 loopback 音频捕获 **系统音频**。捕获管线根据 Provider 自动选择合适的音频路径：

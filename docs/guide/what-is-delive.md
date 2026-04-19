@@ -26,6 +26,8 @@ After recording, sessions open in a full-page review workspace with four tabs:
 - **Chat** — Multi-thread AI conversation with GFM Markdown rendering and code highlighting
 - **Mind Map** — Generate and edit Markmap-compatible Markdown, export SVG/PNG
 
+![Review History](/images/screenshot-review-history.png)
+
 ### Open Ecosystem
 
 DeLive exposes its data through a local API:

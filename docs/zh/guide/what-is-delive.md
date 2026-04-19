@@ -26,6 +26,8 @@ DeLive 在统一界面下支持 **六种 ASR 后端**：
 - **对话** — 多线程 AI 对话，支持 GFM Markdown 渲染和代码高亮
 - **思维导图** — 生成并编辑 Markmap 兼容 Markdown，导出 SVG/PNG
 
+![复盘历史](/images/screenshot-review-history.png)
+
 ### 开放生态
 
 DeLive 通过本地 API 暴露数据：

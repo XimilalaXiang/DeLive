@@ -16,6 +16,8 @@ Generates an AI briefing from the transcript using an OpenAI-compatible chat com
 
 One-click **Apply** buttons let you accept the suggested title and tags directly.
 
+![AI Overview](/images/screenshot-ai-overview.png)
+
 ### Configuration
 
 AI features require an OpenAI-compatible endpoint configured in **Settings > General > AI Post-Process**:
@@ -37,6 +39,8 @@ Displays the full transcript with:
 
 **Export formats:** TXT, Markdown, SRT, VTT
 
+![Transcript Detail](/images/screenshot-transcript-detail.png)
+
 ## Chat Tab
 
 Multi-thread AI conversation about the transcript:
@@ -52,6 +56,8 @@ Multi-thread AI conversation about the transcript:
 
 Each question is sent with the transcript context and up to 4 previous Q&A turns for conversation continuity. Answers include optional `citations` referencing specific quotes from the transcript.
 
+![AI Chat](/images/screenshot-ai-chat.png)
+
 ## Mind Map Tab
 
 Generate a Markmap-compatible Markdown mind map from the session:
@@ -62,6 +68,8 @@ Generate a Markmap-compatible Markdown mind map from the session:
 - Export to SVG or PNG
 
 The mind map prompt leverages the AI summary, action items, and keywords when available.
+
+![Mind Map](/images/screenshot-mindmap.png)
 
 ## Keyboard Navigation
 

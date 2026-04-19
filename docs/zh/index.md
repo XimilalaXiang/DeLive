@@ -210,27 +210,39 @@ features:
   <p class="subtitle">实时转录、AI 复盘、智能归档 — 尽在一个桌面应用</p>
   <div class="screenshot-grid">
     <div class="screenshot-card">
-      <img src="https://raw.githubusercontent.com/XimilalaXiang/DeLive/main/assets/screenshot-live.png" alt="实时转录" />
+      <img src="/images/screenshot-live.png" alt="实时转录" />
       <div class="caption">实时转录</div>
     </div>
     <div class="screenshot-card">
-      <img src="https://raw.githubusercontent.com/XimilalaXiang/DeLive/main/assets/screenshot-ai-overview.png" alt="AI 概览" />
+      <img src="/images/screenshot-caption-overlay.png" alt="悬浮字幕" />
+      <div class="caption">悬浮字幕窗</div>
+    </div>
+    <div class="screenshot-card">
+      <img src="/images/screenshot-mcp-integration.png" alt="MCP 集成" />
+      <div class="caption">MCP 集成</div>
+    </div>
+    <div class="screenshot-card">
+      <img src="/images/screenshot-ai-overview.png" alt="AI 概览" />
       <div class="caption">AI 概览与 Briefing</div>
     </div>
     <div class="screenshot-card">
-      <img src="https://raw.githubusercontent.com/XimilalaXiang/DeLive/main/assets/screenshot-ai-chat.png" alt="AI 对话" />
+      <img src="/images/screenshot-ai-chat.png" alt="AI 对话" />
       <div class="caption">AI 对话（带引用）</div>
     </div>
     <div class="screenshot-card">
-      <img src="https://raw.githubusercontent.com/XimilalaXiang/DeLive/main/assets/screenshot-review-history.png" alt="复盘历史" />
+      <img src="/images/screenshot-mindmap.png" alt="思维导图" />
+      <div class="caption">思维导图可视化</div>
+    </div>
+    <div class="screenshot-card">
+      <img src="/images/screenshot-review-history.png" alt="复盘历史" />
       <div class="caption">复盘与历史</div>
     </div>
     <div class="screenshot-card">
-      <img src="https://raw.githubusercontent.com/XimilalaXiang/DeLive/main/assets/screenshot-topics-view.png" alt="主题管理" />
+      <img src="/images/screenshot-topics-view.png" alt="主题管理" />
       <div class="caption">主题归类管理</div>
     </div>
     <div class="screenshot-card">
-      <img src="https://raw.githubusercontent.com/XimilalaXiang/DeLive/main/assets/screenshot-settings-api.png" alt="设置" />
+      <img src="/images/screenshot-settings-api.png" alt="设置" />
       <div class="caption">设置与配置</div>
     </div>
   </div>

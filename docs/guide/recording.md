@@ -9,6 +9,8 @@
 5. Watch partial and final text update in the main window and the optional floating caption overlay.
 6. Click **Stop Recording**. The session is saved and available in History.
 
+![Live Transcription](/images/screenshot-live.png)
+
 ## Audio Capture
 
 DeLive captures **system audio** via `getDisplayMedia` with loopback audio. The capture pipeline automatically selects the right audio path based on the provider:

@@ -16,6 +16,8 @@
 
 一键 **应用** 按钮可直接采纳建议的标题和标签。
 
+![AI 概览](/images/screenshot-ai-overview.png)
+
 ### 配置
 
 AI 功能需要在 **设置 > 通用 > AI 后处理** 中配置 OpenAI 兼容端点：
@@ -37,6 +39,8 @@ AI 功能需要在 **设置 > 通用 > AI 后处理** 中配置 OpenAI 兼容端
 
 **导出格式：** TXT、Markdown、SRT、VTT
 
+![转录详情](/images/screenshot-transcript-detail.png)
+
 ## 对话标签页
 
 关于转录的多线程 AI 对话：
@@ -52,6 +56,8 @@ AI 功能需要在 **设置 > 通用 > AI 后处理** 中配置 OpenAI 兼容端
 
 每个问题发送时附带转录上下文和最多 4 轮先前问答以保持对话连续性。回答包含可选的 `citations`，引用转录中的特定片段。
 
+![AI 对话](/images/screenshot-ai-chat.png)
+
 ## 思维导图标签页
 
 从会话生成 Markmap 兼容的 Markdown 思维导图：
@@ -62,6 +68,8 @@ AI 功能需要在 **设置 > 通用 > AI 后处理** 中配置 OpenAI 兼容端
 - 导出为 SVG 或 PNG
 
 思维导图提示在可用时会利用 AI 摘要、行动项和关键词。
+
+![思维导图](/images/screenshot-mindmap.png)
 
 ## 键盘导航
 
