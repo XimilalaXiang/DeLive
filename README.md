@@ -2,7 +2,9 @@
 
 <img src="assets/header.png" width="100%" alt="DeLive Banner" />
 
-**System Audio Capture | Multi-Provider ASR | Local-First AI Review Workspace**
+---
+
+System Audio Capture | Multi-Provider ASR | Local-First AI Review Workspace
 
 English | [简体中文](./README_ZH.md) | [繁體中文](./README_TW.md) | [日本語](./README_JA.md)
 
