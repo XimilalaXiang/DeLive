@@ -3,6 +3,7 @@ import { FileText, Mic, HelpCircle, ArrowDown, Volume2, Share2, Terminal } from 
 import { useUIStore } from '../stores/uiStore'
 import { useSettingsStore } from '../stores/settingsStore'
 import { useSessionStore } from '../stores/sessionStore'
+import { getProviderName } from '../utils/providerI18n'
 
 interface TranscriptDisplayProps {
   className?: string
@@ -35,7 +36,7 @@ export function TranscriptDisplay({
   // 获取当前提供商名称
   const currentVendor = settings.currentVendor || 'soniox'
   const currentProvider = availableProviders.find(p => p.id === currentVendor)
-  const providerName = currentProvider?.name || currentVendor
+  const providerName = currentProvider ? getProviderName(currentProvider, t) : currentVendor
   const containerRef = useRef<HTMLDivElement>(null)
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true)
   const [showScrollButton, setShowScrollButton] = useState(false)

@@ -16,6 +16,7 @@ import { Switch } from '../ui'
 import type { Translations } from '../../i18n'
 import type { ASRProviderInfo, ProviderConfigData } from '../../types'
 import type { ProviderConfigField } from '../../types/asr'
+import { translateConfigField } from '../../utils/providerI18n'
 
 interface ServiceSettingsPanelProps {
   t: Translations
@@ -129,7 +130,7 @@ export function ServiceSettingsPanel({
             onChange={(e) => updateFormField(field.key, e.target.value)}
             className={commonInputClassName}
           >
-            <option value="">{field.placeholder || `请选择${field.label}`}</option>
+            <option value="">{field.placeholder || field.label}</option>
             {field.options?.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -262,9 +263,10 @@ export function ServiceSettingsPanel({
   const guideManagedFieldKeys = shouldShowBundledRuntimeGuide
     ? new Set(['binaryPath', 'modelPath'])
     : new Set<string>()
-  const providerFields = (currentProvider?.configFields || []).filter(
-    field => field.key !== 'languageHints' && !guideManagedFieldKeys.has(field.key)
-  )
+  const providerId = currentProvider?.id || ''
+  const providerFields = (currentProvider?.configFields || [])
+    .filter(field => field.key !== 'languageHints' && !guideManagedFieldKeys.has(field.key))
+    .map(field => translateConfigField(providerId, field, t))
 
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">

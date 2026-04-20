@@ -23,7 +23,7 @@ class ProviderRegistry {
   // 注册提供商
   register(entry: ProviderRegistryEntry): void {
     this.providers.set(entry.info.id, entry)
-    console.log(`[ProviderRegistry] 已注册提供商: ${entry.info.name}`)
+    console.log(`[ProviderRegistry] Registered provider: ${entry.info.name}`)
   }
 
   // 获取提供商信息
@@ -35,7 +35,7 @@ class ProviderRegistry {
   create(vendorId: ASRVendor): ASRProvider | undefined {
     const entry = this.providers.get(vendorId)
     if (!entry) {
-      console.error(`[ProviderRegistry] 未找到提供商: ${vendorId}`)
+      console.error(`[ProviderRegistry] Provider not found: ${vendorId}`)
       return undefined
     }
     return entry.create()

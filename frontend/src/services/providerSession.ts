@@ -62,7 +62,7 @@ export class ProviderSessionManager {
       connectConfig as ProviderConfigData,
     )
     if (missingLabels.length > 0) {
-      throw new Error(`请先配置: ${missingLabels.join('、')}`)
+      throw new Error(`Please configure: ${missingLabels.join(', ')}`)
     }
 
     return {

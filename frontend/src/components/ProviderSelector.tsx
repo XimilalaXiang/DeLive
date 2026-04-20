@@ -9,6 +9,7 @@ import { useUIStore } from '../stores/uiStore'
 import { useSettingsStore } from '../stores/settingsStore'
 import type { ASRProviderInfo } from '../types/asr'
 import { buildProviderConnectConfig, isProviderConfigured } from '../utils/providerConfig'
+import { getProviderName, getProviderDescription } from '../utils/providerI18n'
 
 interface ProviderSelectorProps {
   onSelect?: (vendorId: string) => void
@@ -110,7 +111,7 @@ export function ProviderSelector({ onSelect }: ProviderSelectorProps) {
         
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-sm">{provider.name}</span>
+            <span className="font-semibold text-sm">{getProviderName(provider, t)}</span>
             {transportBadge && (
               <span className={`px-1.5 py-0.5 text-xs font-medium rounded-full ${transportBadge.className}`}>
                 {transportBadge.label}
@@ -118,7 +119,7 @@ export function ProviderSelector({ onSelect }: ProviderSelectorProps) {
             )}
           </div>
           <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-            {provider.description}
+            {getProviderDescription(provider, t)}
           </p>
         </div>
 
@@ -238,7 +239,7 @@ export function ProviderSelector({ onSelect }: ProviderSelectorProps) {
           )}
         </div>
         <div className="flex-1 text-left">
-          <div className="font-semibold text-sm">{currentProvider?.name || 'Soniox V4'}</div>
+          <div className="font-semibold text-sm">{currentProvider ? getProviderName(currentProvider, t) : 'Soniox V4'}</div>
           <div className="text-xs text-muted-foreground">{t.settings?.asrProvider || '点击选择服务'}</div>
         </div>
         <ChevronDown className="w-5 h-5 text-muted-foreground" />
