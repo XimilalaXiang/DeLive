@@ -1,4 +1,5 @@
 import { app, Menu, nativeImage, Tray, type BrowserWindow, type NativeImage } from 'electron'
+import { getElectronStrings } from './i18n'
 import fs from 'fs'
 import path from 'path'
 
@@ -91,11 +92,12 @@ export function createAppTray(options: CreateAppTrayOptions): Tray | null {
   try {
     const tray = new Tray(loadTrayIcon())
     options.debug?.('createTray.success')
-    tray.setToolTip('DeLive - 桌面音频实时转录')
+    const i18n = getElectronStrings()
+    tray.setToolTip(i18n.trayTooltip)
 
     const contextMenu = Menu.buildFromTemplate([
       {
-        label: '显示主窗口',
+        label: i18n.trayShowWindow,
         click: () => {
           const mainWindow = options.getMainWindow()
           if (process.platform === 'darwin') app.dock?.show()
@@ -107,7 +109,7 @@ export function createAppTray(options: CreateAppTrayOptions): Tray | null {
         type: 'separator',
       },
       {
-        label: '退出',
+        label: i18n.trayQuit,
         click: () => {
           options.onQuit()
         },

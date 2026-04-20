@@ -9,6 +9,7 @@ import {
   RefreshCw,
   Square,
 } from 'lucide-react'
+import { useUIStore } from '../../stores/uiStore'
 import type { WhisperCppReleaseAsset } from '../../utils/whisperCppReleaseDiscovery'
 import type { WhisperCppModelPreset } from '../../utils/whisperCppPresets'
 
@@ -63,6 +64,7 @@ export function BundledRuntimeAdvancedPanel({
   onDownloadModel,
   onOpenModelsPath,
 }: BundledRuntimeAdvancedPanelProps) {
+  const { t } = useUIStore()
   return (
     <>
       <button
@@ -71,7 +73,7 @@ export function BundledRuntimeAdvancedPanel({
         className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-xs font-medium hover:bg-accent"
       >
         {showAdvanced ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-        {showAdvanced ? '收起高级操作' : '展开高级操作'}
+        {showAdvanced ? '{t.bundledRuntime.collapseAdvanced}' : '{t.bundledRuntime.expandAdvanced}'}
       </button>
 
       {showAdvanced && (
@@ -83,7 +85,7 @@ export function BundledRuntimeAdvancedPanel({
               className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-xs font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-70"
             >
               {statusState === 'loading' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
-              刷新状态
+              {t.bundledRuntime.refreshStatus}
             </button>
 
             <button
@@ -92,7 +94,7 @@ export function BundledRuntimeAdvancedPanel({
               className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-xs font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-70"
             >
               <Play className="h-3.5 w-3.5" />
-              启动 runtime
+              {t.bundledRuntime.startRuntime}
             </button>
 
             <button
@@ -101,7 +103,7 @@ export function BundledRuntimeAdvancedPanel({
               className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-xs font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-70"
             >
               <Square className="h-3.5 w-3.5" />
-              停止 runtime
+              {t.bundledRuntime.stopRuntime}
             </button>
           </div>
 
@@ -112,7 +114,7 @@ export function BundledRuntimeAdvancedPanel({
               className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-xs font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-70"
             >
               <FileSearch className="h-3.5 w-3.5" />
-              选择模型文件
+              {t.bundledRuntime.selectModel}
             </button>
 
             <button
@@ -121,7 +123,7 @@ export function BundledRuntimeAdvancedPanel({
               className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-xs font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-70"
             >
               <FileSearch className="h-3.5 w-3.5" />
-              选择 runtime binary
+              {t.bundledRuntime.selectBinary}
             </button>
           </div>
 
@@ -131,11 +133,11 @@ export function BundledRuntimeAdvancedPanel({
             className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-xs font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-70"
           >
             <Download className="h-3.5 w-3.5" />
-            导入 runtime binary 到应用目录
+            {t.bundledRuntime.importBinary}
           </button>
 
           <div className="space-y-2 rounded-md border border-border/60 bg-background/50 p-3">
-            <div className="text-xs font-medium text-foreground">第 1 步：获取 runtime binary</div>
+            <div className="text-xs font-medium text-foreground">{t.bundledRuntime.getBinaryTitle}</div>
             <div className="flex flex-wrap gap-2">
               <a
                 href={releasesUrl}
@@ -143,7 +145,7 @@ export function BundledRuntimeAdvancedPanel({
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-xs font-medium hover:bg-accent"
               >
-                打开官方 Releases
+                {t.bundledRuntime.openOfficialReleases}
               </a>
               <a
                 href={serverDocsUrl}
@@ -151,23 +153,23 @@ export function BundledRuntimeAdvancedPanel({
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-xs font-medium hover:bg-accent"
               >
-                打开 Server 文档
+                {t.bundledRuntime.openServerDocs}
               </a>
               <button
                 type="button"
                 onClick={onLoadOfficialBinaryPresets}
                 className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-xs font-medium hover:bg-accent"
               >
-                加载官方 Binary 预设
+                {t.bundledRuntime.loadOfficialPresets}
               </button>
             </div>
             <p className="text-xs text-muted-foreground">
-              Binary 建议从官方 Releases 获取；模型可直接使用下面的官方预设。
+              {t.bundledRuntime.binaryHint}
             </p>
             {releaseAssets.length > 0 && (
               <div className="space-y-2">
                 <div className="text-xs text-muted-foreground">
-                  当前 release: {releaseTag}
+                  {t.bundledRuntime.currentRelease}: {releaseTag}
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {releaseAssets.map((asset) => (
@@ -191,7 +193,7 @@ export function BundledRuntimeAdvancedPanel({
               type="text"
               value={binaryDownloadUrl}
               onChange={(e) => onBinaryDownloadUrlChange(e.target.value)}
-              placeholder="粘贴 runtime binary 下载 URL"
+              placeholder={t.bundledRuntime.binaryUrlPlaceholder}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 font-mono"
             />
             <button
@@ -200,7 +202,7 @@ export function BundledRuntimeAdvancedPanel({
               className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-xs font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-70"
             >
               <Download className="h-3.5 w-3.5" />
-              下载 runtime binary 到应用目录
+              {t.bundledRuntime.downloadBinary}
             </button>
           </div>
 
@@ -210,11 +212,11 @@ export function BundledRuntimeAdvancedPanel({
             className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-xs font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-70"
           >
             <Download className="h-3.5 w-3.5" />
-            导入模型到 runtime 目录
+            {t.bundledRuntime.importModel}
           </button>
 
           <div className="space-y-2 rounded-md border border-border/60 bg-background/50 p-3">
-            <div className="text-xs font-medium text-foreground">第 2 步：获取模型文件</div>
+            <div className="text-xs font-medium text-foreground">{t.bundledRuntime.getModelTitle}</div>
             <div className="flex flex-wrap gap-2">
               {modelPresets.map((preset) => (
                 <button
@@ -229,7 +231,7 @@ export function BundledRuntimeAdvancedPanel({
               ))}
             </div>
             <p className="text-xs text-muted-foreground">
-              先点一个预设填入 URL，再点击“下载模型到 runtime 目录”。
+              {t.bundledRuntime.modelHint}
             </p>
           </div>
 
@@ -238,7 +240,7 @@ export function BundledRuntimeAdvancedPanel({
               type="text"
               value={modelDownloadUrl}
               onChange={(e) => onModelDownloadUrlChange(e.target.value)}
-              placeholder="粘贴模型下载 URL"
+              placeholder={t.bundledRuntime.modelUrlPlaceholder}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 font-mono"
             />
             <button
@@ -247,7 +249,7 @@ export function BundledRuntimeAdvancedPanel({
               className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-xs font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-70"
             >
               <Download className="h-3.5 w-3.5" />
-              下载模型到 runtime 目录
+              Download Model
             </button>
           </div>
 
@@ -257,7 +259,7 @@ export function BundledRuntimeAdvancedPanel({
             className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-medium text-primary hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-70"
           >
             <FolderOpen className="h-3.5 w-3.5" />
-            打开模型目录
+            {t.bundledRuntime.openModelsDir}
           </button>
         </div>
       )}

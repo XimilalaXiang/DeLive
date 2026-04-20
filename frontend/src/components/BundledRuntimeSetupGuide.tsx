@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useUIStore } from '../stores/uiStore'
 import { BundledRuntimeAdvancedPanel } from './runtime/BundledRuntimeAdvancedPanel'
 import { BundledRuntimeSummaryCard } from './runtime/BundledRuntimeSummaryCard'
 import type { ProviderConfigData } from '../types'
@@ -41,6 +42,7 @@ export function BundledRuntimeSetupGuide({
   testMessage,
   onConfigPatch,
 }: BundledRuntimeSetupGuideProps) {
+  const { t } = useUIStore()
   const runtimeId = provider.capabilities.local?.runtimeId
   const manager = useMemo(() => (
     runtimeId ? createBundledRuntimeManager(runtimeId) : null
@@ -65,28 +67,28 @@ export function BundledRuntimeSetupGuide({
   const recommendedBinaryAsset = releaseAssets[0]
   const nextStep = !binaryReady
     ? {
-        title: '第 1 步：准备 runtime binary',
-        description: '先准备 binary。推荐直接加载官方 release 预设，然后下载推荐资产到应用目录。',
+        title: t.bundledRuntime.step1Title,
+        description: t.bundledRuntime.step1Desc,
       }
     : !modelReady
     ? {
-        title: '第 2 步：准备模型文件',
-        description: '推荐先下载官方 Base 模型；也可以导入已有的本地模型文件。',
+        title: t.bundledRuntime.step2Title,
+        description: t.bundledRuntime.step2Desc,
       }
     : !runtimeRunning
     ? {
-        title: '第 3 步：启动并验证 runtime',
-        description: 'binary 和模型都准备好了，接下来直接启动 runtime 或点击“测试配置”。',
+        title: t.bundledRuntime.step3Title,
+        description: t.bundledRuntime.step3Desc,
       }
     : {
-        title: '已完成初始准备',
-        description: '现在可以点“测试配置”或直接开始录制。',
+        title: t.bundledRuntime.doneTitle,
+        description: t.bundledRuntime.doneDesc,
       }
 
   const refreshStatus = useCallback(async () => {
     if (!manager) {
       setStatusState('error')
-      setActionMessage('当前 provider 未声明 runtimeId，无法管理 bundled runtime')
+      setActionMessage(t.bundledRuntime.noRuntimeId)
       return
     }
 
@@ -98,7 +100,7 @@ export function BundledRuntimeSetupGuide({
       setActionMessage(nextSnapshot.message || '')
     } catch (error) {
       setStatusState('error')
-      setActionMessage(error instanceof Error ? error.message : '获取 runtime 状态失败')
+      setActionMessage(error instanceof Error ? error.message : t.bundledRuntime.getStatusFailed)
     }
   }, [config, manager])
 
@@ -113,10 +115,10 @@ export function BundledRuntimeSetupGuide({
         setBinaryDownloadUrl(nextAssets[0].url)
       }
       setStatusState('idle')
-      setActionMessage(`已加载 whisper.cpp ${releaseInfo.tag} 官方 release 资产`)
+      setActionMessage(t.bundledRuntime.loadedRelease(releaseInfo.tag))
     } catch (error) {
       setStatusState('error')
-      setActionMessage(error instanceof Error ? error.message : '加载官方 binary 预设失败')
+      setActionMessage(error instanceof Error ? error.message : t.bundledRuntime.loadBinaryPresetFailed)
     }
   }, [binaryDownloadUrl])
 
@@ -130,7 +132,7 @@ export function BundledRuntimeSetupGuide({
       const files = await manager.listModels()
       setModelFiles(files)
     } catch (error) {
-      setActionMessage(error instanceof Error ? error.message : '获取模型列表失败')
+      setActionMessage(error instanceof Error ? error.message : t.bundledRuntime.getModelListFailed)
     }
   }, [manager])
 
@@ -179,7 +181,7 @@ export function BundledRuntimeSetupGuide({
 
     if (matchedPath && matchedPath !== currentModelPath) {
       onConfigPatch({ modelPath: matchedPath })
-      setActionMessage(`已自动修正模型路径为: ${matchedPath}`)
+      setActionMessage(t.bundledRuntime.autoFixModelPath(matchedPath))
     }
   }, [currentModelPath, modelFiles, modelPathExists, onConfigPatch])
 
@@ -210,10 +212,10 @@ export function BundledRuntimeSetupGuide({
           setBinaryDownloadUrl(nextAssets[0].url)
         }
         setStatusState('idle')
-        setActionMessage('已填入推荐流程：官方 binary + Base 模型 + 默认端口 8177')
+        setActionMessage(t.bundledRuntime.recommendedFlowReady)
       } catch (error) {
         setStatusState('error')
-        setActionMessage(error instanceof Error ? error.message : '加载推荐流程失败')
+        setActionMessage(error instanceof Error ? error.message : t.bundledRuntime.loadRecommendedFailed)
       }
       return
     }
@@ -229,10 +231,10 @@ export function BundledRuntimeSetupGuide({
     try {
       await onRunConfigTest()
       setStatusState('idle')
-      setActionMessage('已触发配置测试，请查看下方测试结果。')
+      setActionMessage(t.bundledRuntime.configTestTriggered)
     } catch (error) {
       setStatusState('error')
-      setActionMessage(error instanceof Error ? error.message : '触发配置测试失败')
+      setActionMessage(error instanceof Error ? error.message : t.bundledRuntime.configTestFailed)
     }
   }
 
@@ -261,10 +263,10 @@ export function BundledRuntimeSetupGuide({
       const nextSnapshot = await manager.start(config)
       setSnapshot(nextSnapshot)
       setStatusState('idle')
-      setActionMessage(nextSnapshot.message || 'runtime 已启动')
+      setActionMessage(nextSnapshot.message || t.bundledRuntime.runtimeStarted)
     } catch (error) {
       setStatusState('error')
-      setActionMessage(error instanceof Error ? error.message : '启动 runtime 失败')
+      setActionMessage(error instanceof Error ? error.message : t.bundledRuntime.startFailed)
       await refreshStatus()
     }
   }
@@ -276,10 +278,10 @@ export function BundledRuntimeSetupGuide({
       const nextSnapshot = await manager.stop(config)
       setSnapshot(nextSnapshot)
       setStatusState('idle')
-      setActionMessage(nextSnapshot.message || 'runtime 已停止')
+      setActionMessage(nextSnapshot.message || t.bundledRuntime.runtimeStopped)
     } catch (error) {
       setStatusState('error')
-      setActionMessage(error instanceof Error ? error.message : '停止 runtime 失败')
+      setActionMessage(error instanceof Error ? error.message : t.bundledRuntime.stopFailed)
     }
   }
 
@@ -289,22 +291,22 @@ export function BundledRuntimeSetupGuide({
     try {
       await manager.openModelsPath()
       setStatusState('idle')
-      setActionMessage(snapshot?.modelsPath || '已打开模型目录')
+      setActionMessage(snapshot?.modelsPath || t.bundledRuntime.openedModelsDir)
     } catch (error) {
       setStatusState('error')
-      setActionMessage(error instanceof Error ? error.message : '打开模型目录失败')
+      setActionMessage(error instanceof Error ? error.message : t.bundledRuntime.openModelsDirFailed)
     }
   }
 
   const handlePickModelPath = async () => {
     if (!window.electronAPI?.pickFilePath) {
       setStatusState('error')
-      setActionMessage('当前环境不支持文件选择')
+      setActionMessage(t.bundledRuntime.envNotSupportFilePick)
       return
     }
 
     const filePath = await window.electronAPI.pickFilePath({
-      title: '选择 whisper.cpp 模型文件',
+      title: t.bundledRuntime.pickModelTitle,
       filters: [
         { name: 'Model Files', extensions: ['bin', 'gguf'] },
         { name: 'All Files', extensions: ['*'] },
@@ -313,7 +315,7 @@ export function BundledRuntimeSetupGuide({
 
     if (filePath) {
       onConfigPatch({ modelPath: filePath })
-      setActionMessage(`已选择模型文件: ${filePath}`)
+      setActionMessage(t.bundledRuntime.selectedModel(filePath))
     }
   }
 
@@ -326,7 +328,7 @@ export function BundledRuntimeSetupGuide({
     }
 
     const sourcePath = await window.electronAPI.pickFilePath({
-      title: '导入模型到 runtime 目录',
+      title: t.bundledRuntime.importModelTitle,
       filters: [
         { name: 'Model Files', extensions: ['bin', 'gguf'] },
         { name: 'All Files', extensions: ['*'] },
@@ -343,10 +345,10 @@ export function BundledRuntimeSetupGuide({
       onConfigPatch({ modelPath: importedPath })
       await refreshModels()
       setStatusState('idle')
-      setActionMessage(`模型已导入: ${importedPath}`)
+      setActionMessage(t.bundledRuntime.modelImported(importedPath))
     } catch (error) {
       setStatusState('error')
-      setActionMessage(error instanceof Error ? error.message : '导入模型失败')
+      setActionMessage(error instanceof Error ? error.message : t.bundledRuntime.importModelFailed)
     }
   }
 
@@ -358,7 +360,7 @@ export function BundledRuntimeSetupGuide({
     }
 
     const filePath = await window.electronAPI.pickFilePath({
-      title: '选择 whisper-server 可执行文件',
+      title: t.bundledRuntime.pickBinaryTitle,
       filters: [
         { name: 'Executable', extensions: ['exe', 'bin'] },
         { name: 'All Files', extensions: ['*'] },
@@ -367,7 +369,7 @@ export function BundledRuntimeSetupGuide({
 
     if (filePath) {
       onConfigPatch({ binaryPath: filePath })
-      setActionMessage(`已选择 runtime binary: ${filePath}`)
+      setActionMessage(t.bundledRuntime.selectedBinary(filePath))
     }
   }
 
@@ -380,7 +382,7 @@ export function BundledRuntimeSetupGuide({
     }
 
     const sourcePath = await window.electronAPI.pickFilePath({
-      title: '导入 whisper-server 到应用目录',
+      title: t.bundledRuntime.importBinaryTitle,
       filters: [
         { name: 'Executable', extensions: ['exe', 'bin'] },
         { name: 'All Files', extensions: ['*'] },
@@ -397,10 +399,10 @@ export function BundledRuntimeSetupGuide({
       onConfigPatch({ binaryPath: importedPath })
       await refreshStatus()
       setStatusState('idle')
-      setActionMessage(`runtime binary 已导入: ${importedPath}`)
+      setActionMessage(t.bundledRuntime.binaryImported(importedPath))
     } catch (error) {
       setStatusState('error')
-      setActionMessage(error instanceof Error ? error.message : '导入 runtime binary 失败')
+      setActionMessage(error instanceof Error ? error.message : t.bundledRuntime.importBinaryFailed)
     }
   }
 
@@ -409,7 +411,7 @@ export function BundledRuntimeSetupGuide({
     const effectiveUrl = (preferredUrl || binaryDownloadUrl).trim()
     if (!effectiveUrl) {
       setStatusState('error')
-      setActionMessage('请先填写 runtime binary 下载 URL')
+      setActionMessage(t.bundledRuntime.fillBinaryUrlFirst)
       return
     }
 
@@ -422,10 +424,10 @@ export function BundledRuntimeSetupGuide({
       onConfigPatch({ binaryPath: downloadedPath })
       await refreshStatus()
       setStatusState('idle')
-      setActionMessage(`runtime binary 已下载: ${downloadedPath}`)
+      setActionMessage(t.bundledRuntime.binaryDownloaded(downloadedPath))
     } catch (error) {
       setStatusState('error')
-      setActionMessage(error instanceof Error ? error.message : '下载 runtime binary 失败')
+      setActionMessage(error instanceof Error ? error.message : t.bundledRuntime.downloadBinaryFailed)
     }
   }
 
@@ -433,7 +435,7 @@ export function BundledRuntimeSetupGuide({
     if (!manager) return
     if (!modelDownloadUrl.trim()) {
       setStatusState('error')
-      setActionMessage('请先填写模型下载 URL')
+      setActionMessage(t.bundledRuntime.fillModelUrlFirst)
       return
     }
 
@@ -443,26 +445,26 @@ export function BundledRuntimeSetupGuide({
       onConfigPatch({ modelPath: downloadedPath })
       await refreshModels()
       setStatusState('idle')
-      setActionMessage(`模型已下载: ${downloadedPath}`)
+      setActionMessage(t.bundledRuntime.modelDownloaded(downloadedPath))
     } catch (error) {
       setStatusState('error')
-      setActionMessage(error instanceof Error ? error.message : '下载模型失败')
+      setActionMessage(error instanceof Error ? error.message : t.bundledRuntime.downloadModelFailed)
     }
   }
 
   const primaryActionLabel = !binaryReady
     ? recommendedBinaryAsset
-      ? '下载推荐 binary'
-      : '准备推荐流程'
+      ? t.bundledRuntime.downloadRecommendedBinary
+      : t.bundledRuntime.prepareRecommendedFlow
     : !modelReady
-    ? '下载推荐 Base 模型'
-    : '测试本地配置'
+    ? t.bundledRuntime.downloadRecommendedModel
+    : t.bundledRuntime.testLocalConfig
 
   return (
     <div className="space-y-3 rounded-lg border border-border/70 bg-muted/20 p-3">
-      <div className="text-xs font-medium text-foreground">Bundled Runtime 引导</div>
+      <div className="text-xs font-medium text-foreground">{t.bundledRuntime.guideTitle}</div>
       <p className="text-xs text-muted-foreground">
-        当前 provider 走随应用打包的本地 runtime 路径。推荐顺序是：准备 binary、准备模型、启动 runtime、再测试配置或开始录制。
+        {t.bundledRuntime.guideDesc}
       </p>
 
       <BundledRuntimeSummaryCard
@@ -510,9 +512,9 @@ export function BundledRuntimeSetupGuide({
       />
 
       <div className="space-y-2 rounded-md border border-border/60 bg-background/50 p-3">
-        <div className="text-xs font-medium text-foreground">第 3 步：启动并验证 runtime</div>
+        <div className="text-xs font-medium text-foreground">{t.bundledRuntime.step3Title}</div>
         <p className="text-xs text-muted-foreground">
-          当 binary 和模型都准备好之后，启动 runtime；运行成功后即可点击“测试配置”或直接开始录制。
+          {t.bundledRuntime.step3DescLong}
         </p>
       </div>
 

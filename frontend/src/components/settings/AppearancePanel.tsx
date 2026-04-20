@@ -88,7 +88,7 @@ export function AppearancePanel({
               }`}>
                 {t.settings?.[theme.labelKey as keyof typeof t.settings] as string || theme.id}
                 {theme.id === 'cyan' && (
-                  <span title={language === 'zh' ? '品牌推荐' : 'Recommended'}>
+                  <span title={t.electron.brandRecommended}>
                     <Star className="w-3 h-3 fill-primary text-primary" />
                   </span>
                 )}

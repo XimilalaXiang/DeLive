@@ -84,7 +84,7 @@ export function ServiceSettingsPanel({
             rel="noopener noreferrer"
             className="text-primary font-medium hover:underline underline-offset-2"
           >
-            {field.key === 'apiKey' ? '查看文档' : '打开控制台'}
+            {field.key === 'apiKey' ? t.servicePanel.viewDocs : t.servicePanel.openConsole}
           </a>
         )}
       </p>

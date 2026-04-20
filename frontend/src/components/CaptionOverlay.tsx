@@ -17,6 +17,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Move, Lock, Unlock, X } from 'lucide-react'
 import { appendCaptionText, wrapCaptionText } from '../utils/captionLineWrap'
+import { useUIStore } from '../stores/uiStore'
 
 // 字幕样式接口
 interface CaptionStyle {
@@ -43,6 +44,7 @@ const defaultStyle: CaptionStyle = {
 }
 
 export function CaptionOverlay() {
+  const { t } = useUIStore()
   const [stableText, setStableText] = useState('')
   const [activeText, setActiveText] = useState('')
   const [translatedStableText, setTranslatedStableText] = useState('')
@@ -252,7 +254,7 @@ export function CaptionOverlay() {
               }
             `}
             onClick={handleToggleLock}
-            title={isDraggable ? '锁定字幕位置' : '解锁以移动字幕'}
+            title={isDraggable ? t.captionOverlay.lockPosition : t.captionOverlay.unlockToMove}
             style={{
               WebkitAppRegion: 'no-drag',
             } as React.CSSProperties}
@@ -267,7 +269,7 @@ export function CaptionOverlay() {
           <button
             className="flex items-center justify-center w-7 h-7 rounded-md bg-muted/80 text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200"
             onClick={handleClose}
-            title="关闭字幕"
+            title={t.captionOverlay.closeCaption}
             style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
           >
             <X className="w-4 h-4" />
@@ -279,7 +281,7 @@ export function CaptionOverlay() {
       {isDraggable && (
         <div className="absolute top-2 left-2 flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium shadow-lg z-10">
           <Move className="w-3 h-3" />
-          <span>拖拽调整位置</span>
+          <span>{t.captionOverlay.dragToAdjust}</span>
         </div>
       )}
 
@@ -353,7 +355,7 @@ export function CaptionOverlay() {
         {/* 拖拽模式下的占位文字 */}
         {isDraggable && !hasContent && (
           <div style={{ minHeight: `${style.fontSize * 1.5}px` }}>
-            字幕将显示在这里
+            {t.captionOverlay.captionPlaceholder}
           </div>
         )}
       </div>

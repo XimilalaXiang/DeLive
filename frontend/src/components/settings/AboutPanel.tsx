@@ -19,7 +19,7 @@ interface AboutPanelProps {
 
 export function AboutPanel({
   t,
-  language,
+  language: _language,
   settings,
   updateSettings,
   supportsAutoLaunch,
@@ -64,23 +64,23 @@ export function AboutPanel({
           <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
             <div>
               <p className="text-sm font-medium">
-                {language === 'zh' ? '启动时自动检查更新' : 'Auto-check on startup'}
+                {t.electron.autoCheckOnStartup}
               </p>
               <p className="text-xs text-muted-foreground">
-                {language === 'zh' ? '每次启动应用时自动检查是否有新版本' : 'Automatically check for updates when app starts'}
+                {t.electron.autoCheckOnStartupDesc}
               </p>
             </div>
             <Switch
               checked={settings.autoCheckUpdate !== false}
               onChange={(val) => updateSettings({ autoCheckUpdate: val })}
-              aria-label={language === 'zh' ? '启动时自动检查更新' : 'Auto-check on startup'}
+              aria-label={t.electron.autoCheckOnStartup}
             />
           </div>
 
           <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
             <div>
               <p className="text-sm font-medium">
-                {language === 'zh' ? '当前版本' : 'Current Version'}: {appVersion || '-'}
+                {t.electron.currentVersion}: {appVersion || '-'}
               </p>
               <p className="text-xs text-muted-foreground">
                 {updateStatus === 'checking'
@@ -89,7 +89,7 @@ export function AboutPanel({
                   ? (t.update?.upToDate || 'Up to date')
                   : updateStatus === 'error'
                   ? (t.update?.error || 'Check failed')
-                  : (language === 'zh' ? '点击按钮检查是否有新版本' : 'Click to check for updates')
+                  : (t.electron.clickToCheck)
                 }
               </p>
             </div>
@@ -116,7 +116,7 @@ export function AboutPanel({
                 <RefreshCw className="w-4 h-4" />
               )}
               {updateStatus === 'checking'
-                ? (language === 'zh' ? '检查中...' : 'Checking...')
+                ? (t.electron.checking)
                 : (t.update?.checkForUpdates || 'Check for Updates')
               }
             </button>

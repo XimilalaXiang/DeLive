@@ -1,4 +1,5 @@
 import { Activity, AlertCircle, CheckCircle2, Loader2, Wand2 } from 'lucide-react'
+import { useUIStore } from '../../stores/uiStore'
 
 interface RuntimeSnapshotLike {
   status: string
@@ -74,6 +75,7 @@ export function BundledRuntimeSummaryCard({
   configuredModelPath,
   onSelectModelPath,
 }: BundledRuntimeSummaryCardProps) {
+  const { t } = useUIStore()
   const statusTone = getStatusTone(snapshot, statusState)
 
   return (
@@ -81,7 +83,7 @@ export function BundledRuntimeSummaryCard({
       <div className="space-y-2 rounded-md border border-border/60 bg-background/50 p-3">
         <div className="flex flex-wrap gap-2">
           <StepBadge done={binaryReady} label="1. Binary" />
-          <StepBadge done={modelReady} label="2. 模型" />
+          <StepBadge done={modelReady} label="2. Model" />
           <StepBadge done={runtimeRunning} label="3. Runtime" />
         </div>
         <div className="space-y-1">
@@ -98,8 +100,8 @@ export function BundledRuntimeSummaryCard({
           {primaryActionLabel}
         </button>
         <p className="text-xs text-muted-foreground">
-          推荐默认值：官方 CPU 版 binary、Base 模型、端口 8177。
-          {!hasRecommendedBinaryAsset ? ' 当前还未拿到推荐 binary 资产，将先尝试加载官方预设。' : ''}
+          {t.bundledRuntime.recommendedDefaults}
+          {!hasRecommendedBinaryAsset ? ' ' : ''}
         </p>
       </div>
 
@@ -109,7 +111,7 @@ export function BundledRuntimeSummaryCard({
           : snapshot?.status === 'error' || statusState === 'error'
           ? <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
           : <Activity className="h-3.5 w-3.5 flex-shrink-0" />}
-        <span className="break-all">{actionMessage || snapshot?.message || '等待获取 runtime 状态'}</span>
+        <span className="break-all">{actionMessage || snapshot?.message || t.bundledRuntime.waitingStatus}</span>
       </div>
 
       {testMessage && (
@@ -134,17 +136,17 @@ export function BundledRuntimeSummaryCard({
       {snapshot && (
         <div className="space-y-1 text-xs text-muted-foreground">
           <div>Runtime: {snapshot.displayName}</div>
-          <div>状态: {snapshot.status}</div>
-          <div>二进制: {snapshot.binaryPath || '未发现'}</div>
-          <div>模型目录: {snapshot.modelsPath || '未初始化'}</div>
-          <div>服务地址: {snapshot.baseUrl}</div>
-          <div>配置模型: {configuredModelPath || '未填写'}</div>
+          <div>{t.bundledRuntime.statusLabel}: {snapshot.status}</div>
+          <div>{t.bundledRuntime.binaryLabel}: {snapshot.binaryPath || t.bundledRuntime.notFound}</div>
+          <div>{t.bundledRuntime.modelsDirLabel}: {snapshot.modelsPath || t.bundledRuntime.notInitialized}</div>
+          <div>{t.bundledRuntime.serviceUrlLabel}: {snapshot.baseUrl}</div>
+          <div>{t.bundledRuntime.configuredModelLabel}: {configuredModelPath || t.bundledRuntime.notFilled}</div>
         </div>
       )}
 
       {modelFiles.length > 0 && (
         <div className="space-y-1.5">
-          <div className="text-xs text-muted-foreground">runtime 目录中的模型（点击回填）</div>
+          <div className="text-xs text-muted-foreground">{t.bundledRuntime.runtimeModelsClickToFill}</div>
           <div className="flex flex-wrap gap-1.5">
             {modelFiles.map((filePath) => (
               <button

@@ -460,7 +460,7 @@ export function ApiKeyConfig({ isOpen, onClose, mode = 'modal' }: ApiKeyConfigPr
           <div className="flex items-center justify-end gap-3 px-6 py-3 bg-muted/30 border-t border-border shrink-0">
             {isDirty && (
               <span className="mr-auto text-xs text-warning font-medium">
-                {language === 'zh' ? '有未保存的更改' : 'Unsaved changes'}
+                {t.electron.unsavedChanges}
               </span>
             )}
             <Button variant="primary" onClick={() => void handleSave()}>
@@ -473,7 +473,7 @@ export function ApiKeyConfig({ isOpen, onClose, mode = 'modal' }: ApiKeyConfigPr
 
       <ActionDialog
         open={pendingImportData !== null}
-        title={language === 'zh' ? '选择导入模式' : 'Choose import mode'}
+        title={t.electron.chooseImportMode}
         description={pendingImportData
           ? t.settings.importConfirm(pendingImportData.data.sessions.length, pendingImportData.data.tags.length)
           : ''
@@ -481,8 +481,8 @@ export function ApiKeyConfig({ isOpen, onClose, mode = 'modal' }: ApiKeyConfigPr
         onClose={() => setPendingImportData(null)}
         actions={[
           { label: t.common.cancel, onClick: () => setPendingImportData(null), variant: 'secondary' },
-          { label: language === 'zh' ? '合并导入' : 'Merge import', onClick: () => void handleApplyImport('merge'), variant: 'secondary' },
-          { label: language === 'zh' ? '覆盖导入' : 'Overwrite import', onClick: () => void handleApplyImport('overwrite'), variant: 'primary' },
+          { label: t.electron.mergeImport, onClick: () => void handleApplyImport('merge'), variant: 'secondary' },
+          { label: t.electron.overwriteImport, onClick: () => void handleApplyImport('overwrite'), variant: 'primary' },
         ]}
       />
     </div>

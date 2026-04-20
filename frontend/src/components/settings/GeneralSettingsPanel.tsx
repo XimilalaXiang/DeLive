@@ -175,7 +175,7 @@ export function GeneralSettingsPanel({
               }`}>
                 {t.settings?.[theme.labelKey as keyof typeof t.settings] as string || theme.id}
                 {theme.id === 'cyan' && (
-                  <span title={language === 'zh' ? '品牌推荐' : 'Recommended'}>
+                  <span title={t.electron.brandRecommended}>
                     <Star className="w-3 h-3 fill-primary text-primary" />
                   </span>
                 )}
@@ -468,23 +468,23 @@ export function GeneralSettingsPanel({
               <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
                 <div>
                   <p className="text-sm font-medium">
-                    {language === 'zh' ? '启动时自动检查更新' : 'Auto-check on startup'}
+                    {t.electron.autoCheckOnStartup}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {language === 'zh' ? '每次启动应用时自动检查是否有新版本' : 'Automatically check for updates when app starts'}
+                    {t.electron.autoCheckOnStartupDesc}
                   </p>
                 </div>
                 <Switch
                   checked={settings.autoCheckUpdate !== false}
                   onChange={(val) => updateSettings({ autoCheckUpdate: val })}
-                  aria-label={language === 'zh' ? '启动时自动检查更新' : 'Auto-check on startup'}
+                  aria-label={t.electron.autoCheckOnStartup}
                 />
               </div>
 
               <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
                 <div>
                   <p className="text-sm font-medium">
-                    {language === 'zh' ? '当前版本' : 'Current Version'}: {appVersion || '-'}
+                    {t.electron.currentVersion}: {appVersion || '-'}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {updateStatus === 'checking'
@@ -493,7 +493,7 @@ export function GeneralSettingsPanel({
                       ? (t.update?.upToDate || '已是最新版本')
                       : updateStatus === 'error'
                       ? (t.update?.error || '检查更新失败')
-                      : (language === 'zh' ? '点击按钮检查是否有新版本' : 'Click to check for updates')
+                      : (t.electron.clickToCheck)
                     }
                   </p>
                 </div>
@@ -520,7 +520,7 @@ export function GeneralSettingsPanel({
                     <RefreshCw className="w-4 h-4" />
                   )}
                   {updateStatus === 'checking'
-                    ? (language === 'zh' ? '检查中...' : 'Checking...')
+                    ? (t.electron.checking)
                     : (t.update?.checkForUpdates || '检查更新')
                   }
                 </button>

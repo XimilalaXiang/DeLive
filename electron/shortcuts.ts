@@ -1,3 +1,4 @@
+import { getElectronStrings } from './i18n'
 import { app, globalShortcut, type BrowserWindow } from 'electron'
 
 interface RegisterShortcutsOptions {
@@ -38,8 +39,8 @@ export function registerAppShortcuts(options: RegisterShortcutsOptions): void {
     }
   }
 
-  if (!tryRegister('CommandOrControl+Shift+D', toggleWindow, '显示/隐藏窗口')) {
-    tryRegister('CommandOrControl+Alt+D', toggleWindow, '显示/隐藏窗口(备用)')
+  if (!tryRegister('CommandOrControl+Shift+D', toggleWindow, getElectronStrings().shortcutToggleWindow)) {
+    tryRegister('CommandOrControl+Alt+D', toggleWindow, getElectronStrings().shortcutToggleWindowAlt)
   }
 
   // ── Toggle recording ─────────────────────────────
@@ -49,7 +50,7 @@ export function registerAppShortcuts(options: RegisterShortcutsOptions): void {
     mainWindow.webContents.send('toggle-recording')
   }
 
-  if (!tryRegister('CommandOrControl+Shift+R', toggleRecording, '开始/停止录制')) {
-    tryRegister('CommandOrControl+Alt+R', toggleRecording, '开始/停止录制(备用)')
+  if (!tryRegister('CommandOrControl+Shift+R', toggleRecording, getElectronStrings().shortcutToggleRecording)) {
+    tryRegister('CommandOrControl+Alt+R', toggleRecording, getElectronStrings().shortcutToggleRecordingAlt)
   }
 }

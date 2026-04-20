@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useUIStore } from '../stores/uiStore'
 import { CheckCircle2, Loader2, DownloadCloud, AlertCircle, Search, Server } from 'lucide-react'
 import type { ProviderConfigData } from '../types'
 import type { ASRProviderInfo } from '../types/asr'
@@ -28,6 +29,7 @@ export function LocalModelSetupGuide({
   config,
   onModelChange,
 }: LocalModelSetupGuideProps) {
+  const { t } = useUIStore()
   const [detectStatus, setDetectStatus] = useState<DetectStatus>('idle')
   const [modelStatus, setModelStatus] = useState<ModelStatus>('idle')
   const [pullStatus, setPullStatus] = useState<PullStatus>('idle')
@@ -53,7 +55,7 @@ export function LocalModelSetupGuide({
     if (!serviceManager) {
       setDetectStatus('error')
       setModelStatus('error')
-      setMessage('当前提供商尚未接入本地运行时管理器')
+      setMessage(t.localModel.providerNoRuntime)
       return
     }
 
@@ -85,13 +87,13 @@ export function LocalModelSetupGuide({
         )
       }
 
-      setMessage(`已检测到 ${getLocalServiceKindLabel(result.kind)}，发现 ${nextInstalledModels.length} 个模型`)
+      setMessage(t.localModel.detected(getLocalServiceKindLabel(result.kind), nextInstalledModels.length))
     } catch (error) {
       setDetectStatus('error')
       setModelStatus('error')
       setServiceKindLabel(null)
       setInstalledModels([])
-      setMessage(error instanceof Error ? error.message : '检测失败')
+      setMessage(error instanceof Error ? error.message : t.localModel.detectFailed)
     }
   }
 
@@ -114,46 +116,46 @@ export function LocalModelSetupGuide({
       }
     } catch (error) {
       setModelStatus('error')
-      setMessage(error instanceof Error ? error.message : '模型检测失败')
+      setMessage(error instanceof Error ? error.message : t.localModel.modelDetectFailed)
     }
   }
 
   const handlePullModel = async () => {
     if (!serviceManager?.installModel) {
       setPullStatus('error')
-      setPullMessage('当前服务暂不支持一键拉取，请在服务侧先下载模型')
+      setPullMessage(t.localModel.pullNotSupported)
       return
     }
     if (!modelName) {
       setPullStatus('error')
-      setPullMessage('请先填写模型名称')
+      setPullMessage(t.localModel.fillModelNameFirst)
       return
     }
 
     setPullStatus('pulling')
-    setPullMessage('开始拉取模型...')
+    setPullMessage(t.localModel.pullStarted)
     setPullPercent('')
 
     try {
       await serviceManager.installModel(config, (progress) => {
         const percent = formatPullProgress(progress.completed, progress.total)
         setPullPercent(percent)
-        setPullMessage(progress.status || '正在拉取模型...')
+        setPullMessage(progress.status || t.localModel.pulling)
       })
       setPullStatus('success')
-      setPullMessage('模型拉取完成，正在刷新模型列表...')
+      setPullMessage(t.localModel.pullComplete)
       await handleDetect()
     } catch (error) {
       setPullStatus('error')
-      setPullMessage(error instanceof Error ? error.message : '模型拉取失败')
+      setPullMessage(error instanceof Error ? error.message : t.localModel.pullFailed)
     }
   }
 
   return (
     <div className="space-y-3 rounded-lg border border-border/70 bg-muted/20 p-3">
-      <div className="text-xs font-medium text-foreground">本地模型引导</div>
+      <div className="text-xs font-medium text-foreground">{t.localModel.guideTitle}</div>
       <p className="text-xs text-muted-foreground">
-        当前路径属于本地服务型 Provider。按顺序执行：检测服务、检测模型；若服务支持安装，则可直接一键拉取。
+        {t.localModel.guideDesc}
       </p>
 
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -163,7 +165,7 @@ export function LocalModelSetupGuide({
           className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-xs font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-70"
         >
           {detectStatus === 'checking' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Server className="h-3.5 w-3.5" />}
-          检测服务
+          {t.localModel.detectService}
         </button>
 
         <button
@@ -172,7 +174,7 @@ export function LocalModelSetupGuide({
           className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-xs font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-70"
         >
           {modelStatus === 'checking' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Search className="h-3.5 w-3.5" />}
-          检测模型
+          {t.localModel.detectModel}
         </button>
       </div>
 
@@ -185,13 +187,13 @@ export function LocalModelSetupGuide({
           }`}
         >
           {detectStatus === 'error' ? <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" /> : <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" />}
-          <span className="break-all">{message || '检测完成'}</span>
+          <span className="break-all">{message || t.localModel.detectDone}</span>
         </div>
       )}
 
       {installedModels.length > 0 && (
         <div className="space-y-1.5">
-          <div className="text-xs text-muted-foreground">已发现模型（点击可回填）</div>
+          <div className="text-xs text-muted-foreground">{t.localModel.discoveredModels}</div>
           <div className="flex flex-wrap gap-1.5">
             {installedModels.slice(0, 8).map((item) => (
               <button
@@ -219,8 +221,8 @@ export function LocalModelSetupGuide({
           }`}
         >
           {modelCheckResult === 'installed'
-            ? `模型已就绪：${modelName}`
-            : `未找到模型：${modelName}`}
+            ? t.localModel.modelReady(modelName)
+            : t.localModel.modelNotFound(modelName)}
         </div>
       )}
 
@@ -232,7 +234,7 @@ export function LocalModelSetupGuide({
             className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-medium text-primary hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-70"
           >
             {pullStatus === 'pulling' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <DownloadCloud className="h-3.5 w-3.5" />}
-            {canPullWithOneClick ? '一键拉取模型（Ollama）' : '当前服务不支持一键拉取'}
+            {canPullWithOneClick ? t.localModel.oneClickPull : '当前服务不支持一键拉取'}
           </button>
 
           {(pullMessage || pullPercent) && (
@@ -243,7 +245,7 @@ export function LocalModelSetupGuide({
                   : 'bg-info/10 text-info dark:text-info'
               }`}
             >
-              <span>{pullMessage || '处理中...'}</span>
+              <span>{pullMessage || t.localModel.processing}</span>
               {pullPercent && <span className="ml-2 font-medium">{pullPercent}</span>}
             </div>
           )}
