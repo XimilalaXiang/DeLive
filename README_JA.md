@@ -2,8 +2,6 @@
 
 <img src="assets/header.png" width="100%" alt="DeLive Banner" />
 
-# DeLive
-
 **システム音声キャプチャ | マルチプロバイダー ASR | ローカルファーストの AI レビューワークスペース**
 
 [English](./README.md) | [简体中文](./README_ZH.md) | [繁體中文](./README_TW.md) | 日本語

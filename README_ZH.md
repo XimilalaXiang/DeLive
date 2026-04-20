@@ -2,8 +2,6 @@
 
 <img src="assets/header.png" width="100%" alt="DeLive Banner" />
 
-# DeLive
-
 **系统音频捕获 | 多 Provider ASR | 本地优先的 AI 复盘工作台**
 
 [English](./README.md) | 简体中文 | [繁體中文](./README_TW.md) | [日本語](./README_JA.md)
