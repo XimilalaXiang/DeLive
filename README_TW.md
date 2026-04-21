@@ -605,12 +605,6 @@ Apache License 2.0
 
 ## 🙏 致謝
 
-- [Soniox](https://soniox.com) — 即時語音辨識 API
-- [火山引擎](https://www.volcengine.com) — 中文語音辨識
-- [Groq](https://groq.com) — 高效能 Whisper 推論
-- [矽基流動](https://siliconflow.cn) — 語音與多模態 ASR 服務
-- [Ollama](https://ollama.com) — 本地模型工作流
-- [`whisper.cpp`](https://github.com/ggml-org/whisper.cpp) — 本地開源 runtime
 - [BiBi-Keyboard](https://github.com/BryceWG/BiBi-Keyboard) — 多 Provider 架構靈感
 - [LINUX.DO](https://linux.do) 社群 — 在這裡學到了很多，感謝社群一直以來的慷慨幫助與支持
 

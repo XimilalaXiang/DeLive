@@ -607,12 +607,6 @@ Apache License 2.0
 
 ## 🙏 Acknowledgments
 
-- [Soniox](https://soniox.com) for realtime speech recognition APIs
-- [Volcengine](https://www.volcengine.com) for Chinese-focused speech recognition
-- [Groq](https://groq.com) for high-performance Whisper inference
-- [SiliconFlow](https://siliconflow.cn) for speech and multimodal ASR services
-- [Ollama](https://ollama.com) for local model workflows
-- [`whisper.cpp`](https://github.com/ggml-org/whisper.cpp) for local open-source runtime support
 - [BiBi-Keyboard](https://github.com/BryceWG/BiBi-Keyboard) for multi-provider architecture inspiration
 - [LINUX.DO](https://linux.do) community — a place where we learned a great deal and received generous support
 

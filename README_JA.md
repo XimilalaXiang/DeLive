@@ -605,12 +605,6 @@ Apache License 2.0
 
 ## 🙏 謝辞
 
-- [Soniox](https://soniox.com) — リアルタイム音声認識 API
-- [Volcengine](https://www.volcengine.com) — 中国語音声認識
-- [Groq](https://groq.com) — 高性能 Whisper 推論
-- [SiliconFlow](https://siliconflow.cn) — 音声およびマルチモーダル ASR サービス
-- [Ollama](https://ollama.com) — ローカルモデルワークフロー
-- [`whisper.cpp`](https://github.com/ggml-org/whisper.cpp) — ローカルオープンソース runtime
 - [BiBi-Keyboard](https://github.com/BryceWG/BiBi-Keyboard) — マルチプロバイダーアーキテクチャのインスピレーション
 - [LINUX.DO](https://linux.do) コミュニティ — 多くのことを学ばせていただき、惜しみないサポートに感謝します
 
