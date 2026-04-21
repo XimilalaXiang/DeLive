@@ -613,6 +613,7 @@ Apache License 2.0
 - [Ollama](https://ollama.com) — 本地模型工作流
 - [`whisper.cpp`](https://github.com/ggml-org/whisper.cpp) — 本地开源 runtime
 - [BiBi-Keyboard](https://github.com/BryceWG/BiBi-Keyboard) — 多 Provider 架构灵感
+- [LINUX.DO](https://linux.do) 社区 — 在这里学到了很多，感谢社区一直以来的慷慨帮助与支持
 
 ---
 

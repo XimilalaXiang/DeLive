@@ -612,6 +612,7 @@ Apache License 2.0
 - [Ollama](https://ollama.com) — ローカルモデルワークフロー
 - [`whisper.cpp`](https://github.com/ggml-org/whisper.cpp) — ローカルオープンソース runtime
 - [BiBi-Keyboard](https://github.com/BryceWG/BiBi-Keyboard) — マルチプロバイダーアーキテクチャのインスピレーション
+- [LINUX.DO](https://linux.do) コミュニティ — 多くのことを学ばせていただき、惜しみないサポートに感謝します
 
 ---
 
