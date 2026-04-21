@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.0.1-beta.1] - 2026-04-20
+## [2.0.1] - 2026-04-21
 
 ### Fixed / 修复
 - 🌐 **Comprehensive i18n overhaul** — replaced 150+ hardcoded Chinese strings across 21 files with proper i18n keys
