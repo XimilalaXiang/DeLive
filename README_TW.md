@@ -606,6 +606,7 @@ Apache License 2.0
 ## 🙏 致謝
 
 - [BiBi-Keyboard](https://github.com/BryceWG/BiBi-Keyboard) — 多 Provider 架構靈感
+- [字節跳動](https://www.bytedance.com) — 火山引擎語音辨識服務與飛書 AI 校園挑戰賽支持
 - [LINUX.DO](https://linux.do) 社群 — 在這裡學到了很多，感謝社群一直以來的慷慨幫助與支持
 
 ---

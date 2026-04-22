@@ -606,6 +606,7 @@ Apache License 2.0
 ## 🙏 謝辞
 
 - [BiBi-Keyboard](https://github.com/BryceWG/BiBi-Keyboard) — マルチプロバイダーアーキテクチャのインスピレーション
+- [ByteDance](https://www.bytedance.com) — Volcengine 音声認識サービスおよび飛書 AI キャンパスチャレンジのサポート
 - [LINUX.DO](https://linux.do) コミュニティ — 多くのことを学ばせていただき、惜しみないサポートに感謝します
 
 ---

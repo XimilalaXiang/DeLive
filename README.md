@@ -608,6 +608,7 @@ Apache License 2.0
 ## 🙏 Acknowledgments
 
 - [BiBi-Keyboard](https://github.com/BryceWG/BiBi-Keyboard) for multi-provider architecture inspiration
+- [ByteDance](https://www.bytedance.com) — Volcengine speech recognition service and Lark AI Campus Challenge support
 - [LINUX.DO](https://linux.do) community — a place where we learned a great deal and received generous support
 
 ---
