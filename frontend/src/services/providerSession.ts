@@ -93,6 +93,40 @@ export class ProviderSessionManager {
     return provider
   }
 
+  /** 断开旧连接并重新建立新连接（用于同 Provider 参数热切换） */
+  async reconnect(
+    vendorId: ASRVendor,
+    connectConfig: ProviderConfig,
+    callbacks: ProviderSessionCallbacks,
+  ): Promise<ASRProvider> {
+    const oldProvider = this.provider
+    this.provider = null
+
+    if (oldProvider) {
+      try {
+        await oldProvider.disconnect()
+      } catch (error) {
+        console.warn('[ProviderSession] 旧连接断开失败（忽略）:', error)
+      } finally {
+        oldProvider.removeAllListeners()
+      }
+    }
+
+    this.callbacks = callbacks
+
+    const provider = createProvider(vendorId)
+    if (!provider) {
+      throw new Error(`未找到提供商: ${vendorId}`)
+    }
+    this.provider = provider
+    this.bindListeners(provider)
+
+    console.log('[ProviderSession] 重连 Provider（配置热切换）...')
+    await provider.connect(connectConfig)
+
+    return provider
+  }
+
   /** 断开连接并清理监听器 */
   async disconnect(): Promise<void> {
     const provider = this.provider

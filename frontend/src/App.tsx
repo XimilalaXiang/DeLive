@@ -75,7 +75,7 @@ function App() {
   useApiIpcResponder()
 
   // ASR — lifted to App so global shortcut can reach it
-  const { startRecording, stopRecording } = useASR({
+  const { startRecording, stopRecording, switchConfig } = useASR({
     onError: handleError,
     onStarted: () => console.log('[App] Recording started'),
   })
@@ -298,7 +298,7 @@ function App() {
 
               <div className="workspace-panel p-5 animate-reveal-up delay-2 space-y-3">
                 {recordingState === 'idle' && <TopicPicker />}
-                <RecordingControls onError={handleError} startRecording={startRecording} stopRecording={stopRecording} />
+                <RecordingControls onError={handleError} startRecording={startRecording} stopRecording={stopRecording} switchConfig={switchConfig} />
               </div>
             </div>
           </div>

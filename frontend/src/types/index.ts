@@ -172,7 +172,7 @@ export interface TranscriptSession {
 }
 
 // 应用状态类型
-export type RecordingState = 'idle' | 'starting' | 'recording' | 'stopping'
+export type RecordingState = 'idle' | 'starting' | 'recording' | 'stopping' | 'switching'
 
 // 提供商配置类型
 export interface ProviderConfigData {

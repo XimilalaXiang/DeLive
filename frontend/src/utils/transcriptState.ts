@@ -37,6 +37,7 @@ export type TranscriptEvent =
   | { type: 'partial-text'; text: string }
   | { type: 'final-text'; text: string }
   | { type: 'post-process'; patch: Partial<TranscriptPostProcess> }
+  | { type: 'config-change'; description: string }
 
 export function createEmptyTranscriptRuntimeState(): TranscriptRuntimeState {
   return {
@@ -253,6 +254,17 @@ export function applyTranscriptEvent(
           ...event.patch,
           generatedAt: event.patch.generatedAt ?? Date.now(),
         },
+      }
+    }
+
+    case 'config-change': {
+      const marker = `\n\n--- ${event.description} ---\n\n`
+      const finalTranscript = state.finalTranscript + marker
+      return {
+        ...state,
+        finalTranscript,
+        nonFinalTranscript: '',
+        currentTranscript: finalTranscript,
       }
     }
   }
