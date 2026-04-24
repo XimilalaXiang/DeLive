@@ -103,12 +103,12 @@ export class ProviderSessionManager {
     this.provider = null
 
     if (oldProvider) {
+      // 先移除监听器，防止旧连接断开过程中的错误事件触发回调（如 408 超时）
+      oldProvider.removeAllListeners()
       try {
         await oldProvider.disconnect()
       } catch (error) {
         console.warn('[ProviderSession] 旧连接断开失败（忽略）:', error)
-      } finally {
-        oldProvider.removeAllListeners()
       }
     }
 

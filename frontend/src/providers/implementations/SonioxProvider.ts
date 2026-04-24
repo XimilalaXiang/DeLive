@@ -202,12 +202,12 @@ export class SonioxProvider extends BaseASRProvider {
     console.log('[SonioxProvider] 断开连接...')
     
     if (this.ws) {
-      if (this.ws.readyState === WebSocket.OPEN) {
-        // 发送空消息表示结束
-        this.ws.send('')
-      }
-      this.ws.close()
+      const ws = this.ws
       this.ws = null
+      ws.onmessage = null
+      ws.onerror = null
+      ws.onclose = null
+      ws.close()
     }
 
     this.setState('idle')

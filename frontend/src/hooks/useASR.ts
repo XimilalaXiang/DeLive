@@ -106,6 +106,11 @@ export function useASR(options: UseASROptions = {}) {
     },
 
     onError(error: import('../types/asr').ASRError) {
+      const currentState = useSessionStore.getState().recordingState
+      if (currentState === 'switching') {
+        console.warn('[useASR] 配置切换中收到 Provider 错误（忽略）:', error.code, error.message)
+        return
+      }
       options.onError?.(`${error.code}: ${error.message}`)
       void stopRecordingRef.current()
     },
