@@ -264,6 +264,8 @@ export function useASR(options: UseASROptions = {}) {
 
       await psm.reconnect(vendorId, setup.connectConfig, buildProviderCallbacks())
 
+      captureRef.current.restartRecorder(setup.providerInfo.capabilities)
+
       setRecordingState('recording')
       console.log('[useASR] 配置热切换成功:', changeDescription)
     } catch (error) {
@@ -278,6 +280,7 @@ export function useASR(options: UseASROptions = {}) {
         const psm = providerSessionRef.current
         const fallbackSetup = psm.resolveSetup(vendorId, fallbackSettings)
         await psm.reconnect(vendorId, fallbackSetup.connectConfig, buildProviderCallbacks())
+        captureRef.current.restartRecorder(fallbackSetup.providerInfo.capabilities)
         setRecordingState('recording')
         options.onError?.('配置切换失败，已恢复之前的配置')
       } catch {

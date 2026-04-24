@@ -83,6 +83,38 @@ export class CaptureManager {
     this.callbacks = null
   }
 
+  /**
+   * 重启 MediaRecorder（不重新请求屏幕共享）。
+   * 用于配置热切换场景：新的 WebSocket 连接需要接收完整的 WebM 文件头，
+   * 而正在运行的 MediaRecorder 只会输出后续音频段（缺少初始化段）。
+   */
+  restartRecorder(capabilities: CapturePipelineCapabilities): void {
+    if (!this.mediaStream) {
+      console.warn('[CaptureManager] No active stream, cannot restart recorder')
+      return
+    }
+    if (capabilities.audioInputMode === 'pcm16') {
+      console.log('[CaptureManager] PCM16 mode, no need to restart recorder')
+      return
+    }
+
+    this.stopPipeline()
+
+    console.log('[CaptureManager] Restarting MediaRecorder for new WebM header')
+    const recorder = createCompatibleMediaRecorder(this.mediaStream, capabilities.audioProfile)
+    this.mediaRecorder = recorder
+    recorder.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        this.callbacks?.onAudioData(event.data)
+      }
+    }
+    recorder.onerror = (event) => {
+      console.error('[CaptureManager] MediaRecorder error:', event)
+    }
+    recorder.start(capabilities.audioProfile?.preferredChunkMs ?? 100)
+    console.log('[CaptureManager] MediaRecorder restarted')
+  }
+
   get currentStream(): MediaStream | null {
     return this.mediaStream
   }
