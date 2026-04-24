@@ -84,6 +84,16 @@ export class CaptureManager {
   }
 
   /**
+   * 仅停止 MediaRecorder / AudioProcessor 的数据产出，不释放 MediaStream。
+   * 用于配置热切换：在 reconnect 新 WebSocket 前调用，防止旧 MediaRecorder
+   * 产生的无头数据被发送到新连接。
+   */
+  pauseRecorder(): void {
+    this.stopPipeline()
+    console.log('[CaptureManager] Recorder paused (stream kept alive)')
+  }
+
+  /**
    * 重启 MediaRecorder（不重新请求屏幕共享）。
    * 用于配置热切换场景：新的 WebSocket 连接需要接收完整的 WebM 文件头，
    * 而正在运行的 MediaRecorder 只会输出后续音频段（缺少初始化段）。

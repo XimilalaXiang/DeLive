@@ -262,8 +262,12 @@ export function useASR(options: UseASROptions = {}) {
 
       applyTranscriptEvent({ type: 'config-change', description: changeDescription })
 
+      // 关键：先停止 MediaRecorder 的数据产出，防止旧数据（无 WebM 头）被发到新连接
+      captureRef.current.pauseRecorder()
+
       await psm.reconnect(vendorId, setup.connectConfig, buildProviderCallbacks())
 
+      // reconnect 完成后再重启 MediaRecorder，生成新的 WebM 文件头
       captureRef.current.restartRecorder(setup.providerInfo.capabilities)
 
       setRecordingState('recording')
@@ -279,8 +283,11 @@ export function useASR(options: UseASROptions = {}) {
         const fallbackSettings = useSettingsStore.getState().settings
         const psm = providerSessionRef.current
         const fallbackSetup = psm.resolveSetup(vendorId, fallbackSettings)
+
+        captureRef.current.pauseRecorder()
         await psm.reconnect(vendorId, fallbackSetup.connectConfig, buildProviderCallbacks())
         captureRef.current.restartRecorder(fallbackSetup.providerInfo.capabilities)
+
         setRecordingState('recording')
         options.onError?.('配置切换失败，已恢复之前的配置')
       } catch {
