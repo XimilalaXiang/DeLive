@@ -43,9 +43,10 @@ function getCategoryLabel(category: CorrectionIssueCategory, t: Translations): s
 }
 
 export function CorrectionTab({ session }: CorrectionTabProps) {
-  const { t } = useUIStore()
+  const { t, language } = useUIStore()
   const settings = useSettingsStore((s) => s.settings)
   const p = t.preview as Record<string, unknown>
+  const isZh = language === 'zh'
 
   const {
     detectSessionCorrectionIssues,
@@ -59,12 +60,32 @@ export function CorrectionTab({ session }: CorrectionTabProps) {
   )
   const correction = liveSession?.correction ?? session.correction
   const correctionMode = settings.aiPostProcess?.correctionMode || 'quick'
-  const status = correction?.status || 'idle'
+  const storeStatus = correction?.status || 'idle'
 
   const [streamingText, setStreamingText] = useState('')
+  const [localStatus, setLocalStatus] = useState(storeStatus)
+  const [localError, setLocalError] = useState<string | null>(null)
   const [localIssues, setLocalIssues] = useState<CorrectionIssue[]>([])
   const [expandedIssue, setExpandedIssue] = useState<string | null>(null)
+  const [startTime, setStartTime] = useState<number | null>(null)
+  const [elapsed, setElapsed] = useState(0)
   const streamRef = useRef<HTMLDivElement>(null)
+
+  const status = localStatus !== 'idle' ? localStatus : storeStatus
+
+  useEffect(() => {
+    if (storeStatus === 'done' || storeStatus === 'error' || storeStatus === 'reviewing') {
+      setLocalStatus(storeStatus)
+    }
+  }, [storeStatus])
+
+  useEffect(() => {
+    if (!startTime || status === 'done' || status === 'error' || status === 'idle') return undefined
+    const timer = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - startTime) / 1000))
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [startTime, status])
 
   useEffect(() => {
     if (correction?.issues) {
@@ -87,37 +108,61 @@ export function CorrectionTab({ session }: CorrectionTabProps) {
   const canStart = settings.aiPostProcess?.enabled && hasModel && hasTranscript
 
   const handleQuickCorrection = useCallback(async () => {
-    console.log('[CorrectionTab] Starting quick correction for session:', session.id)
     setStreamingText('')
+    setLocalStatus('correcting')
+    setLocalError(null)
+    setStartTime(Date.now())
+    setElapsed(0)
     try {
       await startSessionQuickCorrection(session.id, (chunk) => {
         setStreamingText((prev) => prev + chunk)
       })
+      setLocalStatus('done')
     } catch (err) {
-      console.error('[CorrectionTab] Quick correction failed:', err)
+      const msg = err instanceof Error ? err.message : '纠错失败'
+      setLocalStatus('error')
+      setLocalError(msg)
+    } finally {
+      setStartTime(null)
     }
   }, [session.id, startSessionQuickCorrection])
 
   const handleDetect = useCallback(async () => {
-    console.log('[CorrectionTab] Starting detection for session:', session.id)
+    setLocalStatus('detecting')
+    setLocalError(null)
+    setStartTime(Date.now())
+    setElapsed(0)
     try {
       await detectSessionCorrectionIssues(session.id)
+      setLocalStatus('reviewing')
     } catch (err) {
-      console.error('[CorrectionTab] Detection failed:', err)
+      const msg = err instanceof Error ? err.message : '检测失败'
+      setLocalStatus('error')
+      setLocalError(msg)
+    } finally {
+      setStartTime(null)
     }
   }, [session.id, detectSessionCorrectionIssues])
 
   const handleReviewCorrection = useCallback(async () => {
     const accepted = localIssues.filter((i) => i.accepted)
     if (accepted.length === 0) return
-    console.log('[CorrectionTab] Starting review correction with', accepted.length, 'accepted issues')
     setStreamingText('')
+    setLocalStatus('correcting')
+    setLocalError(null)
+    setStartTime(Date.now())
+    setElapsed(0)
     try {
       await startSessionReviewCorrection(session.id, accepted, (chunk) => {
         setStreamingText((prev) => prev + chunk)
       })
+      setLocalStatus('done')
     } catch (err) {
-      console.error('[CorrectionTab] Review correction failed:', err)
+      const msg = err instanceof Error ? err.message : '纠错失败'
+      setLocalStatus('error')
+      setLocalError(msg)
+    } finally {
+      setStartTime(null)
     }
   }, [session.id, localIssues, startSessionReviewCorrection])
 
@@ -132,6 +177,10 @@ export function CorrectionTab({ session }: CorrectionTabProps) {
     })
     setStreamingText('')
     setLocalIssues([])
+    setLocalStatus('idle')
+    setLocalError(null)
+    setStartTime(null)
+    setElapsed(0)
   }, [session.id, updateSessionCorrection])
 
   const toggleIssueAccepted = useCallback((issueId: string) => {
@@ -228,6 +277,9 @@ export function CorrectionTab({ session }: CorrectionTabProps) {
           <div className="flex flex-col items-center justify-center gap-3 py-12">
             <Loader2 className="w-8 h-8 text-primary animate-spin" />
             <p className="text-sm text-muted-foreground">{p.correctionDetecting as string}</p>
+            {elapsed > 0 && (
+              <p className="text-xs text-muted-foreground">{elapsed}s</p>
+            )}
           </div>
         )}
 
@@ -354,19 +406,37 @@ export function CorrectionTab({ session }: CorrectionTabProps) {
         {/* Correcting — streaming output */}
         {status === 'correcting' && (
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Loader2 className="w-4 h-4 text-primary animate-spin" />
-              <p className="text-sm font-medium">{p.correctionCorrecting as string}</p>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Loader2 className="w-4 h-4 text-primary animate-spin" />
+                <p className="text-sm font-medium">{p.correctionCorrecting as string}</p>
+              </div>
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                {elapsed > 0 && (
+                  <span>{elapsed}s</span>
+                )}
+                <span>{streamingText.length} / ~{transcriptText.length} chars</span>
+              </div>
             </div>
-            <div
-              ref={streamRef}
-              className="max-h-[60vh] overflow-y-auto rounded-lg border border-border bg-muted/30 p-4"
-            >
-              <pre className="text-sm whitespace-pre-wrap break-words font-sans leading-relaxed text-foreground">
-                {streamingText}
-                <span className="inline-block w-2 h-4 ml-0.5 bg-primary animate-pulse rounded-sm" />
-              </pre>
-            </div>
+
+            {streamingText.length === 0 ? (
+              <div className="flex flex-col items-center justify-center gap-3 py-12 rounded-lg border border-border bg-muted/30">
+                <Loader2 className="w-8 h-8 text-primary/40 animate-spin" />
+                <p className="text-sm text-muted-foreground animate-pulse">
+                  {isZh ? 'AI 正在分析转录内容，请稍候...' : 'AI is analyzing the transcript, please wait...'}
+                </p>
+              </div>
+            ) : (
+              <div
+                ref={streamRef}
+                className="max-h-[60vh] overflow-y-auto rounded-lg border border-border bg-muted/30 p-4"
+              >
+                <pre className="text-sm whitespace-pre-wrap break-words font-sans leading-relaxed text-foreground">
+                  {streamingText}
+                  <span className="inline-block w-2 h-4 ml-0.5 bg-primary animate-pulse rounded-sm" />
+                </pre>
+              </div>
+            )}
           </div>
         )}
 
@@ -409,10 +479,10 @@ export function CorrectionTab({ session }: CorrectionTabProps) {
         )}
 
         {/* Error state */}
-        {status === 'error' && correction?.error && (
+        {status === 'error' && (localError || correction?.error) && (
           <div className="flex flex-col items-center justify-center gap-3 py-8">
             <X className="w-8 h-8 text-destructive" />
-            <p className="text-sm text-destructive text-center">{correction.error}</p>
+            <p className="text-sm text-destructive text-center">{localError || correction?.error}</p>
             <button
               type="button"
               onClick={handleReset}
