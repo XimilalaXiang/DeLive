@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.2-beta.3] - 2026-04-25
+
+### Added / 新增
+- 🤖 **AI Transcript Correction** — two modes: "Quick Fix" (direct streaming correction) and "Review & Fix" (detect issues first, user confirms, then correct)
+- 🤖 **AI 转录纠错** — 双模式：「直接纠错」（流式输出纠正结果）和「先检测后纠错」（先检测问题，用户确认后再纠正）
+- 🤖 Streaming output with real-time progress (character count, elapsed time, AI analysis status)
+- 🤖 流式输出，实时进度显示（字符数、耗时、AI 分析状态）
+- 🤖 Side-by-side diff comparison view after correction completes
+- 🤖 纠错完成后的并排对比视图
+- 📤 Export corrected transcript as TXT and Markdown
+- 📤 支持导出纠错后的转录文本为 TXT 和 Markdown
+- ⚙️ **AI Settings revamp** — custom model dropdown with search, per-feature model assignment (Briefing, Chat, Mind Map, Correction)
+- ⚙️ **AI 设置重构** — 自定义模型下拉框带搜索，按功能分配模型（摘要、聊天、思维导图、纠错）
+
+### Fixed / 修复
+- 🔧 AI correction data now persists across app reloads (IndexedDB normalization fix)
+- 🔧 AI 纠错数据现在在应用重启后持久保存（IndexedDB 序列化修复）
+- 🔧 Correction status feedback improved — button shows loading state immediately, streaming area shows waiting message before first chunk
+- 🔧 纠错状态反馈改进 — 按钮立即显示加载状态，流式区域在首个数据块到达前显示等待提示
+
+---
+
 ## [2.0.2-beta.2] - 2026-04-25
 
 ### Added / 新增
