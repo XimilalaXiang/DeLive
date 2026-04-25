@@ -39,6 +39,7 @@ interface ApiKeyConfigProps {
   isOpen: boolean
   onClose: () => void
   mode?: 'modal' | 'view'
+  onViewChangelog?: () => void
 }
 
 const NAV_ITEMS: { id: SettingsGroup; icon: typeof Settings; labelKey: string }[] = [
@@ -52,7 +53,7 @@ const NAV_ITEMS: { id: SettingsGroup; icon: typeof Settings; labelKey: string }[
   { id: 'about', icon: Info, labelKey: 'groupAbout' },
 ]
 
-export function ApiKeyConfig({ isOpen, onClose, mode = 'modal' }: ApiKeyConfigProps) {
+export function ApiKeyConfig({ isOpen, onClose, mode = 'modal', onViewChangelog }: ApiKeyConfigProps) {
   const isViewMode = mode === 'view'
   const { t, language, setLanguage, colorTheme, setColorTheme } = useUIStore()
   const {
@@ -450,6 +451,7 @@ export function ApiKeyConfig({ isOpen, onClose, mode = 'modal' }: ApiKeyConfigPr
                 appVersion={appVersion}
                 updateStatus={updateStatus}
                 handleCheckUpdate={handleCheckUpdate}
+                onViewChangelog={onViewChangelog}
               />
             )}
           </div>

@@ -19,6 +19,7 @@ declare module '*.css' {
 }
 
 declare global {
+  const __APP_VERSION__: string
   type DesktopSource = SharedDesktopSource
   type UpdateInfo = SharedUpdateInfo
   type DownloadProgress = SharedDownloadProgress

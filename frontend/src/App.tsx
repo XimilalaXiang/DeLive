@@ -10,6 +10,7 @@ import { useApiIpcResponder } from './hooks/useApiIpcResponder'
 import { useSidebarState } from './hooks/useSidebarState'
 import { useCaptionToggle } from './hooks/useCaptionToggle'
 import { buildProviderConnectConfig, isProviderConfigured } from './utils/providerConfig'
+import { getWhatsNewForVersion, getAllWhatsNew } from './utils/whatsNew'
 import { 
   ApiKeyConfig, 
   TranscriptDisplay, 
@@ -22,6 +23,7 @@ import {
 import { Sidebar } from './components/Sidebar'
 import { CommandPalette } from './components/CommandPalette'
 import { UpdateNotification } from './components/UpdateNotification'
+import { WhatsNewDialog } from './components/WhatsNewDialog'
 import { ReviewDeskView } from './components/ReviewDeskView'
 import { TopicsView } from './components/TopicsView'
 import { TopicPicker } from './components/TopicPicker'
@@ -47,6 +49,8 @@ function App() {
   const hasCheckedApiKey = useRef(false)
   const prevRecordingState = useRef(recordingState)
   const [lastFinishedSessionId, setLastFinishedSessionId] = useState<string | null>(null)
+  const [whatsNewOpen, setWhatsNewOpen] = useState(false)
+  const [whatsNewShowAll, setWhatsNewShowAll] = useState(false)
 
   useEffect(() => {
     if (prevRecordingState.current === 'recording' && recordingState === 'idle') {
@@ -115,16 +119,30 @@ function App() {
     }
   }, [initTheme, loadSettings, loadSessions, loadTags])
 
+  // 版本更新后自动弹出 What's New
+  useEffect(() => {
+    if (!isInitialized) return
+    void (async () => {
+      const version = await window.electronAPI?.getAppVersion?.() ?? __APP_VERSION__
+      if (!version) return
+      const lastSeen = localStorage.getItem('delive_last_seen_version')
+      const majorVersion = version.replace(/-.*$/, '')
+      if (lastSeen !== majorVersion && getWhatsNewForVersion(version)) {
+        setWhatsNewOpen(true)
+        setWhatsNewShowAll(false)
+      }
+      localStorage.setItem('delive_last_seen_version', majorVersion)
+    })()
+  }, [isInitialized])
+
   // 启动时自动检查更新（根据设置）
   useEffect(() => {
     if (!isInitialized) return
     
-    // 默认启用自动检查更新，除非用户明确禁用
     const autoCheckUpdate = settings.autoCheckUpdate !== false
     const supportsAutoUpdate = !!window.electronAPI?.supportsAutoUpdate
     
     if (autoCheckUpdate && supportsAutoUpdate && window.electronAPI?.checkForUpdates) {
-      // 延迟 3 秒检查更新，避免影响启动性能
       const timer = setTimeout(() => {
         window.electronAPI?.checkForUpdates().catch((err) => {
           console.error('自动检查更新失败:', err)
@@ -200,7 +218,12 @@ function App() {
         {/* Settings */}
         {currentView === 'settings' && (
           <div className="flex-1 overflow-hidden animate-view-enter">
-            <ApiKeyConfig isOpen mode="view" onClose={backToLive} />
+            <ApiKeyConfig
+              isOpen
+              mode="view"
+              onClose={backToLive}
+              onViewChangelog={() => { setWhatsNewShowAll(true); setWhatsNewOpen(true) }}
+            />
           </div>
         )}
 
@@ -322,6 +345,13 @@ function App() {
 
       <ToastContainer toasts={toasts} onClose={removeToast} />
       <UpdateNotification />
+      <WhatsNewDialog
+        open={whatsNewOpen}
+        onClose={() => setWhatsNewOpen(false)}
+        entry={getWhatsNewForVersion(__APP_VERSION__) ?? null}
+        allEntries={getAllWhatsNew()}
+        showAll={whatsNewShowAll}
+      />
     </div>
   )
 }

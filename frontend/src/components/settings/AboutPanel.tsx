@@ -1,4 +1,4 @@
-import { AlertCircle, Check, Loader2, Power, RefreshCw } from 'lucide-react'
+import { AlertCircle, Check, Loader2, Power, RefreshCw, Sparkles } from 'lucide-react'
 import { Switch } from '../ui'
 import type { Language, Translations } from '../../i18n'
 import type { AppSettings } from '../../types'
@@ -15,6 +15,7 @@ interface AboutPanelProps {
   appVersion: string
   updateStatus: 'idle' | 'checking' | 'available' | 'not-available' | 'error'
   handleCheckUpdate: () => Promise<void>
+  onViewChangelog?: () => void
 }
 
 export function AboutPanel({
@@ -29,6 +30,7 @@ export function AboutPanel({
   appVersion,
   updateStatus,
   handleCheckUpdate,
+  onViewChangelog,
 }: AboutPanelProps) {
   const hasElectronApi = !!window.electronAPI
 
@@ -123,6 +125,30 @@ export function AboutPanel({
           </div>
         </section>
       )}
+
+      <section className="workspace-panel-muted p-4 space-y-3">
+        <label className="text-sm font-medium leading-none flex items-center gap-2">
+          <Sparkles className="w-3.5 h-3.5 text-muted-foreground" />
+          {_language === 'zh' ? '更新日志' : 'Changelog'}
+        </label>
+        <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+          <div>
+            <p className="text-sm font-medium">
+              {_language === 'zh' ? '查看版本更新内容' : 'View version history'}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {_language === 'zh' ? '了解每个版本的新功能和修复' : 'See what changed in each release'}
+            </p>
+          </div>
+          <button
+            onClick={onViewChangelog}
+            className="inline-flex items-center justify-center gap-2 h-9 px-4 text-sm font-medium rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+          >
+            <Sparkles className="w-4 h-4" />
+            {_language === 'zh' ? '查看' : 'View'}
+          </button>
+        </div>
+      </section>
     </div>
   )
 }
