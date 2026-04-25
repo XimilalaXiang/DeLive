@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import {
   Check,
   ChevronDown,
@@ -298,25 +298,17 @@ export function AiPostProcessPanel({
             {AI_FEATURES.map(({ key, labelZh, labelEn }) => {
               const assigned = cfg.modelAssignment?.[key] || ''
               return (
-                <div key={key} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                  <span className="text-sm font-medium w-28 shrink-0">
+                <div key={key} className="p-3 rounded-lg bg-muted/50 space-y-2">
+                  <span className="text-sm font-medium">
                     {isZh ? labelZh : labelEn}
                   </span>
-                  <div className="relative flex-1">
-                    <select
-                      value={assigned}
-                      onChange={(e) => setFeatureModel(key, e.target.value)}
-                      className="w-full h-9 rounded-md border border-input bg-background px-3 pr-8 text-sm font-mono appearance-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    >
-                      <option value="">
-                        {isZh ? `默认 (${effectiveDefault || '未设置'})` : `Default (${effectiveDefault || 'not set'})`}
-                      </option>
-                      {selected.map((m) => (
-                        <option key={m} value={m}>{m}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-                  </div>
+                  <ModelDropdown
+                    value={assigned}
+                    onChange={(v) => setFeatureModel(key, v)}
+                    models={selected}
+                    defaultModel={effectiveDefault}
+                    isZh={isZh}
+                  />
                 </div>
               )
             })}
@@ -350,6 +342,95 @@ export function AiPostProcessPanel({
           </button>
         </div>
       </section>
+    </div>
+  )
+}
+
+function ModelDropdown({
+  value,
+  onChange,
+  models,
+  defaultModel,
+  isZh,
+}: {
+  value: string
+  onChange: (v: string) => void
+  models: string[]
+  defaultModel: string
+  isZh: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return undefined
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  const displayText = value
+    ? value
+    : isZh
+      ? `使用默认${defaultModel ? ` · ${defaultModel}` : ''}`
+      : `Use default${defaultModel ? ` · ${defaultModel}` : ''}`
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className={`w-full flex items-center justify-between gap-2 h-9 rounded-md border px-3 text-sm transition-colors ${
+          open
+            ? 'border-ring ring-2 ring-ring/20 bg-background'
+            : 'border-input bg-background hover:bg-accent/50'
+        }`}
+      >
+        <span className={`truncate ${value ? 'font-mono text-foreground' : 'text-muted-foreground'}`}>
+          {displayText}
+        </span>
+        <ChevronDown className={`w-4 h-4 shrink-0 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="absolute z-50 mt-1 w-full rounded-lg border border-border bg-popover shadow-lg animate-in fade-in zoom-in-95 duration-100">
+          <div className="max-h-48 overflow-y-auto py-1">
+            <button
+              type="button"
+              onClick={() => { onChange(''); setOpen(false) }}
+              className={`w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-accent ${
+                !value ? 'bg-primary/5 text-primary' : 'text-foreground'
+              }`}
+            >
+              <Check className={`w-3.5 h-3.5 shrink-0 ${!value ? 'opacity-100' : 'opacity-0'}`} />
+              <span className="truncate">
+                {isZh ? '使用默认模型' : 'Use default model'}
+                {defaultModel && (
+                  <span className="text-muted-foreground font-mono ml-1 text-xs">({defaultModel})</span>
+                )}
+              </span>
+            </button>
+
+            <div className="mx-2 my-1 border-t border-border" />
+
+            {models.map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => { onChange(m); setOpen(false) }}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm font-mono transition-colors hover:bg-accent ${
+                  value === m ? 'bg-primary/5 text-primary' : 'text-foreground'
+                }`}
+              >
+                <Check className={`w-3.5 h-3.5 shrink-0 ${value === m ? 'opacity-100' : 'opacity-0'}`} />
+                <span className="truncate">{m}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
