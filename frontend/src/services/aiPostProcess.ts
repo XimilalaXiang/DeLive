@@ -1,4 +1,5 @@
 import type {
+  AiFeatureKey,
   AiPostProcessConfig,
   AppSettings,
   TranscriptChapter,
@@ -11,6 +12,46 @@ import type {
 const DEFAULT_AI_BASE_URL = 'http://127.0.0.1:11434/v1'
 const DEFAULT_PROMPT_LANGUAGE: NonNullable<AiPostProcessConfig['promptLanguage']> = 'zh'
 const MAX_TRANSCRIPT_CHARS = 24_000
+
+interface ModelsApiResponse {
+  data?: Array<{ id: string; created?: number; owned_by?: string }>
+  object?: string
+}
+
+export async function fetchAvailableModels(
+  baseUrl: string,
+  apiKey?: string,
+): Promise<string[]> {
+  const url = `${baseUrl.replace(/\/+$/, '')}/models`
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (apiKey?.trim()) headers.Authorization = `Bearer ${apiKey.trim()}`
+
+  const res = await fetch(url, { headers, signal: AbortSignal.timeout(15_000) })
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(text || `HTTP ${res.status}`)
+  }
+
+  const payload = (await res.json()) as ModelsApiResponse
+  const models = (payload.data ?? [])
+    .map((m) => m.id)
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b))
+
+  if (models.length === 0) throw new Error('API 未返回可用模型')
+  return models
+}
+
+export function resolveModelForFeature(
+  config: AiPostProcessConfig,
+  feature: AiFeatureKey,
+): string {
+  const assigned = config.modelAssignment?.[feature]
+  if (assigned?.trim()) return assigned.trim()
+  if (config.defaultModel?.trim()) return config.defaultModel.trim()
+  if (config.model?.trim()) return config.model.trim()
+  return ''
+}
 
 interface ChatCompletionResponse {
   choices?: Array<{
@@ -459,7 +500,7 @@ export async function generateSessionBriefing(
 ): Promise<SessionBriefingResult> {
   const config = getAiConfig(settings)
   const baseUrl = config.baseUrl?.trim().replace(/\/+$/, '') || DEFAULT_AI_BASE_URL
-  const model = config.model?.trim()
+  const model = resolveModelForFeature(config, 'briefing')
   const promptLanguage = config.promptLanguage || DEFAULT_PROMPT_LANGUAGE
 
   if (!config.enabled) {
@@ -510,7 +551,7 @@ export async function askQuestionForSession(
 ): Promise<SessionQaResult> {
   const config = getAiConfig(settings)
   const baseUrl = config.baseUrl?.trim().replace(/\/+$/, '') || DEFAULT_AI_BASE_URL
-  const model = config.model?.trim()
+  const model = resolveModelForFeature(config, 'chat')
   const promptLanguage = config.promptLanguage || DEFAULT_PROMPT_LANGUAGE
   const normalizedQuestion = question.trim()
 
@@ -574,7 +615,7 @@ export async function generateSessionMindMap(
 ): Promise<SessionMindMapResult> {
   const config = getAiConfig(settings)
   const baseUrl = config.baseUrl?.trim().replace(/\/+$/, '') || DEFAULT_AI_BASE_URL
-  const model = config.model?.trim()
+  const model = resolveModelForFeature(config, 'mindmap')
   const promptLanguage = config.promptLanguage || DEFAULT_PROMPT_LANGUAGE
 
   if (!config.enabled) {

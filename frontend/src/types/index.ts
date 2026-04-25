@@ -181,13 +181,22 @@ export interface ProviderConfigData {
   [key: string]: unknown
 }
 
+export type AiFeatureKey = 'briefing' | 'chat' | 'mindmap' | 'correction'
+
 export interface AiPostProcessConfig {
   enabled?: boolean
   provider?: 'openai-compatible'
   baseUrl?: string
-  model?: string
   apiKey?: string
   promptLanguage?: 'zh' | 'en'
+
+  /** @deprecated Use defaultModel instead */
+  model?: string
+
+  availableModels?: string[]
+  selectedModels?: string[]
+  defaultModel?: string
+  modelAssignment?: Partial<Record<AiFeatureKey, string>>
 }
 
 export interface OpenApiConfig {

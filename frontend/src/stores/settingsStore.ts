@@ -92,6 +92,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       },
     }
 
+    if (merged.aiPostProcess.model && !merged.aiPostProcess.defaultModel) {
+      merged.aiPostProcess.defaultModel = merged.aiPostProcess.model
+    }
+
     set({ settings: merged })
 
     if (window.electronAPI) {

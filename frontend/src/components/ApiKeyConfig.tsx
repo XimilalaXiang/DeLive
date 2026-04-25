@@ -403,6 +403,7 @@ export function ApiKeyConfig({ isOpen, onClose, mode = 'modal', onViewChangelog 
             {activeGroup === 'aiPostProcess' && (
               <AiPostProcessPanel
                 t={t}
+                language={language}
                 aiPostProcessConfig={aiPostProcessConfig}
                 updateAiPostProcessConfig={(patch) => {
                   setAiPostProcessConfig((prev) => ({ ...prev, ...patch }))
