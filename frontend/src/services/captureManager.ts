@@ -88,6 +88,33 @@ export class CaptureManager {
     }
   }
 
+  /**
+   * 仅获取新的音频流（停掉旧流），不启动 MediaRecorder/AudioProcessor。
+   * 用于需要在 provider connect 之后再启动 recorder 的场景（避免 WebM 头丢失）。
+   */
+  async restartStreamOnly(): Promise<MediaStream> {
+    this._isRestarting = true
+
+    this.stopPipeline()
+    this.clearTrackEndedHandler()
+    this.stopStream()
+
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+
+    try {
+      const stream = await this.requestDisplayAudio()
+      this.mediaStream = stream
+      return stream
+    } catch (error) {
+      this._isRestarting = false
+      throw error
+    }
+  }
+
+  finishRestart(): void {
+    this._isRestarting = false
+  }
+
   stop(): void {
     this.removeDeviceListener()
     this.stopPipeline()

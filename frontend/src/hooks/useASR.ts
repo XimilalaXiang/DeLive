@@ -137,28 +137,45 @@ export function useASR(options: UseASROptions = {}) {
       const psm = providerSessionRef.current
       const setup = psm.resolveSetup(vendorId, settings)
       const needReconnect = setup.captureRestartStrategy === 'reconnect-session'
+      const capture = captureRef.current
 
       if (needReconnect) {
+        // WebM 流 provider（Soniox）：必须先获取新 stream，再 connect，最后启动 recorder
+        // 确保新 WebSocket 接收到完整的 WebM 文件头
         await psm.disconnect()
-      }
 
-      const stream = await captureRef.current.restartPipeline(
-        setup.providerInfo.capabilities,
-      )
+        const stream = await capture.restartStreamOnly()
 
-      if (needReconnect || !psm.currentProvider) {
         await psm.connect(vendorId, setup.connectConfig, buildProviderCallbacks())
-      }
 
-      // 新流的音轨结束回调
-      stream.getAudioTracks()[0].onended = () => {
-        console.log('[useASR] 音频轨道结束（用户停止共享）')
-        void stopRecordingRef.current()
+        capture.restartRecorder(setup.providerInfo.capabilities)
+        capture.finishRestart()
+
+        stream.getAudioTracks()[0].onended = () => {
+          if (capture.isRestarting) return
+          console.log('[useASR] 音频轨道结束（用户停止共享）')
+          void stopRecordingRef.current()
+        }
+      } else {
+        const stream = await capture.restartPipeline(
+          setup.providerInfo.capabilities,
+        )
+
+        if (!psm.currentProvider) {
+          await psm.connect(vendorId, setup.connectConfig, buildProviderCallbacks())
+        }
+
+        stream.getAudioTracks()[0].onended = () => {
+          if (capture.isRestarting) return
+          console.log('[useASR] 音频轨道结束（用户停止共享）')
+          void stopRecordingRef.current()
+        }
       }
 
       console.log('[useASR] 音频重新采集成功')
     } catch (error) {
       console.error('[useASR] 音频重新采集失败:', error)
+      captureRef.current.finishRestart()
       captureRef.current.stop()
       await providerSessionRef.current.disconnect()
       endCurrentSession()
