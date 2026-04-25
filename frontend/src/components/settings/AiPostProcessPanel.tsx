@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import {
   Check,
   ChevronDown,
@@ -7,6 +7,7 @@ import {
   Key,
   Loader2,
   RefreshCw,
+  Search,
   Sparkles,
   Star,
 } from 'lucide-react'
@@ -40,9 +41,17 @@ export function AiPostProcessPanel({
   const [showApiKey, setShowApiKey] = useState(false)
   const [fetchStatus, setFetchStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [fetchError, setFetchError] = useState('')
+  const [modelSearch, setModelSearch] = useState('')
 
   const effectiveDefault = cfg.defaultModel?.trim() || cfg.model?.trim() || ''
   const selected = cfg.selectedModels ?? []
+
+  const filteredModels = useMemo(() => {
+    const all = cfg.availableModels ?? []
+    const q = modelSearch.trim().toLowerCase()
+    if (!q) return all
+    return all.filter((m) => m.toLowerCase().includes(q))
+  }, [cfg.availableModels, modelSearch])
 
   const handleFetchModels = useCallback(async () => {
     const baseUrl = cfg.baseUrl?.trim()
@@ -200,8 +209,24 @@ export function AiPostProcessPanel({
             </span>
           </label>
 
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <input
+              type="text"
+              value={modelSearch}
+              onChange={(e) => setModelSearch(e.target.value)}
+              placeholder={isZh ? '搜索模型...' : 'Search models...'}
+              className="flex h-9 w-full rounded-md border border-input bg-background pl-9 pr-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            />
+          </div>
+
           <div className="max-h-60 overflow-y-auto rounded-lg border border-input divide-y divide-border">
-            {cfg.availableModels!.map((modelId) => {
+            {filteredModels.length === 0 && (
+              <div className="px-3 py-4 text-center text-xs text-muted-foreground">
+                {isZh ? '无匹配模型' : 'No matching models'}
+              </div>
+            )}
+            {filteredModels.map((modelId) => {
               const isSelected = selected.includes(modelId)
               const isDefault = effectiveDefault === modelId
               return (
