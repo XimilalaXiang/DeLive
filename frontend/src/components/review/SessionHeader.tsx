@@ -5,6 +5,7 @@ import {
   Calendar,
   Clock,
   FileText,
+  SpellCheck,
   Subtitles,
   ChevronDown,
   PanelLeftClose,
@@ -33,6 +34,7 @@ export function SessionHeader({
   const exportMenuRef = useRef<HTMLDivElement>(null)
   const translatedText = session.translatedTranscript?.text?.trim() || ''
   const hasContent = Boolean(session.transcript || translatedText)
+  const hasCorrectedText = session.correction?.status === 'done' && !!session.correction.correctedText
 
   const handleExportTxt = () => {
     exportToTxt(session)
@@ -51,6 +53,20 @@ export function SessionHeader({
 
   const handleExportVtt = () => {
     downloadSubtitle(session, 'vtt')
+    setShowExportMenu(false)
+  }
+
+  const handleExportCorrectedTxt = () => {
+    if (!session.correction?.correctedText) return
+    const blob = new Blob([session.correction.correctedText], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${session.title || 'transcript'}_corrected.txt`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
     setShowExportMenu(false)
   }
 
@@ -136,6 +152,18 @@ export function SessionHeader({
                     <Subtitles className="w-4 h-4" />
                     VTT
                   </button>
+                  {hasCorrectedText && (
+                    <>
+                      <div className="mx-1 my-1 border-t border-border" />
+                      <button
+                        onClick={handleExportCorrectedTxt}
+                        className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-primary transition-colors hover:bg-accent"
+                      >
+                        <SpellCheck className="w-4 h-4" />
+                        TXT ({t.preview.correctionCorrected})
+                      </button>
+                    </>
+                  )}
                 </div>
               </>
             )}

@@ -8,6 +8,7 @@ import {
   ChatTab,
   MindMapTab,
   TranscriptTab,
+  CorrectionTab,
 } from './review'
 import type { ReviewTab } from './review'
 
@@ -40,9 +41,9 @@ export function PreviewModal({
       if (event.key === 'Escape') {
         onClose()
       }
-      if ((event.ctrlKey || event.metaKey) && event.key >= '1' && event.key <= '4') {
+      if ((event.ctrlKey || event.metaKey) && event.key >= '1' && event.key <= '6') {
         event.preventDefault()
-        const tabs: ReviewTab[] = ['transcript', 'overview', 'chat', 'mindmap']
+        const tabs: ReviewTab[] = ['transcript', 'overview', 'chat', 'mindmap', 'correction']
         const index = parseInt(event.key, 10) - 1
         if (index >= 0 && index < tabs.length) {
           setActiveTab(tabs[index])
@@ -72,6 +73,8 @@ export function PreviewModal({
         return <ChatTab session={session} />
       case 'mindmap':
         return <MindMapTab session={session} />
+      case 'correction':
+        return <CorrectionTab session={session} />
       case 'transcript':
         return <TranscriptTab session={session} />
       default:

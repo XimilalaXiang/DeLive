@@ -5,10 +5,11 @@ import {
   MessageSquareQuote,
   Network,
   FileText,
+  SpellCheck,
 } from 'lucide-react'
 import { useUIStore } from '../../stores/uiStore'
 
-export type ReviewTab = 'overview' | 'ai' | 'chat' | 'mindmap' | 'transcript'
+export type ReviewTab = 'overview' | 'ai' | 'chat' | 'mindmap' | 'transcript' | 'correction'
 
 interface SessionTabBarProps {
   activeTab: ReviewTab
@@ -21,6 +22,7 @@ const TAB_CONFIG: { id: ReviewTab; icon: typeof Sparkles; labelKey: string }[] =
   { id: 'ai', icon: Bot, labelKey: 'tabAi' },
   { id: 'chat', icon: MessageSquareQuote, labelKey: 'tabChat' },
   { id: 'mindmap', icon: Network, labelKey: 'tabMindMap' },
+  { id: 'correction', icon: SpellCheck, labelKey: 'tabCorrection' },
 ]
 
 export function SessionTabBar({ activeTab, onTabChange }: SessionTabBarProps) {

@@ -77,6 +77,30 @@ export interface TranscriptChapter {
 export type TranscriptPostProcessStatus = 'pending' | 'success' | 'error'
 export type TranscriptAskTurnStatus = 'pending' | 'success' | 'error'
 export type TranscriptMindMapStatus = 'pending' | 'success' | 'error'
+export type TranscriptCorrectionStatus = 'idle' | 'detecting' | 'reviewing' | 'correcting' | 'done' | 'error'
+
+export type CorrectionIssueCategory = 'homophone' | 'proper-noun' | 'grammar' | 'punctuation' | 'other'
+
+export interface CorrectionIssue {
+  id: string
+  segmentIndex?: number
+  originalText: string
+  suggestedText: string
+  reason: string
+  accepted?: boolean
+  category: CorrectionIssueCategory
+}
+
+export interface TranscriptCorrection {
+  correctedText?: string
+  issues?: CorrectionIssue[]
+  status: TranscriptCorrectionStatus
+  mode: 'quick' | 'review'
+  model?: string
+  requestedAt?: number
+  completedAt?: number
+  error?: string
+}
 
 export interface TranscriptQaCitation {
   quote: string
@@ -165,6 +189,7 @@ export interface TranscriptSession {
   postProcess?: TranscriptPostProcess
   askHistory?: TranscriptAskTurn[]
   mindMap?: TranscriptMindMap
+  correction?: TranscriptCorrection
   providerId?: string
   status?: TranscriptSessionStatus
   lastPersistedAt?: number
@@ -197,6 +222,7 @@ export interface AiPostProcessConfig {
   selectedModels?: string[]
   defaultModel?: string
   modelAssignment?: Partial<Record<AiFeatureKey, string>>
+  correctionMode?: 'quick' | 'review'
 }
 
 export interface OpenApiConfig {

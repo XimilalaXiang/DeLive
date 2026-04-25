@@ -1,7 +1,9 @@
 import { create } from 'zustand'
 import type {
+  CorrectionIssue,
   RecordingState,
   TranscriptAskTurn,
+  TranscriptCorrection,
   TranscriptMindMap,
   TranscriptPostProcess,
   TranscriptSegment,
@@ -13,7 +15,13 @@ import {
   askQuestionForSession,
   generateSessionBriefing,
   generateSessionMindMap as generateMindMapForSession,
+  resolveModelForFeature,
 } from '../services/aiPostProcess'
+import {
+  correctTranscriptQuick,
+  correctTranscriptWithReview,
+  detectCorrectionIssues,
+} from '../services/aiCorrection'
 import { sessionRepository } from '../utils/sessionRepository'
 import { formatTime } from '../utils/storage'
 import {
@@ -108,6 +116,18 @@ export interface SessionState {
   updateSessionTags: (sessionId: string, tagIds: string[]) => void
   updateSessionTopic: (sessionId: string, topicId: string | undefined) => void
   replaceAllSessions: (sessions: TranscriptSession[]) => TranscriptSession[]
+
+  updateSessionCorrection: (sessionId: string, patch: Partial<TranscriptCorrection>) => void
+  detectSessionCorrectionIssues: (sessionId: string) => Promise<CorrectionIssue[]>
+  startSessionQuickCorrection: (
+    sessionId: string,
+    onChunk: (text: string) => void,
+  ) => Promise<string>
+  startSessionReviewCorrection: (
+    sessionId: string,
+    acceptedIssues: CorrectionIssue[],
+    onChunk: (text: string) => void,
+  ) => Promise<string>
 
   finalTokens: TranscriptToken[]
 }
@@ -630,6 +650,160 @@ export const useSessionStore = create<SessionState>((set, get) => {
       const persisted = sessionRepository.replaceAllSessions(sessions)
       set({ sessions: persisted })
       return persisted
+    },
+
+    updateSessionCorrection: (sessionId, patch) => {
+      const session = get().sessions.find((s) => s.id === sessionId)
+      if (!session) return
+      const nextCorrection: TranscriptCorrection = {
+        status: 'idle',
+        mode: 'quick',
+        ...(session.correction || {}),
+        ...patch,
+      }
+      const { recoverySession } = get()
+      const sessions = sessionRepository.updateMetadata(sessionId, { correction: nextCorrection })
+      set({
+        sessions,
+        recoverySession: recoverySession?.id === sessionId
+          ? { ...recoverySession, correction: nextCorrection }
+          : recoverySession,
+      })
+    },
+
+    detectSessionCorrectionIssues: async (sessionId) => {
+      const session = get().sessions.find((s) => s.id === sessionId)
+      if (!session) throw new Error('未找到要纠错的会话')
+
+      get().updateSessionCorrection(sessionId, {
+        status: 'detecting',
+        error: undefined,
+        requestedAt: Date.now(),
+        mode: 'review',
+      })
+
+      try {
+        const { issues, model } = await detectCorrectionIssues(
+          session,
+          useSettingsStore.getState().settings,
+        )
+        get().updateSessionCorrection(sessionId, {
+          status: 'reviewing',
+          issues,
+          model,
+        })
+        return issues
+      } catch (error) {
+        const message = error instanceof Error ? error.message : '检测失败'
+        get().updateSessionCorrection(sessionId, {
+          status: 'error',
+          error: message,
+        })
+        throw error
+      }
+    },
+
+    startSessionQuickCorrection: async (sessionId, onChunk) => {
+      const session = get().sessions.find((s) => s.id === sessionId)
+      if (!session) throw new Error('未找到要纠错的会话')
+
+      const model = resolveModelForFeature(
+        { ...useSettingsStore.getState().settings.aiPostProcess } as import('../types').AiPostProcessConfig,
+        'correction',
+      )
+
+      get().updateSessionCorrection(sessionId, {
+        status: 'correcting',
+        error: undefined,
+        requestedAt: Date.now(),
+        mode: 'quick',
+        model,
+      })
+
+      return new Promise<string>((resolve, reject) => {
+        correctTranscriptQuick(
+          session,
+          useSettingsStore.getState().settings,
+          {
+            onChunk,
+            onDone: (fullText) => {
+              get().updateSessionCorrection(sessionId, {
+                status: 'done',
+                correctedText: fullText,
+                completedAt: Date.now(),
+              })
+              resolve(fullText)
+            },
+            onError: (err) => {
+              get().updateSessionCorrection(sessionId, {
+                status: 'error',
+                error: err.message,
+              })
+              reject(err)
+            },
+          },
+        ).catch((err) => {
+          get().updateSessionCorrection(sessionId, {
+            status: 'error',
+            error: err instanceof Error ? err.message : '纠错失败',
+          })
+          reject(err)
+        })
+      })
+    },
+
+    startSessionReviewCorrection: async (sessionId, acceptedIssues, onChunk) => {
+      const session = get().sessions.find((s) => s.id === sessionId)
+      if (!session) throw new Error('未找到要纠错的会话')
+
+      const model = resolveModelForFeature(
+        { ...useSettingsStore.getState().settings.aiPostProcess } as import('../types').AiPostProcessConfig,
+        'correction',
+      )
+
+      get().updateSessionCorrection(sessionId, {
+        status: 'correcting',
+        error: undefined,
+        requestedAt: Date.now(),
+        mode: 'review',
+        model,
+        issues: session.correction?.issues?.map((issue) => ({
+          ...issue,
+          accepted: acceptedIssues.some((a) => a.id === issue.id),
+        })),
+      })
+
+      return new Promise<string>((resolve, reject) => {
+        correctTranscriptWithReview(
+          session,
+          acceptedIssues,
+          useSettingsStore.getState().settings,
+          {
+            onChunk,
+            onDone: (fullText) => {
+              get().updateSessionCorrection(sessionId, {
+                status: 'done',
+                correctedText: fullText,
+                completedAt: Date.now(),
+              })
+              resolve(fullText)
+            },
+            onError: (err) => {
+              get().updateSessionCorrection(sessionId, {
+                status: 'error',
+                error: err.message,
+              })
+              reject(err)
+            },
+          },
+        ).catch((err) => {
+          get().updateSessionCorrection(sessionId, {
+            status: 'error',
+            error: err instanceof Error ? err.message : '纠错失败',
+          })
+          reject(err)
+        })
+      })
     },
   }
 })

@@ -342,6 +342,41 @@ export function AiPostProcessPanel({
           </button>
         </div>
       </section>
+
+      {/* Correction mode */}
+      <section className="workspace-panel-muted p-4 space-y-3">
+        <label className="text-sm font-medium leading-none flex items-center gap-2">
+          <Sparkles className="w-3.5 h-3.5 text-muted-foreground" />
+          {isZh ? 'AI 纠错模式' : 'AI Correction Mode'}
+        </label>
+        <p className="text-xs text-muted-foreground">
+          {isZh
+            ? '选择 AI 纠错的工作方式。直接纠错会一次性输出修改后全文；先检测后纠错会先列出问题清单供你确认。'
+            : 'Choose how AI correction works. Quick mode outputs corrected text directly; Review mode lists issues for confirmation first.'}
+        </p>
+        <div className="flex gap-2">
+          <button
+            onClick={() => updateAiPostProcessConfig({ correctionMode: 'quick' })}
+            className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all ${
+              (cfg.correctionMode || 'quick') === 'quick'
+                ? 'bg-primary/10 text-primary border-2 border-primary ring-2 ring-primary/20'
+                : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
+            }`}
+          >
+            {isZh ? '直接纠错' : 'Quick Fix'}
+          </button>
+          <button
+            onClick={() => updateAiPostProcessConfig({ correctionMode: 'review' })}
+            className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all ${
+              (cfg.correctionMode || 'quick') === 'review'
+                ? 'bg-primary/10 text-primary border-2 border-primary ring-2 ring-primary/20'
+                : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
+            }`}
+          >
+            {isZh ? '先检测后纠错' : 'Review & Fix'}
+          </button>
+        </div>
+      </section>
     </div>
   )
 }
