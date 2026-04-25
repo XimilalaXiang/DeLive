@@ -15,6 +15,7 @@ import type { TranscriptSession } from '../../types'
 import { exportToTxt, exportToMarkdown } from '../../utils/storage'
 import { downloadSubtitle } from '../../utils/subtitleExport'
 import { useUIStore } from '../../stores/uiStore'
+import { useSessionStore } from '../../stores/sessionStore'
 
 interface SessionHeaderProps {
   session: TranscriptSession
@@ -30,39 +31,42 @@ export function SessionHeader({
   onToggleSidebar,
 }: SessionHeaderProps) {
   const { t } = useUIStore()
+  const liveSession = useSessionStore(
+    (s) => s.sessions.find((sess) => sess.id === session.id),
+  ) ?? session
   const [showExportMenu, setShowExportMenu] = useState(false)
   const exportMenuRef = useRef<HTMLDivElement>(null)
-  const translatedText = session.translatedTranscript?.text?.trim() || ''
-  const hasContent = Boolean(session.transcript || translatedText)
-  const hasCorrectedText = session.correction?.status === 'done' && !!session.correction.correctedText
+  const translatedText = liveSession.translatedTranscript?.text?.trim() || ''
+  const hasContent = Boolean(liveSession.transcript || translatedText)
+  const hasCorrectedText = liveSession.correction?.status === 'done' && !!liveSession.correction.correctedText
 
   const handleExportTxt = () => {
-    exportToTxt(session)
+    exportToTxt(liveSession)
     setShowExportMenu(false)
   }
 
   const handleExportMarkdown = () => {
-    exportToMarkdown(session)
+    exportToMarkdown(liveSession)
     setShowExportMenu(false)
   }
 
   const handleExportSrt = () => {
-    downloadSubtitle(session, 'srt')
+    downloadSubtitle(liveSession, 'srt')
     setShowExportMenu(false)
   }
 
   const handleExportVtt = () => {
-    downloadSubtitle(session, 'vtt')
+    downloadSubtitle(liveSession, 'vtt')
     setShowExportMenu(false)
   }
 
   const handleExportCorrectedTxt = () => {
-    if (!session.correction?.correctedText) return
-    const blob = new Blob([session.correction.correctedText], { type: 'text/plain;charset=utf-8' })
+    if (!liveSession.correction?.correctedText) return
+    const blob = new Blob([liveSession.correction.correctedText], { type: 'text/plain;charset=utf-8' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `${session.title || 'transcript'}_corrected.txt`
+    a.download = `${liveSession.title || 'transcript'}_corrected.txt`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -91,19 +95,19 @@ export function SessionHeader({
         </div>
         <div className="min-w-0">
           <h2 id="session-review-title" className="text-lg font-semibold tracking-tight truncate">
-            {session.title}
+            {liveSession.title}
           </h2>
           <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-0.5">
             <span className="flex items-center gap-1">
               <Calendar className="w-3 h-3" />
-              {session.date}
+              {liveSession.date}
             </span>
             <span className="flex items-center gap-1">
               <Clock className="w-3 h-3" />
-              {session.time}
+              {liveSession.time}
             </span>
             <span className="text-xs text-muted-foreground">
-              {session.transcript?.length || 0} {t.common.characters}
+              {liveSession.transcript?.length || 0} {t.common.characters}
             </span>
           </div>
         </div>
