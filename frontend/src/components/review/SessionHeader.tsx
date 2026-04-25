@@ -74,6 +74,29 @@ export function SessionHeader({
     setShowExportMenu(false)
   }
 
+  const handleExportCorrectedMarkdown = () => {
+    if (!liveSession.correction?.correctedText) return
+    const lines: string[] = []
+    lines.push(`# ${liveSession.title} (${t.preview.correctionCorrected})`)
+    lines.push('')
+    lines.push(`> ${liveSession.date} ${liveSession.time}`)
+    lines.push('')
+    lines.push('---')
+    lines.push('')
+    lines.push(liveSession.correction.correctedText)
+    lines.push('')
+    const blob = new Blob([lines.join('\n')], { type: 'text/markdown;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${liveSession.title || 'transcript'}_corrected.md`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    setShowExportMenu(false)
+  }
+
   return (
     <div className="flex items-center justify-between px-6 py-3.5 border-b border-border bg-muted/30">
       <div className="flex items-center gap-3 min-w-0">
@@ -165,6 +188,13 @@ export function SessionHeader({
                       >
                         <SpellCheck className="w-4 h-4" />
                         TXT ({t.preview.correctionCorrected})
+                      </button>
+                      <button
+                        onClick={handleExportCorrectedMarkdown}
+                        className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-primary transition-colors hover:bg-accent"
+                      >
+                        <SpellCheck className="w-4 h-4" />
+                        Markdown ({t.preview.correctionCorrected})
                       </button>
                     </>
                   )}
