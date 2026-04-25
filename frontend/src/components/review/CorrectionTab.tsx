@@ -54,7 +54,10 @@ export function CorrectionTab({ session }: CorrectionTabProps) {
     updateSessionCorrection,
   } = useSessionStore()
 
-  const correction = session.correction
+  const liveSession = useSessionStore(
+    (s) => s.sessions.find((sess) => sess.id === session.id),
+  )
+  const correction = liveSession?.correction ?? session.correction
   const correctionMode = settings.aiPostProcess?.correctionMode || 'quick'
   const status = correction?.status || 'idle'
 
@@ -79,38 +82,42 @@ export function CorrectionTab({ session }: CorrectionTabProps) {
     settings.aiPostProcess || {},
     'correction',
   )
-  const hasTranscript = !!session.transcript.trim()
+  const activeSession = liveSession ?? session
+  const hasTranscript = !!activeSession.transcript.trim()
   const canStart = settings.aiPostProcess?.enabled && hasModel && hasTranscript
 
   const handleQuickCorrection = useCallback(async () => {
+    console.log('[CorrectionTab] Starting quick correction for session:', session.id)
     setStreamingText('')
     try {
       await startSessionQuickCorrection(session.id, (chunk) => {
         setStreamingText((prev) => prev + chunk)
       })
-    } catch {
-      // error is stored in correction state
+    } catch (err) {
+      console.error('[CorrectionTab] Quick correction failed:', err)
     }
   }, [session.id, startSessionQuickCorrection])
 
   const handleDetect = useCallback(async () => {
+    console.log('[CorrectionTab] Starting detection for session:', session.id)
     try {
       await detectSessionCorrectionIssues(session.id)
-    } catch {
-      // error is stored in correction state
+    } catch (err) {
+      console.error('[CorrectionTab] Detection failed:', err)
     }
   }, [session.id, detectSessionCorrectionIssues])
 
   const handleReviewCorrection = useCallback(async () => {
     const accepted = localIssues.filter((i) => i.accepted)
     if (accepted.length === 0) return
+    console.log('[CorrectionTab] Starting review correction with', accepted.length, 'accepted issues')
     setStreamingText('')
     try {
       await startSessionReviewCorrection(session.id, accepted, (chunk) => {
         setStreamingText((prev) => prev + chunk)
       })
-    } catch {
-      // error is stored in correction state
+    } catch (err) {
+      console.error('[CorrectionTab] Review correction failed:', err)
     }
   }, [session.id, localIssues, startSessionReviewCorrection])
 
@@ -144,6 +151,8 @@ export function CorrectionTab({ session }: CorrectionTabProps) {
       </div>
     )
   }
+
+  const transcriptText = activeSession.transcript
 
   if (!canStart && status === 'idle') {
     return (
@@ -381,7 +390,7 @@ export function CorrectionTab({ session }: CorrectionTabProps) {
                 </h4>
                 <div className="rounded-lg border border-border bg-muted/30 p-4 max-h-[50vh] overflow-y-auto">
                   <pre className="text-sm whitespace-pre-wrap break-words font-sans leading-relaxed text-muted-foreground">
-                    {session.transcript}
+                    {transcriptText}
                   </pre>
                 </div>
               </div>
