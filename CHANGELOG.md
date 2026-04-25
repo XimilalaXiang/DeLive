@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.2-beta.2] - 2026-04-25
+
+### Added / 新增
+- 📋 **What's New dialog** — auto-displays changelog after version update with bilingual (zh/en) support
+- 📋 **更新日志弹窗** — 版本更新后自动展示更新内容，支持中英双语
+- 📋 "View Changelog" button in Settings > About panel
+- 📋 设置 > 关于 面板新增"查看更新日志"按钮
+
+---
+
 ## [2.0.2-beta.1] - 2026-04-25
 
 ### Added / 新增
