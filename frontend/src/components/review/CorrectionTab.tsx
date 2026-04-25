@@ -146,16 +146,21 @@ export function CorrectionTab({ session }: CorrectionTabProps) {
 
   const handleReviewCorrection = useCallback(async () => {
     const accepted = localIssues.filter((i) => i.accepted)
-    if (accepted.length === 0) return
     setStreamingText('')
     setLocalStatus('correcting')
     setLocalError(null)
     setStartTime(Date.now())
     setElapsed(0)
     try {
-      await startSessionReviewCorrection(session.id, accepted, (chunk) => {
-        setStreamingText((prev) => prev + chunk)
-      })
+      if (accepted.length === 0) {
+        await startSessionQuickCorrection(session.id, (chunk) => {
+          setStreamingText((prev) => prev + chunk)
+        })
+      } else {
+        await startSessionReviewCorrection(session.id, accepted, (chunk) => {
+          setStreamingText((prev) => prev + chunk)
+        })
+      }
       setLocalStatus('done')
     } catch (err) {
       const msg = err instanceof Error ? err.message : '纠错失败'
@@ -164,7 +169,7 @@ export function CorrectionTab({ session }: CorrectionTabProps) {
     } finally {
       setStartTime(null)
     }
-  }, [session.id, localIssues, startSessionReviewCorrection])
+  }, [session.id, localIssues, startSessionQuickCorrection, startSessionReviewCorrection])
 
   const handleReset = useCallback(() => {
     updateSessionCorrection(session.id, {
@@ -292,24 +297,22 @@ export function CorrectionTab({ session }: CorrectionTabProps) {
                   ? (p.correctionIssuesFound as (n: number) => string)(localIssues.length)
                   : `${localIssues.length} issues`}
               </p>
-              {localIssues.length > 0 && (
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setAllAccepted(true)}
-                    className="text-xs font-medium text-primary hover:underline"
-                  >
-                    {p.correctionAcceptAll as string}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAllAccepted(false)}
-                    className="text-xs font-medium text-muted-foreground hover:underline"
-                  >
-                    {p.correctionRejectAll as string}
-                  </button>
-                </div>
-              )}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setAllAccepted(true)}
+                  className="text-xs font-medium text-primary hover:underline"
+                >
+                  {p.correctionAcceptAll as string}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAllAccepted(false)}
+                  className="text-xs font-medium text-muted-foreground hover:underline"
+                >
+                  {p.correctionRejectAll as string}
+                </button>
+              </div>
             </div>
 
             {localIssues.length === 0 && (
@@ -386,22 +389,21 @@ export function CorrectionTab({ session }: CorrectionTabProps) {
               })}
             </div>
 
-            {localIssues.length > 0 && (
-              <div className="pt-2">
-                <button
-                  type="button"
-                  onClick={() => void handleReviewCorrection()}
-                  disabled={localIssues.filter((i) => i.accepted).length === 0}
-                  className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors w-full justify-center disabled:opacity-50"
-                >
-                  <Zap className="w-4 h-4" />
-                  {p.correctionApply as string}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => void handleReviewCorrection()}
+                className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors w-full justify-center"
+              >
+                <Zap className="w-4 h-4" />
+                {p.correctionApply as string}
+                {localIssues.length > 0 && (
                   <span className="text-xs opacity-70">
                     ({localIssues.filter((i) => i.accepted).length}/{localIssues.length})
                   </span>
-                </button>
-              </div>
-            )}
+                )}
+              </button>
+            </div>
           </div>
         )}
 

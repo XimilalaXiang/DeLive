@@ -1,6 +1,9 @@
 import type {
+  CorrectionIssue,
   TranscriptAskTurn,
   TranscriptChapter,
+  TranscriptCorrection,
+  TranscriptCorrectionStatus,
   TranscriptMindMap,
   TranscriptPostProcess,
   TranscriptQaCitation,
@@ -317,6 +320,61 @@ function normalizePostProcess(value: unknown): TranscriptPostProcess | undefined
   }
 }
 
+const VALID_CORRECTION_STATUSES = new Set<TranscriptCorrectionStatus>([
+  'idle', 'detecting', 'reviewing', 'correcting', 'done', 'error',
+])
+const VALID_CORRECTION_CATEGORIES = new Set(['homophone', 'proper-noun', 'grammar', 'punctuation', 'other'])
+
+function normalizeCorrectionIssue(raw: unknown): CorrectionIssue | null {
+  if (!raw || typeof raw !== 'object') return null
+  const obj = raw as Record<string, unknown>
+  const id = getString(obj.id)
+  const originalText = getString(obj.originalText)
+  const suggestedText = getString(obj.suggestedText)
+  const reason = getString(obj.reason) ?? ''
+  const category = getString(obj.category)
+  if (!id || !originalText || !suggestedText || !category || !VALID_CORRECTION_CATEGORIES.has(category)) return null
+  return {
+    id,
+    segmentIndex: getNumber(obj.segmentIndex),
+    originalText,
+    suggestedText,
+    reason,
+    accepted: typeof obj.accepted === 'boolean' ? obj.accepted : undefined,
+    category: category as CorrectionIssue['category'],
+  }
+}
+
+function normalizeCorrection(raw: unknown): TranscriptCorrection | undefined {
+  if (!raw || typeof raw !== 'object') return undefined
+  const obj = raw as Record<string, unknown>
+  const statusStr = getString(obj.status)
+  const status: TranscriptCorrectionStatus =
+    statusStr && VALID_CORRECTION_STATUSES.has(statusStr as TranscriptCorrectionStatus)
+      ? (statusStr as TranscriptCorrectionStatus)
+      : 'idle'
+  const mode = getString(obj.mode) === 'review' ? 'review' as const : 'quick' as const
+  const correctedText = getString(obj.correctedText)
+  const issues = Array.isArray(obj.issues)
+    ? obj.issues.map(normalizeCorrectionIssue).filter((i): i is CorrectionIssue => i !== null)
+    : undefined
+
+  if (status === 'idle' && !correctedText && (!issues || issues.length === 0)) {
+    return undefined
+  }
+
+  return {
+    status,
+    mode,
+    correctedText: correctedText || undefined,
+    issues: issues && issues.length > 0 ? issues : undefined,
+    model: getString(obj.model) || undefined,
+    requestedAt: getNumber(obj.requestedAt),
+    completedAt: getNumber(obj.completedAt),
+    error: getString(obj.error) || undefined,
+  }
+}
+
 export function normalizeTranscriptSession(session: Partial<TranscriptSession>): TranscriptSession {
   const createdAt = getNumber(session.createdAt) ?? Date.now()
   const updatedAt = getNumber(session.updatedAt) ?? createdAt
@@ -365,6 +423,7 @@ export function normalizeTranscriptSession(session: Partial<TranscriptSession>):
     postProcess: normalizePostProcess(session.postProcess),
     askHistory: askHistory && askHistory.length > 0 ? askHistory : undefined,
     mindMap: normalizeMindMap(session.mindMap),
+    correction: normalizeCorrection(session.correction),
     providerId: getString(session.providerId),
     status,
     lastPersistedAt: getNumber(session.lastPersistedAt) ?? updatedAt,
