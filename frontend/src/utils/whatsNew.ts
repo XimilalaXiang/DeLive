@@ -11,6 +11,18 @@ const entries: WhatsNewEntry[] = [
     date: '2026-04-25',
     features: [
       {
+        zh: 'AI 转录纠错 — 支持「直接纠错」和「先检测后纠错」两种模式，流式输出纠正结果',
+        en: 'AI Transcript Correction — Quick Fix and Review & Fix modes with streaming output',
+      },
+      {
+        zh: 'AI 设置重构 — 获取模型列表、为不同 AI 功能分配指定模型、设置默认模型',
+        en: 'AI Settings revamp — fetch model list, assign models per AI feature, set default model',
+      },
+      {
+        zh: '纠错后内容支持导出为 TXT 和 Markdown 格式',
+        en: 'Export corrected transcript as TXT or Markdown',
+      },
+      {
         zh: '录制中热切换 — 录制过程中无需停止即可切换翻译和发言人识别（Soniox）',
         en: 'Live config hot-switch — Toggle translation and speaker diarization during active recording (Soniox)',
       },
@@ -20,6 +32,10 @@ const entries: WhatsNewEntry[] = [
       },
     ],
     fixes: [
+      {
+        zh: '修复纠错数据在应用重启后丢失的问题',
+        en: 'Fixed correction data lost on app restart (normalize round-trip)',
+      },
       {
         zh: '修复配置切换时 408 超时错误（WebM 文件头时序问题）',
         en: 'Fixed 408 timeout on config switch (WebM header timing)',
