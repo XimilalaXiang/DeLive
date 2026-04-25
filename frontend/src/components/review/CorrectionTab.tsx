@@ -292,22 +292,24 @@ export function CorrectionTab({ session }: CorrectionTabProps) {
                   ? (p.correctionIssuesFound as (n: number) => string)(localIssues.length)
                   : `${localIssues.length} issues`}
               </p>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setAllAccepted(true)}
-                  className="text-xs font-medium text-primary hover:underline"
-                >
-                  {p.correctionAcceptAll as string}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAllAccepted(false)}
-                  className="text-xs font-medium text-muted-foreground hover:underline"
-                >
-                  {p.correctionRejectAll as string}
-                </button>
-              </div>
+              {localIssues.length > 0 && (
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setAllAccepted(true)}
+                    className="text-xs font-medium text-primary hover:underline"
+                  >
+                    {p.correctionAcceptAll as string}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAllAccepted(false)}
+                    className="text-xs font-medium text-muted-foreground hover:underline"
+                  >
+                    {p.correctionRejectAll as string}
+                  </button>
+                </div>
+              )}
             </div>
 
             {localIssues.length === 0 && (
