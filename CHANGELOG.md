@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.2-beta.1] - 2026-04-25
+
+### Added / 新增
+- ⚡ **Live config hot-switch** — toggle translation and speaker diarization during active recording without stopping (Soniox)
+- ⚡ **录制中热切换** — 录制过程中无需停止即可切换翻译和发言人识别（Soniox）
+- 🎛️ Quick Settings panel in recording controls for one-tap feature toggles
+- 🎛️ 录制控件中的快捷设置面板，一键切换功能
+
+### Fixed / 修复
+- 🔧 **408 timeout on config switch** — fixed WebM header timing: pause recorder before WebSocket reconnect, restart after connect
+- 🔧 **配置切换 408 超时** — 修复 WebM 头时序：在 WebSocket 重连前暂停录制，连接后重启
+- 🔧 **Bluetooth device switch crash** — audio track `onended` no longer triggers `stopRecording` during device-change restart
+- 🔧 **蓝牙设备切换崩溃** — 设备切换重启期间 audio track 的 `onended` 不再触发停止录制
+- 🔧 **Device-change 408 timeout** — restartCapture now uses same WebM header timing pattern as config hot-switch
+- 🔧 **设备切换 408 超时** — restartCapture 现在使用与配置热切换相同的 WebM 头时序
+
+---
+
 ## [2.0.1] - 2026-04-21
 
 ### Fixed / 修复
