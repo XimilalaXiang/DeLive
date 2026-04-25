@@ -198,7 +198,13 @@ export function useASR(options: UseASROptions = {}) {
         setup.providerInfo.capabilities,
         {
           onAudioData: (data) => psm.sendAudio(data),
-          onTrackEnded: () => void stopRecordingRef.current(),
+          onTrackEnded: () => {
+            if (captureRef.current.isRestarting) {
+              console.log('[useASR] Track ended during restart, ignoring')
+              return
+            }
+            void stopRecordingRef.current()
+          },
           onDeviceChange: () => {
             const currentState = useSessionStore.getState().recordingState
             if (currentState === 'recording') {

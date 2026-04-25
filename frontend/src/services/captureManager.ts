@@ -46,6 +46,7 @@ export class CaptureManager {
   private audioProcessor: AudioProcessor | null = null
   private deviceChangeCleanup: (() => void) | null = null
   private callbacks: CaptureCallbacks | null = null
+  private _isRestarting = false
 
   async start(
     capabilities: CapturePipelineCapabilities,
@@ -62,18 +63,29 @@ export class CaptureManager {
     return stream
   }
 
+  get isRestarting(): boolean {
+    return this._isRestarting
+  }
+
   async restartPipeline(capabilities: CapturePipelineCapabilities): Promise<MediaStream> {
+    this._isRestarting = true
+
     this.stopPipeline()
+    this.clearTrackEndedHandler()
     this.stopStream()
 
     await new Promise((resolve) => setTimeout(resolve, 1000))
 
-    const stream = await this.requestDisplayAudio()
-    this.mediaStream = stream
+    try {
+      const stream = await this.requestDisplayAudio()
+      this.mediaStream = stream
 
-    await this.startPipeline(capabilities, stream)
+      await this.startPipeline(capabilities, stream)
 
-    return stream
+      return stream
+    } finally {
+      this._isRestarting = false
+    }
   }
 
   stop(): void {
@@ -152,6 +164,10 @@ export class CaptureManager {
 
     const audioStream = new MediaStream(audioTracks)
     audioTracks[0].onended = () => {
+      if (this._isRestarting) {
+        console.log('[CaptureManager] Audio track ended (ignored: restarting)')
+        return
+      }
       console.log('[CaptureManager] Audio track ended')
       this.callbacks?.onTrackEnded()
     }
@@ -236,6 +252,15 @@ export class CaptureManager {
     if (this.deviceChangeCleanup) {
       this.deviceChangeCleanup()
       this.deviceChangeCleanup = null
+    }
+  }
+
+  private clearTrackEndedHandler(): void {
+    if (this.mediaStream) {
+      const tracks = this.mediaStream.getAudioTracks()
+      for (const track of tracks) {
+        track.onended = null
+      }
     }
   }
 }
