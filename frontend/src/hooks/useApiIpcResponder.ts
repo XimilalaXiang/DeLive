@@ -89,6 +89,13 @@ function toSessionDetail(session: TranscriptSession): SessionDetail {
       createdAt: turn.createdAt,
       status: turn.status,
     })),
+    correction: session.correction?.correctedText
+      ? {
+          correctedText: session.correction.correctedText,
+          status: session.correction.status,
+          mode: session.correction.mode,
+        }
+      : undefined,
   }
 }
 

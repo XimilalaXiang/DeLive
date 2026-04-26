@@ -109,7 +109,7 @@ Search sessions by keyword in title or transcript content.
 
 ### get_session
 
-Get full session detail including transcript, AI summary, mind map, and Q&A history.
+Get full session detail including transcript, corrected transcript (when available), AI summary, mind map, and Q&A history.
 
 | Parameter | Type | Required |
 |-----------|------|----------|
@@ -117,7 +117,7 @@ Get full session detail including transcript, AI summary, mind map, and Q&A hist
 
 ### get_session_transcript
 
-Get transcript text only (lightweight).
+Get transcript text only (lightweight). Includes corrected transcript when AI correction has been applied.
 
 | Parameter | Type | Required |
 |-----------|------|----------|

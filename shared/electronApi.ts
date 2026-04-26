@@ -198,6 +198,11 @@ export interface SessionDetail {
     createdAt: number
     status: string
   }>
+  correction?: {
+    correctedText?: string
+    status: string
+    mode: string
+  }
 }
 
 export interface ApiRecordingStatus {

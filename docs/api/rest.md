@@ -88,7 +88,7 @@ curl http://localhost:23456/api/v1/sessions/abc123
 
 ### GET /sessions/:id/transcript
 
-Plain text transcript only.
+Plain text transcript only. Includes corrected transcript when AI correction has been applied.
 
 ```bash
 curl http://localhost:23456/api/v1/sessions/abc123/transcript
@@ -96,10 +96,10 @@ curl http://localhost:23456/api/v1/sessions/abc123/transcript
 
 ```json
 {
-  "id": "abc123",
-  "title": "Daily Standup",
+  "sessionId": "abc123",
   "transcript": "Good morning everyone...",
-  "translatedTranscript": null
+  "translatedTranscript": null,
+  "correctedTranscript": "Good morning, everyone..."
 }
 ```
 

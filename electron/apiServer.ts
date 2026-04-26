@@ -190,6 +190,7 @@ export function attachApiServer({ server }: ApiServerOptions): void {
           sessionId: session.id,
           transcript: session.transcript,
           translatedTranscript: session.translatedTranscript?.text,
+          correctedTranscript: session.correction?.correctedText || null,
         })
         return
       }

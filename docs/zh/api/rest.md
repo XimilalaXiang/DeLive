@@ -88,7 +88,7 @@ curl http://localhost:23456/api/v1/sessions/abc123
 
 ### GET /sessions/:id/transcript
 
-仅纯文本转录。
+仅纯文本转录。当 AI 纠错已完成时，额外返回纠错后的文本。
 
 ```bash
 curl http://localhost:23456/api/v1/sessions/abc123/transcript
@@ -96,10 +96,10 @@ curl http://localhost:23456/api/v1/sessions/abc123/transcript
 
 ```json
 {
-  "id": "abc123",
-  "title": "Daily Standup",
+  "sessionId": "abc123",
   "transcript": "Good morning everyone...",
-  "translatedTranscript": null
+  "translatedTranscript": null,
+  "correctedTranscript": "Good morning, everyone..."
 }
 ```
 

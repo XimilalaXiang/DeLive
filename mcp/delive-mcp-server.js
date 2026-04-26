@@ -97,6 +97,11 @@ server.registerTool(
     parts.push('\n## Transcript')
     parts.push(session.transcript || '(empty)')
 
+    if (session.correction?.correctedText) {
+      parts.push('\n## Corrected Transcript')
+      parts.push(session.correction.correctedText)
+    }
+
     if (session.translatedTranscript?.text) {
       parts.push('\n## Translated Transcript')
       parts.push(session.translatedTranscript.text)
@@ -137,6 +142,10 @@ server.registerTool(
     const data = await callApi(`/api/v1/sessions/${encodeURIComponent(sessionId)}/transcript`)
 
     const parts = [`Session: ${data.sessionId}`, '', data.transcript || '(empty)']
+    if (data.correctedTranscript) {
+      parts.push('\n--- Corrected Transcript ---\n')
+      parts.push(data.correctedTranscript)
+    }
     if (data.translatedTranscript) {
       parts.push('\n--- Translated ---\n')
       parts.push(data.translatedTranscript)

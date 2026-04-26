@@ -109,7 +109,7 @@ node /path/to/DeLive/mcp/delive-mcp-server.js
 
 ### get_session
 
-获取完整会话详情，包含转录、AI 摘要、思维导图和问答历史。
+获取完整会话详情，包含转录、纠错后文本（如有）、AI 摘要、思维导图和问答历史。
 
 | 参数 | 类型 | 必需 |
 |------|------|------|
@@ -117,7 +117,7 @@ node /path/to/DeLive/mcp/delive-mcp-server.js
 
 ### get_session_transcript
 
-仅获取转录文本（轻量级）。
+仅获取转录文本（轻量级）。当 AI 纠错已完成时，额外返回纠错后的文本。
 
 | 参数 | 类型 | 必需 |
 |------|------|------|
