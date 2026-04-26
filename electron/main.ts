@@ -116,15 +116,8 @@ if (!gotTheLock) {
   })
 
   app.whenReady().then(() => {
-    let httpServer: ReturnType<typeof startVolcProxyServer> | undefined
-    try {
-      httpServer = startVolcProxyServer()
-    } catch (err) {
-      console.error('[Main] 代理服务器启动失败:', err)
-    }
-    if (httpServer) {
-      attachApiServer({ server: httpServer })
-    }
+    const httpServer = startVolcProxyServer()
+    attachApiServer({ server: httpServer })
 
     createWindow()
     tray = createAppTray({

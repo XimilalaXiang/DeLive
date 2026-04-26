@@ -13,16 +13,29 @@ const __dirname = path.dirname(__filename)
 const app = express()
 const PORT = process.env.PORT || 23456
 
-// 创建 HTTP 服务器
 const server = createServer(app)
 
-// 创建 WebSocket 服务器用于火山引擎代理
-const volcWss = new WebSocketServer({ server, path: '/ws/volc' })
+const volcWss = new WebSocketServer({ noServer: true })
 createVolcProxyServer(volcWss)
 
-// 创建 WebSocket 服务器用于 Mistral 代理
-const mistralWss = new WebSocketServer({ server, path: '/ws/mistral' })
+const mistralWss = new WebSocketServer({ noServer: true })
 createMistralProxyServer(mistralWss)
+
+server.on('upgrade', (request, socket, head) => {
+  const { pathname } = new URL(request.url || '', `http://${request.headers.host}`)
+
+  if (pathname === '/ws/volc') {
+    volcWss.handleUpgrade(request, socket, head, (ws) => {
+      volcWss.emit('connection', ws, request)
+    })
+  } else if (pathname === '/ws/mistral') {
+    mistralWss.handleUpgrade(request, socket, head, (ws) => {
+      mistralWss.emit('connection', ws, request)
+    })
+  } else {
+    socket.destroy()
+  }
+})
 
 // 中间件
 app.use(cors())
