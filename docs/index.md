@@ -23,7 +23,7 @@ features:
     details: Soniox (real-time streaming with translation & diarization), Volcengine, Groq, SiliconFlow, local OpenAI-compatible, and local whisper.cpp — three execution modes in one app.
   - icon: 🧠
     title: AI Review Desk
-    details: Full-page workspace with animated tab navigation — Overview (summary, action items, keywords, chapters), Transcript export, multi-thread Chat with Markdown rendering, and Markmap mind maps.
+    details: Full-page workspace with six tabs — AI Correction (quick & review modes with smart text-source selection), Overview (summary, action items, keywords, chapters), Transcript export, AI Analysis, multi-thread Chat, and Markmap mind maps.
   - icon: 💬
     title: Floating Caption Overlay
     details: Always-on-top, draggable subtitle window with source, translated, and dual-line bilingual modes. Fully customizable font, color, shadow, and background.
@@ -32,7 +32,7 @@ features:
     details: Sessions in IndexedDB, secrets in Electron safeStorage, context isolation, trusted-window IPC, CSP injection, and navigation guards. Your data never leaves your machine.
   - icon: 🌐
     title: Open API & MCP Ecosystem
-    details: Local REST API (8 endpoints), real-time WebSocket streaming, standalone MCP server for Claude Desktop and Cursor, and Agent Skill definition for AI integration.
+    details: Local REST API (8 endpoints), real-time WebSocket streaming, standalone MCP server for Claude Desktop and Cursor, Agent Skill definition, and Agent Skills for one-call transcription inside any agent.
   - icon: 🎨
     title: Five Themes, Light & Dark
     details: Cyan, Violet, Rose, Green, and Amber accent palettes — each with full light and dark mode. New persistent sidebar navigation and Command Palette (Ctrl+K).
@@ -226,6 +226,10 @@ features:
       <div class="caption">AI Overview & Briefing</div>
     </div>
     <div class="screenshot-card">
+      <img src="/images/screenshot-ai-correction.png" alt="AI Correction" />
+      <div class="caption">AI Transcript Correction</div>
+    </div>
+    <div class="screenshot-card">
       <img src="/images/screenshot-ai-chat.png" alt="AI Chat" />
       <div class="caption">AI Chat with References</div>
     </div>
@@ -279,8 +283,18 @@ features:
     </div>
     <div class="new-feature">
       <div class="icon">🧪</div>
-      <h3>256 Tests Passing</h3>
+      <h3>266 Tests Passing</h3>
       <p>Comprehensive test suite across 29 test files. CI release workflow with auto pre-release detection. Quality you can trust.</p>
+    </div>
+    <div class="new-feature">
+      <div class="icon">🤖</div>
+      <h3>AI Transcript Correction</h3>
+      <p>Two modes: Quick Fix (streaming rewrite) and Review & Fix (detect issues, accept/reject each). Side-by-side diff view. Smart text-source selection for downstream AI.</p>
+    </div>
+    <div class="new-feature">
+      <div class="icon">🧩</div>
+      <h3>Agent Skills</h3>
+      <p>Install the DeLive Skill and any AI agent can transcribe audio & video in one call — returns transcript, summary, mind map & keywords without leaving the agent interface.</p>
     </div>
   </div>
 </div>

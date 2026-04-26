@@ -23,7 +23,7 @@ features:
     details: Soniox（实时流式 + 翻译 + 说话人区分）、火山引擎、Groq、硅基流动、本地 OpenAI 兼容、本地 whisper.cpp — 三种执行模式覆盖所有场景。
   - icon: 🧠
     title: AI 复盘工作台
-    details: 全页工作台，动画标签导航 — 概览（摘要、行动项、关键词、章节）、转录文本导出、多线程 Markdown 对话、Markmap 思维导图。
+    details: 全页工作台，六个标签页 — AI 纠错（快速纠错 & 逐条审查模式 + 智能文本源选择）、概览（摘要、行动项、关键词、章节）、转录文本导出、AI 分析、多线程对话、Markmap 思维导图。
   - icon: 💬
     title: 悬浮字幕窗
     details: 始终置顶、可拖拽的字幕窗口，支持原文、翻译和双语三种模式。字体、颜色、阴影、背景完全可自定义。
@@ -32,7 +32,7 @@ features:
     details: 会话存储在 IndexedDB，密钥通过 safeStorage 加密，上下文隔离、可信窗口 IPC、CSP 注入、导航守卫。数据不离开你的设备。
   - icon: 🌐
     title: 开放 API 与 MCP 生态
-    details: 本地 REST API（8 个端点）、实时 WebSocket 流、独立 MCP 服务器（支持 Claude Desktop 和 Cursor）、Agent Skill 定义 — AI 集成一步到位。
+    details: 本地 REST API（8 个端点）、实时 WebSocket 流、独立 MCP 服务器（支持 Claude Desktop 和 Cursor）、Agent Skill 定义、Agent Skills 一键调用转录 — AI 集成一步到位。
   - icon: 🎨
     title: 五套主题，明暗切换
     details: 青蓝、紫罗兰、玫瑰、绿色、琥珀五种配色。全新持久化侧栏导航和命令面板（Ctrl+K）。
@@ -226,6 +226,10 @@ features:
       <div class="caption">AI 概览与 Briefing</div>
     </div>
     <div class="screenshot-card">
+      <img src="/images/screenshot-ai-correction.png" alt="AI 纠错" />
+      <div class="caption">AI 转录纠错</div>
+    </div>
+    <div class="screenshot-card">
       <img src="/images/screenshot-ai-chat.png" alt="AI 对话" />
       <div class="caption">AI 对话（带引用）</div>
     </div>
@@ -279,8 +283,18 @@ features:
     </div>
     <div class="new-feature">
       <div class="icon">🧪</div>
-      <h3>256 个测试通过</h3>
+      <h3>266 个测试通过</h3>
       <p>覆盖 29 个测试文件的完整测试套件。CI 发布流程支持自动预发布检测。品质值得信赖。</p>
+    </div>
+    <div class="new-feature">
+      <div class="icon">🤖</div>
+      <h3>AI 转录纠错</h3>
+      <p>双模式：直接纠错（流式重写）和先检测后纠错（逐条审查，接受或忽略）。并排对比视图。智能文本源选择，后续 AI 自动使用纠错文本。</p>
+    </div>
+    <div class="new-feature">
+      <div class="icon">🧩</div>
+      <h3>Agent Skills</h3>
+      <p>安装 DeLive Skill 后，任意 AI Agent 可在对话中一键转录音视频 — 返回转录文本、摘要、思维导图与关键词，无需离开 Agent 界面。</p>
     </div>
   </div>
 </div>

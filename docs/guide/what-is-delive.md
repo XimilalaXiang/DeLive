@@ -19,10 +19,12 @@ DeLive supports **six ASR backends** behind a single unified interface:
 
 ### AI Review Desk
 
-After recording, sessions open in a full-page review workspace with four tabs:
+After recording, sessions open in a full-page review workspace with six tabs:
 
-- **Overview** — AI briefing with summary, action items, keywords, chapters, title/tag suggestions
 - **Transcript** — Timestamped segments with speaker badges, export to TXT/Markdown/SRT/VTT
+- **AI Correction** — Quick fix (streaming rewrite) or review & fix (per-issue accept/ignore); smart text-source selection for downstream AI
+- **Overview** — AI briefing with summary, action items, keywords, chapters, title/tag suggestions
+- **AI Analysis** — Deep analysis powered by the configured AI model
 - **Chat** — Multi-thread AI conversation with GFM Markdown rendering and code highlighting
 - **Mind Map** — Generate and edit Markmap-compatible Markdown, export SVG/PNG
 
@@ -36,6 +38,7 @@ DeLive exposes its data through a local API:
 - **WebSocket** — Real-time transcript streaming at `/ws/live`
 - **MCP Server** — Standalone stdio server for Claude Desktop, Cursor, and other AI agents
 - **Agent Skill** — Structured guidance for AI agents to use DeLive's capabilities
+- **Agent Skills** — Install the DeLive Skill and any agent can transcribe in one call, returning transcript, summary, mind map & keywords
 
 ### Local-First Architecture
 
