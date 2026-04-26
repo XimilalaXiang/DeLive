@@ -5,6 +5,7 @@ import { attachVolcProxyServer } from '../shared/volcProxyCore'
 import { attachMistralProxyServer } from '../shared/mistralProxyCore'
 import { attachDeepgramProxyServer } from '../shared/deepgramProxyCore'
 import { attachAssemblyAIProxyServer } from '../shared/assemblyaiProxyCore'
+import { attachElevenLabsProxyServer } from '../shared/elevenlabsProxyCore'
 
 export function startVolcProxyServer(port = 23456): Server {
   const server = createServer()
@@ -20,6 +21,9 @@ export function startVolcProxyServer(port = 23456): Server {
 
   const assemblyaiWss = new WebSocketServer({ noServer: true })
   attachAssemblyAIProxyServer(assemblyaiWss)
+
+  const elevenlabsWss = new WebSocketServer({ noServer: true })
+  attachElevenLabsProxyServer(elevenlabsWss)
 
   server.on('upgrade', (request, socket, head) => {
     const { pathname } = new URL(request.url || '', `http://${request.headers.host}`)
@@ -40,6 +44,10 @@ export function startVolcProxyServer(port = 23456): Server {
       assemblyaiWss.handleUpgrade(request, socket, head, (ws) => {
         assemblyaiWss.emit('connection', ws, request)
       })
+    } else if (pathname === '/ws/elevenlabs') {
+      elevenlabsWss.handleUpgrade(request, socket, head, (ws) => {
+        elevenlabsWss.emit('connection', ws, request)
+      })
     } else {
       socket.destroy()
     }
@@ -51,6 +59,7 @@ export function startVolcProxyServer(port = 23456): Server {
     console.log(`[Proxy] Mistral: ws://localhost:${port}/ws/mistral`)
     console.log(`[Proxy] Deepgram: ws://localhost:${port}/ws/deepgram`)
     console.log(`[Proxy] AssemblyAI: ws://localhost:${port}/ws/assemblyai`)
+    console.log(`[Proxy] ElevenLabs: ws://localhost:${port}/ws/elevenlabs`)
   })
 
   server.on('error', (error: NodeJS.ErrnoException) => {

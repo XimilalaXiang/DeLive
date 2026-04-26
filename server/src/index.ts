@@ -8,6 +8,7 @@ import { createVolcProxyServer } from './volcProxy.js'
 import { createMistralProxyServer } from './mistralProxy.js'
 import { createDeepgramProxyServer } from './deepgramProxy.js'
 import { createAssemblyAIProxyServer } from './assemblyaiProxy.js'
+import { createElevenLabsProxyServer } from './elevenlabsProxy.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -29,6 +30,9 @@ createDeepgramProxyServer(deepgramWss)
 const assemblyaiWss = new WebSocketServer({ noServer: true })
 createAssemblyAIProxyServer(assemblyaiWss)
 
+const elevenlabsWss = new WebSocketServer({ noServer: true })
+createElevenLabsProxyServer(elevenlabsWss)
+
 server.on('upgrade', (request, socket, head) => {
   const { pathname } = new URL(request.url || '', `http://${request.headers.host}`)
 
@@ -47,6 +51,10 @@ server.on('upgrade', (request, socket, head) => {
   } else if (pathname === '/ws/assemblyai') {
     assemblyaiWss.handleUpgrade(request, socket, head, (ws) => {
       assemblyaiWss.emit('connection', ws, request)
+    })
+  } else if (pathname === '/ws/elevenlabs') {
+    elevenlabsWss.handleUpgrade(request, socket, head, (ws) => {
+      elevenlabsWss.emit('connection', ws, request)
     })
   } else {
     socket.destroy()

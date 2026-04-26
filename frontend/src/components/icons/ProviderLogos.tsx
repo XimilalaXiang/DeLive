@@ -173,6 +173,22 @@ export function AssemblyAILogo({ size = defaultSize, className, ...props }: Logo
   )
 }
 
+export function ElevenLabsLogo({ size = defaultSize, className, ...props }: LogoProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <rect x="5" y="1" width="4.5" height="22" rx="0.5" fill="currentColor" />
+      <rect x="14.5" y="1" width="4.5" height="22" rx="0.5" fill="currentColor" />
+    </svg>
+  )
+}
+
 export function WhisperCppLogo({ size = defaultSize, className }: LogoProps) {
   return (
     <img
@@ -194,6 +210,7 @@ const PROVIDER_LOGO_MAP: Record<string, (props: AnyLogoProps) => JSX.Element> = 
   mistral: MistralLogo,
   deepgram: DeepgramLogo,
   assemblyai: AssemblyAILogo,
+  elevenlabs: ElevenLabsLogo,
   local_openai: OpenAILogo,
   local_whisper_cpp: WhisperCppLogo,
 }

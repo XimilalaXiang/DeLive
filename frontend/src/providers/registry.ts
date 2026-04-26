@@ -16,6 +16,7 @@ import { SiliconFlowProvider } from './implementations/SiliconFlowProvider'
 import { MistralProvider } from './implementations/MistralProvider'
 import { DeepgramProvider } from './implementations/DeepgramProvider'
 import { AssemblyAIProvider } from './implementations/AssemblyAIProvider'
+import { ElevenLabsProvider } from './implementations/ElevenLabsProvider'
 import { LocalOpenAIProvider } from './implementations/LocalOpenAIProvider'
 import { WhisperCppRuntimeProvider } from './implementations/WhisperCppRuntimeProvider'
 
@@ -110,6 +111,12 @@ function registerDefaultProviders(): void {
   providerRegistry.register({
     info: new AssemblyAIProvider().info,
     create: () => new AssemblyAIProvider(),
+  })
+
+  // ElevenLabs - Scribe v2 Realtime
+  providerRegistry.register({
+    info: new ElevenLabsProvider().info,
+    create: () => new ElevenLabsProvider(),
   })
 
   // 本地 OpenAI-compatible
