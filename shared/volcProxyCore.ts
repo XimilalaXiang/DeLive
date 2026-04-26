@@ -2,6 +2,7 @@ import type { IncomingMessage } from 'http'
 import * as pako from 'pako'
 import { URL } from 'url'
 import { WebSocket as NodeWebSocket, type WebSocketServer } from 'ws'
+import { getWsProxyAgent } from './proxyAgent'
 
 const VOLC_WS_ENDPOINT_BIDI = 'wss://openspeech.bytedance.com/api/v3/sauc/bigmodel_async'
 const VOLC_WS_ENDPOINT_NOSTREAM = 'wss://openspeech.bytedance.com/api/v3/sauc/bigmodel_nostream'
@@ -173,6 +174,7 @@ function handleVolcConnection(clientWs: NodeWebSocket, req: IncomingMessage): vo
   console.log(`[VolcProxy] Resource ID: ${resourceId}`)
   console.log(`[VolcProxy] Connect ID: ${connectId}`)
 
+  const agent = getWsProxyAgent()
   const volcWs = new NodeWebSocket(wsUrl, {
     headers: {
       'X-Api-App-Key': config.appKey,
@@ -180,6 +182,7 @@ function handleVolcConnection(clientWs: NodeWebSocket, req: IncomingMessage): vo
       'X-Api-Resource-Id': resourceId,
       'X-Api-Connect-Id': connectId,
     },
+    agent,
   })
 
   let volcReady = false

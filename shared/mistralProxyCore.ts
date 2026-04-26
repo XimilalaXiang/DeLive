@@ -15,6 +15,7 @@
 import type { IncomingMessage } from 'http'
 import { URL } from 'url'
 import { WebSocket as NodeWebSocket, type WebSocketServer } from 'ws'
+import { getWsProxyAgent } from './proxyAgent'
 
 const MISTRAL_WS_BASE = 'wss://api.mistral.ai'
 const MISTRAL_REALTIME_PATH = '/v1/audio/transcriptions/realtime'
@@ -50,11 +51,13 @@ function handleMistralConnection(clientWs: NodeWebSocket, req: IncomingMessage):
 
   console.log(`[MistralProxy] 连接到 Mistral: ${MISTRAL_REALTIME_PATH}?model=${model}`)
 
+  const agent = getWsProxyAgent()
   const mistralWs = new NodeWebSocket(wsUrl, {
     headers: {
       Authorization: `Bearer ${config.apiKey}`,
       'User-Agent': 'DeLive/1.0',
     },
+    agent,
   })
 
   let mistralReady = false

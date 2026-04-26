@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Tray, globalShortcut } from 'electron'
+import { app, BrowserWindow, ipcMain, session, Tray, globalShortcut } from 'electron'
 import { registerAppIpc } from './appIpc'
 import { setupAutoUpdater } from './autoUpdater'
 import { registerCaptionIpc } from './captionIpc'
@@ -115,7 +115,22 @@ if (!gotTheLock) {
     }
   })
 
-  app.whenReady().then(() => {
+  app.whenReady().then(async () => {
+    if (!process.env.HTTPS_PROXY && !process.env.HTTP_PROXY) {
+      try {
+        const proxy = await session.defaultSession.resolveProxy('https://api.mistral.ai')
+        const match = proxy.match(/^PROXY\s+(.+)$/i)
+        if (match) {
+          const proxyUrl = `http://${match[1]}`
+          process.env.HTTPS_PROXY = proxyUrl
+          process.env.HTTP_PROXY = proxyUrl
+          console.log(`[Main] 检测到系统代理: ${proxyUrl}`)
+        }
+      } catch {
+        // ignore proxy detection failure
+      }
+    }
+
     const httpServer = startVolcProxyServer()
     attachApiServer({ server: httpServer })
 

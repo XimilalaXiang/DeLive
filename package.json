@@ -182,6 +182,7 @@
     "cors": "^2.8.5",
     "electron-updater": "^6.7.3",
     "express": "^4.21.2",
+    "https-proxy-agent": "^7.0.6",
     "pako": "^2.1.0",
     "ws": "^8.19.0"
   }
