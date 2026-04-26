@@ -5,6 +5,7 @@ export enum ASRVendor {
   SiliconFlow = 'siliconflow',
   Mistral = 'mistral',
   Deepgram = 'deepgram',
+  AssemblyAI = 'assemblyai',
   LocalOpenAI = 'local_openai',
   LocalWhisperCpp = 'local_whisper_cpp',
 }

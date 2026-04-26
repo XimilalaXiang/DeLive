@@ -155,6 +155,24 @@ export function DeepgramLogo({ size = defaultSize, className, ...props }: LogoPr
   )
 }
 
+export function AssemblyAILogo({ size = defaultSize, className, ...props }: LogoProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <path
+        d="M16.417 2.156c-.484-.76-1.293-1.202-2.178-1.202H9.76c-.884 0-1.694.443-2.178 1.202L.394 14.344c-.484.76-.507 1.672-.063 2.453.443.782 1.27 1.27 2.178 1.27h3.45l-2.6 4.198c-.278.45-.136 1.04.316 1.316a.96.96 0 0 0 .5.14c.323 0 .638-.164.816-.456l3.034-4.9.27-.437h.016l2.44-3.94H7.18l4.82-7.794 4.82 7.794h-2.24l-1.233 1.994h4.964c.908 0 1.736-.488 2.178-1.27.443-.781.42-1.694-.063-2.453L16.417 2.156z"
+        fill="#336EF5"
+      />
+    </svg>
+  )
+}
+
 export function WhisperCppLogo({ size = defaultSize, className }: LogoProps) {
   return (
     <img
@@ -175,6 +193,7 @@ const PROVIDER_LOGO_MAP: Record<string, (props: AnyLogoProps) => JSX.Element> = 
   siliconflow: SiliconFlowLogo,
   mistral: MistralLogo,
   deepgram: DeepgramLogo,
+  assemblyai: AssemblyAILogo,
   local_openai: OpenAILogo,
   local_whisper_cpp: WhisperCppLogo,
 }
