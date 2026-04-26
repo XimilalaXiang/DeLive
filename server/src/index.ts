@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url'
 import { createServer } from 'http'
 import { WebSocketServer } from 'ws'
 import { createVolcProxyServer } from './volcProxy.js'
+import { createMistralProxyServer } from './mistralProxy.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -16,13 +17,12 @@ const PORT = process.env.PORT || 23456
 const server = createServer(app)
 
 // 创建 WebSocket 服务器用于火山引擎代理
-const wss = new WebSocketServer({ 
-  server,
-  path: '/ws/volc'
-})
+const volcWss = new WebSocketServer({ server, path: '/ws/volc' })
+createVolcProxyServer(volcWss)
 
-// 初始化火山引擎代理
-createVolcProxyServer(wss)
+// 创建 WebSocket 服务器用于 Mistral 代理
+const mistralWss = new WebSocketServer({ server, path: '/ws/mistral' })
+createMistralProxyServer(mistralWss)
 
 // 中间件
 app.use(cors())
@@ -85,4 +85,5 @@ if (process.env.NODE_ENV === 'production') {
 server.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`)
   console.log(`🔌 WebSocket proxy for Volcengine available at ws://localhost:${PORT}/ws/volc`)
+  console.log(`🔌 WebSocket proxy for Mistral available at ws://localhost:${PORT}/ws/mistral`)
 })

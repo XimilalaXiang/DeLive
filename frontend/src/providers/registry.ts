@@ -13,6 +13,7 @@ import { SonioxProvider } from './implementations/SonioxProvider'
 import { VolcProvider } from './implementations/VolcProvider'
 import { GroqProvider } from './implementations/GroqProvider'
 import { SiliconFlowProvider } from './implementations/SiliconFlowProvider'
+import { MistralProvider } from './implementations/MistralProvider'
 import { LocalOpenAIProvider } from './implementations/LocalOpenAIProvider'
 import { WhisperCppRuntimeProvider } from './implementations/WhisperCppRuntimeProvider'
 
@@ -89,6 +90,12 @@ function registerDefaultProviders(): void {
   providerRegistry.register({
     info: new SiliconFlowProvider().info,
     create: () => new SiliconFlowProvider(),
+  })
+
+  // Mistral AI - 实时流式
+  providerRegistry.register({
+    info: new MistralProvider().info,
+    create: () => new MistralProvider(),
   })
 
   // 本地 OpenAI-compatible

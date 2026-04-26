@@ -3,6 +3,7 @@ export enum ASRVendor {
   Volc = 'volc',
   Groq = 'groq',
   SiliconFlow = 'siliconflow',
+  Mistral = 'mistral',
   LocalOpenAI = 'local_openai',
   LocalWhisperCpp = 'local_whisper_cpp',
 }
