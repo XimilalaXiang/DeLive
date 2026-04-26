@@ -122,6 +122,29 @@ describe('transcriptState', () => {
     expect(state.finalTranscript).toContain('New Soniox text')
   })
 
+  it('preserves non-final (partial) text from providers on config-change', () => {
+    let state = createEmptyTranscriptRuntimeState()
+
+    state = applyTranscriptEvent(state, { type: 'partial-text', text: '火山引擎的非确认文本。' })
+    expect(state.nonFinalTranscript).toBe('火山引擎的非确认文本。')
+    expect(state.finalTranscript).toBe('')
+    expect(state.currentTranscript).toBe('火山引擎的非确认文本。')
+
+    state = applyTranscriptEvent(state, {
+      type: 'config-change',
+      description: 'Provider: volcengine → soniox',
+    })
+    expect(state.finalTranscript).toContain('火山引擎的非确认文本。')
+    expect(state.nonFinalTranscript).toBe('')
+
+    state = applyTranscriptEvent(state, {
+      type: 'tokens',
+      tokens: [{ text: 'New from Soniox', isFinal: true, speaker: 's1' }],
+    })
+    expect(state.finalTranscript).toContain('火山引擎的非确认文本。')
+    expect(state.finalTranscript).toContain('New from Soniox')
+  })
+
   it('merges post-process patches and reports content correctly', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-03-09T12:00:00Z'))

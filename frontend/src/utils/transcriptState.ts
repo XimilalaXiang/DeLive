@@ -265,7 +265,8 @@ export function applyTranscriptEvent(
 
     case 'config-change': {
       const marker = `\n\n--- ${event.description} ---\n\n`
-      const finalTranscript = state.finalTranscript + marker
+      const snapshotBase = state.currentTranscript || state.finalTranscript
+      const finalTranscript = snapshotBase + marker
       return {
         ...state,
         transcriptPrefix: finalTranscript,
