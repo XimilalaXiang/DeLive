@@ -11,7 +11,7 @@ flowchart TB
     entry["main.ts → mainWindow · captionWindow · tray · shortcuts"]
     subgraph services["Core Services"]
       direction LR
-      volc["🌐 Volc Proxy\n/ws/volc · Port 23456"]
+      volc["🌐 Multi-Provider Proxy\n/ws/volc · /ws/mistral · /ws/deepgram\n/ws/assemblyai · /ws/elevenlabs\nPort 23456"]
       api["⚡ API Server\n/api/v1/* · /ws/live"]
       runtime["🔧 Local Runtime\nwhisper.cpp Lifecycle"]
     end
@@ -30,7 +30,7 @@ flowchart TB
     end
     subgraph data["Data Layer"]
       direction LR
-      providers["Provider Registry\n(6 ASR Backends)"]
+      providers["Provider Registry\n(10 ASR Backends)"]
       persistence["Session Repository\nIndexedDB + Memory Cache"]
     end
   end
@@ -108,6 +108,10 @@ flowchart TB
     volc["Volcengine\nReal-time streaming\nChinese-oriented"]
     groq["Groq\nWindowed batch\nWhisper large-v3-turbo"]
     silicon["SiliconFlow\nWindowed batch\nSenseVoice · Qwen"]
+    mistral["Mistral AI\nReal-time streaming\nVoxtral Realtime"]
+    deepgram["Deepgram\nReal-time streaming\nNova-3 · Nova-2"]
+    assemblyai["AssemblyAI\nReal-time streaming\nUniversal-3 Pro"]
+    elevenlabs["ElevenLabs\nReal-time streaming\nScribe v2 Realtime"]
   end
 
   subgraph local["💻 Local Providers"]
@@ -118,9 +122,11 @@ flowchart TB
   registry["Provider Registry\n(Singleton)"]
   capture["CaptureManager"]
 
-  registry --> soniox & volc & groq & silicon & openai & whisper
-  capture -->|"MediaRecorder\n(streaming)"| soniox & volc
-  capture -->|"AudioWorklet\nPCM16 (batch)"| groq & silicon & openai & whisper
+  registry --> soniox & volc & groq & silicon & mistral & deepgram & assemblyai & elevenlabs & openai & whisper
+  capture -->|"MediaRecorder\n(streaming)"| soniox
+  capture -->|"AudioWorklet\nPCM16 (streaming)"| volc & mistral & deepgram & assemblyai & elevenlabs
+  capture -->|"AudioWorklet\nPCM16 (batch)"| groq & silicon & whisper
+  capture -->|"MediaRecorder\n(batch)"| openai
 
   style registry fill:#6366f1,color:#fff
   style capture fill:#0ea5e9,color:#fff
@@ -136,7 +142,7 @@ All session data lives in the Renderer's IndexedDB with an in-memory cache in `s
 
 ### Single HTTP Server
 
-Port 23456 hosts the Volcengine WebSocket proxy (`/ws/volc`), the REST API (`/api/v1/*`), and the live transcript WebSocket (`/ws/live`) on a single `http.createServer()`.
+Port 23456 hosts multiple WebSocket proxies (`/ws/volc`, `/ws/mistral`, `/ws/deepgram`, `/ws/assemblyai`, `/ws/elevenlabs`), the REST API (`/api/v1/*`), and the live transcript WebSocket (`/ws/live`) on a single `http.createServer()`. Each proxy uses `noServer: true` mode with manual `upgrade` event routing.
 
 ### MCP as Separate Process
 
@@ -144,7 +150,7 @@ The MCP server is a standalone Node.js script, not embedded in Electron. Claude 
 
 ### Provider Registry
 
-Six ASR backends are registered in a singleton `ProviderRegistry`. Each provider implements a common `ASRProvider` contract but uses different audio formats and transport methods. The `CaptureManager` selects the right audio pipeline based on provider capabilities.
+Ten ASR backends are registered in a singleton `ProviderRegistry`. Each provider implements a common `ASRProvider` contract but uses different audio formats and transport methods. The `CaptureManager` selects the right audio pipeline based on provider capabilities.
 
 ## Module Map
 
@@ -153,7 +159,7 @@ Six ASR backends are registered in a singleton `ProviderRegistry`. Each provider
 | Desktop Shell | `main.ts`, `mainWindow.ts`, `captionWindow.ts`, `tray.ts`, `shortcuts.ts` |
 | IPC | `appIpc.ts`, `captionIpc.ts`, `safeStorageIpc.ts`, `updaterIpc.ts`, `diagnosticsIpc.ts`, `apiIpc.ts`, `localRuntimeIpc.ts` |
 | API | `apiServer.ts`, `apiBroadcast.ts` |
-| Proxy | `volcProxy.ts`, `shared/volcProxyCore.ts` |
+| Proxy | `volcProxy.ts`, `shared/volcProxyCore.ts`, `shared/mistralProxyCore.ts`, `shared/deepgramProxyCore.ts`, `shared/assemblyaiProxyCore.ts`, `shared/elevenlabsProxyCore.ts` |
 | Renderer App | `App.tsx`, `components/*`, `i18n/*` |
 | Orchestration | `useASR.ts`, `captureManager.ts`, `providerSession.ts`, `captionBridge.ts` |
 | Providers | `registry.ts`, `base.ts`, `windowedBatch.ts`, `implementations/*` |

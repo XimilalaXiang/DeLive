@@ -1,6 +1,6 @@
 # Provider System
 
-The provider system is DeLive's abstraction layer for ASR backends. It unifies six different speech recognition services behind a common contract.
+The provider system is DeLive's abstraction layer for ASR backends. It unifies ten different speech recognition services behind a common contract.
 
 ## Architecture
 
@@ -39,7 +39,7 @@ providerRegistry.register({
 })
 ```
 
-Six providers are registered at module load via `registerDefaultProviders()`.
+Ten providers are registered at module load via `registerDefaultProviders()`.
 
 ## `ASRProviderInfo`
 
@@ -116,7 +116,7 @@ When the rolling buffer advances, `buildWindowedTranscriptSnapshot` strips up to
 
 ### MediaRecorder Path
 
-Used by Soniox and Local OpenAI-compatible.
+Used by Soniox and Local OpenAI-compatible. (All other cloud streaming providers use the PCM16 path.)
 
 1. `getDisplayMedia({ audio: true })` → `MediaStream`
 2. `MediaRecorder` with `audio/webm;codecs=opus` (or fallback)
@@ -125,7 +125,7 @@ Used by Soniox and Local OpenAI-compatible.
 
 ### PCM16 Path
 
-Used by Volcengine, Groq, SiliconFlow, and whisper.cpp.
+Used by Volcengine, Groq, SiliconFlow, Mistral AI, Deepgram, AssemblyAI, ElevenLabs, and whisper.cpp.
 
 1. `getDisplayMedia({ audio: true })` → `MediaStream`
 2. `AudioProcessor` with **AudioWorklet** (preferred) or **ScriptProcessorNode** (fallback)

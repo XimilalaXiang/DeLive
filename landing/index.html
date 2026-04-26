@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DeLive — Desktop Transcription Workspace</title>
-  <meta name="description" content="Capture system audio. Transcribe with six ASR backends. Review with AI. All local-first." />
+  <meta name="description" content="Capture system audio. Transcribe with ten ASR backends. Review with AI. All local-first." />
   <meta property="og:title" content="DeLive — Desktop Transcription Workspace" />
   <meta property="og:description" content="Real-time desktop audio transcription with AI review." />
   <meta property="og:image" content="images/screenshot-live.png" />
@@ -171,7 +171,7 @@
     .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
     .faq-answer.open { max-height: 300px; }
 
-    .marquee-track { display: flex; gap: 12px; animation: marquee 30s linear infinite; width: max-content; }
+    .marquee-track { display: flex; gap: 12px; animation: marquee 45s linear infinite; width: max-content; }
     .marquee-wrap {
       overflow: hidden;
       mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
@@ -277,7 +277,7 @@
           </h1>
           <div class="speech-bubble mb-8 md:mb-10 max-w-lg">
             <p class="font-bold text-sm md:text-base" data-i18n="hero.desc">
-              Capture system audio. Transcribe with six ASR backends. Review with AI — summaries, chat, mind maps. All local-first.
+              Capture system audio. Transcribe with ten ASR backends. Review with AI — summaries, chat, mind maps. All local-first.
             </p>
           </div>
           <div class="flex flex-col sm:flex-row gap-2 md:gap-2 text-sm md:text-sm lg:text-base">
@@ -308,7 +308,7 @@
       <div class="text-center mb-10 md:mb-16 reveal">
         <div class="pow-badge mb-4" data-i18n="features.label">Capabilities</div>
         <h2 class="font-sans text-3xl md:text-5xl tracking-wide uppercase" data-i18n="features.title" data-i18n-html>Everything you need!</h2>
-        <p class="font-bold text-sm md:text-base mt-3 max-w-xl mx-auto" data-i18n="features.desc">Six ASR engines, AI-powered review, floating captions — all running locally.</p>
+        <p class="font-bold text-sm md:text-base mt-3 max-w-xl mx-auto" data-i18n="features.desc">Ten ASR engines, AI-powered review, floating captions — all running locally.</p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
@@ -319,8 +319,8 @@
               <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2a3 3 0 00-3 3v7a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
             </div>
             <div>
-              <h3 class="font-sans text-xl md:text-2xl tracking-wide uppercase mb-2" data-i18n="f.asr.title">Six ASR Backends!</h3>
-              <p class="font-bold text-sm" data-i18n="f.asr.desc">Soniox (real-time streaming with translation & diarization), Volcengine, Groq, SiliconFlow, OpenAI-compatible, and whisper.cpp. Three modes.</p>
+              <h3 class="font-sans text-xl md:text-2xl tracking-wide uppercase mb-2" data-i18n="f.asr.title">Ten ASR Backends!</h3>
+              <p class="font-bold text-sm" data-i18n="f.asr.desc">Soniox, Volcengine, Groq, SiliconFlow, Mistral AI, Deepgram, AssemblyAI, ElevenLabs, OpenAI-compatible, and whisper.cpp. Three modes.</p>
             </div>
           </div>
           <div class="flex flex-wrap gap-2 mt-4">
@@ -513,7 +513,7 @@
       <div class="text-center mb-10 md:mb-16 reveal">
         <div class="pow-badge mb-4" data-i18n="integrations.label">Ecosystem</div>
         <h2 class="font-sans text-3xl md:text-5xl tracking-wide uppercase" data-i18n="integrations.title">Works with your stack!</h2>
-        <p class="font-bold text-sm md:text-base mt-3 max-w-xl mx-auto" data-i18n="integrations.desc">Six ASR providers, any OpenAI-compatible AI model, and MCP integration.</p>
+        <p class="font-bold text-sm md:text-base mt-3 max-w-xl mx-auto" data-i18n="integrations.desc">Ten ASR providers, any OpenAI-compatible AI model, and MCP integration.</p>
       </div>
 
       <div class="marquee-wrap mb-10 md:mb-16 reveal">
@@ -542,6 +542,22 @@
             <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="6" width="20" height="12" rx="3" stroke="#10B981" stroke-width="1.5"/><path d="M6 10v4M9 9v6M12 10v4M15 9v6M18 10v4" stroke="#10B981" stroke-width="1.5" stroke-linecap="round"/></svg>
             <span class="font-sans text-lg tracking-wide">whisper.cpp</span>
           </a>
+          <a href="https://mistral.ai" target="_blank" class="provider-comic flex items-center gap-3 px-4 py-3">
+            <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="5" height="5" fill="#F7D046"/><rect x="9.5" y="2" width="5" height="5" fill="#F7D046"/><rect x="17" y="2" width="5" height="5" fill="#1a1a1a"/><rect x="2" y="9.5" width="5" height="5" fill="#F7D046"/><rect x="9.5" y="9.5" width="5" height="5" fill="#F7D046"/><rect x="17" y="9.5" width="5" height="5" fill="#F7D046"/><rect x="2" y="17" width="5" height="5" fill="#1a1a1a"/><rect x="9.5" y="17" width="5" height="5" fill="#F7D046"/><rect x="17" y="17" width="5" height="5" fill="#F7D046"/></svg>
+            <span class="font-sans text-lg tracking-wide">Mistral AI</span>
+          </a>
+          <a href="https://deepgram.com" target="_blank" class="provider-comic flex items-center gap-3 px-4 py-3">
+            <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 4h8v16H4V4zm2 2v12h4V6H6zm10 0h4v4h-4V6zm0 8h4v4h-4v-4z" fill="#13EF93"/></svg>
+            <span class="font-sans text-lg tracking-wide">Deepgram</span>
+          </a>
+          <a href="https://www.assemblyai.com" target="_blank" class="provider-comic flex items-center gap-3 px-4 py-3">
+            <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L3 22h4l1.5-4h7l1.5 4h4L12 2zm0 6l2.5 8h-5L12 8z" fill="#336EF5"/></svg>
+            <span class="font-sans text-lg tracking-wide">AssemblyAI</span>
+          </a>
+          <a href="https://elevenlabs.io" target="_blank" class="provider-comic flex items-center gap-3 px-4 py-3">
+            <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="1" width="4.5" height="22" rx="0.5" fill="#1a1a1a"/><rect x="14.5" y="1" width="4.5" height="22" rx="0.5" fill="#1a1a1a"/></svg>
+            <span class="font-sans text-lg tracking-wide">ElevenLabs</span>
+          </a>
           <!-- Duplicate for seamless loop -->
           <a href="https://soniox.com" target="_blank" class="provider-comic flex items-center gap-3 px-4 py-3" aria-hidden="true">
             <svg class="w-5 h-5 flex-shrink-0" viewBox="-1 -1 16 19" xmlns="http://www.w3.org/2000/svg"><path d="m0 14.866 2.1606-3.5214c1.8927 1.2576 3.9669 1.8995 5.6694 1.8995 1.0025 0 1.4606-0.3036 1.4606-0.8847v-0.0607c0-0.6419-0.9161-0.9194-2.6532-1.4138-3.2582-0.8587-5.8509-1.9602-5.8509-5.2995v-0.06938c0-3.5214 2.8088-5.4903 6.6114-5.4903 2.4112 0 4.9089 0.70255 6.8016 1.9342l-1.9791 3.6775c-1.7112-0.95408-3.5693-1.5352-4.8744-1.5352-0.88152 0-1.3396 0.33827-1.3396 0.79796v0.06071c0 0.64184 0.94202 0.95409 2.6792 1.4745 3.2582 0.91939 5.8509 2.0556 5.8509 5.2735v0.0607c0 3.6515-2.7137 5.551-6.741 5.551-2.7656-0.0087-5.5052-0.798-7.7955-2.4546z" fill="#3B82F6"/></svg>
@@ -566,6 +582,22 @@
           <a href="https://github.com/ggerganov/whisper.cpp" target="_blank" class="provider-comic flex items-center gap-3 px-4 py-3" aria-hidden="true">
             <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="6" width="20" height="12" rx="3" stroke="#10B981" stroke-width="1.5"/><path d="M6 10v4M9 9v6M12 10v4M15 9v6M18 10v4" stroke="#10B981" stroke-width="1.5" stroke-linecap="round"/></svg>
             <span class="font-sans text-lg tracking-wide">whisper.cpp</span>
+          </a>
+          <a href="https://mistral.ai" target="_blank" class="provider-comic flex items-center gap-3 px-4 py-3" aria-hidden="true">
+            <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="5" height="5" fill="#F7D046"/><rect x="9.5" y="2" width="5" height="5" fill="#F7D046"/><rect x="17" y="2" width="5" height="5" fill="#1a1a1a"/><rect x="2" y="9.5" width="5" height="5" fill="#F7D046"/><rect x="9.5" y="9.5" width="5" height="5" fill="#F7D046"/><rect x="17" y="9.5" width="5" height="5" fill="#F7D046"/><rect x="2" y="17" width="5" height="5" fill="#1a1a1a"/><rect x="9.5" y="17" width="5" height="5" fill="#F7D046"/><rect x="17" y="17" width="5" height="5" fill="#F7D046"/></svg>
+            <span class="font-sans text-lg tracking-wide">Mistral AI</span>
+          </a>
+          <a href="https://deepgram.com" target="_blank" class="provider-comic flex items-center gap-3 px-4 py-3" aria-hidden="true">
+            <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 4h8v16H4V4zm2 2v12h4V6H6zm10 0h4v4h-4V6zm0 8h4v4h-4v-4z" fill="#13EF93"/></svg>
+            <span class="font-sans text-lg tracking-wide">Deepgram</span>
+          </a>
+          <a href="https://www.assemblyai.com" target="_blank" class="provider-comic flex items-center gap-3 px-4 py-3" aria-hidden="true">
+            <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L3 22h4l1.5-4h7l1.5 4h4L12 2zm0 6l2.5 8h-5L12 8z" fill="#336EF5"/></svg>
+            <span class="font-sans text-lg tracking-wide">AssemblyAI</span>
+          </a>
+          <a href="https://elevenlabs.io" target="_blank" class="provider-comic flex items-center gap-3 px-4 py-3" aria-hidden="true">
+            <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="1" width="4.5" height="22" rx="0.5" fill="#1a1a1a"/><rect x="14.5" y="1" width="4.5" height="22" rx="0.5" fill="#1a1a1a"/></svg>
+            <span class="font-sans text-lg tracking-wide">ElevenLabs</span>
           </a>
         </div>
       </div>
@@ -725,11 +757,11 @@
       en: {
         'nav.features':'Features','nav.showcase':'Showcase','nav.integrations':'Integrations','nav.download':'Download','nav.docs':'Docs','nav.download-btn':'Download',
         'hero.badge':'v2.0 — AI Review Desk','hero.title1':'Hear Everything.','hero.title2':'Review Smarter.',
-        'hero.desc':'Capture system audio. Transcribe with six ASR backends. Review with AI — summaries, chat, mind maps. All local-first.',
+        'hero.desc':'Capture system audio. Transcribe with ten ASR backends. Review with AI — summaries, chat, mind maps. All local-first.',
         'hero.cta-download':'Download Free!','hero.cta-github':'GitHub','hero.cta-docs':'Docs',
         'features.label':'Capabilities','features.title':'Everything you need!',
-        'features.desc':'Six ASR engines, AI-powered review, floating captions — all running locally.',
-        'f.asr.title':'Six ASR Backends!','f.asr.desc':'Soniox (real-time streaming with translation & diarization), Volcengine, Groq, SiliconFlow, OpenAI-compatible, and whisper.cpp. Three modes.',
+        'features.desc':'Ten ASR engines, AI-powered review, floating captions — all running locally.',
+        'f.asr.title':'Ten ASR Backends!','f.asr.desc':'Soniox, Volcengine, Groq, SiliconFlow, Mistral AI, Deepgram, AssemblyAI, ElevenLabs, OpenAI-compatible, and whisper.cpp. Three modes.',
         'f.local.title':'Local-First!','f.local.desc':'IndexedDB storage, Electron safeStorage encryption, context isolation. Your data stays.',
         'f.ai.title':'AI Review Desk!','f.ai.desc':'Summary, action items, keywords, chapters. Multi-thread chat. Mind maps via Markmap.',
         'f.caption.title':'Floating Captions!','f.caption.desc':'Always-on-top draggable subtitle window. Source, translated, bilingual modes. Fully customizable font, color, shadow and background.',
@@ -757,7 +789,7 @@
         'showcase.mcp.desc':'External AI tools access DeLive transcription data via the Model Context Protocol. Works with Claude Desktop and Cursor.',
         'showcase.mcp.f1':'Claude Desktop & Cursor','showcase.mcp.f2':'REST API + WebSocket','showcase.mcp.f3':'8 API endpoints',
         'integrations.label':'Ecosystem','integrations.title':'Works with your stack!',
-        'integrations.desc':'Six ASR providers, any OpenAI-compatible AI model, and MCP integration.',
+        'integrations.desc':'Ten ASR providers, any OpenAI-compatible AI model, and MCP integration.',
         'stats.api':'API Endpoints','stats.lang':'Languages','stats.tests':'Tests Passing',
         'download.label':'Get Started','download.title':'Download DeLive!','download.desc':'Free and open source. Windows, macOS, Linux.',
         'download.win':'Windows','download.mac':'macOS','download.mac.intel':'Intel Mac →',
@@ -766,7 +798,7 @@
         'faq.label':'FAQ','faq.title':'Common Questions!',
         'faq.q1':'Is DeLive free?','faq.a1':'Yes! Completely free and open source. Apache-2.0 License.',
         'faq.q2':'Does my data leave?','faq.a2':'Audio goes to your chosen ASR provider. Transcripts stay in local IndexedDB.',
-        'faq.q3':'Which ASR provider?','faq.a3':'Soniox = streaming. Groq = fastest. whisper.cpp = offline.',
+        'faq.q3':'Which ASR provider?','faq.a3':'Soniox = streaming + translation. Groq = fastest batch. Deepgram/ElevenLabs = multilingual streaming. whisper.cpp = offline.',
         'faq.q4':'Own AI model?','faq.a4':'Yes! Any OpenAI-compatible API works.',
         'community.title':'Built in the open!','community.desc':'DeLive is fully open source. Star, report, or contribute.',
         'community.star':'Star on GitHub','community.feedback':'Give Feedback','community.docs':'Documentation',
@@ -775,11 +807,11 @@
       zh: {
         'nav.features':'功能','nav.showcase':'展示','nav.integrations':'生态','nav.download':'下载','nav.docs':'文档','nav.download-btn':'下载',
         'hero.badge':'v2.0 — AI 回顾工作台','hero.title1':'听见一切','hero.title2':'智能回顾',
-        'hero.desc':'捕获系统音频，六大 ASR 引擎实时转录，AI 生成总结、对话、思维导图。数据完全本地存储。',
+        'hero.desc':'捕获系统音频，十大 ASR 引擎实时转录，AI 生成总结、对话、思维导图。数据完全本地存储。',
         'hero.cta-download':'免费下载！','hero.cta-github':'GitHub','hero.cta-docs':'文档',
         'features.label':'核心能力','features.title':'你需要的一切！',
-        'features.desc':'六大 ASR 引擎、AI 驱动的回顾工具、浮动字幕 — 全部本地运行。',
-        'f.asr.title':'六大 ASR 引擎！','f.asr.desc':'Soniox（实时流式 + 翻译 + 说话人识别）、火山引擎、Groq、硅基流动、OpenAI 兼容、whisper.cpp。三种模式。',
+        'features.desc':'十大 ASR 引擎、AI 驱动的回顾工具、浮动字幕 — 全部本地运行。',
+        'f.asr.title':'十大 ASR 引擎！','f.asr.desc':'Soniox、火山引擎、Groq、硅基流动、Mistral AI、Deepgram、AssemblyAI、ElevenLabs、OpenAI 兼容、whisper.cpp。三种模式。',
         'f.local.title':'本地优先！','f.local.desc':'IndexedDB 存储，Electron safeStorage 加密。数据永不离开设备。',
         'f.ai.title':'AI 回顾工作台！','f.ai.desc':'总结、待办、关键词、章节。多线程对话。Markmap 思维导图。',
         'f.caption.title':'浮动字幕！','f.caption.desc':'始终置顶、可拖拽。原文、翻译、双语模式。完全自定义字体、颜色、阴影和背景。',
@@ -807,7 +839,7 @@
         'showcase.mcp.desc':'外部 AI 工具通过 MCP 协议访问 DeLive 转录数据。支持 Claude Desktop 和 Cursor。',
         'showcase.mcp.f1':'Claude Desktop & Cursor','showcase.mcp.f2':'REST API + WebSocket','showcase.mcp.f3':'8 个 API 端点',
         'integrations.label':'生态系统','integrations.title':'与你的技术栈集成！',
-        'integrations.desc':'六大 ASR 引擎、任何 OpenAI 兼容 AI 模型、MCP 集成。',
+        'integrations.desc':'十大 ASR 引擎、任何 OpenAI 兼容 AI 模型、MCP 集成。',
         'stats.api':'API 端点','stats.lang':'语言支持','stats.tests':'测试通过',
         'download.label':'开始使用','download.title':'下载 DeLive！','download.desc':'免费开源。Windows、macOS、Linux。',
         'download.win':'Windows','download.mac':'macOS','download.mac.intel':'Intel Mac →',
@@ -816,7 +848,7 @@
         'faq.label':'常见问题','faq.title':'常见问题！',
         'faq.q1':'免费吗？','faq.a1':'完全免费开源。Apache-2.0 许可证。',
         'faq.q2':'数据会离开吗？','faq.a2':'音频由你选择的 ASR 处理。转录存储在本地 IndexedDB。',
-        'faq.q3':'选哪个 ASR？','faq.a3':'Soniox = 流式。Groq = 最快。whisper.cpp = 离线。',
+        'faq.q3':'选哪个 ASR？','faq.a3':'Soniox = 流式 + 翻译。Groq = 最快批处理。Deepgram/ElevenLabs = 多语言流式。whisper.cpp = 离线。',
         'faq.q4':'自己的 AI 模型？','faq.a4':'支持任何 OpenAI 兼容 API。',
         'community.title':'开放构建！','community.desc':'DeLive 完全开源。Star、反馈或贡献。',
         'community.star':'GitHub Star','community.feedback':'提供反馈','community.docs':'文档',

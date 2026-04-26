@@ -9,7 +9,7 @@ export default withMermaid(
     head: [
       ['link', { rel: 'icon', href: '/logo.svg' }],
       ['meta', { property: 'og:title', content: 'DeLive — Desktop Transcription Workspace' }],
-      ['meta', { property: 'og:description', content: 'Capture system audio, transcribe with six ASR backends, and review with AI — summaries, chat, mind maps. All local-first.' }],
+      ['meta', { property: 'og:description', content: 'Capture system audio, transcribe with ten ASR backends, and review with AI — summaries, chat, mind maps. All local-first.' }],
       ['meta', { property: 'og:image', content: 'https://raw.githubusercontent.com/XimilalaXiang/DeLive/main/assets/header.png' }],
       ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
       ['script', {}, `

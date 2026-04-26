@@ -6,7 +6,7 @@ DeLive is a desktop transcription workspace that captures system audio, routes i
 
 ### Multi-Provider ASR
 
-DeLive supports **six ASR backends** behind a single unified interface:
+DeLive supports **ten ASR backends** behind a single unified interface:
 
 | Provider | Type | Mode | Highlights |
 |----------|------|------|------------|
@@ -14,6 +14,10 @@ DeLive supports **six ASR backends** behind a single unified interface:
 | **Volcengine** | Cloud | Real-time streaming | Chinese-oriented; embedded proxy handles required headers |
 | **Groq** | Cloud | Windowed batch | Whisper large-v3-turbo with quasi-realtime updates |
 | **SiliconFlow** | Cloud | Windowed batch | SenseVoice, TeleSpeech, and Qwen Omni models |
+| **Mistral AI** | Cloud | Real-time streaming | Voxtral Realtime; embedded proxy handles authorization |
+| **Deepgram** | Cloud | Real-time streaming | Nova-3 / Nova-2 streaming ASR; best for English and multilingual |
+| **AssemblyAI** | Cloud | Real-time streaming | Universal-3 Pro streaming; optimized for English |
+| **ElevenLabs** | Cloud | Real-time streaming | Scribe v2 Realtime; 90+ languages including Chinese |
 | **Local OpenAI-compatible** | Local | Windowed batch | Works with Ollama or any `/v1/audio/transcriptions` endpoint |
 | **Local whisper.cpp** | Local | Electron-managed runtime | Fully offline; DeLive manages the binary and model lifecycle |
 

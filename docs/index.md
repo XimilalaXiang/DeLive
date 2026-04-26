@@ -3,7 +3,7 @@ layout: home
 hero:
   name: DeLive
   text: Desktop Transcription Workspace
-  tagline: Capture system audio. Transcribe with six ASR backends. Review with AI — summaries, chat, mind maps. All local-first.
+  tagline: Capture system audio. Transcribe with ten ASR backends. Review with AI — summaries, chat, mind maps. All local-first.
   image:
     src: /logo.svg
     alt: DeLive
@@ -19,8 +19,8 @@ hero:
       link: /api/rest
 features:
   - icon: 🎙️
-    title: Six ASR Backends, One UI
-    details: Soniox (real-time streaming with translation & diarization), Volcengine, Groq, SiliconFlow, local OpenAI-compatible, and local whisper.cpp — three execution modes in one app.
+    title: Ten ASR Backends, One UI
+    details: Soniox, Volcengine, Groq, SiliconFlow, Mistral AI, Deepgram, AssemblyAI, ElevenLabs, local OpenAI-compatible, and local whisper.cpp — three execution modes in one app.
   - icon: 🧠
     title: AI Review Desk
     details: Full-page workspace with six tabs — AI Correction (quick & review modes with smart text-source selection), Overview (summary, action items, keywords, chapters), Transcript export, AI Analysis, multi-thread Chat, and Markmap mind maps.

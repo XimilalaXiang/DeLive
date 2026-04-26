@@ -1,6 +1,6 @@
 # ASR Providers
 
-DeLive supports six ASR backends through a unified provider registry. Each provider implements a common contract but uses different transport and audio processing strategies.
+DeLive supports ten ASR backends through a unified provider registry. Each provider implements a common contract but uses different transport and audio processing strategies.
 
 ## Provider Comparison
 
@@ -10,6 +10,10 @@ DeLive supports six ASR backends through a unified provider registry. Each provi
 | Volcengine | Cloud | WebSocket (via proxy) | AudioWorklet (PCM16) | Yes | No | No |
 | Groq | Cloud | REST (batch) | AudioWorklet (PCM16) | No | No | No |
 | SiliconFlow | Cloud | REST (batch) | AudioWorklet (PCM16) | No | No | No |
+| Mistral AI | Cloud | WebSocket (via proxy) | AudioWorklet (PCM16) | Yes | No | No |
+| Deepgram | Cloud | WebSocket (via proxy) | AudioWorklet (PCM16) | Yes | No | No |
+| AssemblyAI | Cloud | WebSocket (via proxy) | AudioWorklet (PCM16) | Yes | No | No |
+| ElevenLabs | Cloud | WebSocket (via proxy) | AudioWorklet (PCM16) | Yes | No | No |
 | Local OpenAI | Local | REST (batch) | MediaRecorder (WebM/Opus) | No | No | No |
 | whisper.cpp | Local | REST (local) | AudioWorklet (PCM16) | No | No | No |
 
@@ -17,10 +21,10 @@ DeLive supports six ASR backends through a unified provider registry. Each provi
 
 ### Real-Time Streaming
 
-Used by **Soniox** and **Volcengine**. Audio chunks are sent continuously over a WebSocket connection, and transcript updates arrive in real-time.
+Used by **Soniox**, **Volcengine**, **Mistral AI**, **Deepgram**, **AssemblyAI**, and **ElevenLabs**. Audio chunks are sent continuously over a WebSocket connection, and transcript updates arrive in real-time.
 
 - Soniox emits **token-level events** (`prefersTokenEvents: true`) for fine-grained text updates
-- Volcengine uses a local proxy (`/ws/volc` on port 23456) to inject required authentication headers
+- Volcengine, Mistral AI, Deepgram, AssemblyAI, and ElevenLabs use local proxies on port 23456 to inject required authentication headers
 
 ### Windowed Batch
 
@@ -78,6 +82,46 @@ SenseVoice, TeleSpeech, and Qwen Omni models through SiliconFlow's API.
 **Required:** `apiKey`
 
 **Optional:** `model`, `languageHints`
+
+## Mistral AI
+
+Voxtral Realtime streaming ASR through the Mistral API.
+
+**Required:** `apiKey`
+
+**Optional:** `model`, `languageHints`
+
+Uses a local WebSocket proxy (`/ws/mistral` on port 23456) to inject `Authorization` headers. Supports the Voxtral model family for real-time transcription.
+
+## Deepgram
+
+Nova-3 and Nova-2 real-time streaming ASR through Deepgram's API.
+
+**Required:** `apiKey`
+
+**Optional:** `model`, `languageHints`
+
+Uses a local WebSocket proxy (`/ws/deepgram` on port 23456) to inject `Authorization: Token` headers. Best for English and multilingual content.
+
+## AssemblyAI
+
+Universal-3 Pro real-time streaming ASR through AssemblyAI's WebSocket API.
+
+**Required:** `apiKey`
+
+**Optional:** `model`
+
+Uses a local WebSocket proxy (`/ws/assemblyai` on port 23456) to inject `Authorization` headers. Supports 6 streaming languages; best suited for English content.
+
+## ElevenLabs
+
+Scribe v2 Realtime ASR through ElevenLabs' WebSocket API.
+
+**Required:** `apiKey`
+
+**Optional:** `model`, `languageHints`
+
+Uses a local WebSocket proxy (`/ws/elevenlabs` on port 23456) to inject `xi-api-key` headers. Supports 90+ languages including Mandarin Chinese. Audio is sent as base64-encoded JSON payloads.
 
 ## Local OpenAI-Compatible
 

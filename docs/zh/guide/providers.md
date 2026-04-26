@@ -1,6 +1,6 @@
 # ASR Provider
 
-DeLive 通过统一的 Provider 注册机制支持六种 ASR 后端。每个 Provider 实现相同的接口契约，但使用不同的传输和音频处理策略。
+DeLive 通过统一的 Provider 注册机制支持十种 ASR 后端。每个 Provider 实现相同的接口契约，但使用不同的传输和音频处理策略。
 
 ## Provider 对比
 
@@ -10,6 +10,10 @@ DeLive 通过统一的 Provider 注册机制支持六种 ASR 后端。每个 Pro
 | 火山引擎 | 云端 | WebSocket（经代理） | AudioWorklet (PCM16) | 是 | 否 | 否 |
 | Groq | 云端 | REST（批量） | AudioWorklet (PCM16) | 否 | 否 | 否 |
 | 硅基流动 | 云端 | REST（批量） | AudioWorklet (PCM16) | 否 | 否 | 否 |
+| Mistral AI | 云端 | WebSocket（经代理） | AudioWorklet (PCM16) | 是 | 否 | 否 |
+| Deepgram | 云端 | WebSocket（经代理） | AudioWorklet (PCM16) | 是 | 否 | 否 |
+| AssemblyAI | 云端 | WebSocket（经代理） | AudioWorklet (PCM16) | 是 | 否 | 否 |
+| ElevenLabs | 云端 | WebSocket（经代理） | AudioWorklet (PCM16) | 是 | 否 | 否 |
 | 本地 OpenAI | 本地 | REST（批量） | MediaRecorder (WebM/Opus) | 否 | 否 | 否 |
 | whisper.cpp | 本地 | REST（本地） | AudioWorklet (PCM16) | 否 | 否 | 否 |
 
@@ -17,10 +21,10 @@ DeLive 通过统一的 Provider 注册机制支持六种 ASR 后端。每个 Pro
 
 ### 实时流式
 
-**Soniox** 和 **火山引擎** 使用。音频块通过 WebSocket 连接持续发送，转录更新实时到达。
+**Soniox**、**火山引擎**、**Mistral AI**、**Deepgram**、**AssemblyAI** 和 **ElevenLabs** 使用。音频块通过 WebSocket 连接持续发送，转录更新实时到达。
 
 - Soniox 发出 **Token 级事件**（`prefersTokenEvents: true`），实现细粒度文本更新
-- 火山引擎使用本地代理（端口 23456 的 `/ws/volc`）注入所需的认证 Header
+- 火山引擎、Mistral AI、Deepgram、AssemblyAI 和 ElevenLabs 使用本地代理（端口 23456）注入所需的认证 Header
 
 ### 窗口批处理
 
@@ -72,6 +76,46 @@ DeLive 通过统一的 Provider 注册机制支持六种 ASR 后端。每个 Pro
 **必填：** `apiKey`
 
 **可选：** `model`、`languageHints`
+
+## Mistral AI
+
+通过 Mistral API 使用 Voxtral Realtime 流式 ASR。
+
+**必填：** `apiKey`
+
+**可选：** `model`、`languageHints`
+
+使用本地 WebSocket 代理（端口 23456 的 `/ws/mistral`）注入 `Authorization` Header。
+
+## Deepgram
+
+通过 Deepgram API 使用 Nova-3 和 Nova-2 实时流式 ASR。
+
+**必填：** `apiKey`
+
+**可选：** `model`、`languageHints`
+
+使用本地 WebSocket 代理（端口 23456 的 `/ws/deepgram`）注入 `Authorization: Token` Header。最适合英语和多语言内容。
+
+## AssemblyAI
+
+通过 AssemblyAI WebSocket API 使用 Universal-3 Pro 实时流式 ASR。
+
+**必填：** `apiKey`
+
+**可选：** `model`
+
+使用本地 WebSocket 代理（端口 23456 的 `/ws/assemblyai`）注入 `Authorization` Header。支持 6 种流式语言，最适合英语内容。
+
+## ElevenLabs
+
+通过 ElevenLabs WebSocket API 使用 Scribe v2 Realtime ASR。
+
+**必填：** `apiKey`
+
+**可选：** `model`、`languageHints`
+
+使用本地 WebSocket 代理（端口 23456 的 `/ws/elevenlabs`）注入 `xi-api-key` Header。支持 90+ 种语言含普通话。音频以 base64 编码 JSON 格式发送。
 
 ## 本地 OpenAI 兼容
 

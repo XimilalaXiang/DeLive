@@ -3,7 +3,7 @@ layout: home
 hero:
   name: DeLive
   text: 桌面转录工作台
-  tagline: 捕获系统音频 · 六大 ASR 后端转录 · AI 复盘 — 摘要、对话、思维导图，全部本地优先
+  tagline: 捕获系统音频 · 十大 ASR 后端转录 · AI 复盘 — 摘要、对话、思维导图，全部本地优先
   image:
     src: /logo.svg
     alt: DeLive
@@ -19,8 +19,8 @@ hero:
       link: /zh/api/rest
 features:
   - icon: 🎙️
-    title: 六大 ASR 后端，统一界面
-    details: Soniox（实时流式 + 翻译 + 说话人区分）、火山引擎、Groq、硅基流动、本地 OpenAI 兼容、本地 whisper.cpp — 三种执行模式覆盖所有场景。
+    title: 十大 ASR 后端，统一界面
+    details: Soniox、火山引擎、Groq、硅基流动、Mistral AI、Deepgram、AssemblyAI、ElevenLabs、本地 OpenAI 兼容、本地 whisper.cpp — 三种执行模式覆盖所有场景。
   - icon: 🧠
     title: AI 复盘工作台
     details: 全页工作台，六个标签页 — AI 纠错（快速纠错 & 逐条审查模式 + 智能文本源选择）、概览（摘要、行动项、关键词、章节）、转录文本导出、AI 分析、多线程对话、Markmap 思维导图。
