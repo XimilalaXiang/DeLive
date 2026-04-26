@@ -10,6 +10,7 @@ import { useSettingsStore } from '../stores/settingsStore'
 import type { ASRProviderInfo } from '../types/asr'
 import { buildProviderConnectConfig, isProviderConfigured } from '../utils/providerConfig'
 import { getProviderName, getProviderDescription } from '../utils/providerI18n'
+import { getProviderLogo } from './icons/ProviderLogos'
 
 interface ProviderSelectorProps {
   onSelect?: (vendorId: string) => void
@@ -95,17 +96,13 @@ export function ProviderSelector({ onSelect }: ProviderSelectorProps) {
           }
         `}
       >
-        <div className={`
-          flex items-center justify-center w-10 h-10 rounded-xl
-          ${provider.type === 'cloud' 
-            ? 'bg-info/20 dark:bg-info/20 text-info dark:text-info' 
-            : 'bg-success/20 dark:bg-success/20 text-success dark:text-success'
-          }
-        `}>
-          {provider.type === 'cloud' ? (
-            <Cloud className="w-5 h-5" />
-          ) : (
-            <HardDrive className="w-5 h-5" />
+        <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-muted/50">
+          {getProviderLogo(provider.id, 24) || (
+            provider.type === 'cloud' ? (
+              <Cloud className="w-5 h-5 text-info" />
+            ) : (
+              <HardDrive className="w-5 h-5 text-success" />
+            )
           )}
         </div>
         
@@ -225,17 +222,13 @@ export function ProviderSelector({ onSelect }: ProviderSelectorProps) {
           bg-background text-foreground
         `}
       >
-        <div className={`
-          flex items-center justify-center w-10 h-10 rounded-xl
-          ${currentProvider?.type === 'cloud' 
-            ? 'bg-info/20 dark:bg-info/20 text-info dark:text-info' 
-            : 'bg-success/20 dark:bg-success/20 text-success dark:text-success'
-          }
-        `}>
-          {currentProvider?.type === 'cloud' ? (
-            <Cloud className="w-5 h-5" />
-          ) : (
-            <HardDrive className="w-5 h-5" />
+        <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-muted/50">
+          {(currentProvider && getProviderLogo(currentProvider.id, 24)) || (
+            currentProvider?.type === 'cloud' ? (
+              <Cloud className="w-5 h-5 text-info" />
+            ) : (
+              <HardDrive className="w-5 h-5 text-success" />
+            )
           )}
         </div>
         <div className="flex-1 text-left">
