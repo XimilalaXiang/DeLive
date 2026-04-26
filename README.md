@@ -72,7 +72,9 @@ DeLive is a desktop transcription workspace for system audio. It captures whatev
 - [x] **Session lifecycle management** — draft sessions, autosave while recording, interrupted-session recovery, and completed-session history
 - [x] **Floating caption overlay** — separate always-on-top window with source / translated / dual display modes and style customization
 - [x] **Soniox bilingual & speaker-aware flows** — realtime translation, dual-line captions, diarization tokens, speaker-grouped preview
-- [x] **AI Review Desk** — full-page workspace with animated tab navigation (Overview, Transcript, Chat, Mind Map)
+- [x] **AI Review Desk** — full-page workspace with animated tab navigation (Overview, Transcript, AI Correction, Chat, Mind Map, AI Analysis)
+- [x] **AI transcript correction** — two modes: quick fix (direct streaming correction) and review-then-fix (detect issues first, user confirms, then correct); side-by-side diff view; corrected text export
+- [x] **Smart text-source selection for AI post-processing** — automatically uses corrected transcript when available; user-configurable preference (Auto / Always Original / Always Corrected) with real-time status banners
 - [x] **Rich AI Chat** — multi-thread conversation with GFM Markdown rendering, syntax-highlighted code blocks, hover actions, and more
 - [x] **Structured AI briefing** — summary, action items, keywords, chapters, title/tag suggestions, and cited Q&A
 - [x] **Mind maps** — generate Markmap-compatible Markdown, edit live, export SVG or PNG
@@ -165,7 +167,7 @@ To run just the frontend tests:
 npm run test:frontend
 ```
 
-Current suite status: **256 tests across 29 files** with coverage around provider config, transcript state/stabilization, subtitle export, session lifecycle/repository, storage, cloud backup, Open API IPC responses, and AI post-process parsing.
+Current suite status: **266 tests across 29 files** with coverage around provider config, transcript state/stabilization, subtitle export, session lifecycle/repository, storage, cloud backup, Open API IPC responses, AI post-process parsing, and transcript text-source resolution.
 
 ### Build
 
@@ -222,8 +224,10 @@ Organize recordings into project-like containers:
 
 Completed sessions open in a dedicated full-page Review Desk (not a modal) with an animated sliding tab bar and keyboard arrow navigation:
 
-- **Overview tab**: AI briefing — summary, action items, keywords, chapters, title/tag suggestions, and one-click apply
 - **Transcript tab**: Timestamped segments in a left gutter, color-coded speaker badges, consecutive same-speaker merging, hover highlight, and TXT/Markdown/SRT/VTT export
+- **AI Correction tab**: Two correction modes (Quick Fix / Review & Fix), streaming output with real-time progress, side-by-side diff comparison, corrected text export as TXT and Markdown
+- **Overview tab**: AI briefing — summary, action items, keywords, chapters, title/tag suggestions, and one-click apply
+- **AI Analysis tab**: Detailed AI analysis with text-source awareness banner showing whether original or corrected transcript is being used
 - **Chat tab**: Multi-thread AI conversation — GFM Markdown rendering with syntax-highlighted code blocks (one-click copy), user/AI avatars, hover Copy/Regenerate actions, animated thinking-dots indicator, auto-resizing composer (Enter to send), floating scroll-to-bottom button, and per-thread delete
 - **Mind Map tab**: Generate Markmap-compatible Markdown, edit it live, and export SVG or PNG
 - **Metadata actions**: apply suggested title/tags and rename speaker labels for diarized sessions
@@ -262,7 +266,7 @@ Completed sessions open in a dedicated full-page Review Desk (not a modal) with 
 | State management | `frontend/src/stores/sessionStore.ts`, `frontend/src/stores/topicStore.ts`, `frontend/src/stores/uiStore.ts`, `frontend/src/stores/settingsStore.ts`, `frontend/src/stores/tagStore.ts`, `frontend/src/stores/transcriptStore.ts` | Zustand store slices for sessions, topics, UI state, settings, tags, and a unified facade for backward compatibility. |
 | Session intelligence | `frontend/src/services/aiPostProcess.ts`, `frontend/src/components/ReviewDeskView.tsx`, `frontend/src/components/PreviewModal.tsx` | AI briefing, Q&A, mind maps, tagging, and speaker label editing. |
 | Topics | `frontend/src/components/TopicsView.tsx`, `frontend/src/components/TopicDetailView.tsx`, `frontend/src/components/TopicDialog.tsx`, `frontend/src/components/TopicPicker.tsx` | Card-grid topic browser, per-topic session list, CRUD dialogs, and Live-view topic selection. |
-| Review Desk UI | `frontend/src/components/review/SessionTabBar.tsx`, `frontend/src/components/review/SessionHeader.tsx`, `frontend/src/components/review/OverviewTab.tsx`, `frontend/src/components/review/TranscriptTab.tsx`, `frontend/src/components/review/ChatTab.tsx`, `frontend/src/components/review/MindMapTab.tsx`, `frontend/src/components/review/MarkdownRenderer.tsx` | Animated tab bar with keyboard navigation, session header with multi-format export (TXT/Markdown/SRT/VTT), per-tab content views, GFM Markdown rendering with syntax highlighting, and mind map editing. |
+| Review Desk UI | `frontend/src/components/review/SessionTabBar.tsx`, `frontend/src/components/review/SessionHeader.tsx`, `frontend/src/components/review/OverviewTab.tsx`, `frontend/src/components/review/TranscriptTab.tsx`, `frontend/src/components/review/CorrectionTab.tsx`, `frontend/src/components/review/AiTab.tsx`, `frontend/src/components/review/ChatTab.tsx`, `frontend/src/components/review/MindMapTab.tsx`, `frontend/src/components/review/TextSourceBanner.tsx`, `frontend/src/components/review/MarkdownRenderer.tsx` | Animated tab bar with keyboard navigation, session header with multi-format export (TXT/Markdown/SRT/VTT), AI correction with streaming diff, text-source status banners, per-tab content views, GFM Markdown rendering with syntax highlighting, and mind map editing. |
 | Settings UI | `frontend/src/components/ApiKeyConfig.tsx`, `frontend/src/components/settings/*` | Multi-section settings workspace for provider setup, appearance, caption style, AI post-process, Open API, cloud backup, data import/export, and about/update panels. |
 | Runtime UI | `frontend/src/components/runtime/BundledRuntimeSummaryCard.tsx`, `frontend/src/components/runtime/BundledRuntimeAdvancedPanel.tsx` | Status card and advanced panel for managing bundled `whisper.cpp` runtime assets. |
 | Shared UI system | `frontend/src/components/ui/*` | Button, Badge, Switch, EmptyState, StatusIndicator, DialogShell primitives with semantic color tokens across five themes. |

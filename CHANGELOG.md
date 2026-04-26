@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added / 新增
+- 🤖 **AI post-processing smart text-source selection** — when AI correction is done, subsequent AI features (Summary, Chat, Mind Map, Analysis) automatically use corrected text; user-configurable preference (Auto / Always Original / Always Corrected) in AI settings panel
+- 🤖 **AI 后处理智能文本源选择** — AI 纠错完成后，后续 AI 功能（摘要、对话、思维导图、分析）自动使用纠错文本；AI 设置面板中可配置偏好（自动 / 始终原始 / 始终纠错后）
+- 🔔 **Text-source status banners** — AI Analysis, Chat, and Mind Map tabs now show a real-time banner indicating which text source is in use (original, corrected, or correction-in-progress)
+- 🔔 **文本源状态横幅** — AI 分析、对话、思维导图标签页现在显示实时横幅，提示当前使用的文本源（原始、纠错后、或纠错进行中）
+- 🧪 10 new unit tests for `resolveTranscriptText` covering all preference modes and edge cases (266 tests / 29 files)
+- 🧪 新增 10 个 `resolveTranscriptText` 单元测试，覆盖所有偏好模式和边界情况（共 266 测试 / 29 文件）
+
+### Changed / 变更
+- 🔄 **Review tab reorder** — AI Correction tab moved next to Transcript for a more natural correction-first workflow (Transcript → AI Correction → Overview → AI Analysis → Chat → Mind Map)
+- 🔄 **Review 标签页重排** — AI 纠错标签页移至转录文本旁边，形成更自然的纠错优先工作流（转录 → AI 纠错 → 概览 → AI 分析 → 对话 → 思维导图）
+- 💾 **Correction streaming text persisted in store** — switching away from the AI Correction tab during an active correction no longer loses streaming progress; returning to the tab continues showing live output
+- 💾 **纠错流式文本持久化到 store** — 纠错进行中切换到其他标签页不再丢失流式进度；返回后继续显示实时输出
+
+---
+
 ## [2.0.2-beta.3] - 2026-04-25
 
 ### Added / 新增
