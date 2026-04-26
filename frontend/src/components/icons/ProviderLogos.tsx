@@ -113,6 +113,54 @@ export function OpenAILogo({ size = defaultSize, className, ...props }: LogoProp
   )
 }
 
+export function MistralLogo({ size = defaultSize, className, ...props }: LogoProps) {
+  return (
+    <svg
+      viewBox="0 0 28 28"
+      width={size}
+      height={size}
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <rect x="0" y="0" width="4" height="4" fill="#F7D046" />
+      <rect x="8" y="0" width="4" height="4" fill="#F7D046" />
+      <rect x="16" y="0" width="4" height="4" fill="#F7D046" />
+      <rect x="24" y="0" width="4" height="4" fill="#F7D046" />
+      <rect x="0" y="4" width="4" height="4" fill="#F2A73B" />
+      <rect x="4" y="4" width="4" height="4" fill="#F2A73B" />
+      <rect x="8" y="4" width="4" height="4" fill="#F2A73B" />
+      <rect x="16" y="4" width="4" height="4" fill="#F2A73B" />
+      <rect x="20" y="4" width="4" height="4" fill="#F2A73B" />
+      <rect x="24" y="4" width="4" height="4" fill="#F2A73B" />
+      <rect x="0" y="8" width="4" height="4" fill="#EE792F" />
+      <rect x="8" y="8" width="4" height="4" fill="#EE792F" />
+      <rect x="12" y="8" width="4" height="4" fill="#EE792F" />
+      <rect x="16" y="8" width="4" height="4" fill="#EE792F" />
+      <rect x="24" y="8" width="4" height="4" fill="#EE792F" />
+      <rect x="0" y="12" width="4" height="4" fill="#EB5829" />
+      <rect x="8" y="12" width="4" height="4" fill="#EB5829" />
+      <rect x="16" y="12" width="4" height="4" fill="#EB5829" />
+      <rect x="24" y="12" width="4" height="4" fill="#EB5829" />
+      <rect x="0" y="16" width="4" height="4" fill="#EA3326" />
+      <rect x="8" y="16" width="4" height="4" fill="#EA3326" />
+      <rect x="12" y="16" width="4" height="4" fill="#EA3326" />
+      <rect x="16" y="16" width="4" height="4" fill="#EA3326" />
+      <rect x="24" y="16" width="4" height="4" fill="#EA3326" />
+      <rect x="0" y="20" width="4" height="4" fill="#D42A78" />
+      <rect x="4" y="20" width="4" height="4" fill="#D42A78" />
+      <rect x="8" y="20" width="4" height="4" fill="#D42A78" />
+      <rect x="16" y="20" width="4" height="4" fill="#D42A78" />
+      <rect x="20" y="20" width="4" height="4" fill="#D42A78" />
+      <rect x="24" y="20" width="4" height="4" fill="#D42A78" />
+      <rect x="0" y="24" width="4" height="4" fill="#AB35E9" />
+      <rect x="8" y="24" width="4" height="4" fill="#AB35E9" />
+      <rect x="16" y="24" width="4" height="4" fill="#AB35E9" />
+      <rect x="24" y="24" width="4" height="4" fill="#AB35E9" />
+    </svg>
+  )
+}
+
 export function WhisperCppLogo({ size = defaultSize, className }: LogoProps) {
   return (
     <img
@@ -131,6 +179,7 @@ const PROVIDER_LOGO_MAP: Record<string, (props: AnyLogoProps) => JSX.Element> = 
   volc: VolcengineLogo,
   groq: GroqLogo,
   siliconflow: SiliconFlowLogo,
+  mistral: MistralLogo,
   local_openai: OpenAILogo,
   local_whisper_cpp: WhisperCppLogo,
 }
