@@ -75,6 +75,7 @@ export interface SessionState {
   recordingState: RecordingState
   setRecordingState: (state: RecordingState) => void
 
+  transcriptPrefix: string
   currentTranscript: string
   finalTranscript: string
   nonFinalTranscript: string

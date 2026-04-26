@@ -7,6 +7,8 @@ import type { TranscriptToken } from '../types/asr'
 
 export interface TranscriptRuntimeState {
   finalTokens: TranscriptToken[]
+  /** Text accumulated from non-token sources (final-text, config-change) before a token-based provider takes over */
+  transcriptPrefix: string
   finalTranscript: string
   nonFinalTranscript: string
   currentTranscript: string
@@ -21,6 +23,7 @@ export interface TranscriptRuntimeState {
 export type TranscriptRuntimeStateShape = Pick<
   TranscriptRuntimeState,
   | 'finalTokens'
+  | 'transcriptPrefix'
   | 'finalTranscript'
   | 'nonFinalTranscript'
   | 'currentTranscript'
@@ -42,6 +45,7 @@ export type TranscriptEvent =
 export function createEmptyTranscriptRuntimeState(): TranscriptRuntimeState {
   return {
     finalTokens: [],
+    transcriptPrefix: '',
     finalTranscript: '',
     nonFinalTranscript: '',
     currentTranscript: '',
@@ -57,6 +61,7 @@ export function createEmptyTranscriptRuntimeState(): TranscriptRuntimeState {
 export function selectTranscriptRuntimeState(source: TranscriptRuntimeStateShape): TranscriptRuntimeState {
   return {
     finalTokens: source.finalTokens,
+    transcriptPrefix: source.transcriptPrefix,
     finalTranscript: source.finalTranscript,
     nonFinalTranscript: source.nonFinalTranscript,
     currentTranscript: source.currentTranscript,
@@ -196,7 +201,8 @@ export function applyTranscriptEvent(
         }
       }
 
-      const finalText = newFinalTokens.map((token) => token.text).join('')
+      const tokenText = newFinalTokens.map((token) => token.text).join('')
+      const finalText = state.transcriptPrefix + tokenText
       const currentTranscript = finalText + nonFinalText
       const currentTranslatedTranscript = translatedFinalText + translatedNonFinalText
 
@@ -262,6 +268,8 @@ export function applyTranscriptEvent(
       const finalTranscript = state.finalTranscript + marker
       return {
         ...state,
+        transcriptPrefix: finalTranscript,
+        finalTokens: [],
         finalTranscript,
         nonFinalTranscript: '',
         currentTranscript: finalTranscript,

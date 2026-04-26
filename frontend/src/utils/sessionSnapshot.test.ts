@@ -13,6 +13,7 @@ describe('sessionSnapshot', () => {
         finalTokens: [
           { text: 'Hello ', isFinal: true, speaker: 'speaker_1', startMs: 0, endMs: 400 },
         ],
+        transcriptPrefix: '',
         finalTranscript: 'Hello ',
         nonFinalTranscript: 'world',
         currentTranscript: 'Hello world',
