@@ -43,7 +43,7 @@ export function PreviewModal({
       }
       if ((event.ctrlKey || event.metaKey) && event.key >= '1' && event.key <= '6') {
         event.preventDefault()
-        const tabs: ReviewTab[] = ['transcript', 'overview', 'chat', 'mindmap', 'correction']
+        const tabs: ReviewTab[] = ['transcript', 'correction', 'overview', 'ai', 'chat', 'mindmap']
         const index = parseInt(event.key, 10) - 1
         if (index >= 0 && index < tabs.length) {
           setActiveTab(tabs[index])

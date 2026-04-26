@@ -18,11 +18,11 @@ interface SessionTabBarProps {
 
 const TAB_CONFIG: { id: ReviewTab; icon: typeof Sparkles; labelKey: string }[] = [
   { id: 'transcript', icon: FileText, labelKey: 'tabTranscript' },
+  { id: 'correction', icon: SpellCheck, labelKey: 'tabCorrection' },
   { id: 'overview', icon: Sparkles, labelKey: 'tabOverview' },
   { id: 'ai', icon: Bot, labelKey: 'tabAi' },
   { id: 'chat', icon: MessageSquareQuote, labelKey: 'tabChat' },
   { id: 'mindmap', icon: Network, labelKey: 'tabMindMap' },
-  { id: 'correction', icon: SpellCheck, labelKey: 'tabCorrection' },
 ]
 
 export function SessionTabBar({ activeTab, onTabChange }: SessionTabBarProps) {
