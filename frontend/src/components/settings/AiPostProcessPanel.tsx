@@ -343,6 +343,39 @@ export function AiPostProcessPanel({
         </div>
       </section>
 
+      {/* Text source preference */}
+      <section className="workspace-panel-muted p-4 space-y-3">
+        <label className="text-sm font-medium leading-none flex items-center gap-2">
+          <Sparkles className="w-3.5 h-3.5 text-muted-foreground" />
+          {t.settings.aiTextSourceTitle}
+        </label>
+        <p className="text-xs text-muted-foreground">{t.settings.aiTextSourceDesc}</p>
+        <div className="flex gap-2">
+          {(['auto', 'original', 'corrected'] as const).map((opt) => {
+            const labels = {
+              auto: { label: t.settings.aiTextSourceAuto, desc: t.settings.aiTextSourceAutoDesc },
+              original: { label: t.settings.aiTextSourceOriginal, desc: t.settings.aiTextSourceOriginalDesc },
+              corrected: { label: t.settings.aiTextSourceCorrected, desc: t.settings.aiTextSourceCorrectedDesc },
+            }
+            const active = (cfg.preferCorrectedText || 'auto') === opt
+            return (
+              <button
+                key={opt}
+                onClick={() => updateAiPostProcessConfig({ preferCorrectedText: opt })}
+                className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all ${
+                  active
+                    ? 'bg-primary/10 text-primary border-2 border-primary ring-2 ring-primary/20'
+                    : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
+                }`}
+                title={labels[opt].desc}
+              >
+                {labels[opt].label}
+              </button>
+            )
+          })}
+        </div>
+      </section>
+
       {/* Correction mode */}
       <section className="workspace-panel-muted p-4 space-y-3">
         <label className="text-sm font-medium leading-none flex items-center gap-2">

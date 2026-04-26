@@ -12,6 +12,7 @@ import { useSessionStore } from '../../stores/sessionStore'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { useTagStore } from '../../stores/tagStore'
 import { isAiPostProcessConfigured } from '../../services/aiPostProcess'
+import { TextSourceBanner } from './TextSourceBanner'
 
 interface AiTabProps {
   session: TranscriptSession
@@ -73,6 +74,7 @@ export function AiTab({ session }: AiTabProps) {
               <Sparkles className="w-3.5 h-3.5" />
               {t.preview.aiBriefing}
             </div>
+            <TextSourceBanner session={session} />
             {!aiConfigured && (
               <p className="text-xs text-muted-foreground">{t.preview.aiNotConfigured}</p>
             )}

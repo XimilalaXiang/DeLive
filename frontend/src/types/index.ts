@@ -223,6 +223,7 @@ export interface AiPostProcessConfig {
   defaultModel?: string
   modelAssignment?: Partial<Record<AiFeatureKey, string>>
   correctionMode?: 'quick' | 'review'
+  preferCorrectedText?: 'auto' | 'original' | 'corrected'
 }
 
 export interface OpenApiConfig {

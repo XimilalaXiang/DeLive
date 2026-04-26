@@ -20,6 +20,7 @@ import { useSessionStore } from '../../stores/sessionStore'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { isAiPostProcessConfigured } from '../../services/aiPostProcess'
 import { generateId } from '../../utils/storage'
+import { TextSourceBanner } from './TextSourceBanner'
 import { MarkdownRenderer } from './MarkdownRenderer'
 
 interface ChatTabProps {
@@ -235,6 +236,7 @@ export function ChatTab({ session }: ChatTabProps) {
     <div className="flex h-full flex-col overflow-hidden">
       {/* Thread bar */}
       <div className="flex items-center gap-2 border-b border-border bg-muted/20 px-5 py-2.5">
+        <TextSourceBanner session={session} />
         <div className="flex flex-1 items-center gap-1.5 overflow-x-auto scrollbar-none">
           {askConversations.map((conversation, index) => (
             <div key={conversation.id} className="group/thread inline-flex shrink-0 items-center">

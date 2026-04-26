@@ -298,8 +298,9 @@ function buildSystemPrompt(language: NonNullable<AiPostProcessConfig['promptLang
 function buildUserPrompt(
   session: TranscriptSession,
   language: NonNullable<AiPostProcessConfig['promptLanguage']>,
+  preference?: AiPostProcessConfig['preferCorrectedText'],
 ): string {
-  const transcriptBlock = buildSessionContextBlock(session)
+  const transcriptBlock = buildSessionContextBlock(session, preference)
 
   if (language === 'en') {
     return [
@@ -320,8 +321,25 @@ function buildUserPrompt(
   ].join('\n\n')
 }
 
-function buildSessionContextBlock(session: TranscriptSession): string {
-  const transcript = session.transcript.trim()
+export function resolveTranscriptText(
+  session: TranscriptSession,
+  preference: AiPostProcessConfig['preferCorrectedText'],
+): string {
+  const pref = preference || 'auto'
+  const hasCorrected = session.correction?.status === 'done'
+    && typeof session.correction.correctedText === 'string'
+    && session.correction.correctedText.trim().length > 0
+
+  if (pref === 'corrected' && hasCorrected) return session.correction!.correctedText!.trim()
+  if (pref === 'auto' && hasCorrected) return session.correction!.correctedText!.trim()
+  return session.transcript.trim()
+}
+
+function buildSessionContextBlock(
+  session: TranscriptSession,
+  preference?: AiPostProcessConfig['preferCorrectedText'],
+): string {
+  const transcript = resolveTranscriptText(session, preference)
   const clippedTranscript = transcript.length > MAX_TRANSCRIPT_CHARS
     ? `${transcript.slice(0, MAX_TRANSCRIPT_CHARS)}\n\n[truncated]`
     : transcript
@@ -357,8 +375,9 @@ function buildAskUserPrompt(
   session: TranscriptSession,
   question: string,
   language: NonNullable<AiPostProcessConfig['promptLanguage']>,
+  preference?: AiPostProcessConfig['preferCorrectedText'],
 ): string {
-  const transcriptBlock = buildSessionContextBlock(session)
+  const transcriptBlock = buildSessionContextBlock(session, preference)
   const previousTurns = (session.askHistory || [])
     .filter((turn) => turn.status === 'success' && turn.answer?.trim())
     .slice(-4)
@@ -411,8 +430,9 @@ function buildMindMapSystemPrompt(language: NonNullable<AiPostProcessConfig['pro
 function buildMindMapUserPrompt(
   session: TranscriptSession,
   language: NonNullable<AiPostProcessConfig['promptLanguage']>,
+  preference?: AiPostProcessConfig['preferCorrectedText'],
 ): string {
-  const transcriptBlock = buildSessionContextBlock(session)
+  const transcriptBlock = buildSessionContextBlock(session, preference)
   const summaryBlock = session.postProcess?.summary?.trim()
     ? `Summary:\n${session.postProcess.summary.trim()}`
     : ''
@@ -526,7 +546,7 @@ export async function generateSessionBriefing(
       temperature: 0.2,
       messages: [
         { role: 'system', content: buildSystemPrompt(promptLanguage) },
-        { role: 'user', content: buildUserPrompt(session, promptLanguage) },
+        { role: 'user', content: buildUserPrompt(session, promptLanguage, config.preferCorrectedText) },
       ],
     }),
   })
@@ -593,7 +613,7 @@ export async function askQuestionForSession(
                 (turn.conversationId || 'default') === conversationId
               ))
               : session.askHistory,
-          }, normalizedQuestion, promptLanguage),
+          }, normalizedQuestion, promptLanguage, config.preferCorrectedText),
         },
       ],
     }),
@@ -641,7 +661,7 @@ export async function generateSessionMindMap(
       temperature: 0.2,
       messages: [
         { role: 'system', content: buildMindMapSystemPrompt(promptLanguage) },
-        { role: 'user', content: buildMindMapUserPrompt(session, promptLanguage) },
+        { role: 'user', content: buildMindMapUserPrompt(session, promptLanguage, config.preferCorrectedText) },
       ],
     }),
   })

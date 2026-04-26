@@ -20,6 +20,7 @@ import { useSettingsStore } from '../../stores/settingsStore'
 import { useSessionStore } from '../../stores/sessionStore'
 import { useUIStore } from '../../stores/uiStore'
 import { isAiPostProcessConfigured } from '../../services/aiPostProcess'
+import { TextSourceBanner } from './TextSourceBanner'
 import {
   buildMindMapExportBaseName,
   exportMindMapPng,
@@ -238,6 +239,7 @@ export function MindMapTab({ session }: MindMapTabProps) {
     <div className="flex h-full flex-col overflow-hidden">
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2 border-b border-border bg-muted/20 px-5 py-3">
+        <TextSourceBanner session={session} />
         <button
           onClick={() => void handleGenerate()}
           disabled={!aiConfigured || !hasTranscript || generating}
