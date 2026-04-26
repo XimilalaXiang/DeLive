@@ -53,16 +53,20 @@ export function CorrectionTab({ session }: CorrectionTabProps) {
     startSessionQuickCorrection,
     startSessionReviewCorrection,
     updateSessionCorrection,
+    clearCorrectionStreamingText,
   } = useSessionStore()
 
   const liveSession = useSessionStore(
     (s) => s.sessions.find((sess) => sess.id === session.id),
   )
+  const storeStreamingText = useSessionStore(
+    (s) => s.correctionStreamingText[session.id] || '',
+  )
   const correction = liveSession?.correction ?? session.correction
   const correctionMode = settings.aiPostProcess?.correctionMode || 'quick'
   const storeStatus = correction?.status || 'idle'
 
-  const [streamingText, setStreamingText] = useState('')
+  const streamingText = storeStreamingText
   const [localStatus, setLocalStatus] = useState(storeStatus)
   const [localError, setLocalError] = useState<string | null>(null)
   const [localIssues, setLocalIssues] = useState<CorrectionIssue[]>([])
@@ -74,7 +78,7 @@ export function CorrectionTab({ session }: CorrectionTabProps) {
   const status = localStatus !== 'idle' ? localStatus : storeStatus
 
   useEffect(() => {
-    if (storeStatus === 'done' || storeStatus === 'error' || storeStatus === 'reviewing') {
+    if (storeStatus === 'done' || storeStatus === 'error' || storeStatus === 'reviewing' || storeStatus === 'correcting') {
       setLocalStatus(storeStatus)
     }
   }, [storeStatus])
@@ -108,15 +112,12 @@ export function CorrectionTab({ session }: CorrectionTabProps) {
   const canStart = settings.aiPostProcess?.enabled && hasModel && hasTranscript
 
   const handleQuickCorrection = useCallback(async () => {
-    setStreamingText('')
     setLocalStatus('correcting')
     setLocalError(null)
     setStartTime(Date.now())
     setElapsed(0)
     try {
-      await startSessionQuickCorrection(session.id, (chunk) => {
-        setStreamingText((prev) => prev + chunk)
-      })
+      await startSessionQuickCorrection(session.id)
       setLocalStatus('done')
     } catch (err) {
       const msg = err instanceof Error ? err.message : '纠错失败'
@@ -146,20 +147,15 @@ export function CorrectionTab({ session }: CorrectionTabProps) {
 
   const handleReviewCorrection = useCallback(async () => {
     const accepted = localIssues.filter((i) => i.accepted)
-    setStreamingText('')
     setLocalStatus('correcting')
     setLocalError(null)
     setStartTime(Date.now())
     setElapsed(0)
     try {
       if (accepted.length === 0) {
-        await startSessionQuickCorrection(session.id, (chunk) => {
-          setStreamingText((prev) => prev + chunk)
-        })
+        await startSessionQuickCorrection(session.id)
       } else {
-        await startSessionReviewCorrection(session.id, accepted, (chunk) => {
-          setStreamingText((prev) => prev + chunk)
-        })
+        await startSessionReviewCorrection(session.id, accepted)
       }
       setLocalStatus('done')
     } catch (err) {
@@ -180,13 +176,13 @@ export function CorrectionTab({ session }: CorrectionTabProps) {
       requestedAt: undefined,
       completedAt: undefined,
     })
-    setStreamingText('')
+    clearCorrectionStreamingText(session.id)
     setLocalIssues([])
     setLocalStatus('idle')
     setLocalError(null)
     setStartTime(null)
     setElapsed(0)
-  }, [session.id, updateSessionCorrection])
+  }, [session.id, updateSessionCorrection, clearCorrectionStreamingText])
 
   const toggleIssueAccepted = useCallback((issueId: string) => {
     setLocalIssues((prev) =>

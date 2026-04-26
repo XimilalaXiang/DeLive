@@ -414,6 +414,7 @@ export const en: Translations = {
     aiNotConfigured: 'Enable and configure AI post-process in Settings > General first.',
     aiUsingCorrectedText: 'Using corrected text',
     aiUsingOriginalText: 'Using original transcript',
+    aiCorrectionInProgress: 'Correction in progress, using original text',
     tabOverview: 'Overview',
     tabAi: 'AI Analysis',
     tabChat: 'Chat',

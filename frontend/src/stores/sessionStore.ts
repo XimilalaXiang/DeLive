@@ -121,13 +121,16 @@ export interface SessionState {
   detectSessionCorrectionIssues: (sessionId: string) => Promise<CorrectionIssue[]>
   startSessionQuickCorrection: (
     sessionId: string,
-    onChunk: (text: string) => void,
+    onChunk?: (text: string) => void,
   ) => Promise<string>
   startSessionReviewCorrection: (
     sessionId: string,
     acceptedIssues: CorrectionIssue[],
-    onChunk: (text: string) => void,
+    onChunk?: (text: string) => void,
   ) => Promise<string>
+
+  correctionStreamingText: Record<string, string>
+  clearCorrectionStreamingText: (sessionId: string) => void
 
   finalTokens: TranscriptToken[]
 }
@@ -652,6 +655,16 @@ export const useSessionStore = create<SessionState>((set, get) => {
       return persisted
     },
 
+    correctionStreamingText: {},
+    clearCorrectionStreamingText: (sessionId) => {
+      const { correctionStreamingText } = get()
+      if (sessionId in correctionStreamingText) {
+        const next = { ...correctionStreamingText }
+        delete next[sessionId]
+        set({ correctionStreamingText: next })
+      }
+    },
+
     updateSessionCorrection: (sessionId, patch) => {
       const session = get().sessions.find((s) => s.id === sessionId)
       if (!session) return
@@ -712,6 +725,7 @@ export const useSessionStore = create<SessionState>((set, get) => {
         'correction',
       )
 
+      set({ correctionStreamingText: { ...get().correctionStreamingText, [sessionId]: '' } })
       get().updateSessionCorrection(sessionId, {
         status: 'correcting',
         error: undefined,
@@ -725,8 +739,13 @@ export const useSessionStore = create<SessionState>((set, get) => {
           session,
           useSettingsStore.getState().settings,
           {
-            onChunk,
+            onChunk: (chunk) => {
+              const prev = get().correctionStreamingText[sessionId] || ''
+              set({ correctionStreamingText: { ...get().correctionStreamingText, [sessionId]: prev + chunk } })
+              onChunk?.(chunk)
+            },
             onDone: (fullText) => {
+              get().clearCorrectionStreamingText(sessionId)
               get().updateSessionCorrection(sessionId, {
                 status: 'done',
                 correctedText: fullText,
@@ -735,6 +754,7 @@ export const useSessionStore = create<SessionState>((set, get) => {
               resolve(fullText)
             },
             onError: (err) => {
+              get().clearCorrectionStreamingText(sessionId)
               get().updateSessionCorrection(sessionId, {
                 status: 'error',
                 error: err.message,
@@ -743,6 +763,7 @@ export const useSessionStore = create<SessionState>((set, get) => {
             },
           },
         ).catch((err) => {
+          get().clearCorrectionStreamingText(sessionId)
           get().updateSessionCorrection(sessionId, {
             status: 'error',
             error: err instanceof Error ? err.message : '纠错失败',
@@ -761,6 +782,7 @@ export const useSessionStore = create<SessionState>((set, get) => {
         'correction',
       )
 
+      set({ correctionStreamingText: { ...get().correctionStreamingText, [sessionId]: '' } })
       get().updateSessionCorrection(sessionId, {
         status: 'correcting',
         error: undefined,
@@ -779,8 +801,13 @@ export const useSessionStore = create<SessionState>((set, get) => {
           acceptedIssues,
           useSettingsStore.getState().settings,
           {
-            onChunk,
+            onChunk: (chunk) => {
+              const prev = get().correctionStreamingText[sessionId] || ''
+              set({ correctionStreamingText: { ...get().correctionStreamingText, [sessionId]: prev + chunk } })
+              onChunk?.(chunk)
+            },
             onDone: (fullText) => {
+              get().clearCorrectionStreamingText(sessionId)
               get().updateSessionCorrection(sessionId, {
                 status: 'done',
                 correctedText: fullText,
@@ -789,6 +816,7 @@ export const useSessionStore = create<SessionState>((set, get) => {
               resolve(fullText)
             },
             onError: (err) => {
+              get().clearCorrectionStreamingText(sessionId)
               get().updateSessionCorrection(sessionId, {
                 status: 'error',
                 error: err.message,
@@ -797,6 +825,7 @@ export const useSessionStore = create<SessionState>((set, get) => {
             },
           },
         ).catch((err) => {
+          get().clearCorrectionStreamingText(sessionId)
           get().updateSessionCorrection(sessionId, {
             status: 'error',
             error: err instanceof Error ? err.message : '纠错失败',

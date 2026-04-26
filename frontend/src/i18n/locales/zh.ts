@@ -412,6 +412,7 @@ export const zh = {
     aiNotConfigured: '请先到设置 > 通用设置 中启用并配置 AI 后处理',
     aiUsingCorrectedText: '当前使用纠错后文本',
     aiUsingOriginalText: '当前使用原始转录文本',
+    aiCorrectionInProgress: '纠错进行中，当前使用原始文本',
     tabOverview: '概览',
     tabAi: 'AI 分析',
     tabChat: '对话',
