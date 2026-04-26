@@ -14,6 +14,7 @@ import { VolcProvider } from './implementations/VolcProvider'
 import { GroqProvider } from './implementations/GroqProvider'
 import { SiliconFlowProvider } from './implementations/SiliconFlowProvider'
 import { MistralProvider } from './implementations/MistralProvider'
+import { DeepgramProvider } from './implementations/DeepgramProvider'
 import { LocalOpenAIProvider } from './implementations/LocalOpenAIProvider'
 import { WhisperCppRuntimeProvider } from './implementations/WhisperCppRuntimeProvider'
 
@@ -96,6 +97,12 @@ function registerDefaultProviders(): void {
   providerRegistry.register({
     info: new MistralProvider().info,
     create: () => new MistralProvider(),
+  })
+
+  // Deepgram - 实时流式
+  providerRegistry.register({
+    info: new DeepgramProvider().info,
+    create: () => new DeepgramProvider(),
   })
 
   // 本地 OpenAI-compatible

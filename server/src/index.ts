@@ -6,6 +6,7 @@ import { createServer } from 'http'
 import { WebSocketServer } from 'ws'
 import { createVolcProxyServer } from './volcProxy.js'
 import { createMistralProxyServer } from './mistralProxy.js'
+import { createDeepgramProxyServer } from './deepgramProxy.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -21,6 +22,9 @@ createVolcProxyServer(volcWss)
 const mistralWss = new WebSocketServer({ noServer: true })
 createMistralProxyServer(mistralWss)
 
+const deepgramWss = new WebSocketServer({ noServer: true })
+createDeepgramProxyServer(deepgramWss)
+
 server.on('upgrade', (request, socket, head) => {
   const { pathname } = new URL(request.url || '', `http://${request.headers.host}`)
 
@@ -31,6 +35,10 @@ server.on('upgrade', (request, socket, head) => {
   } else if (pathname === '/ws/mistral') {
     mistralWss.handleUpgrade(request, socket, head, (ws) => {
       mistralWss.emit('connection', ws, request)
+    })
+  } else if (pathname === '/ws/deepgram') {
+    deepgramWss.handleUpgrade(request, socket, head, (ws) => {
+      deepgramWss.emit('connection', ws, request)
     })
   } else {
     socket.destroy()

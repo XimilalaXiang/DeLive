@@ -3,6 +3,7 @@ import { URL } from 'url'
 import { WebSocketServer } from 'ws'
 import { attachVolcProxyServer } from '../shared/volcProxyCore'
 import { attachMistralProxyServer } from '../shared/mistralProxyCore'
+import { attachDeepgramProxyServer } from '../shared/deepgramProxyCore'
 
 export function startVolcProxyServer(port = 23456): Server {
   const server = createServer()
@@ -12,6 +13,9 @@ export function startVolcProxyServer(port = 23456): Server {
 
   const mistralWss = new WebSocketServer({ noServer: true })
   attachMistralProxyServer(mistralWss)
+
+  const deepgramWss = new WebSocketServer({ noServer: true })
+  attachDeepgramProxyServer(deepgramWss)
 
   server.on('upgrade', (request, socket, head) => {
     const { pathname } = new URL(request.url || '', `http://${request.headers.host}`)
@@ -24,6 +28,10 @@ export function startVolcProxyServer(port = 23456): Server {
       mistralWss.handleUpgrade(request, socket, head, (ws) => {
         mistralWss.emit('connection', ws, request)
       })
+    } else if (pathname === '/ws/deepgram') {
+      deepgramWss.handleUpgrade(request, socket, head, (ws) => {
+        deepgramWss.emit('connection', ws, request)
+      })
     } else {
       socket.destroy()
     }
@@ -33,6 +41,7 @@ export function startVolcProxyServer(port = 23456): Server {
     console.log(`[Proxy] 内置代理服务器已启动: http://localhost:${port}`)
     console.log(`[Proxy] 火山引擎: ws://localhost:${port}/ws/volc`)
     console.log(`[Proxy] Mistral: ws://localhost:${port}/ws/mistral`)
+    console.log(`[Proxy] Deepgram: ws://localhost:${port}/ws/deepgram`)
   })
 
   server.on('error', (error: NodeJS.ErrnoException) => {
