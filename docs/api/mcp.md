@@ -143,6 +143,12 @@ List all topic categories.
 
 *No parameters.*
 
+### list_tags
+
+List all tags used to label sessions.
+
+*No parameters.*
+
 ## Resources
 
 | URI | Description |

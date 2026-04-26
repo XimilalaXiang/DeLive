@@ -1,6 +1,6 @@
 ---
 name: delive-transcript-analyzer
-description: "Analyze, summarize, and extract insights from DeLive transcription sessions. TRIGGER when: user mentions DeLive, transcription sessions, meeting transcripts, live captions, or audio transcription analysis; user wants to search, retrieve, summarize, or process recorded transcripts; user asks about meeting notes, action items, or discussion summaries from DeLive. Requires DeLive app running locally with its MCP server or REST API."
+description: "Analyze, summarize, and extract insights from DeLive transcription sessions. Use when: user mentions DeLive, transcription, meeting transcripts, live captions, audio transcription, AI correction, corrected transcript, or transcript analysis; user wants to search, retrieve, summarize, correct, or process recorded transcripts; user asks about meeting notes, action items, discussion summaries, or transcript quality from DeLive. Requires DeLive app running locally with its MCP server or REST API."
 ---
 
 # DeLive Transcript Analyzer
@@ -41,11 +41,12 @@ DeLive exposes a local REST API when running:
 | Tool | Purpose |
 |------|---------|
 | `search_transcripts` | Find sessions by keyword in title or transcript content |
-| `get_session` | Full session with transcript, AI summary, mind map, Q&A |
-| `get_session_transcript` | Lightweight: just the transcript text |
+| `get_session` | Full session with transcript, corrected transcript, AI summary, mind map, Q&A |
+| `get_session_transcript` | Transcript text + corrected transcript (when available) |
 | `get_session_summary` | AI summary, action items, keywords, mind map |
 | `get_recording_status` | Check if DeLive is currently recording |
 | `list_topics` | List topic categories for organizing sessions |
+| `list_tags` | List all tags used to label sessions |
 
 ## Available Resources (via MCP)
 
@@ -81,7 +82,13 @@ DeLive exposes a local REST API when running:
 2. Retrieve summaries for each matching session
 3. Synthesize a cross-session report: timeline, decisions made, open items
 
-### Pattern 5: Real-Time Monitoring
+### Pattern 5: Best-Quality Transcript
+
+1. Get the transcript: `get_session_transcript("<session_id>")`
+2. Check if a corrected transcript is present (returned as a separate section)
+3. Prefer the corrected version for downstream processing (summaries, translations, reports)
+
+### Pattern 6: Real-Time Monitoring
 
 Connect to the live WebSocket for real-time transcript access:
 
@@ -109,7 +116,7 @@ All endpoints return JSON. Base URL: `http://localhost:23456`
 | GET | `/api/v1/health` | Server health and version |
 | GET | `/api/v1/sessions` | List sessions (params: `search`, `limit`, `offset`, `topicId`, `status`) |
 | GET | `/api/v1/sessions/:id` | Full session detail |
-| GET | `/api/v1/sessions/:id/transcript` | Transcript text only |
+| GET | `/api/v1/sessions/:id/transcript` | Transcript text + corrected transcript |
 | GET | `/api/v1/sessions/:id/summary` | AI summary and mind map |
 | GET | `/api/v1/topics` | All topics |
 | GET | `/api/v1/tags` | All tags |
@@ -122,6 +129,8 @@ All endpoints return JSON. Base URL: `http://localhost:23456`
 - The `hasSummary` field in session listings indicates whether AI post-processing has been run
 - Use `limit` and `offset` for pagination when there are many sessions
 - The live WebSocket at `/ws/live` broadcasts both transcript updates and session lifecycle events (`session-start`, `session-end`)
+- **Corrected transcript**: `get_session_transcript` returns a `correctedTranscript` field when AI correction has been applied. Prefer this over the raw transcript for higher accuracy
+- **get_session** includes a `Corrected Transcript` section when available — use it for summaries, reports, and analysis
 
 ## Error Handling
 

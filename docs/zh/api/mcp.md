@@ -143,6 +143,12 @@ node /path/to/DeLive/mcp/delive-mcp-server.js
 
 *无参数。*
 
+### list_tags
+
+列出所有标签。
+
+*无参数。*
+
 ## 资源
 
 | URI | 说明 |

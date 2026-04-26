@@ -234,6 +234,25 @@ server.registerTool(
   }
 )
 
+server.registerTool(
+  'list_tags',
+  {
+    description: 'List all tags used to label and categorize transcription sessions in DeLive.',
+    inputSchema: {},
+  },
+  async () => {
+    const data = await callApi('/api/v1/tags')
+    const tags = data.tags || []
+
+    if (tags.length === 0) {
+      return { content: [{ type: 'text', text: 'No tags found.' }] }
+    }
+
+    const lines = tags.map((t, i) => `${i + 1}. **${t.name}** (ID: ${t.id}, Color: ${t.color})`)
+    return { content: [{ type: 'text', text: `Tags:\n\n${lines.join('\n')}` }] }
+  }
+)
+
 // ─── Resources ───
 
 server.registerResource(
