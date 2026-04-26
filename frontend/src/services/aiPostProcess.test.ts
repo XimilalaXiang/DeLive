@@ -4,7 +4,9 @@ import {
   parseSessionMindMapResponse,
   parseSessionQaResponse,
   isAiPostProcessConfigured,
+  resolveTranscriptText,
 } from './aiPostProcess'
+import type { TranscriptSession } from '../types'
 
 describe('aiPostProcess', () => {
   it('parses plain json responses', () => {
@@ -95,5 +97,106 @@ describe('aiPostProcess', () => {
       generatedAt: expect.any(Number),
       updatedAt: expect.any(Number),
     })
+  })
+})
+
+describe('resolveTranscriptText', () => {
+  const baseSession = {
+    id: 'test-1',
+    title: 'Test',
+    transcript: '  original raw transcript  ',
+    createdAt: Date.now(),
+    segments: [],
+    speakers: [],
+  } as unknown as TranscriptSession
+
+  const sessionWithCorrection = {
+    ...baseSession,
+    correction: {
+      status: 'done' as const,
+      mode: 'quick' as const,
+      correctedText: '  corrected clean transcript  ',
+    },
+  } as unknown as TranscriptSession
+
+  const sessionCorrecting = {
+    ...baseSession,
+    correction: {
+      status: 'correcting' as const,
+      mode: 'quick' as const,
+      correctedText: 'partial output',
+    },
+  } as unknown as TranscriptSession
+
+  const sessionReset = {
+    ...baseSession,
+    correction: {
+      status: 'idle' as const,
+      mode: 'quick' as const,
+      correctedText: undefined,
+    },
+  } as unknown as TranscriptSession
+
+  const sessionEmptyCorrection = {
+    ...baseSession,
+    correction: {
+      status: 'done' as const,
+      mode: 'quick' as const,
+      correctedText: '   ',
+    },
+  } as unknown as TranscriptSession
+
+  it('auto: uses corrected text when available and done', () => {
+    expect(resolveTranscriptText(sessionWithCorrection, 'auto'))
+      .toBe('corrected clean transcript')
+  })
+
+  it('auto: falls back to original when no correction', () => {
+    expect(resolveTranscriptText(baseSession, 'auto'))
+      .toBe('original raw transcript')
+  })
+
+  it('auto: falls back to original when correction is still in progress', () => {
+    expect(resolveTranscriptText(sessionCorrecting, 'auto'))
+      .toBe('original raw transcript')
+  })
+
+  it('auto: falls back to original after reset (status=idle, correctedText=undefined)', () => {
+    expect(resolveTranscriptText(sessionReset, 'auto'))
+      .toBe('original raw transcript')
+  })
+
+  it('auto: falls back to original when correctedText is whitespace-only', () => {
+    expect(resolveTranscriptText(sessionEmptyCorrection, 'auto'))
+      .toBe('original raw transcript')
+  })
+
+  it('original: always uses original transcript even when corrected exists', () => {
+    expect(resolveTranscriptText(sessionWithCorrection, 'original'))
+      .toBe('original raw transcript')
+  })
+
+  it('corrected: uses corrected text when available', () => {
+    expect(resolveTranscriptText(sessionWithCorrection, 'corrected'))
+      .toBe('corrected clean transcript')
+  })
+
+  it('corrected: falls back to original when no correction available', () => {
+    expect(resolveTranscriptText(baseSession, 'corrected'))
+      .toBe('original raw transcript')
+  })
+
+  it('undefined preference defaults to auto behavior', () => {
+    expect(resolveTranscriptText(sessionWithCorrection, undefined))
+      .toBe('corrected clean transcript')
+    expect(resolveTranscriptText(baseSession, undefined))
+      .toBe('original raw transcript')
+  })
+
+  it('trims whitespace from both original and corrected text', () => {
+    expect(resolveTranscriptText(baseSession, 'original'))
+      .toBe('original raw transcript')
+    expect(resolveTranscriptText(sessionWithCorrection, 'corrected'))
+      .toBe('corrected clean transcript')
   })
 })
