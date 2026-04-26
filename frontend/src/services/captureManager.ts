@@ -133,6 +133,21 @@ export class CaptureManager {
   }
 
   /**
+   * Switch the entire audio pipeline (MediaRecorder <-> AudioProcessor)
+   * without re-requesting screen share. Used when switching between providers
+   * that require different audio formats (e.g. WebM -> PCM16).
+   */
+  async switchPipeline(capabilities: CapturePipelineCapabilities): Promise<void> {
+    if (!this.mediaStream) {
+      console.warn('[CaptureManager] No active stream, cannot switch pipeline')
+      return
+    }
+    this.stopPipeline()
+    console.log('[CaptureManager] Switching audio pipeline for new provider')
+    await this.startPipeline(capabilities, this.mediaStream)
+  }
+
+  /**
    * 重启 MediaRecorder（不重新请求屏幕共享）。
    * 用于配置热切换场景：新的 WebSocket 连接需要接收完整的 WebM 文件头，
    * 而正在运行的 MediaRecorder 只会输出后续音频段（缺少初始化段）。

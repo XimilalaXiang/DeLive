@@ -7,6 +7,7 @@ import { buildProviderConnectConfig, isProviderConfigured } from '../utils/provi
 import { getProviderName } from '../utils/providerI18n'
 import { StatusIndicator, Switch } from './ui'
 import type { ProviderConfigData } from '../types'
+import type { ASRVendor } from '../types/asr'
 
 const TRANSLATION_OPTIONS = [
   { value: 'en', label: 'English' },
@@ -23,9 +24,10 @@ interface RecordingControlsProps {
   startRecording: () => void
   stopRecording: () => void
   switchConfig?: (configPatch: Partial<ProviderConfigData>, description: string) => Promise<void>
+  switchProvider?: (newVendorId: ASRVendor) => Promise<void>
 }
 
-export function RecordingControls({ onError, startRecording, stopRecording, switchConfig }: RecordingControlsProps) {
+export function RecordingControls({ onError, startRecording, stopRecording, switchConfig, switchProvider }: RecordingControlsProps) {
   const { t } = useUIStore()
   const { settings, availableProviders } = useSettingsStore()
   const { recordingState, currentTranscript } = useSessionStore()
@@ -46,7 +48,14 @@ export function RecordingControls({ onError, startRecording, stopRecording, swit
 
   const supportsTranslation = currentProvider?.capabilities.supportsTranslation ?? false
   const supportsDiarization = currentProvider?.capabilities.supportsSpeakerDiarization ?? false
-  const hasLiveFeatures = supportsTranslation || supportsDiarization
+
+  const configuredProviders = availableProviders.filter(p => {
+    const cfg = settings.providerConfigs?.[p.id]
+    return isProviderConfigured(p, buildProviderConnectConfig(p, cfg, settings))
+  })
+  const canSwitchProvider = configuredProviders.length > 1
+
+  const hasLiveFeatures = supportsTranslation || supportsDiarization || canSwitchProvider
 
   const translationEnabled = Boolean(currentConfig?.translationEnabled)
   const translationTarget = (currentConfig?.translationTargetLanguage as string) || 'en'
@@ -210,6 +219,24 @@ export function RecordingControls({ onError, startRecording, stopRecording, swit
               {currentProvider ? getProviderName(currentProvider, t) : currentVendor}
             </span>
           </div>
+
+          {canSwitchProvider && switchProvider && (
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-foreground shrink-0">
+                Provider
+              </label>
+              <select
+                value={currentVendor}
+                onChange={(e) => void switchProvider(e.target.value as ASRVendor)}
+                disabled={isSwitching}
+                className="flex-1 h-8 rounded-md border border-input bg-background px-2 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+              >
+                {configuredProviders.map(p => (
+                  <option key={p.id} value={p.id}>{getProviderName(p, t)}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {supportsTranslation && (
             <div className="space-y-2">

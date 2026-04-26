@@ -323,9 +323,71 @@ export function useASR(options: UseASROptions = {}) {
     }
   }, [settings, setRecordingState, endCurrentSession, applyTranscriptEvent, buildProviderCallbacks, options])
 
+  const switchProvider = useCallback(async (newVendorId: ASRVendor) => {
+    const oldVendorId = selectedVendorRef.current
+    if (!oldVendorId || oldVendorId === newVendorId) return
+    const currentState = useSessionStore.getState().recordingState
+    if (currentState !== 'recording') return
+
+    const psm = providerSessionRef.current
+
+    let newSetup: ReturnType<typeof psm.resolveSetup>
+    try {
+      newSetup = psm.resolveSetup(newVendorId, useSettingsStore.getState().settings)
+    } catch (e) {
+      options.onError?.((e as Error).message)
+      return
+    }
+
+    try {
+      setRecordingState('switching')
+
+      const oldName = oldVendorId
+      const newName = newVendorId
+      applyTranscriptEvent({
+        type: 'config-change',
+        description: `Provider: ${oldName} → ${newName}`,
+      })
+
+      captureRef.current.pauseRecorder()
+
+      await psm.reconnect(newVendorId, newSetup.connectConfig, buildProviderCallbacks())
+
+      await captureRef.current.switchPipeline(newSetup.providerInfo.capabilities)
+
+      useSettingsStore.getState().setCurrentVendor(newVendorId)
+      selectedVendorRef.current = newVendorId
+
+      setRecordingState('recording')
+      console.log(`[useASR] Provider 热切换成功: ${oldName} → ${newName}`)
+    } catch (error) {
+      console.error('[useASR] Provider 热切换失败:', error)
+
+      try {
+        const fallbackSettings = useSettingsStore.getState().settings
+        const fallbackSetup = psm.resolveSetup(oldVendorId, fallbackSettings)
+
+        captureRef.current.pauseRecorder()
+        await psm.reconnect(oldVendorId, fallbackSetup.connectConfig, buildProviderCallbacks())
+        await captureRef.current.switchPipeline(fallbackSetup.providerInfo.capabilities)
+
+        selectedVendorRef.current = oldVendorId
+        setRecordingState('recording')
+        options.onError?.('Provider 切换失败，已恢复之前的配置')
+      } catch {
+        captureRef.current.stop()
+        await providerSessionRef.current.disconnect()
+        endCurrentSession()
+        setRecordingState('idle')
+        options.onError?.('Provider 切换失败且无法恢复，录制已停止')
+      }
+    }
+  }, [setRecordingState, endCurrentSession, applyTranscriptEvent, buildProviderCallbacks, options])
+
   return {
     startRecording,
     stopRecording,
     switchConfig,
+    switchProvider,
   }
 }
