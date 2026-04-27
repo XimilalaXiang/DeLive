@@ -119,6 +119,16 @@ function App() {
     }
   }, [initTheme, loadSettings, loadSessions, loadTags])
 
+  // 初始化完成后同步字幕样式到主进程，确保字幕窗口使用用户保存的样式
+  useEffect(() => {
+    if (!isInitialized) return
+    if (!window.electronAPI?.captionUpdateStyle) return
+    const saved = useSettingsStore.getState().settings.captionStyle
+    if (saved) {
+      void window.electronAPI.captionUpdateStyle(saved)
+    }
+  }, [isInitialized])
+
   // 版本更新后自动弹出 What's New
   useEffect(() => {
     if (!isInitialized) return
