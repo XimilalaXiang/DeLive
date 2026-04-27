@@ -21,12 +21,19 @@ describe('stripLeadingTranscriptOverlap', () => {
     expect(stripLeadingTranscriptOverlap('Hello', '')).toBe('Hello')
   })
 
-  it('handles fuzzy overlap with punctuation/space differences', () => {
+  it('handles fuzzy overlap with punctuation differences (long enough)', () => {
+    const committed = 'Hello world. The quick brown fox jumps over'
+    const transcript = 'The quick brown fox jumps over the lazy dog'
+    const result = stripLeadingTranscriptOverlap(transcript, committed)
+    expect(result).toBe(' the lazy dog')
+  })
+
+  it('does not fuzzy-match when overlap is too short', () => {
     const result = stripLeadingTranscriptOverlap(
-      'How are you today',
-      'Hello world. How are',
+      '你好世界新内容',
+      '某些之前的文字你好世界',
     )
-    expect(result).toBe(' you today')
+    expect(result).toBe('新内容')
   })
 })
 
@@ -43,17 +50,10 @@ describe('buildWindowedTranscriptSnapshot', () => {
     ).toBe('Committed: new text')
   })
 
-  it('deduplicates when transcript is a re-transcription of the same audio window', () => {
-    const committed = 'Hello world how are you'
-    const transcript = 'Hello world, how are you? I am fine.'
+  it('deduplicates overlap when re-transcription has minor punctuation differences', () => {
+    const committed = '搞懂金融与投资 欢迎收看本期初识金融业 我是楚国老张'
+    const transcript = '我是楚国老张，既然这是第一期视频，大家此时对金融一定有很多好奇。'
     const result = buildWindowedTranscriptSnapshot(committed, transcript)
-    expect(result).toBe('Hello world how are you? I am fine.')
-  })
-
-  it('deduplicates Chinese retranscription with minor punctuation differences', () => {
-    const committed = '你好世界你好吗'
-    const transcript = '你好世界，你好吗？我很好。'
-    const result = buildWindowedTranscriptSnapshot(committed, transcript)
-    expect(result).toBe('你好世界你好吗？我很好。')
+    expect(result).toBe('搞懂金融与投资 欢迎收看本期初识金融业 我是楚国老张，既然这是第一期视频，大家此时对金融一定有很多好奇。')
   })
 })
