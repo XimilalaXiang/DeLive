@@ -255,6 +255,12 @@ export const zh = {
     fieldSiliconflowApiKeyPlaceholder: 'sk-...',
     fieldSiliconflowApiKeyDesc: '从硅基流动控制台获取 API Key。',
     fieldSiliconflowModelDesc: 'Qwen Omni 走多模态 chat/completions，SenseVoice / TeleSpeech 走专用 ASR 接口。',
+    // Cloudflare 专用
+    fieldCloudflareApiToken: 'API Token',
+    fieldCloudflareAccountId: 'Account ID',
+    fieldCloudflareApiTokenDesc: '从 Cloudflare Dashboard > Workers AI 页面创建 API Token。',
+    fieldCloudflareAccountIdDesc: '在 Cloudflare Dashboard > Workers AI 页面获取 Account ID。',
+    fieldCloudflareModelDesc: 'Cloudflare Workers AI 支持的语音转录模型。',
     // WhisperCpp 专用
     fieldBinaryPath: 'Runtime Binary Path',
     fieldBinaryPathPlaceholder: '可选：whisper-server 可执行文件路径',

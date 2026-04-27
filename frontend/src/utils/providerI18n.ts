@@ -38,8 +38,8 @@ const FIELD_LABEL_MAP: Record<string, Record<string, keyof ProviderStrings>> = {
     languageHints: 'fieldLanguageHints',
   },
   cloudflare: {
-    apiToken: 'fieldApiKey',
-    accountId: 'fieldApiKey',
+    apiToken: 'fieldCloudflareApiToken',
+    accountId: 'fieldCloudflareAccountId',
     model: 'fieldModel',
     languageHints: 'fieldLanguageHints',
   },
@@ -81,9 +81,9 @@ const FIELD_DESC_MAP: Record<string, Record<string, keyof ProviderStrings>> = {
     languageHints: 'fieldLanguageHintsDesc',
   },
   cloudflare: {
-    apiToken: 'fieldGroqApiKeyDesc',
-    accountId: 'fieldGroqApiKeyDesc',
-    model: 'fieldGroqModelDesc',
+    apiToken: 'fieldCloudflareApiTokenDesc',
+    accountId: 'fieldCloudflareAccountIdDesc',
+    model: 'fieldCloudflareModelDesc',
     languageHints: 'fieldLanguageHintsDesc',
   },
   local_openai: {

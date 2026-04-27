@@ -257,6 +257,12 @@ export const en: Translations = {
     fieldSiliconflowApiKeyPlaceholder: 'sk-...',
     fieldSiliconflowApiKeyDesc: 'Get API Key from SiliconFlow Console.',
     fieldSiliconflowModelDesc: 'Qwen Omni uses multimodal chat/completions, SenseVoice / TeleSpeech use dedicated ASR endpoints.',
+    // Cloudflare-specific
+    fieldCloudflareApiToken: 'API Token',
+    fieldCloudflareAccountId: 'Account ID',
+    fieldCloudflareApiTokenDesc: 'Create an API Token from Cloudflare Dashboard > Workers AI.',
+    fieldCloudflareAccountIdDesc: 'Get Account ID from Cloudflare Dashboard > Workers AI.',
+    fieldCloudflareModelDesc: 'Supported Cloudflare Workers AI transcription models.',
     // WhisperCpp-specific
     fieldBinaryPath: 'Runtime Binary Path',
     fieldBinaryPathPlaceholder: 'Optional: path to whisper-server binary',
