@@ -116,11 +116,7 @@ function handleGladiaConnection(clientWs: NodeWebSocket, req: IncomingMessage): 
       gladiaWs = new NodeWebSocket(wsUrl, { agent })
 
       gladiaWs.on('open', () => {
-        console.log('[GladiaProxy] Gladia WebSocket 已连接')
-        gladiaReady = true
-        if (!clientClosed) {
-          clientWs.send(JSON.stringify({ type: 'ready' }))
-        }
+        console.log('[GladiaProxy] Gladia WebSocket 已连接，等待 session 启动...')
       })
 
       gladiaWs.on('message', (data: Buffer) => {
@@ -130,14 +126,15 @@ function handleGladiaConnection(clientWs: NodeWebSocket, req: IncomingMessage): 
           const msg = JSON.parse(data.toString())
 
           if (msg.type === 'transcript') {
-            const text = msg.transcription || msg.data?.transcription || ''
+            const text = msg.data?.utterance?.text || ''
             if (!text) return
 
-            const isFinal = msg.is_final === true
+            const isFinal = msg.data?.is_final === true
             console.log(`[GladiaProxy] ${isFinal ? '最终' : '中间'}结果: ${text.substring(0, 60)}`)
             clientWs.send(JSON.stringify({
               type: isFinal ? 'final' : 'partial',
               text,
+              language: msg.data?.utterance?.language || '',
               raw: msg,
             }))
             return
@@ -153,12 +150,36 @@ function handleGladiaConnection(clientWs: NodeWebSocket, req: IncomingMessage): 
             return
           }
 
-          if (msg.type === 'lifecycle' || msg.event === 'lifecycle') {
-            console.log(`[GladiaProxy] 生命周期事件: ${JSON.stringify(msg).substring(0, 100)}`)
+          if (msg.type === 'start_session' || msg.type === 'start_recording') {
+            console.log(`[GladiaProxy] 生命周期事件: ${msg.type}`)
+            if (!gladiaReady) {
+              gladiaReady = true
+              clientWs.send(JSON.stringify({ type: 'ready' }))
+              console.log('[GladiaProxy] Gladia 已就绪')
+            }
             return
           }
 
-          console.log(`[GladiaProxy] 未知事件: ${msg.type || 'unknown'}`, JSON.stringify(msg).substring(0, 200))
+          if (msg.type === 'end_recording' || msg.type === 'end_session') {
+            console.log(`[GladiaProxy] 生命周期事件: ${msg.type}`)
+            return
+          }
+
+          if (msg.type === 'stop_recording' && msg.acknowledged) {
+            console.log('[GladiaProxy] stop_recording 已确认')
+            return
+          }
+
+          if (msg.type === 'audio_chunk' && msg.acknowledged) {
+            return
+          }
+
+          if (msg.type === 'speech_start' || msg.type === 'speech_end') {
+            console.log(`[GladiaProxy] 语音事件: ${msg.type}`)
+            return
+          }
+
+          console.log(`[GladiaProxy] 事件: ${msg.type || 'unknown'}`, JSON.stringify(msg).substring(0, 200))
         } catch (error) {
           console.error('[GladiaProxy] 解析 Gladia 消息失败:', error)
         }
@@ -205,8 +226,8 @@ function handleGladiaConnection(clientWs: NodeWebSocket, req: IncomingMessage): 
       if (text.startsWith('{')) {
         const message = JSON.parse(text)
         if (message.type === 'audio_end' || message.type === 'terminate') {
-          gladiaWs.send(JSON.stringify({ event: 'stop' }))
-          console.log('[GladiaProxy] 发送 stop')
+          gladiaWs.send(JSON.stringify({ type: 'stop_recording' }))
+          console.log('[GladiaProxy] 发送 stop_recording')
           return
         }
       }
@@ -222,7 +243,7 @@ function handleGladiaConnection(clientWs: NodeWebSocket, req: IncomingMessage): 
     clientClosed = true
     if (gladiaWs && gladiaWs.readyState === NodeWebSocket.OPEN) {
       try {
-        gladiaWs.send(JSON.stringify({ event: 'stop' }))
+        gladiaWs.send(JSON.stringify({ type: 'stop_recording' }))
       } catch (error) {
         console.error('[GladiaProxy] 发送 stop 失败:', error)
       }
