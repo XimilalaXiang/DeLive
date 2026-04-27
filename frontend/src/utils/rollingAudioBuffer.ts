@@ -28,6 +28,16 @@ export class RollingAudioBuffer<T> {
     return this.chunks.length > 0
   }
 
+  trimByDuration(trimMs: number): void {
+    let trimmed = 0
+    while (this.chunks.length > 1 && trimmed < trimMs) {
+      const removed = this.chunks.shift()
+      if (!removed) break
+      trimmed += removed.durationMs
+      this.totalDurationMs -= removed.durationMs
+    }
+  }
+
   getDurationMs(): number {
     return this.totalDurationMs
   }

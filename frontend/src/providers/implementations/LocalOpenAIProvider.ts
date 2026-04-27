@@ -11,6 +11,7 @@ import {
   LOCAL_OPENAI_DEFAULT_MODEL,
 } from '../../types/asr/vendors/localOpenAI'
 import { getMediaRecorderChunkDurationMs } from '../../utils/rollingAudioBuffer'
+import type { TimestampedWord } from '../../utils/hypothesisBuffer'
 
 const LOCAL_OPENAI_TRANSCRIBE_INTERVAL_MS = 1200
 const LOCAL_OPENAI_MAX_WINDOW_MS = 45000
@@ -144,7 +145,7 @@ export class LocalOpenAIProvider extends WindowedBatchTranscriptionProvider<Blob
     }
   }
 
-  protected async transcribeWindow(chunks: Blob[], config: ProviderConfig): Promise<string> {
+  protected async transcribeWindow(chunks: Blob[], config: ProviderConfig, prompt?: string): Promise<TimestampedWord[]> {
     const baseUrl = this.normalizeBaseUrl(config.baseUrl)
     const model = this.normalizeModel(config.model)
     const apiKey = this.normalizeOptional(config.apiKey)
@@ -158,6 +159,10 @@ export class LocalOpenAIProvider extends WindowedBatchTranscriptionProvider<Blob
     const language = this.getLanguageHint(config)
     if (language) {
       formData.append('language', language)
+    }
+
+    if (prompt) {
+      formData.append('prompt', prompt)
     }
 
     const headers: HeadersInit = {}
@@ -177,7 +182,9 @@ export class LocalOpenAIProvider extends WindowedBatchTranscriptionProvider<Blob
     }
 
     const result = await response.json() as OpenAITranscriptionResponse
-    return typeof result.text === 'string' ? result.text : ''
+    const text = typeof result.text === 'string' ? result.text.trim() : ''
+    if (!text) return []
+    return [{ start: 0, end: 0, text }]
   }
 
   private buildAudioBlob(chunks: Blob[]): Blob {

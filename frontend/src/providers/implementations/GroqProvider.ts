@@ -8,6 +8,7 @@ import {
 } from '../../types/asr/vendors/groq'
 import { getPcmChunkDurationMs, isPcm16Silent } from '../../utils/rollingAudioBuffer'
 import { buildPcmWavBlob } from '../../utils/pcmWav'
+import type { TimestampedWord } from '../../utils/hypothesisBuffer'
 
 const GROQ_SAMPLE_RATE = 16000
 const GROQ_CHANNELS = 1
@@ -128,7 +129,7 @@ export class GroqProvider extends WindowedBatchTranscriptionProvider<ArrayBuffer
     return chunks.every(chunk => isPcm16Silent(chunk))
   }
 
-  protected async transcribeWindow(chunks: ArrayBuffer[], config: ProviderConfig): Promise<string> {
+  protected async transcribeWindow(chunks: ArrayBuffer[], config: ProviderConfig, prompt?: string): Promise<TimestampedWord[]> {
     const apiKey = this.normalizeOptional(config.apiKey)
     if (!apiKey) {
       throw new Error('Groq API Key 缺失')
@@ -145,10 +146,16 @@ export class GroqProvider extends WindowedBatchTranscriptionProvider<ArrayBuffer
       'audio.wav',
     )
     formData.append('model', this.normalizeModel(config.model))
+    formData.append('response_format', 'verbose_json')
+    formData.append('timestamp_granularities[]', 'word')
 
     const language = this.getLanguageHint(config)
     if (language) {
       formData.append('language', language)
+    }
+
+    if (prompt) {
+      formData.append('prompt', prompt)
     }
 
     const response = await fetch(`${GROQ_DEFAULT_BASE_URL}/audio/transcriptions`, {
@@ -165,7 +172,13 @@ export class GroqProvider extends WindowedBatchTranscriptionProvider<ArrayBuffer
     }
 
     const result = await response.json() as GroqTranscriptionResponse
-    return typeof result.text === 'string' ? result.text : ''
+    if (result.words && result.words.length > 0) {
+      return result.words.map(w => ({ start: w.start, end: w.end, text: w.word }))
+    }
+    if (typeof result.text === 'string' && result.text.trim()) {
+      return [{ start: 0, end: 0, text: result.text }]
+    }
+    return []
   }
 
   private getLanguageHint(config: ProviderConfig): string | undefined {

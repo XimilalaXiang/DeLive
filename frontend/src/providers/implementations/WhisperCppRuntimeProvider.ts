@@ -3,6 +3,7 @@ import type { ASRProviderInfo, ProviderConfig, ASRVendor } from '../../types/asr
 import { createBundledRuntimeManager } from '../../utils/localRuntimeManager'
 import { getPcmChunkDurationMs, isPcm16Silent } from '../../utils/rollingAudioBuffer'
 import { buildPcmWavBlob } from '../../utils/pcmWav'
+import type { TimestampedWord } from '../../utils/hypothesisBuffer'
 
 const WHISPER_CPP_RUNTIME_ID = 'whisper_cpp'
 const WHISPER_CPP_DEFAULT_PORT = 8177
@@ -159,7 +160,7 @@ export class WhisperCppRuntimeProvider extends WindowedBatchTranscriptionProvide
     return chunks.every(chunk => isPcm16Silent(chunk))
   }
 
-  protected async transcribeWindow(chunks: ArrayBuffer[], config: ProviderConfig): Promise<string> {
+  protected async transcribeWindow(chunks: ArrayBuffer[], config: ProviderConfig, prompt?: string): Promise<TimestampedWord[]> {
     const baseUrl = typeof config.baseUrl === 'string'
       ? config.baseUrl.replace(/\/+$/, '')
       : ''
@@ -181,6 +182,10 @@ export class WhisperCppRuntimeProvider extends WindowedBatchTranscriptionProvide
       formData.append('language', language)
     }
 
+    if (prompt) {
+      formData.append('prompt', prompt)
+    }
+
     const response = await fetch(`${baseUrl}/inference`, {
       method: 'POST',
       body: formData,
@@ -192,7 +197,9 @@ export class WhisperCppRuntimeProvider extends WindowedBatchTranscriptionProvide
     }
 
     const result = await response.json() as { text?: string }
-    return typeof result.text === 'string' ? result.text : ''
+    const text = typeof result.text === 'string' ? result.text.trim() : ''
+    if (!text) return []
+    return [{ start: 0, end: 0, text }]
   }
 
   private getAudioFileName(blob: Blob): string {

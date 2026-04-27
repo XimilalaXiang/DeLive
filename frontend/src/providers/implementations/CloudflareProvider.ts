@@ -7,6 +7,7 @@ import {
 } from '../../types/asr/vendors/cloudflare'
 import { getPcmChunkDurationMs, isPcm16Silent } from '../../utils/rollingAudioBuffer'
 import { buildPcmWavBlob } from '../../utils/pcmWav'
+import type { TimestampedWord } from '../../utils/hypothesisBuffer'
 
 const CF_SAMPLE_RATE = 16000
 const CF_CHANNELS = 1
@@ -141,7 +142,7 @@ export class CloudflareProvider extends WindowedBatchTranscriptionProvider<Array
     return chunks.every(chunk => isPcm16Silent(chunk))
   }
 
-  protected async transcribeWindow(chunks: ArrayBuffer[], config: ProviderConfig): Promise<string> {
+  protected async transcribeWindow(chunks: ArrayBuffer[], config: ProviderConfig, prompt?: string): Promise<TimestampedWord[]> {
     const apiToken = this.normalizeOptional(config.apiToken as string)
     const accountId = this.normalizeOptional(config.accountId as string)
     if (!apiToken || !accountId) {
@@ -160,11 +161,15 @@ export class CloudflareProvider extends WindowedBatchTranscriptionProvider<Array
       new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), ''),
     )
 
-    const body: Record<string, unknown> = { audio: base64 }
+    const body: Record<string, unknown> = { audio: base64, word_timestamps: true }
 
     const language = this.getLanguageHint(config)
     if (language) {
       body.language = language
+    }
+
+    if (prompt) {
+      body.initial_prompt = prompt
     }
 
     const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${model}`
@@ -191,7 +196,13 @@ export class CloudflareProvider extends WindowedBatchTranscriptionProvider<Array
       throw new Error(errorMsg)
     }
 
-    return typeof result.result?.text === 'string' ? result.result.text : ''
+    if (result.result?.words && result.result.words.length > 0) {
+      return result.result.words.map(w => ({ start: w.start, end: w.end, text: w.word }))
+    }
+    if (typeof result.result?.text === 'string' && result.result.text.trim()) {
+      return [{ start: 0, end: 0, text: result.result.text }]
+    }
+    return []
   }
 
   private getLanguageHint(config: ProviderConfig): string | undefined {

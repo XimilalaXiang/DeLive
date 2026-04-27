@@ -8,6 +8,7 @@ import {
 import { getPcmChunkDurationMs, isPcm16Silent } from '../../utils/rollingAudioBuffer'
 import { buildPcmWavBlob } from '../../utils/pcmWav'
 import { transcribeSiliconFlowAudio } from '../../utils/siliconflow'
+import type { TimestampedWord } from '../../utils/hypothesisBuffer'
 
 const SILICONFLOW_SAMPLE_RATE = 16000
 const SILICONFLOW_CHANNELS = 1
@@ -131,13 +132,13 @@ export class SiliconFlowProvider extends WindowedBatchTranscriptionProvider<Arra
     return chunks.every(chunk => isPcm16Silent(chunk))
   }
 
-  protected async transcribeWindow(chunks: ArrayBuffer[], config: ProviderConfig): Promise<string> {
+  protected async transcribeWindow(chunks: ArrayBuffer[], config: ProviderConfig, _prompt?: string): Promise<TimestampedWord[]> {
     const apiKey = this.normalizeOptional(config.apiKey)
     if (!apiKey) {
       throw new Error('硅基流动 API Key 缺失')
     }
 
-    return transcribeSiliconFlowAudio({
+    const text = await transcribeSiliconFlowAudio({
       apiKey,
       model: this.normalizeModel(config.model),
       wavBlob: buildPcmWavBlob(chunks, {
@@ -147,6 +148,8 @@ export class SiliconFlowProvider extends WindowedBatchTranscriptionProvider<Arra
       }),
       language: this.getLanguageHint(config),
     })
+    if (!text.trim()) return []
+    return [{ start: 0, end: 0, text: text.trim() }]
   }
 
   private getLanguageHint(config: ProviderConfig): string | undefined {

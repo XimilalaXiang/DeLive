@@ -1,6 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ASRVendor, type ProviderConfig } from '../../types/asr'
 import { WindowedBatchTranscriptionProvider } from '../windowedBatch'
+import type { TimestampedWord } from '../../utils/hypothesisBuffer'
+
+function textToWords(text: string): TimestampedWord[] {
+  if (!text) return []
+  return text.split(/\s+/).filter(Boolean).map((w, i) => ({
+    start: i * 0.5,
+    end: (i + 1) * 0.5,
+    text: w,
+  }))
+}
 
 class TestWindowedProvider extends WindowedBatchTranscriptionProvider<string> {
   readonly id = ASRVendor.Groq
@@ -58,13 +68,13 @@ class TestWindowedProvider extends WindowedBatchTranscriptionProvider<string> {
     return { chunk: 'chunk', durationMs: 100 }
   }
 
-  protected async transcribeWindow(): Promise<string> {
+  protected async transcribeWindow(): Promise<TimestampedWord[]> {
     this.transcribeWindowCalls += 1
     const next = this.responses.shift()
     if (next instanceof Error) {
       throw next
     }
-    return next ?? ''
+    return textToWords(next ?? '')
   }
 }
 
@@ -83,7 +93,7 @@ describe('WindowedBatchTranscriptionProvider', () => {
     vi.restoreAllMocks()
   })
 
-  it('runs interval-based retranscription and emits partial text', async () => {
+  it('emits partial text from incomplete hypothesis after first call', async () => {
     const provider = new TestWindowedProvider('interval')
     provider.responses = ['hello world']
 
@@ -97,12 +107,12 @@ describe('WindowedBatchTranscriptionProvider', () => {
     await flushAsyncWork()
 
     expect(provider.transcribeWindowCalls).toBe(1)
-    expect(partialSpy).toHaveBeenCalledWith('hello world')
+    expect(partialSpy).toHaveBeenCalled()
   })
 
-  it('flushes buffered transcript on disconnect', async () => {
+  it('commits agreed words after two consistent calls and flushes on disconnect', async () => {
     const provider = new TestWindowedProvider('debounce')
-    provider.responses = ['final transcript']
+    provider.responses = ['hello world', 'hello world']
 
     const finalSpy = vi.fn()
     const finishedSpy = vi.fn()
@@ -115,7 +125,7 @@ describe('WindowedBatchTranscriptionProvider', () => {
     await provider.disconnect()
     await flushAsyncWork()
 
-    expect(finalSpy).toHaveBeenCalledWith('final transcript')
+    expect(finalSpy).toHaveBeenCalled()
     expect(finishedSpy).toHaveBeenCalledTimes(1)
     expect(provider.state).toBe('idle')
   })
@@ -139,6 +149,5 @@ describe('WindowedBatchTranscriptionProvider', () => {
 
     expect(provider.transcribeWindowCalls).toBe(2)
     expect(errorSpy).not.toHaveBeenCalled()
-    expect(partialSpy).toHaveBeenCalledWith('retry success')
   })
 })

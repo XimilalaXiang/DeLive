@@ -1,7 +1,7 @@
 import type { ProviderConfig } from '../types/asr'
 import { RollingAudioBuffer } from '../utils/rollingAudioBuffer'
-import { TranscriptStabilizer } from '../utils/transcriptStabilizer'
-import { buildWindowedTranscriptSnapshot } from '../utils/windowedTranscript'
+import { HypothesisBuffer, wordsToText } from '../utils/hypothesisBuffer'
+import type { TimestampedWord } from '../utils/hypothesisBuffer'
 import { BaseASRProvider } from './base'
 
 type WindowedBatchScheduleMode = 'interval' | 'debounce'
@@ -26,8 +26,11 @@ export abstract class WindowedBatchTranscriptionProvider<TChunk> extends BaseASR
   private inFlight = false
   private pendingFinal = false
   private hasPendingAudio = false
-  private stabilizer = new TranscriptStabilizer()
+  private hypothesis = new HypothesisBuffer()
+  private committedText = ''
   private lastPartialText = ''
+  private bufferTimeOffsetSec = 0
+  private bufferTrimThresholdSec = 15
 
   protected constructor(options: WindowedBatchProviderOptions) {
     super()
@@ -78,7 +81,8 @@ export abstract class WindowedBatchTranscriptionProvider<TChunk> extends BaseASR
   protected abstract transcribeWindow(
     chunks: TChunk[],
     config: ProviderConfig,
-  ): Promise<string>
+    prompt?: string,
+  ): Promise<TimestampedWord[]>
 
   protected isWindowSilent(_chunks: TChunk[]): boolean {
     return false
@@ -183,24 +187,33 @@ export abstract class WindowedBatchTranscriptionProvider<TChunk> extends BaseASR
     }
 
     try {
-      const transcriptText = await this.transcribeWindow(chunks, config)
-      const syntheticSnapshot = buildWindowedTranscriptSnapshot(
-        this.stabilizer.getCommittedText(),
-        transcriptText,
-      )
-      const update = isFinal
-        ? this.stabilizer.flush(syntheticSnapshot)
-        : this.stabilizer.process(syntheticSnapshot)
+      const prompt = this.committedText.length > 0
+        ? this.committedText.slice(-200)
+        : undefined
+      const words = await this.transcribeWindow(chunks, config, prompt)
 
-      if (update.finalizedText) {
-        this.emitFinal(update.finalizedText)
+      this.hypothesis.insert(words, this.bufferTimeOffsetSec)
+      const committed = isFinal
+        ? [...this.hypothesis.flush(), ...this.hypothesis.complete()]
+        : this.hypothesis.flush()
+
+      if (committed.length > 0) {
+        const text = wordsToText(committed)
+        this.committedText += text
+        this.emitFinal(text)
       }
 
-      if (update.partialText !== this.lastPartialText) {
-        this.lastPartialText = update.partialText
-        if (update.partialText) {
-          this.emitPartial(update.partialText)
+      if (!isFinal) {
+        const incomplete = this.hypothesis.complete()
+        const partialText = wordsToText(incomplete)
+        if (partialText !== this.lastPartialText) {
+          this.lastPartialText = partialText
+          if (partialText) {
+            this.emitPartial(partialText)
+          }
         }
+
+        this.tryTrimBuffer()
       }
 
       if (isFinal) {
@@ -234,13 +247,33 @@ export abstract class WindowedBatchTranscriptionProvider<TChunk> extends BaseASR
     }
   }
 
+  private tryTrimBuffer(): void {
+    const durationSec = this.audioWindow.getDurationMs() / 1000
+    if (durationSec <= this.bufferTrimThresholdSec) {
+      return
+    }
+
+    const lastTime = this.hypothesis.getLastCommittedTime()
+    if (lastTime <= this.bufferTimeOffsetSec) {
+      return
+    }
+
+    const trimAtSec = lastTime
+    const trimMs = (trimAtSec - this.bufferTimeOffsetSec) * 1000
+    this.audioWindow.trimByDuration(trimMs)
+    this.hypothesis.popCommitted(trimAtSec)
+    this.bufferTimeOffsetSec = trimAtSec
+  }
+
   private resetWindowedSession(): void {
     this.clearScheduler()
     this.audioWindow.clear()
     this.inFlight = false
     this.pendingFinal = false
     this.hasPendingAudio = false
-    this.stabilizer.reset()
+    this.hypothesis.reset()
+    this.committedText = ''
     this.lastPartialText = ''
+    this.bufferTimeOffsetSec = 0
   }
 }
