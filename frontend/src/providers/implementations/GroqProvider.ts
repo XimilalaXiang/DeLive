@@ -6,7 +6,7 @@ import {
   GROQ_DEFAULT_MODEL,
   GROQ_TRANSCRIPTION_MODELS,
 } from '../../types/asr/vendors/groq'
-import { getPcmChunkDurationMs } from '../../utils/rollingAudioBuffer'
+import { getPcmChunkDurationMs, isPcm16Silent } from '../../utils/rollingAudioBuffer'
 import { buildPcmWavBlob } from '../../utils/pcmWav'
 
 const GROQ_SAMPLE_RATE = 16000
@@ -122,6 +122,10 @@ export class GroqProvider extends WindowedBatchTranscriptionProvider<ArrayBuffer
         GROQ_BITS_PER_SAMPLE,
       ),
     }
+  }
+
+  protected isWindowSilent(chunks: ArrayBuffer[]): boolean {
+    return chunks.every(chunk => isPcm16Silent(chunk))
   }
 
   protected async transcribeWindow(chunks: ArrayBuffer[], config: ProviderConfig): Promise<string> {

@@ -80,6 +80,10 @@ export abstract class WindowedBatchTranscriptionProvider<TChunk> extends BaseASR
     config: ProviderConfig,
   ): Promise<string>
 
+  protected isWindowSilent(_chunks: TChunk[]): boolean {
+    return false
+  }
+
   async disconnect(): Promise<void> {
     this.clearScheduler()
 
@@ -172,8 +176,14 @@ export abstract class WindowedBatchTranscriptionProvider<TChunk> extends BaseASR
     this.hasPendingAudio = false
     let shouldRunFinalPass = false
 
+    const chunks = this.audioWindow.getItems()
+    if (!isFinal && this.isWindowSilent(chunks)) {
+      this.inFlight = false
+      return
+    }
+
     try {
-      const transcriptText = await this.transcribeWindow(this.audioWindow.getItems(), config)
+      const transcriptText = await this.transcribeWindow(chunks, config)
       const syntheticSnapshot = buildWindowedTranscriptSnapshot(
         this.stabilizer.getCommittedText(),
         transcriptText,

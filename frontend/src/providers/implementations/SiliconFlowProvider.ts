@@ -5,7 +5,7 @@ import {
   SILICONFLOW_DEFAULT_MODEL,
   SILICONFLOW_TRANSCRIPTION_MODELS,
 } from '../../types/asr/vendors/siliconflow'
-import { getPcmChunkDurationMs } from '../../utils/rollingAudioBuffer'
+import { getPcmChunkDurationMs, isPcm16Silent } from '../../utils/rollingAudioBuffer'
 import { buildPcmWavBlob } from '../../utils/pcmWav'
 import { transcribeSiliconFlowAudio } from '../../utils/siliconflow'
 
@@ -125,6 +125,10 @@ export class SiliconFlowProvider extends WindowedBatchTranscriptionProvider<Arra
         SILICONFLOW_BITS_PER_SAMPLE,
       ),
     }
+  }
+
+  protected isWindowSilent(chunks: ArrayBuffer[]): boolean {
+    return chunks.every(chunk => isPcm16Silent(chunk))
   }
 
   protected async transcribeWindow(chunks: ArrayBuffer[], config: ProviderConfig): Promise<string> {

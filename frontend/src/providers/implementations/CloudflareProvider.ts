@@ -5,7 +5,7 @@ import {
   CLOUDFLARE_DEFAULT_MODEL,
   CLOUDFLARE_TRANSCRIPTION_MODELS,
 } from '../../types/asr/vendors/cloudflare'
-import { getPcmChunkDurationMs } from '../../utils/rollingAudioBuffer'
+import { getPcmChunkDurationMs, isPcm16Silent } from '../../utils/rollingAudioBuffer'
 import { buildPcmWavBlob } from '../../utils/pcmWav'
 
 const CF_SAMPLE_RATE = 16000
@@ -135,6 +135,10 @@ export class CloudflareProvider extends WindowedBatchTranscriptionProvider<Array
         CF_BITS_PER_SAMPLE,
       ),
     }
+  }
+
+  protected isWindowSilent(chunks: ArrayBuffer[]): boolean {
+    return chunks.every(chunk => isPcm16Silent(chunk))
   }
 
   protected async transcribeWindow(chunks: ArrayBuffer[], config: ProviderConfig): Promise<string> {

@@ -155,6 +155,10 @@ export class WhisperCppRuntimeProvider extends WindowedBatchTranscriptionProvide
     }
   }
 
+  protected isWindowSilent(chunks: ArrayBuffer[]): boolean {
+    return chunks.every(chunk => isPcm16Silent(chunk))
+  }
+
   protected async transcribeWindow(chunks: ArrayBuffer[], config: ProviderConfig): Promise<string> {
     const baseUrl = typeof config.baseUrl === 'string'
       ? config.baseUrl.replace(/\/+$/, '')
