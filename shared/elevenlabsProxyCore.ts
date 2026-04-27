@@ -8,8 +8,8 @@
  * ElevenLabs Realtime STT 协议：
  *   客户端 → 代理：二进制 PCM16 音频 | JSON 控制消息
  *   代理 → 客户端：JSON（ready / partial / final / error）
- *   代理 → ElevenLabs：JSON { type: "input_audio_chunk", data: base64 }
- *   ElevenLabs → 代理：JSON（partial_transcript / committed_transcript / ...）
+ *   代理 → ElevenLabs：JSON { message_type: "input_audio_chunk", audio_base_64: base64, commit, sample_rate }
+ *   ElevenLabs → 代理：JSON（session_started / partial_transcript / committed_transcript / ...）
  */
 
 import type { IncomingMessage } from 'http'
@@ -75,9 +75,7 @@ function handleElevenLabsConnection(clientWs: NodeWebSocket, req: IncomingMessag
   let clientClosed = false
 
   elWs.on('open', () => {
-    console.log('[ElevenLabsProxy] ElevenLabs WebSocket 已连接')
-    elReady = true
-    clientWs.send(JSON.stringify({ type: 'ready' }))
+    console.log('[ElevenLabsProxy] ElevenLabs WebSocket 已连接，等待 session_started...')
   })
 
   elWs.on('message', (data: Buffer) => {
@@ -85,8 +83,16 @@ function handleElevenLabsConnection(clientWs: NodeWebSocket, req: IncomingMessag
 
     try {
       const msg = JSON.parse(data.toString())
+      const msgType = msg.message_type || msg.type
 
-      switch (msg.type) {
+      switch (msgType) {
+        case 'session_started': {
+          console.log(`[ElevenLabsProxy] Session 开始: id=${msg.session_id}`)
+          elReady = true
+          clientWs.send(JSON.stringify({ type: 'ready' }))
+          break
+        }
+
         case 'partial_transcript': {
           const text = msg.text || ''
           if (text) {
@@ -114,8 +120,19 @@ function handleElevenLabsConnection(clientWs: NodeWebSocket, req: IncomingMessag
           break
         }
 
+        case 'error': {
+          const errorCode = msg.error_code || msg.code || 'unknown'
+          const errorMsg = msg.error_message || msg.message || 'Unknown error'
+          console.error(`[ElevenLabsProxy] 服务器错误: ${errorCode} - ${errorMsg}`)
+          clientWs.send(JSON.stringify({
+            type: 'error',
+            message: `ElevenLabs 错误: ${errorCode} - ${errorMsg}`,
+          }))
+          break
+        }
+
         default:
-          console.log(`[ElevenLabsProxy] 未知事件: ${msg.type}`)
+          console.log(`[ElevenLabsProxy] 未知事件: ${msgType}`, JSON.stringify(msg).substring(0, 200))
       }
     } catch (error) {
       console.error('[ElevenLabsProxy] 解析 ElevenLabs 消息失败:', error)
@@ -146,25 +163,36 @@ function handleElevenLabsConnection(clientWs: NodeWebSocket, req: IncomingMessag
       return
     }
 
+    let isBinary = true
     try {
-      const text = data.toString()
+      const text = data.toString('utf-8')
       if (text.startsWith('{')) {
         const message = JSON.parse(text)
+        isBinary = false
         if (message.type === 'audio_end' || message.type === 'terminate') {
-          elWs.send(JSON.stringify({ type: 'flush' }))
-          console.log('[ElevenLabsProxy] 发送 flush')
+          elWs.send(JSON.stringify({
+            message_type: 'input_audio_chunk',
+            audio_base_64: '',
+            commit: true,
+            sample_rate: 16000,
+          }))
+          console.log('[ElevenLabsProxy] 发送 commit (最终提交)')
           return
         }
       }
     } catch {
-      // non-JSON → treat as binary audio, convert to base64 for ElevenLabs
+      // non-JSON → binary audio
     }
 
-    const base64Audio = Buffer.from(data).toString('base64')
-    elWs.send(JSON.stringify({
-      type: 'input_audio_chunk',
-      data: base64Audio,
-    }))
+    if (isBinary) {
+      const base64Audio = Buffer.from(data).toString('base64')
+      elWs.send(JSON.stringify({
+        message_type: 'input_audio_chunk',
+        audio_base_64: base64Audio,
+        commit: false,
+        sample_rate: 16000,
+      }))
+    }
   })
 
   clientWs.on('close', () => {

@@ -69,6 +69,9 @@ function handleAssemblyAIConnection(clientWs: NodeWebSocket, req: IncomingMessag
   let aaiReady = false
   let clientClosed = false
 
+  const MIN_CHUNK_BYTES = 1600 // 50ms @ 16kHz PCM16 (minimum required by AssemblyAI)
+  let audioBuffer = Buffer.alloc(0)
+
   aaiWs.on('open', () => {
     console.log('[AssemblyAIProxy] AssemblyAI WebSocket 已连接，等待 Begin 事件...')
   })
@@ -140,10 +143,14 @@ function handleAssemblyAIConnection(clientWs: NodeWebSocket, req: IncomingMessag
     }
 
     try {
-      const text = data.toString()
+      const text = data.toString('utf-8')
       if (text.startsWith('{')) {
         const message = JSON.parse(text)
         if (message.type === 'audio_end' || message.type === 'terminate') {
+          if (audioBuffer.length > 0) {
+            aaiWs.send(audioBuffer)
+            audioBuffer = Buffer.alloc(0)
+          }
           aaiWs.send(JSON.stringify({ type: 'Terminate' }))
           console.log('[AssemblyAIProxy] 发送 Terminate')
           return
@@ -153,7 +160,11 @@ function handleAssemblyAIConnection(clientWs: NodeWebSocket, req: IncomingMessag
       // non-JSON → treat as binary audio
     }
 
-    aaiWs.send(data)
+    audioBuffer = Buffer.concat([audioBuffer, Buffer.from(data)])
+    if (audioBuffer.length >= MIN_CHUNK_BYTES) {
+      aaiWs.send(audioBuffer)
+      audioBuffer = Buffer.alloc(0)
+    }
   })
 
   clientWs.on('close', () => {
@@ -161,6 +172,10 @@ function handleAssemblyAIConnection(clientWs: NodeWebSocket, req: IncomingMessag
     clientClosed = true
     if (aaiWs.readyState === NodeWebSocket.OPEN) {
       try {
+        if (audioBuffer.length > 0) {
+          aaiWs.send(audioBuffer)
+          audioBuffer = Buffer.alloc(0)
+        }
         aaiWs.send(JSON.stringify({ type: 'Terminate' }))
       } catch (error) {
         console.error('[AssemblyAIProxy] 发送 Terminate 失败:', error)
