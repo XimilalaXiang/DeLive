@@ -80,6 +80,18 @@ describe('TranscriptStabilizer', () => {
     expect(r3.finalizedText).toBe('')
   })
 
+  it('preserves last partial when snapshot diverges from committed text', () => {
+    const stabilizer = new TranscriptStabilizer()
+    stabilizer.process('Hello world.')
+    const r2 = stabilizer.process('Hello world. Some partial')
+    expect(r2.finalizedText).toBe('Hello world.')
+    expect(r2.partialText).toBe(' Some partial')
+
+    const r3 = stabilizer.process('Divergent snapshot that lost prefix')
+    expect(r3.finalizedText).toBe('')
+    expect(r3.partialText).toBe(' Some partial')
+  })
+
   it('handles empty snapshots gracefully', () => {
     const stabilizer = new TranscriptStabilizer()
     const r1 = stabilizer.process('')

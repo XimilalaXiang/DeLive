@@ -6,8 +6,8 @@ interface StabilizedTranscriptUpdate {
 const STRONG_BOUNDARIES = new Set(['。', '！', '？', '.', '!', '?', ';', '；', ':', '：', '\n'])
 const SOFT_BOUNDARIES = new Set([' ', '\t', ',', '，', '、'])
 const MIN_BOUNDARY_COMMIT_CHARS = 4
-const TRAILING_STABILITY_BUFFER = 8
-const LONG_STABLE_SEGMENT_CHARS = 20
+const TRAILING_STABILITY_BUFFER = 4
+const LONG_STABLE_SEGMENT_CHARS = 16
 
 function normalizeSnapshot(text: string): string {
   return text.replace(/\r\n/g, '\n')
@@ -62,6 +62,7 @@ function getCommitLength(candidate: string): number {
 export class TranscriptStabilizer {
   private committedText = ''
   private previousSnapshot = ''
+  private lastPartialText = ''
 
   getCommittedText(): string {
     return this.committedText
@@ -89,9 +90,12 @@ export class TranscriptStabilizer {
 
     this.previousSnapshot = normalizedSnapshot
 
+    const partialText = this.buildPartialText(normalizedSnapshot)
+    this.lastPartialText = partialText
+
     return {
       finalizedText,
-      partialText: this.buildPartialText(normalizedSnapshot),
+      partialText,
     }
   }
 
@@ -103,6 +107,7 @@ export class TranscriptStabilizer {
 
     this.committedText += remainingText
     this.previousSnapshot = normalizedSnapshot
+    this.lastPartialText = ''
 
     return {
       finalizedText: remainingText,
@@ -113,6 +118,7 @@ export class TranscriptStabilizer {
   reset(): void {
     this.committedText = ''
     this.previousSnapshot = ''
+    this.lastPartialText = ''
   }
 
   private buildPartialText(snapshot: string): string {
@@ -120,6 +126,6 @@ export class TranscriptStabilizer {
       return snapshot.slice(this.committedText.length)
     }
 
-    return snapshot
+    return this.lastPartialText
   }
 }
