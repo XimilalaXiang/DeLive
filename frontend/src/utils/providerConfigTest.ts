@@ -8,6 +8,7 @@ import { DEEPGRAM_DEFAULT_MODEL } from '../types/asr/vendors/deepgram'
 import { ASSEMBLYAI_DEFAULT_MODEL } from '../types/asr/vendors/assemblyai'
 import { ELEVENLABS_DEFAULT_MODEL } from '../types/asr/vendors/elevenlabs'
 import { GLADIA_DEFAULT_MODEL } from '../types/asr/vendors/gladia'
+import { CLOUDFLARE_DEFAULT_MODEL } from '../types/asr/vendors/cloudflare'
 import { transcribeSiliconFlowAudio } from './siliconflow'
 
 type ProviderConfigTester = (config: ProviderConfigData) => Promise<void>
@@ -535,6 +536,52 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
         }
       }
     })
+  },
+  cloudflare: async (config) => {
+    const apiToken = typeof config.apiToken === 'string' ? config.apiToken.trim() : ''
+    const accountId = typeof config.accountId === 'string' ? config.accountId.trim() : ''
+    const model = typeof config.model === 'string' && config.model.trim()
+      ? config.model.trim()
+      : CLOUDFLARE_DEFAULT_MODEL
+
+    if (!apiToken) {
+      throw new Error('请输入 Cloudflare API Token')
+    }
+    if (!accountId) {
+      throw new Error('请输入 Cloudflare Account ID')
+    }
+
+    const wavBlob = createSilentWavBlob()
+    const arrayBuffer = await wavBlob.arrayBuffer()
+    const base64 = btoa(
+      new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), ''),
+    )
+
+    const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${model}`
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ audio: base64 }),
+    })
+
+    if (!response.ok) {
+      const details = await response.text().catch(() => '')
+      if (response.status === 401 || response.status === 403) {
+        throw new Error('API Token 无效或权限不足，请检查 Token 是否具有 Workers AI 读写权限')
+      }
+      if (response.status === 404) {
+        throw new Error('Account ID 无效或模型不存在，请检查配置')
+      }
+      throw new Error(details || `Cloudflare API 返回错误: ${response.status}`)
+    }
+
+    const result = await response.json() as { success?: boolean; errors?: unknown[] }
+    if (!result.success) {
+      throw new Error('Cloudflare API 返回失败状态，请检查配置')
+    }
   },
   local_openai: async (config) => {
     const rawBaseUrl = typeof config.baseUrl === 'string' ? config.baseUrl.trim() : ''

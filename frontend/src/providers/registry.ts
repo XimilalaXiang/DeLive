@@ -18,6 +18,7 @@ import { DeepgramProvider } from './implementations/DeepgramProvider'
 import { AssemblyAIProvider } from './implementations/AssemblyAIProvider'
 import { ElevenLabsProvider } from './implementations/ElevenLabsProvider'
 import { GladiaProvider } from './implementations/GladiaProvider'
+import { CloudflareProvider } from './implementations/CloudflareProvider'
 import { LocalOpenAIProvider } from './implementations/LocalOpenAIProvider'
 import { WhisperCppRuntimeProvider } from './implementations/WhisperCppRuntimeProvider'
 
@@ -124,6 +125,12 @@ function registerDefaultProviders(): void {
   providerRegistry.register({
     info: new GladiaProvider().info,
     create: () => new GladiaProvider(),
+  })
+
+  // Cloudflare Workers AI - 云端语音转录
+  providerRegistry.register({
+    info: new CloudflareProvider().info,
+    create: () => new CloudflareProvider(),
   })
 
   // 本地 OpenAI-compatible

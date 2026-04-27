@@ -211,6 +211,8 @@ export const zh = {
     groqDesc: 'Groq 云端语音转录，当前在应用内以分段重转写方式实现准实时字幕',
     siliconflow: '硅基流动',
     siliconflowDesc: '硅基流动云端语音转录；SenseVoice / TeleSpeech 为专用 ASR，Qwen Omni 为多模态转写',
+    cloudflare: 'Cloudflare Workers AI',
+    cloudflareDesc: 'Cloudflare Workers AI 云端语音转录，基于 Whisper 模型，价格低廉且有免费额度',
     local_openai: '本地 OpenAI 兼容',
     local_openaiDesc: '连接本地 OpenAI-compatible ASR 服务（如 Ollama/Whisper 兼容接口）',
     local_whisper_cpp: '本地 whisper.cpp',

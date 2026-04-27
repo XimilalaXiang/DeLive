@@ -209,6 +209,28 @@ export function GladiaLogo({ size = defaultSize, className, ...props }: LogoProp
   )
 }
 
+export function CloudflareLogo({ size = defaultSize, className, ...props }: LogoProps) {
+  return (
+    <svg
+      viewBox="0 0 65 32"
+      width={size}
+      height={size * (32 / 65)}
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <path
+        d="M53.639 18.217c-.183-.626-.556-.969-1.104-1.017l-21.583-.298a.334.334 0 0 1-.298-.185.368.368 0 0 1 .016-.354c.089-.153.25-.25.427-.258l21.726-.298c2.064-.097 4.305-1.78 5.07-3.811l.97-2.58a.601.601 0 0 0 .032-.33C56.83 4.08 52.408.167 47.09.167c-4.69 0-8.69 2.95-10.235 7.09-.944-.744-2.12-1.151-3.33-1.149-2.791 0-5.11 2.12-5.4 4.854-4.413-.363-8.222 3.223-8.395 7.65a4.26 4.26 0 0 0 .024.627c-4.622.08-8.346 2.474-8.346 5.414h43.57c.154 0 .298-.105.346-.258l1.014-3.506c.169-.577.073-1.127-.113-1.753l.413 1.08z"
+        fill="#F6821F"
+      />
+      <path
+        d="M57.546 12.476l-.474-.008c-.073 0-.137.04-.17.105l-.676 1.78c-.169.578-.073 1.128.113 1.754.185.626.556.969 1.103 1.016l4.56.298c.137.008.258.089.298.201a.359.359 0 0 1-.016.346.442.442 0 0 1-.427.258l-4.705.298c-2.071.097-4.305 1.78-5.069 3.811l-.274.746c-.056.145.04.29.194.29H64.66c.153 0 .298-.097.338-.25a11.282 11.282 0 0 0 .394-2.92c0-4.289-3.426-7.779-7.651-7.925h-.194z"
+        fill="#FBAD41"
+      />
+    </svg>
+  )
+}
+
 export function WhisperCppLogo({ size = defaultSize, className }: LogoProps) {
   return (
     <img
@@ -232,6 +254,7 @@ const PROVIDER_LOGO_MAP: Record<string, (props: AnyLogoProps) => JSX.Element> = 
   assemblyai: AssemblyAILogo,
   elevenlabs: ElevenLabsLogo,
   gladia: GladiaLogo,
+  cloudflare: CloudflareLogo,
   local_openai: OpenAILogo,
   local_whisper_cpp: WhisperCppLogo,
 }

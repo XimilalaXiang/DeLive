@@ -37,6 +37,12 @@ const FIELD_LABEL_MAP: Record<string, Record<string, keyof ProviderStrings>> = {
     model: 'fieldModel',
     languageHints: 'fieldLanguageHints',
   },
+  cloudflare: {
+    apiToken: 'fieldApiKey',
+    accountId: 'fieldApiKey',
+    model: 'fieldModel',
+    languageHints: 'fieldLanguageHints',
+  },
   local_openai: {
     baseUrl: 'fieldBaseUrl',
     model: 'fieldModel',
@@ -72,6 +78,12 @@ const FIELD_DESC_MAP: Record<string, Record<string, keyof ProviderStrings>> = {
   siliconflow: {
     apiKey: 'fieldSiliconflowApiKeyDesc',
     model: 'fieldSiliconflowModelDesc',
+    languageHints: 'fieldLanguageHintsDesc',
+  },
+  cloudflare: {
+    apiToken: 'fieldGroqApiKeyDesc',
+    accountId: 'fieldGroqApiKeyDesc',
+    model: 'fieldGroqModelDesc',
     languageHints: 'fieldLanguageHintsDesc',
   },
   local_openai: {

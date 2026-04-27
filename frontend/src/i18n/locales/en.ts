@@ -213,6 +213,8 @@ export const en: Translations = {
     groqDesc: 'Groq cloud transcription, near-realtime captions via session replay within the app',
     siliconflow: 'SiliconFlow',
     siliconflowDesc: 'SiliconFlow cloud transcription; SenseVoice / TeleSpeech for dedicated ASR, Qwen Omni for multimodal',
+    cloudflare: 'Cloudflare Workers AI',
+    cloudflareDesc: 'Cloudflare Workers AI cloud transcription powered by Whisper models, affordable with free tier',
     local_openai: 'Local OpenAI Compatible',
     local_openaiDesc: 'Connect to a local OpenAI-compatible ASR service (e.g. Ollama / Whisper-compatible endpoints)',
     local_whisper_cpp: 'Local whisper.cpp',

@@ -52,7 +52,11 @@ export function buildProviderFormState(
   providerConfig: ProviderConfigData | undefined,
   settings: Pick<AppSettings, 'apiKey' | 'languageHints'>
 ): ProviderFormState {
-  const config = buildProviderConnectConfig(provider, providerConfig, settings) as ProviderConfigData
+  const hasExistingConfig = providerConfig !== undefined && Object.keys(providerConfig).length > 0
+  const fallbackSettings = hasExistingConfig
+    ? settings
+    : { apiKey: '', languageHints: settings.languageHints }
+  const config = buildProviderConnectConfig(provider, providerConfig, fallbackSettings) as ProviderConfigData
   const state: ProviderFormState = {}
 
   if (!provider) {
