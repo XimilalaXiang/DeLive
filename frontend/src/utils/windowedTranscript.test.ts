@@ -20,6 +20,14 @@ describe('stripLeadingTranscriptOverlap', () => {
   it('returns the original transcript when committed text is empty', () => {
     expect(stripLeadingTranscriptOverlap('Hello', '')).toBe('Hello')
   })
+
+  it('handles fuzzy overlap with punctuation/space differences', () => {
+    const result = stripLeadingTranscriptOverlap(
+      'How are you today',
+      'Hello world. How are',
+    )
+    expect(result).toBe(' you today')
+  })
 })
 
 describe('buildWindowedTranscriptSnapshot', () => {
@@ -33,5 +41,19 @@ describe('buildWindowedTranscriptSnapshot', () => {
     expect(
       buildWindowedTranscriptSnapshot('Committed: ', 'new text'),
     ).toBe('Committed: new text')
+  })
+
+  it('deduplicates when transcript is a re-transcription of the same audio window', () => {
+    const committed = 'Hello world how are you'
+    const transcript = 'Hello world, how are you? I am fine.'
+    const result = buildWindowedTranscriptSnapshot(committed, transcript)
+    expect(result).toBe('Hello world how are you? I am fine.')
+  })
+
+  it('deduplicates Chinese retranscription with minor punctuation differences', () => {
+    const committed = '你好世界你好吗'
+    const transcript = '你好世界，你好吗？我很好。'
+    const result = buildWindowedTranscriptSnapshot(committed, transcript)
+    expect(result).toBe('你好世界你好吗？我很好。')
   })
 })
