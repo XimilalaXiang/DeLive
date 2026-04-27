@@ -189,6 +189,38 @@ export function ElevenLabsLogo({ size = defaultSize, className, ...props }: Logo
   )
 }
 
+export function GladiaLogo({ size = defaultSize, className, ...props }: LogoProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <path
+        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4 11h-3v3a1 1 0 01-2 0v-3H8a1 1 0 010-2h3V8a1 1 0 012 0v3h3a1 1 0 010 2z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="0"
+      />
+      <text
+        x="12"
+        y="16.5"
+        textAnchor="middle"
+        fontSize="14"
+        fontWeight="bold"
+        fontFamily="system-ui, sans-serif"
+        fill="currentColor"
+      >
+        G
+      </text>
+      <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
+  )
+}
+
 export function WhisperCppLogo({ size = defaultSize, className }: LogoProps) {
   return (
     <img
@@ -211,6 +243,7 @@ const PROVIDER_LOGO_MAP: Record<string, (props: AnyLogoProps) => JSX.Element> = 
   deepgram: DeepgramLogo,
   assemblyai: AssemblyAILogo,
   elevenlabs: ElevenLabsLogo,
+  gladia: GladiaLogo,
   local_openai: OpenAILogo,
   local_whisper_cpp: WhisperCppLogo,
 }

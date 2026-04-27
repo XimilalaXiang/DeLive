@@ -17,6 +17,7 @@ import { MistralProvider } from './implementations/MistralProvider'
 import { DeepgramProvider } from './implementations/DeepgramProvider'
 import { AssemblyAIProvider } from './implementations/AssemblyAIProvider'
 import { ElevenLabsProvider } from './implementations/ElevenLabsProvider'
+import { GladiaProvider } from './implementations/GladiaProvider'
 import { LocalOpenAIProvider } from './implementations/LocalOpenAIProvider'
 import { WhisperCppRuntimeProvider } from './implementations/WhisperCppRuntimeProvider'
 
@@ -117,6 +118,12 @@ function registerDefaultProviders(): void {
   providerRegistry.register({
     info: new ElevenLabsProvider().info,
     create: () => new ElevenLabsProvider(),
+  })
+
+  // Gladia - 实时流式
+  providerRegistry.register({
+    info: new GladiaProvider().info,
+    create: () => new GladiaProvider(),
   })
 
   // 本地 OpenAI-compatible

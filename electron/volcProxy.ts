@@ -6,6 +6,7 @@ import { attachMistralProxyServer } from '../shared/mistralProxyCore'
 import { attachDeepgramProxyServer } from '../shared/deepgramProxyCore'
 import { attachAssemblyAIProxyServer } from '../shared/assemblyaiProxyCore'
 import { attachElevenLabsProxyServer } from '../shared/elevenlabsProxyCore'
+import { attachGladiaProxyServer } from '../shared/gladiaProxyCore'
 
 export function startVolcProxyServer(port = 23456): Server {
   const server = createServer()
@@ -24,6 +25,9 @@ export function startVolcProxyServer(port = 23456): Server {
 
   const elevenlabsWss = new WebSocketServer({ noServer: true })
   attachElevenLabsProxyServer(elevenlabsWss)
+
+  const gladiaWss = new WebSocketServer({ noServer: true })
+  attachGladiaProxyServer(gladiaWss)
 
   server.on('upgrade', (request, socket, head) => {
     const { pathname } = new URL(request.url || '', `http://${request.headers.host}`)
@@ -48,6 +52,10 @@ export function startVolcProxyServer(port = 23456): Server {
       elevenlabsWss.handleUpgrade(request, socket, head, (ws) => {
         elevenlabsWss.emit('connection', ws, request)
       })
+    } else if (pathname === '/ws/gladia') {
+      gladiaWss.handleUpgrade(request, socket, head, (ws) => {
+        gladiaWss.emit('connection', ws, request)
+      })
     } else {
       socket.destroy()
     }
@@ -60,6 +68,7 @@ export function startVolcProxyServer(port = 23456): Server {
     console.log(`[Proxy] Deepgram: ws://localhost:${port}/ws/deepgram`)
     console.log(`[Proxy] AssemblyAI: ws://localhost:${port}/ws/assemblyai`)
     console.log(`[Proxy] ElevenLabs: ws://localhost:${port}/ws/elevenlabs`)
+    console.log(`[Proxy] Gladia: ws://localhost:${port}/ws/gladia`)
   })
 
   server.on('error', (error: NodeJS.ErrnoException) => {

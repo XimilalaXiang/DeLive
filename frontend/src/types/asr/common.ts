@@ -7,6 +7,7 @@ export enum ASRVendor {
   Deepgram = 'deepgram',
   AssemblyAI = 'assemblyai',
   ElevenLabs = 'elevenlabs',
+  Gladia = 'gladia',
   LocalOpenAI = 'local_openai',
   LocalWhisperCpp = 'local_whisper_cpp',
 }

@@ -7,6 +7,7 @@ import { MISTRAL_REALTIME_MODEL } from '../types/asr/vendors/mistral'
 import { DEEPGRAM_DEFAULT_MODEL } from '../types/asr/vendors/deepgram'
 import { ASSEMBLYAI_DEFAULT_MODEL } from '../types/asr/vendors/assemblyai'
 import { ELEVENLABS_DEFAULT_MODEL } from '../types/asr/vendors/elevenlabs'
+import { GLADIA_DEFAULT_MODEL } from '../types/asr/vendors/gladia'
 import { transcribeSiliconFlowAudio } from './siliconflow'
 
 type ProviderConfigTester = (config: ProviderConfigData) => Promise<void>
@@ -458,6 +459,79 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
           reject(new Error('缺少 API Key'))
         } else if (event.code === 4002) {
           reject(new Error('ElevenLabs API 连接失败，请检查 API Key 是否正确'))
+        }
+      }
+    })
+  },
+  gladia: async (config) => {
+    const apiKey = typeof config.apiKey === 'string' ? config.apiKey.trim() : ''
+
+    if (!apiKey) {
+      throw new Error('请输入 Gladia API Key')
+    }
+
+    await new Promise<void>((resolve, reject) => {
+      const params = new URLSearchParams({
+        apiKey,
+        model: GLADIA_DEFAULT_MODEL,
+        language: '',
+      })
+      const proxyUrl = `ws://localhost:23456/ws/gladia?${params.toString()}`
+      let ws: WebSocket | null = null
+
+      const timeout = setTimeout(() => {
+        ws?.close()
+        reject(new Error('连接超时，请检查网络或确保代理服务器已启动'))
+      }, 15000)
+
+      try {
+        ws = new WebSocket(proxyUrl)
+      } catch {
+        clearTimeout(timeout)
+        reject(new Error('无法连接到代理服务器，请确保服务器已启动'))
+        return
+      }
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data) as {
+            type?: string
+            message?: string
+          }
+
+          if (msg.type === 'ready') {
+            clearTimeout(timeout)
+            ws?.send(JSON.stringify({ type: 'audio_end' }))
+            setTimeout(() => {
+              ws?.close(1000, 'test complete')
+              resolve()
+            }, 500)
+            return
+          }
+
+          if (msg.type === 'error') {
+            clearTimeout(timeout)
+            ws?.close()
+            reject(new Error(msg.message || 'Gladia 连接失败'))
+          }
+        } catch {
+          // ignore invalid payload
+        }
+      }
+
+      ws.onerror = () => {
+        clearTimeout(timeout)
+        reject(new Error('无法连接到代理服务器，请确保后端服务已启动'))
+      }
+
+      ws.onclose = (event) => {
+        clearTimeout(timeout)
+        if (event.code === 4001) {
+          reject(new Error('缺少 API Key'))
+        } else if (event.code === 4002) {
+          reject(new Error('Gladia API 连接失败，请检查 API Key 是否正确'))
+        } else if (event.code === 4003) {
+          reject(new Error('Gladia Session 初始化失败，请检查 API Key'))
         }
       }
     })

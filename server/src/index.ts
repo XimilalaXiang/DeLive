@@ -9,6 +9,7 @@ import { createMistralProxyServer } from './mistralProxy.js'
 import { createDeepgramProxyServer } from './deepgramProxy.js'
 import { createAssemblyAIProxyServer } from './assemblyaiProxy.js'
 import { createElevenLabsProxyServer } from './elevenlabsProxy.js'
+import { createGladiaProxyServer } from './gladiaProxy.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -33,6 +34,9 @@ createAssemblyAIProxyServer(assemblyaiWss)
 const elevenlabsWss = new WebSocketServer({ noServer: true })
 createElevenLabsProxyServer(elevenlabsWss)
 
+const gladiaWss = new WebSocketServer({ noServer: true })
+createGladiaProxyServer(gladiaWss)
+
 server.on('upgrade', (request, socket, head) => {
   const { pathname } = new URL(request.url || '', `http://${request.headers.host}`)
 
@@ -55,6 +59,10 @@ server.on('upgrade', (request, socket, head) => {
   } else if (pathname === '/ws/elevenlabs') {
     elevenlabsWss.handleUpgrade(request, socket, head, (ws) => {
       elevenlabsWss.emit('connection', ws, request)
+    })
+  } else if (pathname === '/ws/gladia') {
+    gladiaWss.handleUpgrade(request, socket, head, (ws) => {
+      gladiaWss.emit('connection', ws, request)
     })
   } else {
     socket.destroy()
