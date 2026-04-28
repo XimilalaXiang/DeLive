@@ -283,8 +283,8 @@ features:
     </div>
     <div class="new-feature">
       <div class="icon">🧪</div>
-      <h3>272 个测试通过</h3>
-      <p>扩展测试套件至 29 个文件 272 个测试，新增 resolveTranscriptText 测试覆盖所有偏好模式和边界情况。</p>
+      <h3>314 个测试通过</h3>
+      <p>扩展测试套件至 32 个文件 314 个测试，新增 AI 校正、假设缓冲区、PCM/WAV 编码等测试覆盖。</p>
     </div>
     <div class="new-feature">
       <div class="icon">🔄</div>

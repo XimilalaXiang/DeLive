@@ -179,7 +179,7 @@ To run just the frontend tests:
 npm run test:frontend
 ```
 
-Current suite status: **272 tests across 29 files** with coverage around provider config, transcript state/stabilization, subtitle export, session lifecycle/repository, storage, cloud backup, Open API IPC responses, AI post-process parsing, and transcript text-source resolution.
+Current suite status: **314 tests across 32 files** with coverage around provider config, transcript state/stabilization, subtitle export, session lifecycle/repository, storage, cloud backup, Open API IPC responses, AI post-process parsing, transcript text-source resolution, AI correction, hypothesis buffer, and PCM/WAV encoding.
 
 ### Build
 

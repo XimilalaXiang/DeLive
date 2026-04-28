@@ -283,8 +283,8 @@ features:
     </div>
     <div class="new-feature">
       <div class="icon">🧪</div>
-      <h3>272 Tests Passing</h3>
-      <p>Expanded test suite with 272 tests across 29 files, including new resolveTranscriptText tests covering all preference modes and edge cases.</p>
+      <h3>314 Tests Passing</h3>
+      <p>Expanded test suite with 314 tests across 32 files, including AI correction, hypothesis buffer, PCM/WAV encoding, and all previous coverage areas.</p>
     </div>
     <div class="new-feature">
       <div class="icon">🔄</div>

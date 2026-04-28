@@ -18,8 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🤖 **AI 后处理智能文本源选择** — AI 纠错完成后，后续 AI 功能（摘要、对话、思维导图、分析）自动使用纠错文本；AI 设置面板中可配置偏好（自动 / 始终原始 / 始终纠错后）
 - 🔔 **Text-source status banners** — AI Analysis, Chat, and Mind Map tabs now show a real-time banner indicating which text source is in use (original, corrected, or correction-in-progress)
 - 🔔 **文本源状态横幅** — AI 分析、对话、思维导图标签页现在显示实时横幅，提示当前使用的文本源（原始、纠错后、或纠错进行中）
-- 🧪 10 new unit tests for `resolveTranscriptText` covering all preference modes and edge cases (272 tests / 29 files)
-- 🧪 新增 10 个 `resolveTranscriptText` 单元测试，覆盖所有偏好模式和边界情况（共 272 测试 / 29 文件）
+- 🧪 42 new tests for AI correction, hypothesis buffer, and PCM/WAV encoding (314 tests / 32 files)
+- 🧪 新增 42 个测试覆盖 AI 校正、假设缓冲区和 PCM/WAV 编码（共 314 测试 / 32 文件）
 
 ### Changed / 变更
 - 🔄 **Review tab reorder** — AI Correction tab moved next to Transcript for a more natural correction-first workflow (Transcript → AI Correction → Overview → AI Analysis → Chat → Mind Map)
