@@ -54,7 +54,6 @@ export class CloudflareProvider extends WindowedBatchTranscriptionProvider<Array
         },
       },
       supportsConfigTest: true,
-      supportsTranslation: true,
     },
     requiredConfigKeys: ['apiToken', 'accountId'],
     supportedLanguages: ['zh', 'en', 'ja', 'ko', 'es', 'fr', 'de', 'it', 'pt', 'ru'],
