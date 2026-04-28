@@ -71,75 +71,62 @@ class ProviderRegistry {
 // 创建单例注册表
 export const providerRegistry = new ProviderRegistry()
 
-// 注册默认提供商（仅流式提供商）
 function registerDefaultProviders(): void {
-  // Soniox - 实时流式
   providerRegistry.register({
     info: new SonioxProvider().info,
     create: () => new SonioxProvider(),
   })
 
-  // 火山引擎 - 实时流式
   providerRegistry.register({
     info: new VolcProvider().info,
     create: () => new VolcProvider(),
   })
 
-  // Groq - 云端语音转录
-  providerRegistry.register({
-    info: new GroqProvider().info,
-    create: () => new GroqProvider(),
-  })
-
-  // 硅基流动 - 云端语音转录
-  providerRegistry.register({
-    info: new SiliconFlowProvider().info,
-    create: () => new SiliconFlowProvider(),
-  })
-
-  // Mistral AI - 实时流式
-  providerRegistry.register({
-    info: new MistralProvider().info,
-    create: () => new MistralProvider(),
-  })
-
-  // Deepgram - 实时流式
-  providerRegistry.register({
-    info: new DeepgramProvider().info,
-    create: () => new DeepgramProvider(),
-  })
-
-  // AssemblyAI - 实时流式
-  providerRegistry.register({
-    info: new AssemblyAIProvider().info,
-    create: () => new AssemblyAIProvider(),
-  })
-
-  // ElevenLabs - Scribe v2 Realtime
   providerRegistry.register({
     info: new ElevenLabsProvider().info,
     create: () => new ElevenLabsProvider(),
   })
 
-  // Gladia - 实时流式
+  providerRegistry.register({
+    info: new MistralProvider().info,
+    create: () => new MistralProvider(),
+  })
+
   providerRegistry.register({
     info: new GladiaProvider().info,
     create: () => new GladiaProvider(),
   })
 
-  // Cloudflare Workers AI - 云端语音转录
+  providerRegistry.register({
+    info: new DeepgramProvider().info,
+    create: () => new DeepgramProvider(),
+  })
+
+  providerRegistry.register({
+    info: new AssemblyAIProvider().info,
+    create: () => new AssemblyAIProvider(),
+  })
+
   providerRegistry.register({
     info: new CloudflareProvider().info,
     create: () => new CloudflareProvider(),
   })
 
-  // 本地 OpenAI-compatible
+  providerRegistry.register({
+    info: new SiliconFlowProvider().info,
+    create: () => new SiliconFlowProvider(),
+  })
+
+  providerRegistry.register({
+    info: new GroqProvider().info,
+    create: () => new GroqProvider(),
+  })
+
   providerRegistry.register({
     info: new LocalOpenAIProvider().info,
     create: () => new LocalOpenAIProvider(),
   })
 
-  // 本地 whisper.cpp runtime
   providerRegistry.register({
     info: new WhisperCppRuntimeProvider().info,
     create: () => new WhisperCppRuntimeProvider(),
