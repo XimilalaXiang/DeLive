@@ -7,6 +7,46 @@ export interface WhatsNewEntry {
 
 const entries: WhatsNewEntry[] = [
   {
+    version: '2.1.0',
+    date: '2026-04-28',
+    features: [
+      {
+        zh: 'Cloudflare Workers AI 提供商 — 基于 Whisper 的新 ASR 提供商，价格低廉且有免费额度',
+        en: 'Cloudflare Workers AI provider — new ASR provider based on Whisper, with low cost and free tier',
+      },
+      {
+        zh: 'AI 后处理智能文本源选择 — 纠错完成后，后续 AI 功能自动使用纠错文本；可配置偏好',
+        en: 'AI post-processing smart text-source selection — AI features auto-use corrected text; configurable preference',
+      },
+      {
+        zh: '文本源状态横幅 — AI 分析、对话、思维导图标签页显示当前使用的文本源',
+        en: 'Text-source status banners — AI Analysis, Chat, and Mind Map tabs show which text source is in use',
+      },
+      {
+        zh: 'Windowed batch 转录重构 — LocalAgreement 策略 + 词级时间戳，输出更稳定',
+        en: 'Windowed batch transcription refactored — LocalAgreement strategy with word-level timestamps for stable output',
+      },
+    ],
+    fixes: [
+      {
+        zh: '修复 Cloudflare 词级时间戳解析错误',
+        en: 'Fixed Cloudflare word timestamp extraction from segments[].words[]',
+      },
+      {
+        zh: '启用 Cloudflare 反幻觉参数（VAD filter、hallucination_silence_threshold）',
+        en: 'Enabled Cloudflare anti-hallucination params (vad_filter, hallucination_silence_threshold)',
+      },
+      {
+        zh: '修复静音检测 — 只检查最近 3 秒而非整个窗口',
+        en: 'Fixed silence detection — now checks only last 3 seconds instead of entire window',
+      },
+      {
+        zh: '移除 Cloudflare 不正确的实时翻译标志',
+        en: 'Removed incorrect Cloudflare supportsTranslation capability',
+      },
+    ],
+  },
+  {
     version: '2.0.2',
     date: '2026-04-25',
     features: [
