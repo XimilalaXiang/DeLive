@@ -30,7 +30,7 @@ flowchart TB
     end
     subgraph data["Data Layer"]
       direction LR
-      providers["Provider Registry\n(10 ASR Backends)"]
+      providers["Provider Registry\n(12 ASR Backends)"]
       persistence["Session Repository\nIndexedDB + Memory Cache"]
     end
   end
@@ -150,7 +150,7 @@ The MCP server is a standalone Node.js script, not embedded in Electron. Claude 
 
 ### Provider Registry
 
-Ten ASR backends are registered in a singleton `ProviderRegistry`. Each provider implements a common `ASRProvider` contract but uses different audio formats and transport methods. The `CaptureManager` selects the right audio pipeline based on provider capabilities.
+Twelve ASR backends are registered in a singleton `ProviderRegistry`. Each provider implements a common `ASRProvider` contract but uses different audio formats and transport methods. The `CaptureManager` selects the right audio pipeline based on provider capabilities.
 
 ## Module Map
 

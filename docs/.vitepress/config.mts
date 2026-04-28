@@ -4,12 +4,12 @@ import { withMermaid } from 'vitepress-plugin-mermaid'
 export default withMermaid(
   defineConfig({
     title: 'DeLive',
-    description: 'System Audio Capture · Multi-Provider ASR · Local-First AI Review Workspace',
+    description: 'System Audio Capture · 12 ASR Providers · Local-First AI Review Workspace',
     base: '/',
     head: [
       ['link', { rel: 'icon', href: '/logo.svg' }],
       ['meta', { property: 'og:title', content: 'DeLive — Desktop Transcription Workspace' }],
-      ['meta', { property: 'og:description', content: 'Capture system audio, transcribe with ten ASR backends, and review with AI — summaries, chat, mind maps. All local-first.' }],
+      ['meta', { property: 'og:description', content: 'Capture system audio, transcribe with twelve ASR backends, and review with AI — correction, summaries, chat, mind maps. All local-first.' }],
       ['meta', { property: 'og:image', content: 'https://raw.githubusercontent.com/XimilalaXiang/DeLive/main/assets/header.png' }],
       ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
       ['script', {}, `
@@ -37,7 +37,7 @@ export default withMermaid(
             { text: 'Architecture', link: '/architecture/overview' },
             { text: 'Development', link: '/development/setup' },
             {
-              text: 'v2.0.0',
+              text: 'v2.1.0',
               items: [
                 { text: 'Changelog', link: 'https://github.com/XimilalaXiang/DeLive/blob/main/CHANGELOG.md' },
                 { text: 'Download', link: 'https://github.com/XimilalaXiang/DeLive/releases/latest' },
@@ -120,7 +120,7 @@ export default withMermaid(
             { text: '架构', link: '/zh/architecture/overview' },
             { text: '开发', link: '/zh/development/setup' },
             {
-              text: 'v2.0.0',
+              text: 'v2.1.0',
               items: [
                 { text: '更新日志', link: 'https://github.com/XimilalaXiang/DeLive/blob/main/CHANGELOG.md' },
                 { text: '下载', link: 'https://github.com/XimilalaXiang/DeLive/releases/latest' },

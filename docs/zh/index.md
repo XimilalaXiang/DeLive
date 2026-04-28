@@ -3,13 +3,13 @@ layout: home
 hero:
   name: DeLive
   text: 桌面转录工作台
-  tagline: 捕获系统音频 · 十大 ASR 后端转录 · AI 复盘 — 摘要、对话、思维导图，全部本地优先
+  tagline: 捕获系统音频 · 十二大 ASR 后端转录 · AI 复盘 — 纠错、摘要、对话、思维导图，全部本地优先
   image:
     src: /logo.svg
     alt: DeLive
   actions:
     - theme: brand
-      text: 下载 v2.0.0
+      text: 下载 v2.1.0
       link: https://github.com/XimilalaXiang/DeLive/releases/latest
     - theme: alt
       text: 快速开始 →
@@ -19,8 +19,8 @@ hero:
       link: /zh/api/rest
 features:
   - icon: 🎙️
-    title: 十大 ASR 后端，统一界面
-    details: Soniox、火山引擎、Groq、硅基流动、Mistral AI、Deepgram、AssemblyAI、ElevenLabs、本地 OpenAI 兼容、本地 whisper.cpp — 三种执行模式覆盖所有场景。
+    title: 十二大 ASR 后端，统一界面
+    details: Soniox、火山引擎、ElevenLabs、Mistral AI、Gladia、Deepgram、AssemblyAI、Cloudflare Workers AI、硅基流动、Groq、本地 OpenAI 兼容、本地 whisper.cpp — 三种执行模式覆盖所有场景。
   - icon: 🧠
     title: AI 复盘工作台
     details: 全页工作台，六个标签页 — AI 纠错（快速纠错 & 逐条审查模式 + 智能文本源选择）、概览（摘要、行动项、关键词、章节）、转录文本导出、AI 分析、多线程对话、Markmap 思维导图。
@@ -253,48 +253,48 @@ features:
 </div>
 
 <div class="whats-new">
-  <h2>v2.0.0 新特性</h2>
-  <p class="subtitle">重大 UI 重构 — 侧栏导航、命令面板、WebDAV 备份等全面升级</p>
+  <h2>v2.1.0 新特性</h2>
+  <p class="subtitle">新增 Cloudflare Workers AI 和 Gladia 提供商、AI 纠错增强等</p>
   <div class="new-features">
     <div class="new-feature">
-      <div class="icon">🧭</div>
-      <h3>持久化侧栏导航</h3>
-      <p>全新左侧栏，5 个导航项（实况、复盘、主题、字幕、设置），Ctrl+B 折叠。替代原有顶部导航栏。</p>
+      <div class="icon">☁️</div>
+      <h3>Cloudflare Workers AI</h3>
+      <p>新增 ASR 提供商 — 基于 Whisper 模型的 Cloudflare Workers AI 转录。低成本、免费额度充裕，支持 VAD 过滤和防幻觉。</p>
     </div>
     <div class="new-feature">
-      <div class="icon">⌨️</div>
-      <h3>命令面板</h3>
-      <p>全局命令面板（Ctrl+K / Cmd+K）— 即时搜索并执行任何命令。标题栏搜索框一键唤起。</p>
-    </div>
-    <div class="new-feature">
-      <div class="icon">🌐</div>
-      <h3>WebDAV 云端备份</h3>
-      <p>完整 WebDAV 支持 — 坚果云、Nextcloud、Alist 及所有标准 WebDAV 服务器。自动 MKCOL 创建目录。</p>
-    </div>
-    <div class="new-feature">
-      <div class="icon">🎬</div>
-      <h3>字幕样式编辑器</h3>
-      <p>内嵌式字幕自定义 — 字号、字体、文字颜色、背景、阴影、宽度、最大行数及双语模式设置。</p>
-    </div>
-    <div class="new-feature">
-      <div class="icon">⚙️</div>
-      <h3>重构的设置面板</h3>
-      <p>8 个分组面板 — Provider、外观、字幕样式、AI 后处理、开放 API、云备份、数据管理、关于。</p>
-    </div>
-    <div class="new-feature">
-      <div class="icon">🧪</div>
-      <h3>266 个测试通过</h3>
-      <p>覆盖 29 个测试文件的完整测试套件。CI 发布流程支持自动预发布检测。品质值得信赖。</p>
+      <div class="icon">🎙️</div>
+      <h3>Gladia 实时 ASR</h3>
+      <p>Solaria-1 实时流式转录，延迟低于 300ms，支持 100+ 种语言。内嵌代理处理会话初始化和认证。</p>
     </div>
     <div class="new-feature">
       <div class="icon">🤖</div>
-      <h3>AI 转录纠错</h3>
-      <p>双模式：直接纠错（流式重写）和先检测后纠错（逐条审查，接受或忽略）。并排对比视图。智能文本源选择，后续 AI 自动使用纠错文本。</p>
+      <h3>AI 纠错增强</h3>
+      <p>纠错流式文本跨标签页持久化、实时进度显示（字数、已用时间）、改进的 AI 分析状态追踪。</p>
     </div>
     <div class="new-feature">
-      <div class="icon">🧩</div>
-      <h3>Agent Skills</h3>
-      <p>安装 DeLive Skill 后，任意 AI Agent 可在对话中一键转录音视频 — 返回转录文本、摘要、思维导图与关键词，无需离开 Agent 界面。</p>
+      <div class="icon">🧠</div>
+      <h3>智能文本源选择</h3>
+      <p>AI 后处理现在自动使用纠错后的文本。支持偏好设置（自动 / 始终原始 / 始终纠错后），各标签页实时状态横幅。</p>
+    </div>
+    <div class="new-feature">
+      <div class="icon">📋</div>
+      <h3>Provider 列表重排</h3>
+      <p>Provider 选择列表重新排序：Soniox、火山引擎、ElevenLabs、Mistral AI、Gladia、Deepgram、AssemblyAI、Cloudflare、硅基流动、Groq、本地 OpenAI、whisper.cpp。</p>
+    </div>
+    <div class="new-feature">
+      <div class="icon">🧪</div>
+      <h3>272 个测试通过</h3>
+      <p>扩展测试套件至 29 个文件 272 个测试，新增 resolveTranscriptText 测试覆盖所有偏好模式和边界情况。</p>
+    </div>
+    <div class="new-feature">
+      <div class="icon">🔄</div>
+      <h3>窗口批处理重构</h3>
+      <p>提取 WindowedBatchTranscriptionProvider 基类 — 共享区间重转写、静音检测和假设缓冲区管理逻辑。</p>
+    </div>
+    <div class="new-feature">
+      <div class="icon">🌍</div>
+      <h3>Electron 主进程 i18n</h3>
+      <p>主进程托盘菜单、对话框标题和系统通知现在跟随用户语言设置。</p>
     </div>
   </div>
 </div>

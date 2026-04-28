@@ -1,6 +1,6 @@
 # Provider System
 
-The provider system is DeLive's abstraction layer for ASR backends. It unifies ten different speech recognition services behind a common contract.
+The provider system is DeLive's abstraction layer for ASR backends. It unifies twelve different speech recognition services behind a common contract.
 
 ## Architecture
 
@@ -39,7 +39,7 @@ providerRegistry.register({
 })
 ```
 
-Ten providers are registered at module load via `registerDefaultProviders()`.
+Twelve providers are registered at module load via `registerDefaultProviders()`.
 
 ## `ASRProviderInfo`
 
@@ -86,7 +86,7 @@ When `prefersTokenEvents` is `true` (Soniox), `ProviderSessionManager` does **no
 
 ## Windowed Batch Transcription
 
-Four providers (Groq, SiliconFlow, Local OpenAI, whisper.cpp) extend `WindowedBatchTranscriptionProvider`:
+Five providers (Cloudflare, SiliconFlow, Groq, Local OpenAI, whisper.cpp) extend `WindowedBatchTranscriptionProvider`:
 
 ### Rolling Audio Buffer
 
@@ -94,7 +94,7 @@ A `RollingAudioBuffer<TChunk>` stores timestamped audio chunks with a maximum du
 
 ### Scheduling
 
-- **Interval mode** (Groq, SiliconFlow, whisper.cpp): `setInterval` every **1500ms** triggers retranscription
+- **Interval mode** (Cloudflare, Groq, SiliconFlow, whisper.cpp): `setInterval` every **1500ms** triggers retranscription
 - **Debounce mode** (Local OpenAI): each new audio chunk resets a **1200ms** `setTimeout` (same value as `transcribeIntervalMs`)
 
 ### Stabilization
@@ -125,7 +125,7 @@ Used by Soniox and Local OpenAI-compatible. (All other cloud streaming providers
 
 ### PCM16 Path
 
-Used by Volcengine, Groq, SiliconFlow, Mistral AI, Deepgram, AssemblyAI, ElevenLabs, and whisper.cpp.
+Used by Volcengine, Groq, SiliconFlow, Mistral AI, Deepgram, AssemblyAI, ElevenLabs, Gladia, Cloudflare, and whisper.cpp.
 
 1. `getDisplayMedia({ audio: true })` → `MediaStream`
 2. `AudioProcessor` with **AudioWorklet** (preferred) or **ScriptProcessorNode** (fallback)

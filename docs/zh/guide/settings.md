@@ -6,7 +6,7 @@ DeLive 设置分为两个标签页：**服务**（Provider 配置）和 **通用
 
 ### Provider 选择
 
-从十种 ASR Provider 中选择。每个 Provider 有各自的配置字段（API Key、端点、模型、语言提示）。
+从十二种 ASR Provider 中选择。每个 Provider 有各自的配置字段（API Key、端点、模型、语言提示）。
 
 ### 配置测试
 

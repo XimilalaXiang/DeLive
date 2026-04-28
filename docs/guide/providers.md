@@ -1,6 +1,6 @@
 # ASR Providers
 
-DeLive supports ten ASR backends through a unified provider registry. Each provider implements a common contract but uses different transport and audio processing strategies.
+DeLive supports twelve ASR backends through a unified provider registry. Each provider implements a common contract but uses different transport and audio processing strategies.
 
 ## Provider Comparison
 
@@ -8,12 +8,14 @@ DeLive supports ten ASR backends through a unified provider registry. Each provi
 |----------|------|-----------|-------|-----------|-------------|-------------|
 | Soniox V4 | Cloud | WebSocket | MediaRecorder (WebM/Opus) | Yes | Yes | Yes |
 | Volcengine | Cloud | WebSocket (via proxy) | AudioWorklet (PCM16) | Yes | No | No |
-| Groq | Cloud | REST (batch) | AudioWorklet (PCM16) | No | No | No |
-| SiliconFlow | Cloud | REST (batch) | AudioWorklet (PCM16) | No | No | No |
+| ElevenLabs | Cloud | WebSocket (via proxy) | AudioWorklet (PCM16) | Yes | No | No |
 | Mistral AI | Cloud | WebSocket (via proxy) | AudioWorklet (PCM16) | Yes | No | No |
+| Gladia | Cloud | WebSocket (via proxy) | AudioWorklet (PCM16) | Yes | No | No |
 | Deepgram | Cloud | WebSocket (via proxy) | AudioWorklet (PCM16) | Yes | No | No |
 | AssemblyAI | Cloud | WebSocket (via proxy) | AudioWorklet (PCM16) | Yes | No | No |
-| ElevenLabs | Cloud | WebSocket (via proxy) | AudioWorklet (PCM16) | Yes | No | No |
+| Cloudflare Workers AI | Cloud | REST (batch) | AudioWorklet (PCM16) | No | No | No |
+| SiliconFlow | Cloud | REST (batch) | AudioWorklet (PCM16) | No | No | No |
+| Groq | Cloud | REST (batch) | AudioWorklet (PCM16) | No | No | No |
 | Local OpenAI | Local | REST (batch) | MediaRecorder (WebM/Opus) | No | No | No |
 | whisper.cpp | Local | REST (local) | AudioWorklet (PCM16) | No | No | No |
 
@@ -21,16 +23,16 @@ DeLive supports ten ASR backends through a unified provider registry. Each provi
 
 ### Real-Time Streaming
 
-Used by **Soniox**, **Volcengine**, **Mistral AI**, **Deepgram**, **AssemblyAI**, and **ElevenLabs**. Audio chunks are sent continuously over a WebSocket connection, and transcript updates arrive in real-time.
+Used by **Soniox**, **Volcengine**, **ElevenLabs**, **Mistral AI**, **Gladia**, **Deepgram**, and **AssemblyAI**. Audio chunks are sent continuously over a WebSocket connection, and transcript updates arrive in real-time.
 
 - Soniox emits **token-level events** (`prefersTokenEvents: true`) for fine-grained text updates
-- Volcengine, Mistral AI, Deepgram, AssemblyAI, and ElevenLabs use local proxies on port 23456 to inject required authentication headers
+- Volcengine, ElevenLabs, Mistral AI, Gladia, Deepgram, and AssemblyAI use local proxies on port 23456 to inject required authentication headers
 
 ### Windowed Batch
 
-Used by **Groq**, **SiliconFlow**, **Local OpenAI-compatible**, and **whisper.cpp**. Audio accumulates in a rolling buffer (max 45 seconds), and a REST call retranscribes the entire window at regular intervals.
+Used by **Cloudflare Workers AI**, **SiliconFlow**, **Groq**, **Local OpenAI-compatible**, and **whisper.cpp**. Audio accumulates in a rolling buffer (max 45 seconds), and a REST call retranscribes the entire window at regular intervals.
 
-- **Interval mode** (Groq, SiliconFlow, whisper.cpp): retranscribe every 1.5 seconds
+- **Interval mode** (Cloudflare, SiliconFlow, Groq, whisper.cpp): retranscribe every 1.5 seconds
 - **Debounce mode** (Local OpenAI): retranscribe 1200ms after the last audio chunk
 - A `TranscriptStabilizer` compares successive transcriptions and commits stable text prefixes, preventing text flickering
 
@@ -122,6 +124,26 @@ Scribe v2 Realtime ASR through ElevenLabs' WebSocket API.
 **Optional:** `model`, `languageHints`
 
 Uses a local WebSocket proxy (`/ws/elevenlabs` on port 23456) to inject `xi-api-key` headers. Supports 90+ languages including Mandarin Chinese. Audio is sent as base64-encoded JSON payloads.
+
+## Gladia
+
+Solaria-1 real-time streaming ASR with sub-300ms latency and 100+ language support.
+
+**Required:** `apiKey`
+
+**Optional:** `model`, `languageHints`
+
+Uses a local WebSocket proxy (`/ws/gladia` on port 23456) that handles HTTP POST session initialization and injects the `x-gladia-key` authentication header. Supports live capture via system audio.
+
+## Cloudflare Workers AI
+
+Whisper-based transcription through Cloudflare's Workers AI platform. Low cost with a generous free tier.
+
+**Required:** `apiToken`, `accountId`
+
+**Optional:** `model`, `languageHints`
+
+Uses windowed batch retranscription with VAD filtering and anti-hallucination measures. Supports both live capture and file transcription. Available models include `@cf/openai/whisper` and `@cf/openai/whisper-large-v3-turbo`.
 
 ## Local OpenAI-Compatible
 

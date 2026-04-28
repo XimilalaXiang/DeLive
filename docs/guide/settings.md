@@ -6,7 +6,7 @@ DeLive settings are organized into two tabs: **Service** (provider configuration
 
 ### Provider Selection
 
-Choose from ten ASR providers. Each provider has its own set of configuration fields (API keys, endpoints, models, language hints).
+Choose from twelve ASR providers. Each provider has its own set of configuration fields (API keys, endpoints, models, language hints).
 
 ### Config Test
 

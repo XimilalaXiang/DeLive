@@ -1,6 +1,6 @@
 # Provider 系统
 
-Provider 系统是 DeLive 对 ASR 后端的抽象层，将十种不同的语音识别服务统一在通用契约之后。
+Provider 系统是 DeLive 对 ASR 后端的抽象层，将十二种不同的语音识别服务统一在通用契约之后。
 
 ## 架构
 
@@ -30,7 +30,7 @@ WindowedBatchTranscriptionProvider<TChunk>（继承 BaseASRProvider）
 
 ## Provider 注册
 
-`ProviderRegistry` 是将 vendor ID 映射到工厂函数的单例。十个 Provider 在模块加载时通过 `registerDefaultProviders()` 注册。
+`ProviderRegistry` 是将 vendor ID 映射到工厂函数的单例。十二个 Provider 在模块加载时通过 `registerDefaultProviders()` 注册。
 
 ## `ASRProviderInfo`
 
@@ -56,7 +56,7 @@ WindowedBatchTranscriptionProvider<TChunk>（继承 BaseASRProvider）
 
 ## 窗口批处理转录
 
-四个 Provider（Groq、硅基流动、本地 OpenAI、whisper.cpp）继承 `WindowedBatchTranscriptionProvider`：
+五个 Provider（Cloudflare、硅基流动、Groq、本地 OpenAI、whisper.cpp）继承 `WindowedBatchTranscriptionProvider`：
 
 ### 滚动音频缓冲区
 
@@ -64,7 +64,7 @@ WindowedBatchTranscriptionProvider<TChunk>（继承 BaseASRProvider）
 
 ### 调度
 
-- **定时模式**（Groq、硅基流动、whisper.cpp）：每 **1500ms** `setInterval` 触发重新转录
+- **定时模式**（Cloudflare、Groq、硅基流动、whisper.cpp）：每 **1500ms** `setInterval` 触发重新转录
 - **防抖模式**（本地 OpenAI）：每个新音频块重置 **1200ms** `setTimeout`（与 `transcribeIntervalMs` 同值）
 
 ### 稳定化
@@ -95,7 +95,7 @@ Soniox 和本地 OpenAI 兼容使用。
 
 ### PCM16 路径
 
-火山引擎、Groq、硅基流动、Mistral AI、Deepgram、AssemblyAI、ElevenLabs 和 whisper.cpp 使用。
+火山引擎、Groq、硅基流动、Mistral AI、Deepgram、AssemblyAI、ElevenLabs、Gladia、Cloudflare 和 whisper.cpp 使用。
 
 1. `getDisplayMedia({ audio: true })` → `MediaStream`
 2. `AudioProcessor` 使用 **AudioWorklet**（首选）或 **ScriptProcessorNode**（回退）

@@ -3,13 +3,13 @@ layout: home
 hero:
   name: DeLive
   text: Desktop Transcription Workspace
-  tagline: Capture system audio. Transcribe with ten ASR backends. Review with AI — summaries, chat, mind maps. All local-first.
+  tagline: Capture system audio. Transcribe with twelve ASR backends. Review with AI — correction, summaries, chat, mind maps. All local-first.
   image:
     src: /logo.svg
     alt: DeLive
   actions:
     - theme: brand
-      text: Download v2.0.0
+      text: Download v2.1.0
       link: https://github.com/XimilalaXiang/DeLive/releases/latest
     - theme: alt
       text: Get Started →
@@ -19,8 +19,8 @@ hero:
       link: /api/rest
 features:
   - icon: 🎙️
-    title: Ten ASR Backends, One UI
-    details: Soniox, Volcengine, Groq, SiliconFlow, Mistral AI, Deepgram, AssemblyAI, ElevenLabs, local OpenAI-compatible, and local whisper.cpp — three execution modes in one app.
+    title: Twelve ASR Backends, One UI
+    details: Soniox, Volcengine, ElevenLabs, Mistral AI, Gladia, Deepgram, AssemblyAI, Cloudflare Workers AI, SiliconFlow, Groq, local OpenAI-compatible, and local whisper.cpp — three execution modes in one app.
   - icon: 🧠
     title: AI Review Desk
     details: Full-page workspace with six tabs — AI Correction (quick & review modes with smart text-source selection), Overview (summary, action items, keywords, chapters), Transcript export, AI Analysis, multi-thread Chat, and Markmap mind maps.
@@ -253,48 +253,48 @@ features:
 </div>
 
 <div class="whats-new">
-  <h2>What's New in v2.0.0</h2>
-  <p class="subtitle">Major UI overhaul — sidebar navigation, command palette, WebDAV backup, and more</p>
+  <h2>What's New in v2.1.0</h2>
+  <p class="subtitle">Cloudflare Workers AI, Gladia, AI Correction enhancements, and more</p>
   <div class="new-features">
     <div class="new-feature">
-      <div class="icon">🧭</div>
-      <h3>Persistent Sidebar Navigation</h3>
-      <p>New left sidebar with 5 nav items (Live, Review, Topics, Caption, Settings), collapsible with Ctrl+B. Replaces the old top header bar.</p>
+      <div class="icon">☁️</div>
+      <h3>Cloudflare Workers AI</h3>
+      <p>New ASR provider — Whisper-based transcription via Cloudflare Workers AI. Low cost with generous free tier, VAD filter, and anti-hallucination.</p>
     </div>
     <div class="new-feature">
-      <div class="icon">⌨️</div>
-      <h3>Command Palette</h3>
-      <p>Global Command Palette (Ctrl+K / Cmd+K) — search and execute any command instantly. TitleBar search box integration.</p>
-    </div>
-    <div class="new-feature">
-      <div class="icon">🌐</div>
-      <h3>WebDAV Cloud Backup</h3>
-      <p>Full WebDAV support — Nutstore/Jianguoyun, Nextcloud, Alist, and any standard WebDAV server. Auto-create directories with MKCOL.</p>
-    </div>
-    <div class="new-feature">
-      <div class="icon">🎬</div>
-      <h3>Caption Style Editor</h3>
-      <p>Inline caption customization — font size, font family, text color, background, shadow, width, max lines, and bilingual mode settings.</p>
-    </div>
-    <div class="new-feature">
-      <div class="icon">⚙️</div>
-      <h3>Restructured Settings</h3>
-      <p>8 grouped panels — Provider, Appearance, Caption Style, AI Post-Processing, Open API, Cloud Backup, Data Management, and About.</p>
-    </div>
-    <div class="new-feature">
-      <div class="icon">🧪</div>
-      <h3>266 Tests Passing</h3>
-      <p>Comprehensive test suite across 29 test files. CI release workflow with auto pre-release detection. Quality you can trust.</p>
+      <div class="icon">🎙️</div>
+      <h3>Gladia Realtime ASR</h3>
+      <p>Solaria-1 real-time streaming with sub-300ms latency and 100+ language support. Embedded proxy handles session init and authentication.</p>
     </div>
     <div class="new-feature">
       <div class="icon">🤖</div>
-      <h3>AI Transcript Correction</h3>
-      <p>Two modes: Quick Fix (streaming rewrite) and Review & Fix (detect issues, accept/reject each). Side-by-side diff view. Smart text-source selection for downstream AI.</p>
+      <h3>AI Correction Enhancements</h3>
+      <p>Persisted correction streaming text across tab switches, real-time progress display (character count, elapsed time), and improved AI analysis status tracking.</p>
     </div>
     <div class="new-feature">
-      <div class="icon">🧩</div>
-      <h3>Agent Skills</h3>
-      <p>Install the DeLive Skill and any AI agent can transcribe audio & video in one call — returns transcript, summary, mind map & keywords without leaving the agent interface.</p>
+      <div class="icon">🧠</div>
+      <h3>Smart Text-Source Selection</h3>
+      <p>AI post-processing now auto-selects corrected transcript when available. Configurable preference (Auto / Always Original / Always Corrected) with real-time status banners.</p>
+    </div>
+    <div class="new-feature">
+      <div class="icon">📋</div>
+      <h3>Reordered Provider List</h3>
+      <p>Provider selection reordered to: Soniox, Volcengine, ElevenLabs, Mistral AI, Gladia, Deepgram, AssemblyAI, Cloudflare, SiliconFlow, Groq, Local OpenAI, whisper.cpp.</p>
+    </div>
+    <div class="new-feature">
+      <div class="icon">🧪</div>
+      <h3>272 Tests Passing</h3>
+      <p>Expanded test suite with 272 tests across 29 files, including new resolveTranscriptText tests covering all preference modes and edge cases.</p>
+    </div>
+    <div class="new-feature">
+      <div class="icon">🔄</div>
+      <h3>Refactored Windowed Batch</h3>
+      <p>WindowedBatchTranscriptionProvider base class extracted — shared logic for interval-based retranscription, silence detection, and hypothesis buffer management.</p>
+    </div>
+    <div class="new-feature">
+      <div class="icon">🌍</div>
+      <h3>Electron Main Process i18n</h3>
+      <p>Main process tray menu, dialog titles, and system notifications now respect the user's language setting.</p>
     </div>
   </div>
 </div>

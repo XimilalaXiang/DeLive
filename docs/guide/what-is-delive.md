@@ -6,18 +6,20 @@ DeLive is a desktop transcription workspace that captures system audio, routes i
 
 ### Multi-Provider ASR
 
-DeLive supports **ten ASR backends** behind a single unified interface:
+DeLive supports **twelve ASR backends** behind a single unified interface:
 
 | Provider | Type | Mode | Highlights |
 |----------|------|------|------------|
 | **Soniox V4** | Cloud | Real-time streaming | Token-level transcription, real-time translation, bilingual captions, speaker diarization |
 | **Volcengine** | Cloud | Real-time streaming | Chinese-oriented; embedded proxy handles required headers |
-| **Groq** | Cloud | Windowed batch | Whisper large-v3-turbo with quasi-realtime updates |
-| **SiliconFlow** | Cloud | Windowed batch | SenseVoice, TeleSpeech, and Qwen Omni models |
+| **ElevenLabs** | Cloud | Real-time streaming | Scribe v2 Realtime; 99 languages including Chinese |
 | **Mistral AI** | Cloud | Real-time streaming | Voxtral Realtime; embedded proxy handles authorization |
+| **Gladia** | Cloud | Real-time streaming | Solaria-1; 100+ languages; <300ms latency; proxy handles session init |
 | **Deepgram** | Cloud | Real-time streaming | Nova-3 / Nova-2 streaming ASR; best for English and multilingual |
 | **AssemblyAI** | Cloud | Real-time streaming | Universal-3 Pro streaming; optimized for English |
-| **ElevenLabs** | Cloud | Real-time streaming | Scribe v2 Realtime; 90+ languages including Chinese |
+| **Cloudflare Workers AI** | Cloud | Windowed batch | Whisper-based; low cost with free tier; VAD filter |
+| **SiliconFlow** | Cloud | Windowed batch | SenseVoice, TeleSpeech, and Qwen Omni models |
+| **Groq** | Cloud | Windowed batch | Whisper large-v3-turbo with quasi-realtime updates |
 | **Local OpenAI-compatible** | Local | Windowed batch | Works with Ollama or any `/v1/audio/transcriptions` endpoint |
 | **Local whisper.cpp** | Local | Electron-managed runtime | Fully offline; DeLive manages the binary and model lifecycle |
 

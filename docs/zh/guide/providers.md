@@ -1,6 +1,6 @@
 # ASR Provider
 
-DeLive 通过统一的 Provider 注册机制支持十种 ASR 后端。每个 Provider 实现相同的接口契约，但使用不同的传输和音频处理策略。
+DeLive 通过统一的 Provider 注册机制支持十二种 ASR 后端。每个 Provider 实现相同的接口契约，但使用不同的传输和音频处理策略。
 
 ## Provider 对比
 
@@ -8,12 +8,14 @@ DeLive 通过统一的 Provider 注册机制支持十种 ASR 后端。每个 Pro
 |----------|------|---------|---------|------|------|-----------|
 | Soniox V4 | 云端 | WebSocket | MediaRecorder (WebM/Opus) | 是 | 是 | 是 |
 | 火山引擎 | 云端 | WebSocket（经代理） | AudioWorklet (PCM16) | 是 | 否 | 否 |
-| Groq | 云端 | REST（批量） | AudioWorklet (PCM16) | 否 | 否 | 否 |
-| 硅基流动 | 云端 | REST（批量） | AudioWorklet (PCM16) | 否 | 否 | 否 |
+| ElevenLabs | 云端 | WebSocket（经代理） | AudioWorklet (PCM16) | 是 | 否 | 否 |
 | Mistral AI | 云端 | WebSocket（经代理） | AudioWorklet (PCM16) | 是 | 否 | 否 |
+| Gladia | 云端 | WebSocket（经代理） | AudioWorklet (PCM16) | 是 | 否 | 否 |
 | Deepgram | 云端 | WebSocket（经代理） | AudioWorklet (PCM16) | 是 | 否 | 否 |
 | AssemblyAI | 云端 | WebSocket（经代理） | AudioWorklet (PCM16) | 是 | 否 | 否 |
-| ElevenLabs | 云端 | WebSocket（经代理） | AudioWorklet (PCM16) | 是 | 否 | 否 |
+| Cloudflare Workers AI | 云端 | REST（批量） | AudioWorklet (PCM16) | 否 | 否 | 否 |
+| 硅基流动 | 云端 | REST（批量） | AudioWorklet (PCM16) | 否 | 否 | 否 |
+| Groq | 云端 | REST（批量） | AudioWorklet (PCM16) | 否 | 否 | 否 |
 | 本地 OpenAI | 本地 | REST（批量） | MediaRecorder (WebM/Opus) | 否 | 否 | 否 |
 | whisper.cpp | 本地 | REST（本地） | AudioWorklet (PCM16) | 否 | 否 | 否 |
 
@@ -21,16 +23,16 @@ DeLive 通过统一的 Provider 注册机制支持十种 ASR 后端。每个 Pro
 
 ### 实时流式
 
-**Soniox**、**火山引擎**、**Mistral AI**、**Deepgram**、**AssemblyAI** 和 **ElevenLabs** 使用。音频块通过 WebSocket 连接持续发送，转录更新实时到达。
+**Soniox**、**火山引擎**、**ElevenLabs**、**Mistral AI**、**Gladia**、**Deepgram** 和 **AssemblyAI** 使用。音频块通过 WebSocket 连接持续发送，转录更新实时到达。
 
 - Soniox 发出 **Token 级事件**（`prefersTokenEvents: true`），实现细粒度文本更新
-- 火山引擎、Mistral AI、Deepgram、AssemblyAI 和 ElevenLabs 使用本地代理（端口 23456）注入所需的认证 Header
+- 火山引擎、ElevenLabs、Mistral AI、Gladia、Deepgram 和 AssemblyAI 使用本地代理（端口 23456）注入所需的认证 Header
 
 ### 窗口批处理
 
-**Groq**、**硅基流动**、**本地 OpenAI 兼容** 和 **whisper.cpp** 使用。音频在滚动缓冲区（最长 45 秒）中累积，定期通过 REST 调用重新转录整个窗口。
+**Cloudflare Workers AI**、**硅基流动**、**Groq**、**本地 OpenAI 兼容** 和 **whisper.cpp** 使用。音频在滚动缓冲区（最长 45 秒）中累积，定期通过 REST 调用重新转录整个窗口。
 
-- **定时模式**（Groq、硅基流动、whisper.cpp）：每 1.5 秒重新转录
+- **定时模式**（Cloudflare、硅基流动、Groq、whisper.cpp）：每 1.5 秒重新转录
 - **防抖模式**（本地 OpenAI）：最后一个音频块到达后 1200ms 重新转录
 - `TranscriptStabilizer` 比较连续转录结果，提交稳定文本前缀，防止文本闪烁
 
