@@ -4,7 +4,7 @@
 
 ---
 
-System Audio Capture | Multi-Provider ASR | Local-First AI Review Workspace
+System Audio Capture | 12 ASR Providers | Local-First AI Review Workspace
 
 English | [简体中文](./README_ZH.md) | [繁體中文](./README_TW.md) | [日本語](./README_JA.md)
 
@@ -26,7 +26,7 @@ English | [简体中文](./README_ZH.md) | [繁體中文](./README_TW.md) | [日
 
 </div>
 
-DeLive is a desktop transcription workspace for system audio. It captures whatever your computer is playing, routes the audio through the ASR backend that fits the job, keeps everything on your machine, and turns completed transcripts into searchable history with a full AI Review Desk — rich Markdown-rendered chat, Q&A threads, structured briefings, and mind maps.
+DeLive is a desktop transcription workspace for system audio. It captures whatever your computer is playing, routes the audio through any of twelve ASR backends, keeps everything on your machine, and turns completed transcripts into searchable history with a full AI Review Desk — AI transcript correction, rich Markdown-rendered chat, Q&A threads, structured briefings, and mind maps.
 
 <div align="center">
 
@@ -34,13 +34,13 @@ DeLive is a desktop transcription workspace for system audio. It captures whatev
 
 | Live Transcription | Caption Overlay | MCP Integration |
 |:---:|:---:|:---:|
-| Real-time transcription with multi-provider ASR | Draggable always-on-top floating caption window | External AI tools access DeLive via MCP protocol |
+| Real-time transcription with 12 ASR providers | Draggable always-on-top floating caption window | External AI tools access DeLive via MCP protocol |
 | <img width="300" src="assets/screenshot-live.png" alt="Live Transcription" /> | <img width="300" src="assets/screenshot-caption-overlay.png" alt="Caption Overlay" /> | <img width="300" src="assets/screenshot-mcp-integration.png" alt="MCP Integration" /> |
 
-| AI Overview | AI Chat | Mind Map |
+| AI Overview | AI Correction | AI Chat |
 |:---:|:---:|:---:|
-| Summary, action items, keywords, and chapters | Multi-thread conversation with cited references | Auto-generated mind maps from transcripts |
-| <img width="300" src="assets/screenshot-ai-overview.png" alt="AI Overview" /> | <img width="300" src="assets/screenshot-ai-chat.png" alt="AI Chat" /> | <img width="300" src="assets/screenshot-mindmap.png" alt="Mind Map" /> |
+| Summary, action items, keywords, and chapters | Quick Fix and Review & Fix modes with diff view | Multi-thread conversation with cited references |
+| <img width="300" src="assets/screenshot-ai-overview.png" alt="AI Overview" /> | <img width="300" src="assets/screenshot-ai-correction.png" alt="AI Correction" /> | <img width="300" src="assets/screenshot-ai-chat.png" alt="AI Chat" /> |
 
 #
 
@@ -66,15 +66,15 @@ DeLive is a desktop transcription workspace for system audio. It captures whatev
 ## 🎯 Core Features
 
 - [x] **System-audio capture** for real desktop use — browser video, live streams, meetings, courses, podcasts, or any other playback source
-- [x] **Ten ASR backends behind one UI** — Soniox, Volcengine, Groq, SiliconFlow, Mistral AI, Deepgram, AssemblyAI, ElevenLabs, OpenAI-compatible local services, and local `whisper.cpp`
+- [x] **Twelve ASR backends behind one UI** — Soniox, Volcengine, Groq, SiliconFlow, Mistral AI, Deepgram, AssemblyAI, ElevenLabs, Gladia, Cloudflare Workers AI, OpenAI-compatible local services, and local `whisper.cpp`
 - [x] **Provider-aware capture pipeline** — auto-switches between `MediaRecorder` and `AudioWorklet` PCM16 capture based on provider requirements
 - [x] **Three execution modes** — true realtime streaming, windowed batch retranscription, and Electron-managed local runtime
 - [x] **Session lifecycle management** — draft sessions, autosave while recording, interrupted-session recovery, and completed-session history
 - [x] **Floating caption overlay** — separate always-on-top window with source / translated / dual display modes and style customization
 - [x] **Soniox bilingual & speaker-aware flows** — realtime translation, dual-line captions, diarization tokens, speaker-grouped preview
-- [x] **AI Review Desk** — full-page workspace with animated tab navigation (Overview, Transcript, AI Correction, Chat, Mind Map, AI Analysis)
-- [x] **AI transcript correction** — two modes: quick fix (direct streaming correction) and review-then-fix (detect issues first, user confirms, then correct); side-by-side diff view; corrected text export
-- [x] **Smart text-source selection for AI post-processing** — automatically uses corrected transcript when available; user-configurable preference (Auto / Always Original / Always Corrected) with real-time status banners
+- [x] **AI Review Desk** — full-page workspace with animated tab navigation (Transcript, AI Correction, Overview, AI Analysis, Chat, Mind Map)
+- [x] **AI transcript correction** — two modes: quick fix (direct streaming correction) and review-then-fix (detect issues first, user confirms, then correct); streaming output with real-time progress; side-by-side diff view; corrected text export
+- [x] **Smart text-source selection for AI post-processing** — automatically uses corrected transcript when available; user-configurable preference (Auto / Always Original / Always Corrected) with real-time status banners across AI Analysis, Chat, and Mind Map tabs
 - [x] **Rich AI Chat** — multi-thread conversation with GFM Markdown rendering, syntax-highlighted code blocks, hover actions, and more
 - [x] **Structured AI briefing** — summary, action items, keywords, chapters, title/tag suggestions, and cited Q&A
 - [x] **Mind maps** — generate Markmap-compatible Markdown, edit live, export SVG or PNG
@@ -113,13 +113,14 @@ Get the latest release for your platform:
 |----------|------|-----------|------------|------------|
 | **Soniox V4** | Cloud | Realtime streaming | `MediaRecorder` (`webm/opus`) → WebSocket | Token-level realtime transcription, realtime translation, bilingual captions, speaker diarization |
 | **Volcengine** | Cloud | Realtime streaming | `AudioWorklet` PCM16 → embedded proxy → WebSocket | Chinese-oriented realtime path; proxy injects required headers from Electron |
-| **Groq** | Cloud | Windowed batch retranscription | `AudioWorklet` PCM16 → WAV → REST | Whisper `large-v3-turbo` / `large-v3` style flow with quasi-realtime session updates |
-| **SiliconFlow** | Cloud | Windowed batch retranscription | `AudioWorklet` PCM16 → WAV → REST | SenseVoice, TeleSpeech, and Qwen Omni-backed transcription flow |
-| **Local OpenAI-compatible** | Local service | Windowed batch retranscription | `MediaRecorder` (`webm/opus`) → `/v1/audio/transcriptions` | Works with Ollama or other compatible gateways; supports service/model discovery and optional Ollama pull |
+| **ElevenLabs** | Cloud | Realtime streaming | `AudioWorklet` PCM16 → embedded proxy → WebSocket | Scribe v2 Realtime; 99 languages including Chinese; audio sent as base64 JSON |
 | **Mistral AI** | Cloud | Realtime streaming | `AudioWorklet` PCM16 → embedded proxy → WebSocket | Voxtral Realtime via `wss://api.mistral.ai`; proxy injects `Authorization` header |
+| **Gladia** | Cloud | Realtime streaming | `AudioWorklet` PCM16 → embedded proxy → WebSocket | Solaria-1 realtime; 100+ languages; <300ms latency; proxy handles session init + `x-gladia-key` auth |
 | **Deepgram** | Cloud | Realtime streaming | `AudioWorklet` PCM16 → embedded proxy → WebSocket | Nova-3 / Nova-2 streaming ASR; proxy injects `Authorization: Token` header |
 | **AssemblyAI** | Cloud | Realtime streaming | `AudioWorklet` PCM16 → embedded proxy → WebSocket | Universal-3 Pro streaming; best for English and multilingual content |
-| **ElevenLabs** | Cloud | Realtime streaming | `AudioWorklet` PCM16 → embedded proxy → WebSocket | Scribe v2 Realtime; 90+ languages including Chinese; audio sent as base64 JSON |
+| **Cloudflare Workers AI** | Cloud | Windowed batch retranscription | `AudioWorklet` PCM16 → WAV → REST | Whisper-based; low cost with free tier; VAD filter and anti-hallucination |
+| **SiliconFlow** | Cloud | Windowed batch retranscription | `AudioWorklet` PCM16 → WAV → REST | SenseVoice, TeleSpeech, and Qwen Omni-backed transcription flow |
+| **Groq** | Cloud | Windowed batch retranscription | `AudioWorklet` PCM16 → WAV → REST | Whisper `large-v3-turbo` / `large-v3` style flow with quasi-realtime session updates |
 | **Local OpenAI-compatible** | Local service | Windowed batch retranscription | `MediaRecorder` (`webm/opus`) → `/v1/audio/transcriptions` | Works with Ollama or other compatible gateways; supports service/model discovery and optional Ollama pull |
 | **Local `whisper.cpp`** | Local runtime | Electron-managed local runtime | `AudioWorklet` PCM16 → local `/inference` | Starts `whisper-server`, manages binary/model assets, and stays fully local |
 
@@ -131,12 +132,14 @@ Get the latest release for your platform:
 - One provider path:
   - **Soniox**: API key from [soniox.com](https://soniox.com)
   - **Volcengine**: APP ID and Access Token
-  - **Groq**: API key from [groq.com](https://groq.com)
-  - **SiliconFlow**: API key from [siliconflow.cn](https://siliconflow.cn)
+  - **ElevenLabs**: API key from [elevenlabs.io](https://elevenlabs.io)
   - **Mistral AI**: API key from [mistral.ai](https://mistral.ai)
+  - **Gladia**: API key from [gladia.io](https://app.gladia.io)
   - **Deepgram**: API key from [deepgram.com](https://deepgram.com)
   - **AssemblyAI**: API key from [assemblyai.com](https://www.assemblyai.com)
-  - **ElevenLabs**: API key from [elevenlabs.io](https://elevenlabs.io)
+  - **Cloudflare Workers AI**: API Token and Account ID from [dash.cloudflare.com](https://dash.cloudflare.com)
+  - **SiliconFlow**: API key from [siliconflow.cn](https://siliconflow.cn)
+  - **Groq**: API key from [groq.com](https://groq.com)
   - **Local OpenAI-compatible**: local service exposing `/v1/models` and `/v1/audio/transcriptions`
   - **Local `whisper.cpp`**: `whisper-server` plus a local `.bin` or `.gguf` model, or let DeLive import/download them
 
@@ -154,7 +157,7 @@ npm run install:all
 npm run dev
 ```
 
-`npm run dev` starts Vite and Electron together. Provider proxies (Volcengine, Mistral, Deepgram, AssemblyAI, ElevenLabs) are embedded in the Electron main process, so normal desktop development does not need a separate backend.
+`npm run dev` starts Vite and Electron together. Provider proxies (Volcengine, Mistral, Deepgram, AssemblyAI, ElevenLabs, Gladia) are embedded in the Electron main process, so normal desktop development does not need a separate backend.
 
 For standalone proxy debugging:
 
@@ -176,7 +179,7 @@ To run just the frontend tests:
 npm run test:frontend
 ```
 
-Current suite status: **266 tests across 29 files** with coverage around provider config, transcript state/stabilization, subtitle export, session lifecycle/repository, storage, cloud backup, Open API IPC responses, AI post-process parsing, and transcript text-source resolution.
+Current suite status: **272 tests across 29 files** with coverage around provider config, transcript state/stabilization, subtitle export, session lifecycle/repository, storage, cloud backup, Open API IPC responses, AI post-process parsing, and transcript text-source resolution.
 
 ### Build
 
@@ -234,11 +237,11 @@ Organize recordings into project-like containers:
 Completed sessions open in a dedicated full-page Review Desk (not a modal) with an animated sliding tab bar and keyboard arrow navigation:
 
 - **Transcript tab**: Timestamped segments in a left gutter, color-coded speaker badges, consecutive same-speaker merging, hover highlight, and TXT/Markdown/SRT/VTT export
-- **AI Correction tab**: Two correction modes (Quick Fix / Review & Fix), streaming output with real-time progress, side-by-side diff comparison, corrected text export as TXT and Markdown
+- **AI Correction tab**: Two correction modes (Quick Fix / Review & Fix), streaming output with real-time progress (character count, elapsed time, AI analysis status), side-by-side diff comparison, corrected text export as TXT and Markdown; correction streaming text persisted across tab switches
 - **Overview tab**: AI briefing — summary, action items, keywords, chapters, title/tag suggestions, and one-click apply
 - **AI Analysis tab**: Detailed AI analysis with text-source awareness banner showing whether original or corrected transcript is being used
-- **Chat tab**: Multi-thread AI conversation — GFM Markdown rendering with syntax-highlighted code blocks (one-click copy), user/AI avatars, hover Copy/Regenerate actions, animated thinking-dots indicator, auto-resizing composer (Enter to send), floating scroll-to-bottom button, and per-thread delete
-- **Mind Map tab**: Generate Markmap-compatible Markdown, edit it live, and export SVG or PNG
+- **Chat tab**: Multi-thread AI conversation — GFM Markdown rendering with syntax-highlighted code blocks (one-click copy), user/AI avatars, hover Copy/Regenerate actions, animated thinking-dots indicator, auto-resizing composer (Enter to send), floating scroll-to-bottom button, text-source status banner, and per-thread delete
+- **Mind Map tab**: Generate Markmap-compatible Markdown, edit it live, export SVG or PNG, and text-source status banner
 - **Metadata actions**: apply suggested title/tags and rename speaker labels for diarized sessions
 
 ### Local OpenAI-compatible Services
@@ -271,7 +274,7 @@ Completed sessions open in a dedicated full-page Review Desk (not a modal) with 
 | Desktop shell | `electron/main.ts`, `electron/mainWindow.ts`, `electron/captionWindow.ts`, `electron/tray.ts`, `electron/shortcuts.ts`, `electron/desktopSource.ts`, `electron/autoUpdater.ts`, `electron/ipcSecurity.ts` | Starts Electron, owns native windows, tray behavior, shortcuts, desktop source picking, updater lifecycle, IPC security, and app shutdown. |
 | Renderer app | `frontend/src/App.tsx`, `frontend/src/components/*`, `frontend/src/i18n/*` | Main settings, recording, history, topics, preview, and caption-control UI. Workspace view (Live / Review Desk / Topics / Settings) is driven by Zustand. |
 | ASR orchestration | `frontend/src/hooks/useASR.ts`, `frontend/src/services/captureManager.ts`, `frontend/src/services/providerSession.ts`, `frontend/src/services/captionBridge.ts` | Resolves provider setup, starts the right audio pipeline, forwards transcript events, and mirrors text to the caption overlay. |
-| Provider abstraction | `frontend/src/providers/registry.ts`, `frontend/src/providers/implementations/*` | Normalizes ten backends behind one contract and capability model. |
+| Provider abstraction | `frontend/src/providers/registry.ts`, `frontend/src/providers/implementations/*` | Normalizes twelve backends behind one contract and capability model. |
 | State management | `frontend/src/stores/sessionStore.ts`, `frontend/src/stores/topicStore.ts`, `frontend/src/stores/uiStore.ts`, `frontend/src/stores/settingsStore.ts`, `frontend/src/stores/tagStore.ts`, `frontend/src/stores/transcriptStore.ts` | Zustand store slices for sessions, topics, UI state, settings, tags, and a unified facade for backward compatibility. |
 | Session intelligence | `frontend/src/services/aiPostProcess.ts`, `frontend/src/components/ReviewDeskView.tsx`, `frontend/src/components/PreviewModal.tsx` | AI briefing, Q&A, mind maps, tagging, and speaker label editing. |
 | Topics | `frontend/src/components/TopicsView.tsx`, `frontend/src/components/TopicDetailView.tsx`, `frontend/src/components/TopicDialog.tsx`, `frontend/src/components/TopicPicker.tsx` | Card-grid topic browser, per-topic session list, CRUD dialogs, and Live-view topic selection. |
@@ -283,8 +286,8 @@ Completed sessions open in a dedicated full-page Review Desk (not a modal) with 
 | Electron IPC layer | `electron/appIpc.ts`, `electron/captionIpc.ts`, `electron/safeStorageIpc.ts`, `electron/updaterIpc.ts`, `electron/diagnosticsIpc.ts`, `electron/apiIpc.ts` | Modular IPC handlers for app lifecycle, caption window control, secret storage, auto-update, diagnostics, and Open API data bridge. |
 | Open API layer | `electron/apiServer.ts`, `electron/apiBroadcast.ts`, `frontend/src/hooks/useApiIpcResponder.ts` | REST API endpoints, WebSocket live transcript broadcasting, and renderer-side IPC responder for session data queries. |
 | MCP & agent ecosystem | `mcp/delive-mcp-server.js`, `skills/delive-transcript-analyzer/SKILL.md` | Standalone MCP server exposing DeLive as tools/resources and agent skill definition. |
-| Shared contracts | `shared/electronApi.ts`, `electron/preload.ts`, `shared/volcProxyCore.ts`, `shared/mistralProxyCore.ts`, `shared/deepgramProxyCore.ts`, `shared/assemblyaiProxyCore.ts`, `shared/elevenlabsProxyCore.ts` | Typed bridge between renderer and main process plus shared protocol helpers for embedded provider proxies. |
-| Debug and release support | `server/`, `scripts/`, `.github/workflows/release.yml`, `.github/workflows/ci.yml` | Standalone proxy debugging, icon/runtime staging scripts, continuous integration, and tagged multi-platform release builds. |
+| Shared contracts | `shared/electronApi.ts`, `electron/preload.ts`, `shared/volcProxyCore.ts`, `shared/mistralProxyCore.ts`, `shared/deepgramProxyCore.ts`, `shared/assemblyaiProxyCore.ts`, `shared/elevenlabsProxyCore.ts`, `shared/gladiaProxyCore.ts` | Typed bridge between renderer and main process plus shared protocol helpers for embedded provider proxies. |
+| Debug and release support | `server/`, `scripts/`, `.github/workflows/release.yml`, `.github/workflows/ci.yml`, `.github/workflows/test-build.yml` | Standalone proxy debugging, icon/runtime staging scripts, continuous integration, test builds, and tagged multi-platform release builds. |
 
 ## 🔄 Recording Lifecycle
 
@@ -331,12 +334,14 @@ graph TB
         REG[Provider Registry]
         SON[Soniox]
         VOL[Volcengine]
-        GRQ[Groq]
-        SIL[SiliconFlow]
+        ELB[ElevenLabs]
         MIS[Mistral AI]
+        GLA[Gladia]
         DPG[Deepgram]
         AAI[AssemblyAI]
-        ELB[ElevenLabs]
+        CFL[Cloudflare Workers AI]
+        SIL[SiliconFlow]
+        GRQ[Groq]
         LOA[Local OpenAI-compatible]
         WCP[whisper.cpp Runtime]
     end
@@ -369,24 +374,28 @@ graph TB
     PROVSESS --> REG
     REG --> SON
     REG --> VOL
-    REG --> GRQ
-    REG --> SIL
+    REG --> ELB
     REG --> MIS
+    REG --> GLA
     REG --> DPG
     REG --> AAI
-    REG --> ELB
+    REG --> CFL
+    REG --> SIL
+    REG --> GRQ
     REG --> LOA
     REG --> WCP
 
     MR --> SON
     MR --> LOA
     AP --> VOL
-    AP --> GRQ
-    AP --> SIL
+    AP --> ELB
     AP --> MIS
+    AP --> GLA
     AP --> DPG
     AP --> AAI
-    AP --> ELB
+    AP --> CFL
+    AP --> SIL
+    AP --> GRQ
     AP --> WCP
 
     VOL --> PROXY
@@ -394,6 +403,7 @@ graph TB
     DPG --> PROXY
     AAI --> PROXY
     ELB --> PROXY
+    GLA --> PROXY
     WCP --> RTM
 
     STORES --> REPO
@@ -428,8 +438,8 @@ graph TB
 | Desktop shell | Electron main process, main window, caption window, tray, updater, diagnostics | Owns native lifecycle, source picking, caption overlay, and OS integration. |
 | Renderer | React UI, Zustand stores, history/preview workspace, topics, settings panels | Handles recording flow, configuration, topic management, session review, and user actions. |
 | Orchestration | `useASR`, `CaptureManager`, `ProviderSessionManager`, `CaptionBridge` | Keeps provider logic separate from capture and UI. |
-| Provider layer | Registry plus 10 implementations | Unifies realtime cloud, windowed batch cloud, local service, and local runtime flows. |
-| Electron services | Embedded multi-provider proxy (Volcengine, Mistral, Deepgram, AssemblyAI, ElevenLabs), local runtime controller, safe-storage IPC, diagnostics IPC | Provides features that the browser environment cannot do directly. |
+| Provider layer | Registry plus 12 implementations | Unifies realtime cloud, windowed batch cloud, local service, and local runtime flows. |
+| Electron services | Embedded multi-provider proxy (Volcengine, Mistral, Deepgram, AssemblyAI, ElevenLabs, Gladia), local runtime controller, safe-storage IPC, diagnostics IPC | Provides features that the browser environment cannot do directly. |
 | Persistence | Session repository, IndexedDB, localStorage, `safeStorage` | Autosaves drafts, restores interrupted sessions, and stores secrets separately from general settings. |
 | Shared contracts | Typed preload bridge and shared helper modules | Keeps renderer/main contracts explicit and safer to evolve. |
 
@@ -614,7 +624,7 @@ An agent skill definition is available at [`skills/delive-transcript-analyzer/SK
 ## ⚠️ Notes
 
 1. **System requirements**: Windows 10+, macOS 13+, or Linux with PulseAudio loopback support.
-2. **Provider proxies**: normal desktop usage does not require a separate backend process; Electron embeds WebSocket proxies for Volcengine, Mistral, Deepgram, AssemblyAI, and ElevenLabs internally.
+2. **Provider proxies**: normal desktop usage does not require a separate backend process; Electron embeds WebSocket proxies for Volcengine, Mistral, Deepgram, AssemblyAI, ElevenLabs, and Gladia internally.
 3. **Local OpenAI-compatible mode**: discovery expects `/v1/models`, while transcription expects `/v1/audio/transcriptions`.
 4. **`whisper.cpp` mode**: packaged binaries are optional; users can also import or download runtime assets later.
 5. **Tray behavior**: closing the main window hides to tray instead of exiting the app.
