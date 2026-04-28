@@ -181,9 +181,12 @@ export abstract class WindowedBatchTranscriptionProvider<TChunk> extends BaseASR
     let shouldRunFinalPass = false
 
     const chunks = this.audioWindow.getItems()
-    if (!isFinal && this.isWindowSilent(chunks)) {
-      this.inFlight = false
-      return
+    if (!isFinal) {
+      const recentChunks = this.audioWindow.getRecentItems(3000)
+      if (recentChunks.length > 0 && this.isWindowSilent(recentChunks)) {
+        this.inFlight = false
+        return
+      }
     }
 
     try {

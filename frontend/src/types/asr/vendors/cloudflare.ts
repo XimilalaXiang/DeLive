@@ -11,11 +11,12 @@ export interface CloudflareTranscriptionResponse {
     word_count?: number
     words?: Array<{ word: string; start: number; end: number }>
     vtt?: string
-    segments?: Array<{
-      start: number
-      end: number
-      text: string
-    }>
+  segments?: Array<{
+    start: number
+    end: number
+    text: string
+    words?: Array<{ word: string; start: number; end: number }>
+  }>
     transcription_info?: {
       language?: string
       language_probability?: number

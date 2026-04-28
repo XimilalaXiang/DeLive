@@ -161,7 +161,12 @@ export class CloudflareProvider extends WindowedBatchTranscriptionProvider<Array
       new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), ''),
     )
 
-    const body: Record<string, unknown> = { audio: base64, word_timestamps: true }
+    const body: Record<string, unknown> = {
+      audio: base64,
+      vad_filter: true,
+      condition_on_previous_text: false,
+      hallucination_silence_threshold: 1,
+    }
 
     const language = this.getLanguageHint(config)
     if (language) {
@@ -195,6 +200,18 @@ export class CloudflareProvider extends WindowedBatchTranscriptionProvider<Array
         : 'Unknown Cloudflare API error'
       throw new Error(errorMsg)
     }
+
+    const words: TimestampedWord[] = []
+    if (result.result?.segments && result.result.segments.length > 0) {
+      for (const seg of result.result.segments) {
+        if (seg.words && seg.words.length > 0) {
+          for (const w of seg.words) {
+            words.push({ start: w.start, end: w.end, text: w.word })
+          }
+        }
+      }
+    }
+    if (words.length > 0) return words
 
     if (result.result?.words && result.result.words.length > 0) {
       return result.result.words.map(w => ({ start: w.start, end: w.end, text: w.word }))

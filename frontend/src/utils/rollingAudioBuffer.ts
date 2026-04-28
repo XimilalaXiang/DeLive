@@ -46,6 +46,16 @@ export class RollingAudioBuffer<T> {
     return this.chunks.map((chunk) => chunk.data)
   }
 
+  getRecentItems(durationMs: number): T[] {
+    const items: T[] = []
+    let accumulated = 0
+    for (let i = this.chunks.length - 1; i >= 0 && accumulated < durationMs; i--) {
+      items.unshift(this.chunks[i].data)
+      accumulated += this.chunks[i].durationMs
+    }
+    return items
+  }
+
   private trim(): void {
     while (this.totalDurationMs > this.maxWindowMs && this.chunks.length > 1) {
       const removed = this.chunks.shift()
