@@ -455,7 +455,10 @@
 
       <!-- Chat with Transcript -->
       <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center mb-16 md:mb-24 reveal">
-        <div>
+        <div class="order-2 md:order-1 screenshot-comic">
+          <img src="images/screenshot-ai-chat.png" alt="AI Chat" class="w-full block" loading="lazy" />
+        </div>
+        <div class="order-1 md:order-2">
           <div class="pow-badge bg-[#00d4aa] text-ink mb-4" data-i18n="showcase.chat.badge">Conversational</div>
           <h3 class="font-sans text-2xl md:text-4xl tracking-wide uppercase mb-4" data-i18n="showcase.chat.title">Chat with Transcript</h3>
           <p class="font-bold text-sm md:text-base mb-6" data-i18n="showcase.chat.desc">Ask questions, get clarifications, extract info — through a natural chat interface with Markdown rendering.</p>
@@ -465,17 +468,11 @@
             <li class="flex items-center gap-3"><span class="check-comic"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span> <span data-i18n="showcase.chat.f3">Multi-thread conversations</span></li>
           </ul>
         </div>
-        <div class="screenshot-comic">
-          <img src="images/screenshot-ai-chat.png" alt="AI Chat" class="w-full block" loading="lazy" />
-        </div>
       </div>
 
       <!-- Mind Map -->
       <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center mb-16 md:mb-24 reveal">
-        <div class="order-2 md:order-1 screenshot-comic">
-          <img src="images/screenshot-mindmap.png" alt="Mind Map" class="w-full block" loading="lazy" />
-        </div>
-        <div class="order-1 md:order-2">
+        <div>
           <div class="pow-badge bg-white text-ink mb-4" data-i18n="showcase.mindmap.badge">Visual</div>
           <h3 class="font-sans text-2xl md:text-4xl tracking-wide uppercase mb-4" data-i18n="showcase.mindmap.title">Mind Maps</h3>
           <p class="font-bold text-sm md:text-base mb-6" data-i18n="showcase.mindmap.desc">Auto-generate interactive mind maps from your transcripts. Powered by Markmap for a visual overview.</p>
@@ -485,10 +482,16 @@
             <li class="flex items-center gap-3"><span class="check-comic"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span> <span data-i18n="showcase.mindmap.f3">Powered by Markmap</span></li>
           </ul>
         </div>
+        <div class="screenshot-comic">
+          <img src="images/screenshot-mindmap.png" alt="Mind Map" class="w-full block" loading="lazy" />
+        </div>
       </div>
 
       <!-- Caption Overlay -->
       <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center mb-16 md:mb-24 reveal">
+        <div class="screenshot-comic">
+          <img src="images/screenshot-caption-overlay.png" alt="Caption Overlay" class="w-full block" loading="lazy" />
+        </div>
         <div>
           <div class="pow-badge bg-boom text-white mb-4" data-i18n="showcase.caption.badge">Always-on-top</div>
           <h3 class="font-sans text-2xl md:text-4xl tracking-wide uppercase mb-4" data-i18n="showcase.caption.title">Caption Overlay</h3>
@@ -499,17 +502,11 @@
             <li class="flex items-center gap-3"><span class="check-comic"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span> <span data-i18n="showcase.caption.f3">Bilingual mode</span></li>
           </ul>
         </div>
-        <div class="screenshot-comic">
-          <img src="images/screenshot-caption-overlay.png" alt="Caption Overlay" class="w-full block" loading="lazy" />
-        </div>
       </div>
 
       <!-- MCP Integration -->
       <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center reveal">
-        <div class="order-2 md:order-1 screenshot-comic">
-          <img src="images/screenshot-mcp-integration.png" alt="MCP Integration" class="w-full block" loading="lazy" />
-        </div>
-        <div class="order-1 md:order-2">
+        <div>
           <div class="pow-badge bg-[#6E29F5] text-white mb-4" data-i18n="showcase.mcp.badge">Developer</div>
           <h3 class="font-sans text-2xl md:text-4xl tracking-wide uppercase mb-4" data-i18n="showcase.mcp.title">MCP Integration</h3>
           <p class="font-bold text-sm md:text-base mb-6" data-i18n="showcase.mcp.desc">External AI tools access DeLive transcription data via the Model Context Protocol. Works with Claude Desktop and Cursor.</p>
@@ -518,6 +515,9 @@
             <li class="flex items-center gap-3"><span class="check-comic"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span> <span data-i18n="showcase.mcp.f2">REST API + WebSocket</span></li>
             <li class="flex items-center gap-3"><span class="check-comic"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span> <span data-i18n="showcase.mcp.f3">8 API endpoints</span></li>
           </ul>
+        </div>
+        <div class="screenshot-comic">
+          <img src="images/screenshot-mcp-integration.png" alt="MCP Integration" class="w-full block" loading="lazy" />
         </div>
       </div>
     </div>
