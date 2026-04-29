@@ -14,9 +14,9 @@ This page walks you through obtaining API keys for each cloud-based ASR provider
 | [SiliconFlow](#siliconflow) | $1 free credits for new users | [cloud.siliconflow.cn](https://cloud.siliconflow.cn) | No |
 | [Deepgram](#deepgram) | $200 free credits (one-time) | [console.deepgram.com](https://console.deepgram.com) | No |
 | [AssemblyAI](#assemblyai) | $50 free credits (one-time) | [assemblyai.com](https://www.assemblyai.com) | No |
-| [ElevenLabs](#elevenlabs) | Pay-as-you-go ($0.39/hr realtime) | [elevenlabs.io](https://elevenlabs.io) | Yes |
+| [ElevenLabs](#elevenlabs) | Pay-as-you-go ($0.39/hr realtime) | [elevenlabs.io](https://elevenlabs.io) | No |
 | [Gladia](#gladia) | 10 hours/month (recurring) | [gladia.io](https://www.gladia.io) | No |
-| [Mistral AI](#mistral-ai) | Free Experiment tier (rate-limited) | [console.mistral.ai](https://console.mistral.ai) | No |
+| [Mistral AI](#mistral-ai) | Free Experiment tier (rate-limited) | [console.mistral.ai](https://console.mistral.ai) | Yes |
 | [Volcengine](#volcengine) | Check console for trial credits | [console.volcengine.com](https://console.volcengine.com) | No |
 
 ---
@@ -148,7 +148,7 @@ $200 in free credits covers thousands of minutes. No credit card required.
 
 **Website:** [elevenlabs.io](https://elevenlabs.io)
 
-**Pricing:** Scribe v2 Realtime (used by DeLive) at $0.39/hr. Standard Scribe at $0.22/hr. Pay-as-you-go, no recurring free STT credits.
+**Pricing:** Scribe v2 Realtime (used by DeLive) at $0.39/hr. Standard Scribe at $0.22/hr. Pay-as-you-go, no credit card required to sign up.
 
 **Steps:**
 
@@ -187,7 +187,7 @@ $200 in free credits covers thousands of minutes. No credit card required.
 
 **Website:** [console.mistral.ai](https://console.mistral.ai)
 
-**Pricing:** Free Experiment tier with rate-limited access to all models (no credit card, phone verification only). Voxtral models for real-time ASR.
+**Pricing:** Free Experiment tier with rate-limited access to all models (credit card required, phone verification needed). Voxtral models for real-time ASR.
 
 **Steps:**
 
@@ -201,7 +201,7 @@ $200 in free credits covers thousands of minutes. No credit card required.
 **DeLive field:** `apiKey`
 
 ::: tip Free Experiment Tier
-No credit card needed. Rate-limited but sufficient for personal use and testing.
+Rate-limited but sufficient for personal use and testing. Credit card required for signup.
 :::
 
 ---

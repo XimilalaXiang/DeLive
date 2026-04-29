@@ -14,9 +14,9 @@
 | [硅基流动](#硅基流动-siliconflow) | 新用户赠送 ¥14 / $1 额度 | [cloud.siliconflow.cn](https://cloud.siliconflow.cn) | 否 |
 | [Deepgram](#deepgram) | 注册送 $200 额度（一次性） | [console.deepgram.com](https://console.deepgram.com) | 否 |
 | [AssemblyAI](#assemblyai) | 注册送 $50 额度（一次性） | [assemblyai.com](https://www.assemblyai.com) | 否 |
-| [ElevenLabs](#elevenlabs) | 按量付费（实时 $0.39/小时） | [elevenlabs.io](https://elevenlabs.io) | 是 |
+| [ElevenLabs](#elevenlabs) | 按量付费（实时 $0.39/小时） | [elevenlabs.io](https://elevenlabs.io) | 否 |
 | [Gladia](#gladia) | **每月 10 小时免费**（持续） | [gladia.io](https://www.gladia.io) | 否 |
-| [Mistral AI](#mistral-ai) | 免费实验层（有速率限制） | [console.mistral.ai](https://console.mistral.ai) | 否 |
+| [Mistral AI](#mistral-ai) | 免费实验层（有速率限制） | [console.mistral.ai](https://console.mistral.ai) | 是 |
 | [火山引擎](#火山引擎-volcengine) | 控制台查看试用额度 | [console.volcengine.com](https://console.volcengine.com) | 否 |
 
 ---
@@ -148,7 +148,7 @@ $200 免费额度可覆盖数千分钟的转录，无需信用卡。
 
 **官网：** [elevenlabs.io](https://elevenlabs.io)
 
-**计费：** Scribe v2 Realtime（DeLive 使用）$0.39/小时。标准 Scribe $0.22/小时。按量付费，无免费语音转文字额度。
+**计费：** Scribe v2 Realtime（DeLive 使用）$0.39/小时。标准 Scribe $0.22/小时。按量付费，注册无需信用卡。
 
 **获取步骤：**
 
@@ -187,7 +187,7 @@ $200 免费额度可覆盖数千分钟的转录，无需信用卡。
 
 **官网：** [console.mistral.ai](https://console.mistral.ai)
 
-**计费：** 免费实验层（Experiment）可访问所有模型，有速率限制。无需信用卡，仅需手机验证。Voxtral 模型用于实时 ASR。
+**计费：** 免费实验层（Experiment）可访问所有模型，有速率限制。需要信用卡和手机验证。Voxtral 模型用于实时 ASR。
 
 **获取步骤：**
 
@@ -201,7 +201,7 @@ $200 免费额度可覆盖数千分钟的转录，无需信用卡。
 **DeLive 字段：** `apiKey`
 
 ::: tip 免费实验层
-无需信用卡。虽有速率限制，但个人使用和测试完全够用。
+虽有速率限制，但个人使用和测试完全够用。注册需要信用卡。
 :::
 
 ---
