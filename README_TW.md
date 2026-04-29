@@ -21,7 +21,7 @@
 
 <div align="center">
 
-🌐 **[官方網站](https://delive.me)** · 📖 **[專案文檔](https://docs.delive.me/zh/)** · ⬇️ **[立即下載](https://github.com/XimilalaXiang/DeLive/releases/latest)**
+🌐 **[官方網站](https://delive.me)** · 📖 **[專案文檔](https://docs.delive.me/zh/)** · 📋 **[使用指南](https://docs.delive.me/zh/guide/getting-started)** · ⬇️ **[立即下載](https://github.com/XimilalaXiang/DeLive/releases/latest)**
 
 </div>
 

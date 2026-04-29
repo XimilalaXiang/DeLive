@@ -22,7 +22,7 @@ English | [简体中文](./README_ZH.md) | [繁體中文](./README_TW.md) | [日
 
 <div align="center">
 
-🌐 **[Official Website](https://delive.me)** · 📖 **[Documentation](https://docs.delive.me)** · ⬇️ **[Download](https://github.com/XimilalaXiang/DeLive/releases/latest)**
+🌐 **[Official Website](https://delive.me)** · 📖 **[Documentation](https://docs.delive.me)** · 📋 **[Getting Started](https://docs.delive.me/guide/getting-started)** · ⬇️ **[Download](https://github.com/XimilalaXiang/DeLive/releases/latest)**
 
 </div>
 
