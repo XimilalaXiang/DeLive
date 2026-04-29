@@ -255,7 +255,7 @@ Volcengine registration typically requires a Chinese phone number and identity v
 |----------|---------------------|
 | Free trial, getting started | Groq, Gladia, Deepgram |
 | Best accuracy (English) | Soniox, Deepgram, AssemblyAI |
-| Chinese content | Volcengine, SiliconFlow |
+| Chinese content | Soniox, Volcengine, SiliconFlow, ElevenLabs |
 | Multilingual | Soniox, ElevenLabs, Gladia |
 | Budget-conscious | Cloudflare Workers AI, Groq |
 | Fully offline | Local whisper.cpp (no key needed) |
