@@ -9,7 +9,7 @@ This page walks you through obtaining API keys for each cloud-based ASR provider
 | Provider | Free Tier | Signup Link | Credit Card Required |
 |----------|-----------|-------------|---------------------|
 | [Soniox](#soniox) | Pay-as-you-go (~$0.12/hr streaming) | [soniox.com](https://soniox.com) | Yes |
-| [Volcengine](#volcengine) | Check console for trial credits | [console.volcengine.com](https://console.volcengine.com) | No |
+| [Volcengine](#volcengine) | 20 free hours per app (renewable) | [console.volcengine.com](https://console.volcengine.com) | No |
 | [ElevenLabs](#elevenlabs) | Pay-as-you-go ($0.39/hr realtime) | [elevenlabs.io](https://elevenlabs.io) | No |
 | [Mistral AI](#mistral-ai) | Free Experiment tier (rate-limited) | [console.mistral.ai](https://console.mistral.ai) | Yes |
 | [Gladia](#gladia) | 10 hours/month (recurring) | [gladia.io](https://www.gladia.io) | No |
@@ -41,22 +41,36 @@ This page walks you through obtaining API keys for each cloud-based ASR provider
 
 ## Volcengine
 
-**Website:** [console.volcengine.com](https://console.volcengine.com)
+**Website:** [volcengine.com](https://www.volcengine.com/product/speech)
 
-**Pricing:** Check the console for trial credits and pricing. Streaming ASR is billed per minute. Primarily targets the Chinese market.
+**Pricing:** Each app comes with **20 free hours** of ASR quota. When exhausted, you can create a new app to get another 20 hours. Paid plans are billed per minute.
+
+::: tip Best Chinese Accuracy
+Volcengine (Doubao / 豆包) has the lowest error rate for Chinese speech recognition among current providers. Highly recommended for Chinese content.
+:::
 
 **Steps:**
 
-1. Go to [console.volcengine.com](https://console.volcengine.com) and register (Chinese phone number required)
-2. Navigate to **语音技术 (Speech Technology)** → **实时语音识别 (Streaming ASR)**
-3. Activate the service and note your **AppKey**
-4. Go to **密钥管理 (Key Management)** to find your **Access Key**
-5. In DeLive, select **Volcengine** as provider, enter both `appKey` and `accessKey`
+1. Go to [console.volcengine.com](https://console.volcengine.com) and sign up (Chinese phone number required)
+2. Open the [Create App](https://console.volcengine.com/speech/app?opt=create) page
+3. Fill in **App Name** (e.g. "DeLive") and a brief **Description**
+4. Under **Capabilities**, check the following models:
+   - **豆包流式语音识别模型2.0** → select **小时版** (hourly)
+   - **豆包录音文件识别模型2.0** → select **标准版** (standard)
+   - **录音文件识别大模型** → select **标准版** (standard)
+5. Click **Create** to finish
+6. Go to the [Service Credentials](https://console.volcengine.com/speech/service/10039) page
+7. Copy **APP ID** (labeled ①) and **Access Token** (labeled ②). The third field (Secret) is **not needed**
+8. In DeLive, select **Volcengine** as provider, paste **APP ID** into the first field and **Access Token** into the second field
 
-**DeLive fields:** `appKey`, `accessKey`
+**DeLive fields:** `APP ID`, `Access Token`
 
 ::: warning China Region
-Volcengine registration typically requires a Chinese phone number and identity verification.
+Volcengine registration requires a Chinese phone number and identity verification. The console UI is in Chinese.
+:::
+
+::: tip Free Quota Renewal
+Each app gets 20 free hours. For personal use this easily lasts 1–2 months. When depleted, simply create a new app for another 20 hours of free quota.
 :::
 
 ---

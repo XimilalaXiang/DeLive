@@ -9,7 +9,7 @@
 | 服务商 | 免费额度 | 注册链接 | 需要信用卡 |
 |--------|---------|---------|-----------|
 | [Soniox](#soniox) | 按量付费（流式约 $0.12/小时） | [soniox.com](https://soniox.com) | 是 |
-| [火山引擎](#火山引擎-volcengine) | 控制台查看试用额度 | [console.volcengine.com](https://console.volcengine.com) | 否 |
+| [火山引擎](#火山引擎-volcengine) | 每个应用 20 小时免费（可续） | [console.volcengine.com](https://console.volcengine.com) | 否 |
 | [ElevenLabs](#elevenlabs) | 按量付费（实时 $0.39/小时） | [elevenlabs.io](https://elevenlabs.io) | 否 |
 | [Mistral AI](#mistral-ai) | 免费实验层（有速率限制） | [console.mistral.ai](https://console.mistral.ai) | 是 |
 | [Gladia](#gladia) | **每月 10 小时免费**（持续） | [gladia.io](https://www.gladia.io) | 否 |
@@ -41,22 +41,36 @@
 
 ## 火山引擎 (Volcengine)
 
-**官网：** [console.volcengine.com](https://console.volcengine.com)
+**官网：** [volcengine.com](https://www.volcengine.com/product/speech)
 
-**计费：** 按分钟计费，请在控制台查看试用额度。主要面向中国市场。
+**计费：** 每个应用赠送 **20 小时**免费语音识别额度。用完后可重新创建应用获取新额度。付费按分钟计费。
+
+::: tip 中文识别最强
+火山引擎（豆包语音）的中文识别错误率在当前支持的所有服务商中最低，强烈推荐用于中文内容转录。
+:::
 
 **获取步骤：**
 
 1. 访问 [console.volcengine.com](https://console.volcengine.com) 注册（需要中国手机号）
-2. 导航到 **语音技术** → **实时语音识别**
-3. 开通服务，记下 **AppKey**
-4. 进入 **密钥管理**，获取 **Access Key**
-5. 在 DeLive 中选择 **火山引擎**，分别填入 `appKey` 和 `accessKey`
+2. 打开 [创建应用](https://console.volcengine.com/speech/app?opt=create) 页面
+3. 填写**应用名称**（如 "DeLive"）和**应用简介**
+4. 在**接入能力**中，勾选以下模型：
+   - **豆包流式语音识别模型2.0** → 选择 **小时版**
+   - **豆包录音文件识别模型2.0** → 选择 **标准版**
+   - **录音文件识别大模型** → 选择 **标准版**
+5. 点击**创建**完成
+6. 前往 [服务接口认证信息](https://console.volcengine.com/speech/service/10039) 页面
+7. 复制 **APP ID**（标记①）和 **Access Token**（标记②），第三个字段（Secret）**不需要**
+8. 在 DeLive 中选择 **火山引擎**，将 APP ID 粘贴到第一个字段，Access Token 粘贴到第二个字段
 
-**DeLive 字段：** `appKey`、`accessKey`
+**DeLive 字段：** `APP ID`、`Access Token`
 
 ::: warning 中国区域限制
-火山引擎注册通常需要中国手机号和实名认证。
+火山引擎注册需要中国手机号和实名认证，控制台界面为中文。
+:::
+
+::: tip 免费额度可续
+每个应用 20 小时免费额度，个人使用轻松用 1-2 个月。用完后只需重新创建一个新应用，即可获得新的 20 小时免费额度。
 :::
 
 ---
