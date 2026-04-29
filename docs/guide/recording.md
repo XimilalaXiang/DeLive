@@ -2,8 +2,8 @@
 
 ## Typical Flow
 
-1. Open Settings and choose a provider.
-2. Fill in credentials, then run **Test Config**.
+1. Open Settings and choose a provider (see [ASR Providers](./providers) for details).
+2. Fill in credentials (see [API Key Guide](./api-keys)), then run **Test Config**.
 3. Click **Start Recording** in the Live view.
 4. Pick a screen or window — make sure **audio sharing** is enabled.
 5. Watch partial and final text update in the main window and the optional floating caption overlay.

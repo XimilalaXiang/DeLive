@@ -259,3 +259,11 @@ $200 免费额度可覆盖数千分钟的转录，无需信用卡。
 | 多语言 | Soniox、ElevenLabs、Gladia |
 | 预算敏感 | Cloudflare Workers AI、Groq |
 | 完全离线 | 本地 whisper.cpp（无需 Key） |
+
+---
+
+## 下一步
+
+- [快速开始](./getting-started) — 下载和首次启动
+- [ASR Provider](./providers) — 各服务商技术详情
+- [录制](./recording) — 如何捕获和转录音频

@@ -259,3 +259,11 @@ Volcengine registration typically requires a Chinese phone number and identity v
 | Multilingual | Soniox, ElevenLabs, Gladia |
 | Budget-conscious | Cloudflare Workers AI, Groq |
 | Fully offline | Local whisper.cpp (no key needed) |
+
+---
+
+## Next Steps
+
+- [Getting Started](./getting-started) — Download and first launch
+- [ASR Providers](./providers) — Technical details on each provider
+- [Recording](./recording) — How to capture and transcribe audio

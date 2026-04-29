@@ -6,7 +6,7 @@ DeLive is a desktop transcription workspace that captures system audio, routes i
 
 ### Multi-Provider ASR
 
-DeLive supports **twelve ASR backends** behind a single unified interface:
+DeLive supports **twelve ASR backends** behind a single unified interface. Cloud providers require an API key — see the [API Key Guide](./api-keys) for setup instructions.
 
 | Provider | Type | Mode | Highlights |
 |----------|------|------|------------|

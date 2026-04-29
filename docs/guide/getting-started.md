@@ -14,7 +14,7 @@ Get the latest release from [GitHub Releases](https://github.com/XimilalaXiang/D
 
 1. **Open DeLive** — on first launch you'll be taken to the Settings page.
 2. **Choose a provider** — select an ASR backend from the Service tab.
-3. **Enter credentials** — fill in the required API key or configure a local service.
+3. **Enter credentials** — fill in the required API key or configure a local service. See the [API Key Guide](./api-keys) for step-by-step instructions.
 4. **Test configuration** — click **Test Config** to verify connectivity.
 5. **Start recording** — go to the Live view, click **Start Recording**, pick a screen/window with audio sharing enabled.
 
@@ -35,12 +35,20 @@ Windows may show a SmartScreen warning on first launch. Click **More info** → 
 
 ### Cloud Providers
 
+> For detailed signup instructions and free tier info, see the [API Key Guide](./api-keys).
+
 | Provider | What You Need |
 |----------|--------------|
 | Soniox | API key from [soniox.com](https://soniox.com) |
 | Volcengine | APP ID and Access Token |
 | Groq | API key from [groq.com](https://groq.com) |
 | SiliconFlow | API key from [siliconflow.cn](https://siliconflow.cn) |
+| Deepgram | API key from [deepgram.com](https://deepgram.com) |
+| AssemblyAI | API key from [assemblyai.com](https://assemblyai.com) |
+| ElevenLabs | API key from [elevenlabs.io](https://elevenlabs.io) |
+| Gladia | API key from [gladia.io](https://gladia.io) |
+| Mistral AI | API key from [mistral.ai](https://mistral.ai) |
+| Cloudflare Workers AI | API token + Account ID from [cloudflare.com](https://cloudflare.com) |
 
 ### Local Providers
 
