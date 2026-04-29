@@ -2,6 +2,8 @@
 
 DeLive supports twelve ASR backends through a unified provider registry. Each provider implements a common contract but uses different transport and audio processing strategies.
 
+> **Need an API key?** See the [API Key Guide](./api-keys) for step-by-step instructions on obtaining keys for each provider.
+
 ## Provider Comparison
 
 | Provider | Type | Transport | Audio | Streaming | Translation | Diarization |

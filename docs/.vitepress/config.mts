@@ -58,6 +58,7 @@ export default withMermaid(
                 items: [
                   { text: 'Recording', link: '/guide/recording' },
                   { text: 'ASR Providers', link: '/guide/providers' },
+                  { text: 'API Key Guide', link: '/guide/api-keys' },
                   { text: 'Caption Overlay', link: '/guide/caption' },
                   { text: 'AI Review Desk', link: '/guide/review-desk' },
                   { text: 'Topics & Tags', link: '/guide/topics' },
@@ -141,6 +142,7 @@ export default withMermaid(
                 items: [
                   { text: '录制', link: '/zh/guide/recording' },
                   { text: 'ASR Provider', link: '/zh/guide/providers' },
+                  { text: 'API Key 指引', link: '/zh/guide/api-keys' },
                   { text: '悬浮字幕', link: '/zh/guide/caption' },
                   { text: 'AI 复盘工作台', link: '/zh/guide/review-desk' },
                   { text: '主题与标签', link: '/zh/guide/topics' },

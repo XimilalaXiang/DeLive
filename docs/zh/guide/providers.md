@@ -2,6 +2,8 @@
 
 DeLive 通过统一的 Provider 注册机制支持十二种 ASR 后端。每个 Provider 实现相同的接口契约，但使用不同的传输和音频处理策略。
 
+> **需要 API Key？** 请查看 [API Key 获取指引](./api-keys)，获取各服务商的 Key 获取步骤。
+
 ## Provider 对比
 
 | Provider | 类型 | 传输方式 | 音频格式 | 流式 | 翻译 | 说话人分离 |
