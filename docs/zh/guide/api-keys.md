@@ -12,7 +12,7 @@
 | [Groq](#groq) | 免费（有速率限制，无需信用卡） | [console.groq.com](https://console.groq.com) | 否 |
 | [Cloudflare Workers AI](#cloudflare-workers-ai) | 每天 10,000 Neurons 免费 | [dash.cloudflare.com](https://dash.cloudflare.com) | 否 |
 | [硅基流动](#硅基流动-siliconflow) | 新用户赠送 ¥14 / $1 额度 | [cloud.siliconflow.cn](https://cloud.siliconflow.cn) | 否 |
-| [Deepgram](#deepgram) | 注册送 $200 额度（一次性） | [console.deepgram.com](https://console.deepgram.com) | 否 |
+| [Deepgram](#deepgram) | 注册送 $200 额度（一次性） | [console.deepgram.com](https://console.deepgram.com) | 否 | 
 | [AssemblyAI](#assemblyai) | 注册送 $50 额度（一次性） | [assemblyai.com](https://www.assemblyai.com) | 否 |
 | [ElevenLabs](#elevenlabs) | 按量付费（实时 $0.39/小时） | [elevenlabs.io](https://elevenlabs.io) | 否 |
 | [Gladia](#gladia) | **每月 10 小时免费**（持续） | [gladia.io](https://www.gladia.io) | 否 |
@@ -124,6 +124,10 @@ Groq 免费层无需信用卡，速率限制对个人使用足够，非常适合
 $200 免费额度可覆盖数千分钟的转录，无需信用卡。
 :::
 
+::: warning 中文支持有限
+Deepgram 主要针对英语优化，中文转录效果一般。如需中文转录，建议使用火山引擎或硅基流动。
+:::
+
 ---
 
 ## AssemblyAI
@@ -141,6 +145,10 @@ $200 免费额度可覆盖数千分钟的转录，无需信用卡。
 5. 在 DeLive 中选择 **AssemblyAI**，粘贴 Key
 
 **DeLive 字段：** `apiKey`
+
+::: warning 中文支持有限
+AssemblyAI 主要针对英语优化，中文转录效果一般。如需中文转录，建议使用火山引擎或硅基流动。
+:::
 
 ---
 
@@ -251,14 +259,14 @@ $200 免费额度可覆盖数千分钟的转录，无需信用卡。
 
 ## 按使用场景推荐
 
-| 使用场景 | 推荐服务商 |
-|---------|-----------|
-| 免费试用、初次体验 | Groq、Gladia、Deepgram |
-| 英语高精度 | Soniox、Deepgram、AssemblyAI |
-| 中文内容 | 火山引擎、硅基流动 |
-| 多语言 | Soniox、ElevenLabs、Gladia |
-| 预算敏感 | Cloudflare Workers AI、Groq |
-| 完全离线 | 本地 whisper.cpp（无需 Key） |
+| 使用场景 | 推荐服务商 | 备注 |
+|---------|-----------|------|
+| 免费试用、初次体验 | Groq、Gladia、Deepgram | Groq 和 Gladia 无需信用卡 |
+| 英语高精度 | Soniox、Deepgram、AssemblyAI | 英语场景首选 |
+| 中文内容 | 火山引擎、硅基流动 | Deepgram/AssemblyAI 对中文支持有限 |
+| 多语言 | Soniox、ElevenLabs、Gladia | Soniox 支持翻译和说话人分离 |
+| 预算敏感 | Cloudflare Workers AI、Groq | 免费层额度充足 |
+| 完全离线 | 本地 whisper.cpp（无需 Key） | 无网络依赖 |
 
 ---
 
