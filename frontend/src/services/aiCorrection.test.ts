@@ -42,10 +42,8 @@ const mockIssues: CorrectionIssue[] = [
 ]
 
 describe('aiCorrection — extractTextContent', async () => {
-  const mod = await import('./aiCorrection')
-
-  // extractTextContent is not exported directly but exercised through detectCorrectionIssues.
-  // We test the extractJsonArray logic via the internal parsing paths.
+  // Import module to ensure it loads without errors
+  await import('./aiCorrection')
 
   it('extracts JSON array from plain text', () => {
     // Internal helper: extractJsonArray

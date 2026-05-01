@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildPcmWavBlob, type PcmWavOptions } from './pcmWav'
+import { buildPcmWavBlob } from './pcmWav'
 
 function makePcmChunk(samples: number[]): ArrayBuffer {
   const buf = new ArrayBuffer(samples.length * 2)
