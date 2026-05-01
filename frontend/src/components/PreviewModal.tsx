@@ -93,7 +93,7 @@ export function PreviewModal({
       <SessionTabBar activeTab={activeTab} onTabChange={setActiveTab} />
       <div
         key={activeTab}
-        className="flex-1 overflow-hidden animate-tab-enter"
+        className="flex-1 overflow-hidden flex flex-col animate-tab-enter"
         role="tabpanel"
         id={`tabpanel-${activeTab}`}
         aria-labelledby={`tab-${activeTab}`}
