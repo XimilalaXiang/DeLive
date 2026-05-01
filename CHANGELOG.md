@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.1] - 2026-05-01
+
+### Fixed / 修复
+- 🔧 **Review tab scrolling** — fixed transcript and all other review tabs (AI Correction, Overview, AI Analysis, Chat, Mind Map) being unable to scroll when content exceeds visible area; root cause was a missing flex context on the tab content wrapper in `PreviewModal`
+- 🔧 **回顾标签页滚动** — 修复转录文本及所有回顾标签页（AI 纠错、概览、AI 分析、对话、思维导图）内容超出可视区域时无法滚动的问题；根因是 `PreviewModal` 中标签页内容包裹层缺少 flex 上下文
+- 🔧 **TypeScript build errors** — removed unused variable declarations in test files (`aiCorrection.test.ts`, `pcmWav.test.ts`) that caused CI build failures
+- 🔧 **TypeScript 构建错误** — 移除测试文件中未使用的变量声明（`aiCorrection.test.ts`、`pcmWav.test.ts`），修复 CI 构建失败
+
+---
+
 ## [2.1.0] - 2026-04-28
 
 ### Added / 新增

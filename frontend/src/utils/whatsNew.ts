@@ -7,6 +7,21 @@ export interface WhatsNewEntry {
 
 const entries: WhatsNewEntry[] = [
   {
+    version: '2.1.1',
+    date: '2026-05-01',
+    features: [],
+    fixes: [
+      {
+        zh: '修复回顾页面所有标签页（转录文本、AI 纠错、概览等）内容过长时无法滚动的问题',
+        en: 'Fixed all review tabs (Transcript, AI Correction, Overview, etc.) unable to scroll when content exceeds visible area',
+      },
+      {
+        zh: '修复测试文件中未使用变量导致的 TypeScript 构建失败',
+        en: 'Fixed TypeScript build errors caused by unused variable declarations in test files',
+      },
+    ],
+  },
+  {
     version: '2.1.0',
     date: '2026-04-28',
     features: [
