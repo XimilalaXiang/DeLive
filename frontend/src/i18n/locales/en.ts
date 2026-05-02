@@ -13,6 +13,7 @@ export const en: Translations = {
   // Sidebar navigation
   nav: {
     live: 'Live',
+    file: 'File',
     review: 'Review',
     topics: 'Topics',
     caption: 'Caption',

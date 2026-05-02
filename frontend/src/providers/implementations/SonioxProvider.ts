@@ -52,7 +52,10 @@ export class SonioxProvider extends BaseASRProvider {
           acceptedFileKinds: ['audio'],
         },
         fileTranscription: {
-          availability: 'unsupported',
+          availability: 'compatible',
+          executionMode: 'native-job',
+          inputSources: ['file'],
+          acceptedFileKinds: ['audio', 'video'],
         },
       },
       prefersTokenEvents: true,

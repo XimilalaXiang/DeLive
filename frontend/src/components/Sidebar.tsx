@@ -1,4 +1,4 @@
-import { Mic, FileText, FolderOpen, Monitor, Settings, PanelLeftClose, PanelLeft } from 'lucide-react'
+import { Mic, FileText, FolderOpen, FileAudio, Monitor, Settings, PanelLeftClose, PanelLeft } from 'lucide-react'
 import { AnimatedThemeToggler } from './AnimatedThemeToggler'
 import { useUIStore, type WorkspaceView } from '../stores/uiStore'
 import type { RecordingState } from '../types'
@@ -22,6 +22,7 @@ interface NavItem {
 
 const NAV_MAIN: NavItem[] = [
   { id: 'live', icon: Mic, isPage: true },
+  { id: 'file', icon: FileAudio, isPage: true },
   { id: 'review', icon: FileText, isPage: true },
   { id: 'topics', icon: FolderOpen, isPage: true },
 ]

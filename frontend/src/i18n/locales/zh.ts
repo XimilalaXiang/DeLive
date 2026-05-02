@@ -11,6 +11,7 @@ export const zh = {
   // 侧栏导航
   nav: {
     live: '录制',
+    file: '文件转录',
     review: '回顾',
     topics: '主题',
     caption: '字幕',

@@ -27,6 +27,7 @@ import { WhatsNewDialog } from './components/WhatsNewDialog'
 import { ReviewDeskView } from './components/ReviewDeskView'
 import { TopicsView } from './components/TopicsView'
 import { TopicPicker } from './components/TopicPicker'
+import { FileTranscriptionView } from './components/FileTranscriptionView'
 import { initStorage } from './utils/storage'
 
 function App() {
@@ -248,6 +249,13 @@ function App() {
         {currentView === 'topics' && (
           <div className="flex-1 overflow-hidden animate-view-enter">
             <TopicsView />
+          </div>
+        )}
+
+        {/* File Transcription */}
+        {currentView === 'file' && (
+          <div className="flex-1 overflow-hidden animate-view-enter">
+            <FileTranscriptionView />
           </div>
         )}
 
