@@ -22,6 +22,8 @@ export interface FileTranscriptionJob {
   sonioxTranscriptionId?: string
   /** Mistral-specific uploaded file ID (for large-file workflow) */
   mistralFileId?: string
+  /** Gladia-specific remote transcription job ID */
+  gladiaTranscriptionId?: string
   sessionId?: string
   error?: string
   createdAt: number

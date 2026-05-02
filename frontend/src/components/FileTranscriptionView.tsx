@@ -8,7 +8,7 @@ import { useSettingsStore } from '../stores/settingsStore'
 import { ASRVendor } from '../types/asr/common'
 import type { FileTranscriptionConfig } from '../types/fileTranscription'
 
-type FileProvider = 'soniox' | 'mistral' | 'groq' | 'siliconflow' | 'cloudflare'
+type FileProvider = 'soniox' | 'mistral' | 'groq' | 'siliconflow' | 'cloudflare' | 'gladia'
 
 const FILE_PROVIDERS: { id: FileProvider; name: string; model: string; desc: string }[] = [
   {
@@ -40,6 +40,12 @@ const FILE_PROVIDERS: { id: FileProvider; name: string; model: string; desc: str
     name: 'Cloudflare',
     model: 'whisper-large-v3-turbo',
     desc: '同步模式 · Workers AI · Whisper V3 · 免费额度 · 词级时间戳',
+  },
+  {
+    id: 'gladia',
+    name: 'Gladia',
+    model: 'solaria-1',
+    desc: '异步模式 · 100+ 语言 · 说话人识别 · 词级时间戳 · 翻译',
   },
 ]
 

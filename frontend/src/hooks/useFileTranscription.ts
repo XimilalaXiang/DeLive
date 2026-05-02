@@ -30,6 +30,12 @@ import {
 import {
   transcribeFile as cloudflareTranscribeFile,
 } from '../utils/cloudflareFileApi'
+import {
+  uploadFile as gladiaUploadFile,
+  createTranscription as gladiaCreateTranscription,
+  waitForCompletion as gladiaWaitForCompletion,
+  type GladiaUtterance,
+} from '../utils/gladiaFileApi'
 
 /* ─── Soniox result conversion ──────────────────────────────── */
 
@@ -374,6 +380,110 @@ async function executeSiliconFlow(
   }
 }
 
+/* ─── Gladia result conversion ─────────────────────────────── */
+
+function gladiaUtterancesToTokens(utterances: GladiaUtterance[]): TranscriptTokenData[] {
+  const tokens: TranscriptTokenData[] = []
+  for (const u of utterances) {
+    if (u.words && u.words.length > 0) {
+      for (const w of u.words) {
+        tokens.push({
+          text: w.word,
+          isFinal: true,
+          startMs: Math.round(w.start * 1000),
+          endMs: Math.round(w.end * 1000),
+          confidence: w.confidence,
+          speaker: u.speaker != null ? `speaker_${u.speaker}` : undefined,
+          language: u.language,
+        })
+      }
+    } else {
+      tokens.push({
+        text: u.text,
+        isFinal: true,
+        startMs: Math.round(u.start * 1000),
+        endMs: Math.round(u.end * 1000),
+        confidence: u.confidence,
+        speaker: u.speaker != null ? `speaker_${u.speaker}` : undefined,
+        language: u.language,
+      })
+    }
+  }
+  return tokens
+}
+
+function gladiaUtterancesToSegments(utterances: GladiaUtterance[]): TranscriptSegment[] {
+  return utterances.map((u) => ({
+    text: u.text.trim(),
+    startMs: Math.round(u.start * 1000),
+    endMs: Math.round(u.end * 1000),
+    speakerId: u.speaker != null ? `speaker_${u.speaker}` : undefined,
+    language: u.language,
+    isFinal: true,
+  }))
+}
+
+function gladiaExtractSpeakers(utterances: GladiaUtterance[]): TranscriptSpeaker[] {
+  const ids = new Set<string>()
+  for (const u of utterances) {
+    if (u.speaker != null) ids.add(`speaker_${u.speaker}`)
+  }
+  return Array.from(ids).map((id) => ({ id, label: id }))
+}
+
+async function executeGladia(
+  file: File,
+  config: FileTranscriptionConfig,
+  apiKey: string,
+  jobId: string,
+  updateJob: (id: string, u: Record<string, unknown>) => void,
+  signal: AbortSignal,
+): Promise<TranscriptionResult> {
+  updateJob(jobId, { status: 'uploading', progress: 10 })
+  const uploadResult = await gladiaUploadFile(apiKey, file, signal)
+  updateJob(jobId, { progress: 30 })
+
+  updateJob(jobId, { status: 'transcribing', progress: 40 })
+  const job = await gladiaCreateTranscription(
+    apiKey,
+    uploadResult.audio_url,
+    {
+      languages: config.languageHints,
+      diarization: config.enableSpeakerDiarization,
+    },
+    signal,
+  )
+  updateJob(jobId, { gladiaTranscriptionId: job.id, progress: 50 })
+
+  const result = await gladiaWaitForCompletion(
+    apiKey,
+    job.id,
+    (status, audioDurationMs) => {
+      const progressMap: Record<string, number> = { queued: 50, processing: 70, completed: 100 }
+      updateJob(jobId, { progress: progressMap[status] ?? 60, audioDurationMs })
+    },
+    signal,
+  )
+
+  const utterances = result.result?.transcription?.utterances ?? []
+  const fullTranscript = result.result?.transcription?.full_transcript ?? ''
+
+  const tokens = gladiaUtterancesToTokens(utterances)
+  const segments = gladiaUtterancesToSegments(utterances)
+  const speakers = gladiaExtractSpeakers(utterances)
+  const durationMs = result.result?.metadata?.audio_duration
+    ? result.result.metadata.audio_duration * 1000
+    : (tokens.length > 0 ? (tokens[tokens.length - 1].endMs ?? 0) : 0)
+
+  return {
+    transcript: fullTranscript,
+    tokens,
+    segments,
+    speakers,
+    durationMs,
+  }
+}
+
 async function executeCloudflare(
   file: File,
   config: FileTranscriptionConfig,
@@ -491,6 +601,8 @@ export function useFileTranscription() {
           const apiToken = providerConfig?.apiToken as string
           const accountId = providerConfig?.accountId as string
           result = await executeCloudflare(file, config, apiToken, accountId, jobId, updateJob, controller.signal)
+        } else if (providerId === 'gladia') {
+          result = await executeGladia(file, config, apiKey!, jobId, updateJob, controller.signal)
         } else {
           result = await executeSoniox(file, config, apiKey!, jobId, updateJob, controller.signal)
         }
