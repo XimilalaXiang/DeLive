@@ -8,7 +8,7 @@ import { useSettingsStore } from '../stores/settingsStore'
 import { ASRVendor } from '../types/asr/common'
 import type { FileTranscriptionConfig } from '../types/fileTranscription'
 
-type FileProvider = 'soniox' | 'mistral' | 'groq' | 'siliconflow' | 'cloudflare' | 'gladia'
+type FileProvider = 'soniox' | 'mistral' | 'groq' | 'siliconflow' | 'cloudflare' | 'gladia' | 'elevenlabs'
 
 const FILE_PROVIDERS: { id: FileProvider; name: string; model: string; desc: string }[] = [
   {
@@ -46,6 +46,12 @@ const FILE_PROVIDERS: { id: FileProvider; name: string; model: string; desc: str
     name: 'Gladia',
     model: 'solaria-1',
     desc: '异步模式 · 100+ 语言 · 说话人识别 · 词级时间戳 · 翻译',
+  },
+  {
+    id: 'elevenlabs',
+    name: 'ElevenLabs',
+    model: 'scribe_v2',
+    desc: '同步模式 · 90+ 语言 · 说话人识别 · 词级时间戳 · 音频事件标记',
   },
 ]
 

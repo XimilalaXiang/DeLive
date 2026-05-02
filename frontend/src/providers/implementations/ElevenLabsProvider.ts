@@ -50,7 +50,10 @@ export class ElevenLabsProvider extends BaseASRProvider {
           acceptedFileKinds: ['audio'],
         },
         fileTranscription: {
-          availability: 'unsupported',
+          availability: 'compatible',
+          executionMode: 'single-request',
+          inputSources: ['file'],
+          acceptedFileKinds: ['audio', 'video'],
         },
       },
       supportsConfigTest: true,

@@ -36,6 +36,10 @@ import {
   waitForCompletion as gladiaWaitForCompletion,
   type GladiaUtterance,
 } from '../utils/gladiaFileApi'
+import {
+  transcribeFile as elevenlabsTranscribeFile,
+  type ElevenLabsWord,
+} from '../utils/elevenlabsFileApi'
 
 /* ─── Soniox result conversion ──────────────────────────────── */
 
@@ -334,6 +338,100 @@ async function executeGroq(
   }
 }
 
+/* ─── ElevenLabs result conversion ─────────────────────────── */
+
+function elevenlabsWordsToTokens(words: ElevenLabsWord[]): TranscriptTokenData[] {
+  return words
+    .filter((w) => w.type === 'word')
+    .map((w) => ({
+      text: w.text,
+      isFinal: true,
+      startMs: w.start != null ? Math.round(w.start * 1000) : 0,
+      endMs: w.end != null ? Math.round(w.end * 1000) : 0,
+      speaker: w.speaker_id ?? undefined,
+    }))
+}
+
+function elevenlabsWordsToSegments(words: ElevenLabsWord[]): TranscriptSegment[] {
+  const segments: TranscriptSegment[] = []
+  let current: TranscriptSegment | null = null
+
+  for (const w of words) {
+    if (w.type !== 'word') continue
+
+    const speakerId = w.speaker_id ?? undefined
+    const speakerChanged = current && speakerId !== current.speakerId
+
+    if (!current || speakerChanged) {
+      if (current && current.text.trim()) {
+        segments.push({ ...current, text: current.text.trim() })
+      }
+      current = {
+        text: '',
+        startMs: w.start != null ? Math.round(w.start * 1000) : 0,
+        speakerId,
+        isFinal: true,
+      }
+    }
+
+    current.text += w.text
+    current.endMs = w.end != null ? Math.round(w.end * 1000) : undefined
+  }
+
+  if (current && current.text.trim()) {
+    segments.push({ ...current, text: current.text.trim() })
+  }
+
+  return segments
+}
+
+function elevenlabsExtractSpeakers(words: ElevenLabsWord[]): TranscriptSpeaker[] {
+  const ids = new Set<string>()
+  for (const w of words) {
+    if (w.speaker_id) ids.add(w.speaker_id)
+  }
+  return Array.from(ids).map((id) => ({ id, label: id }))
+}
+
+async function executeElevenLabs(
+  file: File,
+  config: FileTranscriptionConfig,
+  apiKey: string,
+  jobId: string,
+  updateJob: (id: string, u: Record<string, unknown>) => void,
+  signal: AbortSignal,
+): Promise<TranscriptionResult> {
+  updateJob(jobId, { status: 'uploading', progress: 20 })
+
+  updateJob(jobId, { status: 'transcribing', progress: 40 })
+  const response = await elevenlabsTranscribeFile(
+    apiKey,
+    file,
+    {
+      modelId: 'scribe_v2',
+      languageCode: config.languageHints?.[0],
+      diarize: config.enableSpeakerDiarization,
+      timestampsGranularity: 'word',
+    },
+    signal,
+  )
+
+  updateJob(jobId, { progress: 90 })
+
+  const tokens = elevenlabsWordsToTokens(response.words)
+  const segments = elevenlabsWordsToSegments(response.words)
+  const speakers = elevenlabsExtractSpeakers(response.words)
+  const durationMs = (response.audio_duration_secs ?? 0) * 1000
+
+  return {
+    transcript: response.text,
+    tokens,
+    segments,
+    speakers,
+    durationMs,
+  }
+}
+
 async function executeSiliconFlow(
   file: File,
   config: FileTranscriptionConfig,
@@ -603,6 +701,8 @@ export function useFileTranscription() {
           result = await executeCloudflare(file, config, apiToken, accountId, jobId, updateJob, controller.signal)
         } else if (providerId === 'gladia') {
           result = await executeGladia(file, config, apiKey!, jobId, updateJob, controller.signal)
+        } else if (providerId === 'elevenlabs') {
+          result = await executeElevenLabs(file, config, apiKey!, jobId, updateJob, controller.signal)
         } else {
           result = await executeSoniox(file, config, apiKey!, jobId, updateJob, controller.signal)
         }
