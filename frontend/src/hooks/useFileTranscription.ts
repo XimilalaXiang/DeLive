@@ -697,7 +697,7 @@ function deepgramExtractSpeakers(utterances: DeepgramFileUtterance[]): Transcrip
   }
   return Array.from(ids)
     .sort((a, b) => a - b)
-    .map((id) => ({ id: String(id), name: `Speaker ${id}` }))
+    .map((id) => ({ id: String(id), label: `Speaker ${id}` }))
 }
 
 async function executeDeepgram(
