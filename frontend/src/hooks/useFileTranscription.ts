@@ -24,6 +24,12 @@ import {
   type GroqTranscriptionWord,
   type GroqTranscriptionSegment as GroqSegment,
 } from '../utils/groqFileApi'
+import {
+  transcribeFile as siliconflowTranscribeFile,
+} from '../utils/siliconflowFileApi'
+import {
+  transcribeFile as cloudflareTranscribeFile,
+} from '../utils/cloudflareFileApi'
 
 /* ─── Soniox result conversion ──────────────────────────────── */
 
@@ -322,6 +328,123 @@ async function executeGroq(
   }
 }
 
+async function executeSiliconFlow(
+  file: File,
+  config: FileTranscriptionConfig,
+  apiKey: string,
+  jobId: string,
+  updateJob: (id: string, u: Record<string, unknown>) => void,
+  signal: AbortSignal,
+): Promise<TranscriptionResult> {
+  updateJob(jobId, { status: 'uploading', progress: 20 })
+
+  updateJob(jobId, { status: 'transcribing', progress: 40 })
+  const response = await siliconflowTranscribeFile(
+    apiKey,
+    file,
+    {
+      model: config.model || 'FunAudioLLM/SenseVoiceSmall',
+      language: config.languageHints?.[0],
+    },
+    signal,
+  )
+
+  updateJob(jobId, { progress: 90 })
+
+  const tokens: TranscriptTokenData[] = [{
+    text: response.text,
+    isFinal: true,
+    startMs: 0,
+    endMs: 0,
+  }]
+
+  const segments: TranscriptSegment[] = [{
+    text: response.text.trim(),
+    startMs: 0,
+    endMs: 0,
+    isFinal: true,
+  }]
+
+  return {
+    transcript: response.text,
+    tokens,
+    segments,
+    speakers: [],
+    durationMs: 0,
+  }
+}
+
+async function executeCloudflare(
+  file: File,
+  config: FileTranscriptionConfig,
+  apiToken: string,
+  accountId: string,
+  jobId: string,
+  updateJob: (id: string, u: Record<string, unknown>) => void,
+  signal: AbortSignal,
+): Promise<TranscriptionResult> {
+  updateJob(jobId, { status: 'uploading', progress: 20 })
+
+  updateJob(jobId, { status: 'transcribing', progress: 40 })
+  const response = await cloudflareTranscribeFile(
+    apiToken,
+    accountId,
+    file,
+    {
+      model: config.model,
+      language: config.languageHints?.[0],
+    },
+    signal,
+  )
+
+  updateJob(jobId, { progress: 90 })
+
+  let tokens: TranscriptTokenData[]
+  let segments: TranscriptSegment[]
+
+  if (response.words.length > 0) {
+    tokens = response.words.map((w) => ({
+      text: w.word,
+      isFinal: true,
+      startMs: Math.round(w.start * 1000),
+      endMs: Math.round(w.end * 1000),
+    }))
+  } else {
+    tokens = [{
+      text: response.text,
+      isFinal: true,
+      startMs: 0,
+      endMs: (response.duration ?? 0) * 1000,
+    }]
+  }
+
+  if (response.segments.length > 0) {
+    segments = response.segments.map((seg) => ({
+      text: seg.text.trim(),
+      startMs: Math.round(seg.start * 1000),
+      endMs: Math.round(seg.end * 1000),
+      isFinal: true,
+    }))
+  } else {
+    segments = [{
+      text: response.text.trim(),
+      startMs: 0,
+      endMs: (response.duration ?? 0) * 1000,
+      isFinal: true,
+    }]
+  }
+
+  const durationMs = (response.duration ?? 0) * 1000
+
+  return {
+    transcript: response.text,
+    tokens,
+    segments,
+    speakers: [],
+    durationMs,
+  }
+}
+
 /* ─── Main hook ─────────────────────────────────────────────── */
 
 export function useFileTranscription() {
@@ -333,7 +456,14 @@ export function useFileTranscription() {
     const providerId = config.provider
     const providerConfig = useSettingsStore.getState().getProviderConfig(providerId)
     const apiKey = providerConfig?.apiKey as string | undefined
-    if (!apiKey) {
+
+    if (providerId === 'cloudflare') {
+      const apiToken = providerConfig?.apiToken as string | undefined
+      const accountId = providerConfig?.accountId as string | undefined
+      if (!apiToken || !accountId) {
+        throw new Error('Cloudflare API Token 或 Account ID 未配置')
+      }
+    } else if (!apiKey) {
       throw new Error(`${providerId} API Key not configured`)
     }
 
@@ -352,11 +482,17 @@ export function useFileTranscription() {
         let result: TranscriptionResult
 
         if (providerId === 'groq') {
-          result = await executeGroq(file, config, apiKey, jobId, updateJob, controller.signal)
+          result = await executeGroq(file, config, apiKey!, jobId, updateJob, controller.signal)
         } else if (providerId === 'mistral') {
-          result = await executeMistral(file, config, apiKey, jobId, updateJob, controller.signal)
+          result = await executeMistral(file, config, apiKey!, jobId, updateJob, controller.signal)
+        } else if (providerId === 'siliconflow') {
+          result = await executeSiliconFlow(file, config, apiKey!, jobId, updateJob, controller.signal)
+        } else if (providerId === 'cloudflare') {
+          const apiToken = providerConfig?.apiToken as string
+          const accountId = providerConfig?.accountId as string
+          result = await executeCloudflare(file, config, apiToken, accountId, jobId, updateJob, controller.signal)
         } else {
-          result = await executeSoniox(file, config, apiKey, jobId, updateJob, controller.signal)
+          result = await executeSoniox(file, config, apiKey!, jobId, updateJob, controller.signal)
         }
 
         const now = Date.now()

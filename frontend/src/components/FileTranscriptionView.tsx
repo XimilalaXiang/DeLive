@@ -8,7 +8,7 @@ import { useSettingsStore } from '../stores/settingsStore'
 import { ASRVendor } from '../types/asr/common'
 import type { FileTranscriptionConfig } from '../types/fileTranscription'
 
-type FileProvider = 'soniox' | 'mistral' | 'groq'
+type FileProvider = 'soniox' | 'mistral' | 'groq' | 'siliconflow' | 'cloudflare'
 
 const FILE_PROVIDERS: { id: FileProvider; name: string; model: string; desc: string }[] = [
   {
@@ -29,6 +29,18 @@ const FILE_PROVIDERS: { id: FileProvider; name: string; model: string; desc: str
     model: 'whisper-large-v3-turbo',
     desc: '同步模式 · Whisper V3 · 词/段落时间戳 · 超快推理',
   },
+  {
+    id: 'siliconflow',
+    name: '硅基流动',
+    model: 'SenseVoice / Qwen Omni',
+    desc: '同步模式 · SenseVoice ASR · Qwen 多模态 · 中文优化',
+  },
+  {
+    id: 'cloudflare',
+    name: 'Cloudflare',
+    model: 'whisper-large-v3-turbo',
+    desc: '同步模式 · Workers AI · Whisper V3 · 免费额度 · 词级时间戳',
+  },
 ]
 
 export function FileTranscriptionView() {
@@ -37,7 +49,9 @@ export function FileTranscriptionView() {
 
   const [selectedProvider, setSelectedProvider] = useState<FileProvider>('soniox')
   const providerConfig = useSettingsStore((s) => s.getProviderConfig(selectedProvider))
-  const hasApiKey = Boolean(providerConfig?.apiKey)
+  const hasApiKey = selectedProvider === 'cloudflare'
+    ? Boolean(providerConfig?.apiToken && providerConfig?.accountId)
+    : Boolean(providerConfig?.apiKey)
 
   const activeJobs = useFileTranscriptionStore((s) => s.getActiveJobs())
   const isProcessing = activeJobs.length > 0
