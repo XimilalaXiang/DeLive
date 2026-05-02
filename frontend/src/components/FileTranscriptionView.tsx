@@ -39,7 +39,7 @@ const FILE_PROVIDERS: { id: FileProvider; name: string; model: string; desc: str
     id: 'cloudflare',
     name: 'Cloudflare',
     model: 'whisper-large-v3-turbo',
-    desc: '同步模式 · Workers AI · Whisper V3 · 免费额度 · 词级时间戳',
+    desc: '同步模式 · Workers AI · Whisper V3 · 免费额度 · 限 2MB 以内文件',
   },
   {
     id: 'gladia',
@@ -148,6 +148,15 @@ export function FileTranscriptionView() {
             </span>
           </div>
         </div>
+
+        {/* Cloudflare file-size warning */}
+        {selectedProvider === 'cloudflare' && hasApiKey && (
+          <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/30 p-4">
+            <p className="text-sm text-blue-800 dark:text-blue-200">
+              Cloudflare Workers AI 限制文件大小约 2 MB。较大的文件请选择 Groq、Gladia 或 ElevenLabs。
+            </p>
+          </div>
+        )}
 
         {/* Drop Zone */}
         <FileDropZone

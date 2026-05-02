@@ -3,6 +3,14 @@ import {
   type CloudflareTranscriptionResponse,
 } from '../types/asr/vendors/cloudflare'
 
+/**
+ * Cloudflare Workers AI has an undocumented payload size limit.
+ * Community reports indicate failures starting around 2-4 MB of raw audio,
+ * and base64 encoding inflates the payload by ~33%.
+ * We cap at 2 MB raw (≈2.67 MB base64) to stay safely within the limit.
+ */
+export const CLOUDFLARE_MAX_FILE_BYTES = 2 * 1024 * 1024
+
 export interface CloudflareFileTranscriptionResponse {
   text: string
   segments: { start: number; end: number; text: string }[]
@@ -18,17 +26,11 @@ export interface CloudflareFileTranscribeParams {
 
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer)
-  const chunkSize = 0x8000
-  const chunks: string[] = []
-  for (let offset = 0; offset < bytes.length; offset += chunkSize) {
-    const slice = bytes.subarray(offset, offset + chunkSize)
-    let binary = ''
-    for (const byte of slice) {
-      binary += String.fromCharCode(byte)
-    }
-    chunks.push(binary)
+  let binary = ''
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i])
   }
-  return btoa(chunks.join(''))
+  return btoa(binary)
 }
 
 export async function transcribeFile(
@@ -38,6 +40,15 @@ export async function transcribeFile(
   params: CloudflareFileTranscribeParams = {},
   signal?: AbortSignal,
 ): Promise<CloudflareFileTranscriptionResponse> {
+  if (file.size > CLOUDFLARE_MAX_FILE_BYTES) {
+    const sizeMB = (file.size / (1024 * 1024)).toFixed(1)
+    const limitMB = (CLOUDFLARE_MAX_FILE_BYTES / (1024 * 1024)).toFixed(0)
+    throw new Error(
+      `文件过大（${sizeMB} MB），Cloudflare Workers AI 限制约 ${limitMB} MB。` +
+      '请选择 Groq、Gladia 或 ElevenLabs 等支持大文件的提供商。',
+    )
+  }
+
   const model = params.model || CLOUDFLARE_DEFAULT_MODEL
   const arrayBuffer = await file.arrayBuffer()
   const base64 = arrayBufferToBase64(arrayBuffer)
@@ -70,9 +81,16 @@ export async function transcribeFile(
     try {
       const errBody = await res.json()
       if (Array.isArray(errBody.errors) && errBody.errors.length > 0) {
-        errorMsg = JSON.stringify(errBody.errors[0])
+        const cfErr = errBody.errors[0] as { message?: string; code?: number }
+        if (cfErr.code === 3006 || cfErr.code === 3010) {
+          errorMsg = `请求体过大，请减小文件体积或选择其他提供商 (code ${cfErr.code})`
+        } else if (cfErr.code === 6001) {
+          errorMsg = '网络连接中断，文件可能过大，请减小文件体积或选择其他提供商'
+        } else {
+          errorMsg = cfErr.message || JSON.stringify(cfErr)
+        }
       }
-    } catch { /* ignore */ }
+    } catch { /* ignore parse errors */ }
     throw new Error(errorMsg)
   }
 
