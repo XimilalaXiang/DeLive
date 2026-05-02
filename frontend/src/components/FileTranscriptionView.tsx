@@ -53,9 +53,17 @@ export function FileTranscriptionView() {
   }
 
   const handleFilesSelected = useCallback((files: File[]) => {
+    const rawHints = providerConfig?.languageHints
+    let languageHints: string[] | undefined
+    if (Array.isArray(rawHints)) {
+      languageHints = rawHints.filter(Boolean)
+    } else if (typeof rawHints === 'string' && rawHints.trim()) {
+      languageHints = rawHints.split(',').map(s => s.trim()).filter(Boolean)
+    }
+
     const config: FileTranscriptionConfig = {
       provider: selectedProviderId as FileTranscriptionConfig['provider'],
-      languageHints: (providerConfig?.languageHints as string[]) || ['zh', 'en'],
+      languageHints: languageHints?.length ? languageHints : undefined,
       enableSpeakerDiarization: Boolean(providerConfig?.enableSpeakerDiarization),
       translationEnabled: Boolean(providerConfig?.translationEnabled),
       translationTargetLanguage: (providerConfig?.translationTargetLanguage as string) || 'en',
