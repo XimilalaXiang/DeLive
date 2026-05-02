@@ -686,7 +686,7 @@ function deepgramUtterancesToSegments(utterances: DeepgramFileUtterance[]): Tran
     startMs: Math.round(u.start * 1000),
     endMs: Math.round(u.end * 1000),
     isFinal: true,
-    speaker: u.speaker != null ? String(u.speaker) : undefined,
+    speakerId: u.speaker != null ? String(u.speaker) : undefined,
   }))
 }
 
@@ -728,11 +728,24 @@ async function executeDeepgram(
 
   updateJob(jobId, { progress: 90 })
 
+  console.debug('[Deepgram] Raw response metadata:', JSON.stringify(response.metadata))
+  console.debug('[Deepgram] Channels count:', response.results.channels.length)
+
   const channel = response.results.channels[0]
   const alt = channel?.alternatives[0]
   const transcript = alt?.transcript ?? ''
   const words = alt?.words ?? []
   const utterances = response.results.utterances ?? []
+
+  console.debug('[Deepgram] transcript length:', transcript.length, 'words:', words.length, 'utterances:', utterances.length)
+  if (transcript.length > 0) {
+    console.debug('[Deepgram] transcript preview:', transcript.slice(0, 200))
+  }
+
+  if (!transcript && words.length === 0) {
+    console.warn('[Deepgram] Empty transcription result. Full response:', JSON.stringify(response))
+    throw new Error('Deepgram returned an empty transcription result. Please check the audio file or try a different provider.')
+  }
 
   const tokens = words.length > 0
     ? deepgramWordsToTokens(words)
