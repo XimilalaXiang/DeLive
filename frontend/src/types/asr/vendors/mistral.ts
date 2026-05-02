@@ -3,6 +3,7 @@
  */
 
 export const MISTRAL_REALTIME_MODEL = 'voxtral-mini-transcribe-realtime-2602'
+export const MISTRAL_FILE_TRANSCRIPTION_MODEL = 'voxtral-mini-latest'
 
 export const MISTRAL_SUPPORTED_LANGUAGES = [
   'en', 'zh', 'hi', 'es', 'ar', 'fr', 'pt', 'ru', 'de', 'ja', 'ko', 'it', 'nl',

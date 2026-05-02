@@ -16,8 +16,12 @@ export interface FileTranscriptionJob {
   status: FileTranscriptionJobStatus
   progress: number
   provider: ASRVendor
+  /** Soniox-specific remote file ID */
   sonioxFileId?: string
+  /** Soniox-specific remote transcription ID */
   sonioxTranscriptionId?: string
+  /** Mistral-specific uploaded file ID (for large-file workflow) */
+  mistralFileId?: string
   sessionId?: string
   error?: string
   createdAt: number
