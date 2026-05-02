@@ -53,10 +53,10 @@ export function FileTranscriptionView() {
   }
 
   const handleFilesSelected = useCallback((files: File[]) => {
-    const rawHints = providerConfig?.languageHints
+    const rawHints: unknown = providerConfig?.languageHints
     let languageHints: string[] | undefined
     if (Array.isArray(rawHints)) {
-      languageHints = rawHints.filter(Boolean)
+      languageHints = (rawHints as string[]).filter(Boolean)
     } else if (typeof rawHints === 'string' && rawHints.trim()) {
       languageHints = rawHints.split(',').map(s => s.trim()).filter(Boolean)
     }
