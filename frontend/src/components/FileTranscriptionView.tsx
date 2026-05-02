@@ -8,7 +8,7 @@ import { useSettingsStore } from '../stores/settingsStore'
 import { ASRVendor } from '../types/asr/common'
 import type { FileTranscriptionConfig } from '../types/fileTranscription'
 
-type FileProvider = 'soniox' | 'mistral'
+type FileProvider = 'soniox' | 'mistral' | 'groq'
 
 const FILE_PROVIDERS: { id: FileProvider; name: string; model: string; desc: string }[] = [
   {
@@ -22,6 +22,12 @@ const FILE_PROVIDERS: { id: FileProvider; name: string; model: string; desc: str
     name: 'Mistral AI',
     model: 'voxtral-mini-latest',
     desc: '同步模式 · 13 语言 · 说话人识别 · 段落时间戳 · 上下文偏置',
+  },
+  {
+    id: 'groq',
+    name: 'Groq',
+    model: 'whisper-large-v3-turbo',
+    desc: '同步模式 · Whisper V3 · 词/段落时间戳 · 超快推理',
   },
 ]
 

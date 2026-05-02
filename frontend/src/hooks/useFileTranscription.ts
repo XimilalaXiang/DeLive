@@ -19,6 +19,11 @@ import {
   transcribeFile as mistralTranscribeFile,
   type MistralTranscriptionSegment,
 } from '../utils/mistralFileApi'
+import {
+  transcribeFile as groqTranscribeFile,
+  type GroqTranscriptionWord,
+  type GroqTranscriptionSegment as GroqSegment,
+} from '../utils/groqFileApi'
 
 /* ─── Soniox result conversion ──────────────────────────────── */
 
@@ -103,6 +108,26 @@ function extractSpeakersFromMistral(segments: MistralTranscriptionSegment[]): Tr
     if (seg.speaker_id) ids.add(seg.speaker_id)
   }
   return Array.from(ids).map((id) => ({ id, label: id }))
+}
+
+/* ─── Groq result conversion ───────────────────────────────── */
+
+function groqWordsToTokens(words: GroqTranscriptionWord[]): TranscriptTokenData[] {
+  return words.map((w) => ({
+    text: w.word,
+    isFinal: true,
+    startMs: Math.round(w.start * 1000),
+    endMs: Math.round(w.end * 1000),
+  }))
+}
+
+function groqSegmentsToStoredSegments(segments: GroqSegment[]): TranscriptSegment[] {
+  return segments.map((seg) => ({
+    text: seg.text.trim(),
+    startMs: Math.round(seg.start * 1000),
+    endMs: Math.round(seg.end * 1000),
+    isFinal: true,
+  }))
 }
 
 /* ─── Provider execution pipelines ──────────────────────────── */
@@ -230,6 +255,73 @@ async function executeMistral(
   }
 }
 
+async function executeGroq(
+  file: File,
+  config: FileTranscriptionConfig,
+  apiKey: string,
+  jobId: string,
+  updateJob: (id: string, u: Record<string, unknown>) => void,
+  signal: AbortSignal,
+): Promise<TranscriptionResult> {
+  updateJob(jobId, { status: 'uploading', progress: 20 })
+
+  updateJob(jobId, { status: 'transcribing', progress: 40 })
+  const response = await groqTranscribeFile(
+    apiKey,
+    file,
+    {
+      model: config.model || 'whisper-large-v3-turbo',
+      language: config.languageHints?.[0],
+      timestampGranularities: ['word', 'segment'],
+    },
+    signal,
+  )
+
+  updateJob(jobId, { progress: 90 })
+
+  let tokens: TranscriptTokenData[]
+  let segments: TranscriptSegment[]
+
+  if (response.words && response.words.length > 0) {
+    tokens = groqWordsToTokens(response.words)
+  } else if (response.segments && response.segments.length > 0) {
+    tokens = response.segments.map((seg) => ({
+      text: seg.text,
+      isFinal: true,
+      startMs: Math.round(seg.start * 1000),
+      endMs: Math.round(seg.end * 1000),
+    }))
+  } else {
+    tokens = [{
+      text: response.text,
+      isFinal: true,
+      startMs: 0,
+      endMs: (response.duration ?? 0) * 1000,
+    }]
+  }
+
+  if (response.segments && response.segments.length > 0) {
+    segments = groqSegmentsToStoredSegments(response.segments)
+  } else {
+    segments = [{
+      text: response.text.trim(),
+      startMs: 0,
+      endMs: (response.duration ?? 0) * 1000,
+      isFinal: true,
+    }]
+  }
+
+  const durationMs = (response.duration ?? 0) * 1000
+
+  return {
+    transcript: response.text,
+    tokens,
+    segments,
+    speakers: [],
+    durationMs,
+  }
+}
+
 /* ─── Main hook ─────────────────────────────────────────────── */
 
 export function useFileTranscription() {
@@ -259,7 +351,9 @@ export function useFileTranscription() {
       try {
         let result: TranscriptionResult
 
-        if (providerId === 'mistral') {
+        if (providerId === 'groq') {
+          result = await executeGroq(file, config, apiKey, jobId, updateJob, controller.signal)
+        } else if (providerId === 'mistral') {
           result = await executeMistral(file, config, apiKey, jobId, updateJob, controller.signal)
         } else {
           result = await executeSoniox(file, config, apiKey, jobId, updateJob, controller.signal)
