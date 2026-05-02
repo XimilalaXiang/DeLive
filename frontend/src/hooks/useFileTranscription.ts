@@ -563,8 +563,17 @@ async function executeGladia(
     signal,
   )
 
+  console.debug('[FileTranscription] Gladia raw result:', JSON.stringify(result, null, 2))
+
   const utterances = result.result?.transcription?.utterances ?? []
   const fullTranscript = result.result?.transcription?.full_transcript ?? ''
+
+  if (!fullTranscript && utterances.length === 0) {
+    const debugInfo = result.result
+      ? `metadata: ${JSON.stringify(result.result.metadata)}`
+      : `result is ${result.result === null ? 'null' : 'undefined'}`
+    throw new Error(`Gladia 返回了空的转录结果 (${debugInfo})。请检查音频文件是否包含可识别的语音。`)
+  }
 
   const tokens = gladiaUtterancesToTokens(utterances)
   const segments = gladiaUtterancesToSegments(utterances)

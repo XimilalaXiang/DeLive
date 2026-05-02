@@ -182,6 +182,7 @@ export async function waitForCompletion(
     }
 
     const result = await getTranscriptionResult(apiKey, transcriptionId, signal)
+    console.debug(`[Gladia] Poll #${i + 1} status=${result.status}`)
 
     if (result.status === 'done') {
       const audioDurationMs = result.result?.metadata?.audio_duration
@@ -192,7 +193,8 @@ export async function waitForCompletion(
     }
 
     if (result.status === 'error') {
-      throw new Error(result.error?.message || 'Gladia transcription failed')
+      const errDetail = result.error?.message || JSON.stringify(result.error) || 'unknown error'
+      throw new Error(`Gladia transcription failed: ${errDetail}`)
     }
 
     onProgress?.(result.status)
