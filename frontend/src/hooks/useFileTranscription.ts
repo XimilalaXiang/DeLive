@@ -40,6 +40,11 @@ import {
   transcribeFile as elevenlabsTranscribeFile,
   type ElevenLabsWord,
 } from '../utils/elevenlabsFileApi'
+import {
+  transcribeFile as deepgramTranscribeFile,
+  type DeepgramFileWord,
+  type DeepgramFileUtterance,
+} from '../utils/deepgramFileApi'
 
 /* ─── Soniox result conversion ──────────────────────────────── */
 
@@ -662,6 +667,92 @@ async function executeCloudflare(
   }
 }
 
+/* ─── Deepgram result conversion ───────────────────────────── */
+
+function deepgramWordsToTokens(words: DeepgramFileWord[]): TranscriptTokenData[] {
+  return words.map((w) => ({
+    text: w.punctuated_word || w.word,
+    isFinal: true,
+    startMs: Math.round(w.start * 1000),
+    endMs: Math.round(w.end * 1000),
+    confidence: w.confidence,
+    speaker: w.speaker != null ? String(w.speaker) : undefined,
+  }))
+}
+
+function deepgramUtterancesToSegments(utterances: DeepgramFileUtterance[]): TranscriptSegment[] {
+  return utterances.map((u) => ({
+    text: u.transcript.trim(),
+    startMs: Math.round(u.start * 1000),
+    endMs: Math.round(u.end * 1000),
+    isFinal: true,
+    speaker: u.speaker != null ? String(u.speaker) : undefined,
+  }))
+}
+
+function deepgramExtractSpeakers(utterances: DeepgramFileUtterance[]): TranscriptSpeaker[] {
+  const ids = new Set<number>()
+  for (const u of utterances) {
+    if (u.speaker != null) ids.add(u.speaker)
+  }
+  return Array.from(ids)
+    .sort((a, b) => a - b)
+    .map((id) => ({ id: String(id), name: `Speaker ${id}` }))
+}
+
+async function executeDeepgram(
+  file: File,
+  config: FileTranscriptionConfig,
+  apiKey: string,
+  jobId: string,
+  updateJob: (id: string, u: Record<string, unknown>) => void,
+  signal: AbortSignal,
+): Promise<TranscriptionResult> {
+  updateJob(jobId, { status: 'uploading', progress: 20 })
+
+  updateJob(jobId, { status: 'transcribing', progress: 40 })
+  const response = await deepgramTranscribeFile(
+    apiKey,
+    file,
+    {
+      model: config.model || 'nova-3',
+      language: config.languageHints?.[0],
+      diarize: config.enableSpeakerDiarization,
+      punctuate: true,
+      utterances: true,
+      smartFormat: true,
+    },
+    signal,
+  )
+
+  updateJob(jobId, { progress: 90 })
+
+  const channel = response.results.channels[0]
+  const alt = channel?.alternatives[0]
+  const transcript = alt?.transcript ?? ''
+  const words = alt?.words ?? []
+  const utterances = response.results.utterances ?? []
+
+  const tokens = words.length > 0
+    ? deepgramWordsToTokens(words)
+    : [{ text: transcript, isFinal: true, startMs: 0, endMs: (response.metadata.duration ?? 0) * 1000 }]
+
+  const segments = utterances.length > 0
+    ? deepgramUtterancesToSegments(utterances)
+    : [{ text: transcript.trim(), startMs: 0, endMs: (response.metadata.duration ?? 0) * 1000, isFinal: true }]
+
+  const speakers = deepgramExtractSpeakers(utterances)
+  const durationMs = (response.metadata.duration ?? 0) * 1000
+
+  return {
+    transcript,
+    tokens,
+    segments,
+    speakers,
+    durationMs,
+  }
+}
+
 /* ─── Main hook ─────────────────────────────────────────────── */
 
 export function useFileTranscription() {
@@ -712,6 +803,8 @@ export function useFileTranscription() {
           result = await executeGladia(file, config, apiKey!, jobId, updateJob, controller.signal)
         } else if (providerId === 'elevenlabs') {
           result = await executeElevenLabs(file, config, apiKey!, jobId, updateJob, controller.signal)
+        } else if (providerId === 'deepgram') {
+          result = await executeDeepgram(file, config, apiKey!, jobId, updateJob, controller.signal)
         } else {
           result = await executeSoniox(file, config, apiKey!, jobId, updateJob, controller.signal)
         }
