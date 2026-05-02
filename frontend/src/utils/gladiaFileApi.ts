@@ -101,7 +101,7 @@ export async function createTranscription(
   if (params.languages?.length) {
     body.language_config = {
       languages: params.languages,
-      code_switching: params.languages.length > 1,
+      code_switching: false,
     }
   }
 
