@@ -1,78 +1,60 @@
-import { useCallback, useState } from 'react'
-import { FileAudio } from 'lucide-react'
+import { useCallback, useMemo, useState, useEffect } from 'react'
+import { FileAudio, ChevronDown, Check, Cloud, HardDrive, X } from 'lucide-react'
+import { createPortal } from 'react-dom'
 import { FileDropZone } from './FileDropZone'
 import { FileTranscriptionProgress } from './FileTranscriptionProgress'
 import { useFileTranscription } from '../hooks/useFileTranscription'
 import { useFileTranscriptionStore } from '../stores/fileTranscriptionStore'
 import { useSettingsStore } from '../stores/settingsStore'
-import { ASRVendor } from '../types/asr/common'
+import { useUIStore } from '../stores/uiStore'
+import { supportsProviderWorkload, type ASRProviderInfo } from '../types/asr/common'
+import { buildProviderConnectConfig, isProviderConfigured } from '../utils/providerConfig'
+import { getProviderName, getProviderDescription } from '../utils/providerI18n'
+import { getProviderLogo } from './icons/ProviderLogos'
 import type { FileTranscriptionConfig } from '../types/fileTranscription'
-
-type FileProvider = 'soniox' | 'mistral' | 'groq' | 'siliconflow' | 'cloudflare' | 'gladia' | 'elevenlabs'
-
-const FILE_PROVIDERS: { id: FileProvider; name: string; model: string; desc: string }[] = [
-  {
-    id: 'soniox',
-    name: 'Soniox',
-    model: 'stt-async-v4',
-    desc: '异步模式 · 60+ 语言 · 说话人识别 · 翻译 · Token 级时间戳',
-  },
-  {
-    id: 'mistral',
-    name: 'Mistral AI',
-    model: 'voxtral-mini-latest',
-    desc: '同步模式 · 13 语言 · 说话人识别 · 段落时间戳 · 上下文偏置',
-  },
-  {
-    id: 'groq',
-    name: 'Groq',
-    model: 'whisper-large-v3-turbo',
-    desc: '同步模式 · Whisper V3 · 词/段落时间戳 · 超快推理',
-  },
-  {
-    id: 'siliconflow',
-    name: '硅基流动',
-    model: 'SenseVoice / Qwen Omni',
-    desc: '同步模式 · SenseVoice ASR · Qwen 多模态 · 中文优化',
-  },
-  {
-    id: 'cloudflare',
-    name: 'Cloudflare',
-    model: 'whisper-large-v3-turbo',
-    desc: '同步模式 · Workers AI · Whisper V3 · 免费额度 · 限 2MB 以内文件',
-  },
-  {
-    id: 'gladia',
-    name: 'Gladia',
-    model: 'solaria-1',
-    desc: '异步模式 · 100+ 语言 · 说话人识别 · 词级时间戳 · 翻译',
-  },
-  {
-    id: 'elevenlabs',
-    name: 'ElevenLabs',
-    model: 'scribe_v2',
-    desc: '同步模式 · 90+ 语言 · 说话人识别 · 词级时间戳 · 音频事件标记',
-  },
-]
 
 export function FileTranscriptionView() {
   const { jobs, submitFile, cancelJob, openResult } = useFileTranscription()
   const removeJob = useFileTranscriptionStore((s) => s.removeJob)
+  const { t } = useUIStore()
+  const { settings, availableProviders } = useSettingsStore()
 
-  const [selectedProvider, setSelectedProvider] = useState<FileProvider>('soniox')
-  const providerConfig = useSettingsStore((s) => s.getProviderConfig(selectedProvider))
-  const hasApiKey = selectedProvider === 'cloudflare'
+  const fileProviders = useMemo(
+    () => availableProviders.filter((p) => supportsProviderWorkload(p.capabilities, 'file-transcription')),
+    [availableProviders],
+  )
+
+  const [selectedProviderId, setSelectedProviderId] = useState<string>(() => {
+    if (fileProviders.length > 0) return fileProviders[0].id
+    return 'soniox'
+  })
+  const [isOpen, setIsOpen] = useState(false)
+
+  const selectedProvider = fileProviders.find((p) => p.id === selectedProviderId) ?? fileProviders[0]
+  const providerConfig = useSettingsStore((s) => s.getProviderConfig(selectedProviderId))
+  const hasApiKey = selectedProviderId === 'cloudflare'
     ? Boolean(providerConfig?.apiToken && providerConfig?.accountId)
     : Boolean(providerConfig?.apiKey)
 
   const activeJobs = useFileTranscriptionStore((s) => s.getActiveJobs())
   const isProcessing = activeJobs.length > 0
 
-  const currentProviderMeta = FILE_PROVIDERS.find((p) => p.id === selectedProvider)!
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape' && isOpen) setIsOpen(false)
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen])
+
+  const handleSelect = (vendorId: string) => {
+    setSelectedProviderId(vendorId)
+    setIsOpen(false)
+  }
 
   const handleFilesSelected = useCallback((files: File[]) => {
     const config: FileTranscriptionConfig = {
-      provider: selectedProvider as ASRVendor,
+      provider: selectedProviderId as FileTranscriptionConfig['provider'],
       languageHints: (providerConfig?.languageHints as string[]) || ['zh', 'en'],
       enableSpeakerDiarization: Boolean(providerConfig?.enableSpeakerDiarization),
       translationEnabled: Boolean(providerConfig?.translationEnabled),
@@ -84,7 +66,151 @@ export function FileTranscriptionView() {
         console.error('[FileTranscription] Submit failed:', err)
       })
     }
-  }, [submitFile, providerConfig, selectedProvider])
+  }, [submitFile, providerConfig, selectedProviderId])
+
+  const getExecutionModeBadge = (provider: ASRProviderInfo): { label: string; className: string } | null => {
+    const workloads = provider.capabilities.workloads
+    const ft = workloads?.fileTranscription
+    if (!ft || ft.availability === 'unsupported') return null
+    switch (ft.executionMode) {
+      case 'native-job':
+        return { label: '异步', className: 'bg-info/20 text-info' }
+      case 'single-request':
+        return { label: '同步', className: 'bg-success/20 text-success' }
+      case 'local-runtime':
+        return { label: '本地', className: 'bg-warning/20 text-warning' }
+      default:
+        return null
+    }
+  }
+
+  const renderProviderItem = (provider: ASRProviderInfo) => {
+    const isSelected = provider.id === selectedProviderId
+    const config = buildProviderConnectConfig(provider, settings.providerConfigs?.[provider.id], settings)
+    const hasConfig = isProviderConfigured(provider, config)
+    const badge = getExecutionModeBadge(provider)
+
+    return (
+      <button
+        key={provider.id}
+        onClick={() => handleSelect(provider.id)}
+        className={`
+          w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-all
+          ${isSelected
+            ? 'bg-primary/10 text-primary ring-1 ring-primary/30'
+            : 'hover:bg-muted/80 text-foreground'
+          }
+        `}
+      >
+        <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-muted/50">
+          {getProviderLogo(provider.id, 24) || (
+            provider.type === 'cloud'
+              ? <Cloud className="w-5 h-5 text-info" />
+              : <HardDrive className="w-5 h-5 text-success" />
+          )}
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-sm">{getProviderName(provider, t)}</span>
+            {badge && (
+              <span className={`px-1.5 py-0.5 text-xs font-medium rounded-full ${badge.className}`}>
+                {badge.label}
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+            {getProviderDescription(provider, t)}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {!hasConfig && (
+            <span className="px-2 py-1 text-xs font-medium rounded-full bg-warning/20 text-warning">
+              {t.provider?.needConfig || '需配置'}
+            </span>
+          )}
+          {isSelected && (
+            <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+              <Check className="w-3 h-3 text-primary-foreground" />
+            </div>
+          )}
+        </div>
+      </button>
+    )
+  }
+
+  const cloudProviders = fileProviders.filter((p) => p.type === 'cloud')
+  const localProviders = fileProviders.filter((p) => p.type === 'local')
+
+  const renderModal = () => {
+    if (!isOpen) return null
+    return createPortal(
+      <div className="fixed inset-0 z-[100]">
+        <div
+          className="absolute inset-0 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setIsOpen(false)}
+        />
+        <div className="absolute inset-0 flex items-center justify-center p-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="file-provider-selector-title"
+            className="relative w-full max-w-md bg-card border border-border rounded-2xl shadow-2xl animate-in zoom-in-95 fade-in duration-200 overflow-hidden dark:ring-1 dark:ring-white/[0.08]"
+          >
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-muted/30">
+              <div>
+                <h3 id="file-provider-selector-title" className="text-base font-semibold">
+                  选择文件转录服务
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  选择适合您需求的语音转录引擎
+                </p>
+              </div>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-2 hover:bg-muted rounded-lg transition-colors text-muted-foreground hover:text-foreground"
+                aria-label={t.common.close}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-3 max-h-[60vh] overflow-y-auto">
+              {cloudProviders.length > 0 && (
+                <div className="mb-3">
+                  <div className="flex items-center gap-2 px-3 py-2">
+                    <Cloud className="w-4 h-4 text-info" />
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      {t.provider?.cloudProviders || '云端服务'}
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    {cloudProviders.map(renderProviderItem)}
+                  </div>
+                </div>
+              )}
+
+              {localProviders.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 px-3 py-2 border-t border-border mt-2 pt-3">
+                    <HardDrive className="w-4 h-4 text-success" />
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      {t.provider?.localProviders || '本地模型'}
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    {localProviders.map(renderProviderItem)}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>,
+      document.body,
+    )
+  }
 
   return (
     <div className="flex flex-col h-full overflow-y-auto">
@@ -102,55 +228,46 @@ export function FileTranscriptionView() {
           </div>
         </div>
 
-        {/* Provider Selector */}
-        <div className="flex gap-2">
-          {FILE_PROVIDERS.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => setSelectedProvider(p.id)}
-              className={`flex-1 rounded-lg border p-3 text-left transition-colors ${
-                selectedProvider === p.id
-                  ? 'border-primary bg-primary/5 ring-1 ring-primary/30'
-                  : 'border-border hover:border-muted-foreground/30 hover:bg-muted/30'
-              }`}
-              disabled={isProcessing}
-            >
-              <p className={`text-sm font-medium ${
-                selectedProvider === p.id ? 'text-primary' : 'text-foreground'
-              }`}>
-                {p.name}
-              </p>
-              <p className="text-xs text-muted-foreground mt-0.5 truncate">{p.model}</p>
-            </button>
-          ))}
-        </div>
+        {/* Provider Selector Button */}
+        <button
+          onClick={() => setIsOpen(true)}
+          disabled={isProcessing}
+          className={`
+            w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-all
+            border-input hover:border-primary/50 hover:bg-muted/50
+            bg-background text-foreground
+            ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}
+          `}
+        >
+          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-muted/50">
+            {selectedProvider && getProviderLogo(selectedProvider.id, 24) || (
+              selectedProvider?.type === 'cloud'
+                ? <Cloud className="w-5 h-5 text-info" />
+                : <HardDrive className="w-5 h-5 text-success" />
+            )}
+          </div>
+          <div className="flex-1 text-left">
+            <div className="font-semibold text-sm">
+              {selectedProvider ? getProviderName(selectedProvider, t) : 'Soniox'}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {selectedProvider ? getProviderDescription(selectedProvider, t) : '点击选择服务'}
+            </div>
+          </div>
+          <ChevronDown className="w-5 h-5 text-muted-foreground" />
+        </button>
 
         {/* API Key Warning */}
         {!hasApiKey && (
           <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30 p-4">
             <p className="text-sm text-amber-800 dark:text-amber-200">
-              请先在设置 → Provider → {currentProviderMeta.name} 中配置 API Key
+              请先在设置 → Provider → {selectedProvider ? getProviderName(selectedProvider, t) : selectedProviderId} 中配置 API Key
             </p>
           </div>
         )}
 
-        {/* Provider Info */}
-        <div className="rounded-lg border border-border bg-card/50 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">{currentProviderMeta.name} ({currentProviderMeta.model})</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {currentProviderMeta.desc}
-              </p>
-            </div>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
-              Cloud
-            </span>
-          </div>
-        </div>
-
         {/* Cloudflare file-size warning */}
-        {selectedProvider === 'cloudflare' && hasApiKey && (
+        {selectedProviderId === 'cloudflare' && hasApiKey && (
           <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/30 p-4">
             <p className="text-sm text-blue-800 dark:text-blue-200">
               Cloudflare Workers AI 限制文件大小约 2 MB。较大的文件请选择 Groq、Gladia 或 ElevenLabs。
@@ -183,6 +300,9 @@ export function FileTranscriptionView() {
           </div>
         )}
       </div>
+
+      {/* Provider Selection Modal */}
+      {renderModal()}
     </div>
   )
 }
