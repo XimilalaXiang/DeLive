@@ -18,6 +18,7 @@ import {
   ToastContainer,
   SourcePicker,
   TitleBar,
+  WaveformVisualizer,
   type ToastMessage 
 } from './components'
 import { Sidebar } from './components/Sidebar'
@@ -80,7 +81,7 @@ function App() {
   useApiIpcResponder()
 
   // ASR — lifted to App so global shortcut can reach it
-  const { startRecording, stopRecording, switchConfig, switchProvider } = useASR({
+  const { startRecording, stopRecording, switchConfig, switchProvider, getMediaStream } = useASR({
     onError: handleError,
     onStarted: () => console.log('[App] Recording started'),
   })
@@ -340,6 +341,13 @@ function App() {
               <div className="workspace-panel p-5 animate-reveal-up delay-2 space-y-3">
                 {recordingState === 'idle' && <TopicPicker />}
                 <RecordingControls onError={handleError} startRecording={startRecording} stopRecording={stopRecording} switchConfig={switchConfig} switchProvider={switchProvider} />
+                <WaveformVisualizer
+                  getStream={getMediaStream}
+                  isActive={recordingState === 'recording'}
+                  barCount={48}
+                  height={40}
+                  className="rounded-lg"
+                />
               </div>
             </div>
           </div>

@@ -384,10 +384,13 @@ export function useASR(options: UseASROptions = {}) {
     }
   }, [setRecordingState, endCurrentSession, applyTranscriptEvent, buildProviderCallbacks, options])
 
+  const getMediaStream = useCallback(() => captureRef.current.currentStream, [])
+
   return {
     startRecording,
     stopRecording,
     switchConfig,
     switchProvider,
+    getMediaStream,
   }
 }
