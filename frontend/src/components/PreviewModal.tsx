@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import type { TranscriptSession } from '../types'
 import {
   SessionHeader,
@@ -9,6 +9,7 @@ import {
   SummaryTab,
 } from './review'
 import type { ReviewTab } from './review'
+import { AiSidePanel } from './review/AiSidePanel'
 
 interface PreviewModalProps {
   session: TranscriptSession | null
@@ -27,10 +28,34 @@ export function PreviewModal({
 }: PreviewModalProps) {
   const isViewMode = mode === 'view'
   const [activeTab, setActiveTab] = useState<ReviewTab>('transcript')
+  const [aiPanelOpen, setAiPanelOpen] = useState(false)
+  const [selectedText, setSelectedText] = useState<string | undefined>()
 
   useEffect(() => {
     setActiveTab('transcript')
+    setAiPanelOpen(false)
   }, [session?.id])
+
+  const handleToggleAiPanel = useCallback(() => {
+    setAiPanelOpen((prev) => !prev)
+  }, [])
+
+  const handleClearSelection = useCallback(() => {
+    setSelectedText(undefined)
+  }, [])
+
+  useEffect(() => {
+    if (activeTab !== 'transcript') return undefined
+    const handleMouseUp = () => {
+      const selection = window.getSelection()?.toString().trim()
+      if (selection && selection.length > 5) {
+        setSelectedText(selection)
+        if (!aiPanelOpen) setAiPanelOpen(true)
+      }
+    }
+    document.addEventListener('mouseup', handleMouseUp)
+    return () => document.removeEventListener('mouseup', handleMouseUp)
+  }, [activeTab, aiPanelOpen])
 
   useEffect(() => {
     if (!session) return undefined
@@ -86,12 +111,30 @@ export function PreviewModal({
       <SessionTabBar activeTab={activeTab} onTabChange={setActiveTab} />
       <div
         key={activeTab}
-        className="flex-1 overflow-hidden flex flex-col animate-tab-enter"
+        className="flex-1 overflow-hidden flex animate-tab-enter"
         role="tabpanel"
         id={`tabpanel-${activeTab}`}
         aria-labelledby={`tab-${activeTab}`}
       >
-        {tabContent}
+        <div className="flex-1 overflow-hidden flex flex-col relative">
+          {tabContent}
+          {activeTab === 'transcript' && !aiPanelOpen && session && (
+            <AiSidePanel
+              session={session}
+              isOpen={false}
+              onToggle={handleToggleAiPanel}
+            />
+          )}
+        </div>
+        {activeTab === 'transcript' && aiPanelOpen && session && (
+          <AiSidePanel
+            session={session}
+            isOpen={true}
+            onToggle={handleToggleAiPanel}
+            selectedText={selectedText}
+            onClearSelection={handleClearSelection}
+          />
+        )}
       </div>
     </>
   )
