@@ -1,6 +1,21 @@
 import { useCallback, useState, useRef } from 'react'
-import { Upload, FileAudio, X } from 'lucide-react'
+import { Upload, FileAudio, X, Info, Clock } from 'lucide-react'
 import { isAcceptedAudioFile, formatFileSize, ACCEPTED_AUDIO_EXTENSIONS } from '../types/fileTranscription'
+
+function estimateDuration(sizeBytes: number): string {
+  const sizeMB = sizeBytes / (1024 * 1024)
+  const estimatedMinutes = Math.max(1, Math.round(sizeMB / 1.5))
+  if (estimatedMinutes < 2) return '~1 min'
+  if (estimatedMinutes < 60) return `~${estimatedMinutes} min`
+  const hours = Math.floor(estimatedMinutes / 60)
+  const mins = estimatedMinutes % 60
+  return `~${hours}h ${mins}m`
+}
+
+const FORMAT_GROUPS = [
+  { label: 'Audio', formats: ['MP3', 'WAV', 'M4A', 'FLAC', 'OGG', 'AAC', 'WMA', 'Opus'] },
+  { label: 'Video', formats: ['MP4', 'WebM', 'MPEG'] },
+]
 
 interface FileDropZoneProps {
   onFilesSelected: (files: File[]) => void
@@ -79,11 +94,18 @@ export function FileDropZone({ onFilesSelected, disabled }: FileDropZoneProps) {
         </div>
         <div className="text-center">
           <p className="text-sm font-medium">
-            {isDragging ? '松开以添加文件' : '拖拽音频文件到此处，或点击选择'}
+            {isDragging ? '松开以添加文件' : '拖拽音频/视频文件到此处，或点击选择'}
           </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            支持 MP3, WAV, M4A, FLAC, OGG, WebM, MP4 等格式
-          </p>
+          <div className="mt-2 space-y-1">
+            {FORMAT_GROUPS.map((group) => (
+              <div key={group.label} className="flex items-center justify-center gap-1.5 flex-wrap">
+                <span className="text-[10px] font-semibold text-muted-foreground uppercase">{group.label}:</span>
+                {group.formats.map((fmt) => (
+                  <span key={fmt} className="text-[10px] rounded bg-muted px-1.5 py-0.5 text-muted-foreground">{fmt}</span>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
         <input
           ref={inputRef}
@@ -108,7 +130,14 @@ export function FileDropZone({ onFilesSelected, disabled }: FileDropZoneProps) {
               <FileAudio className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{file.name}</p>
-                <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>{formatFileSize(file.size)}</span>
+                  <span className="opacity-40">·</span>
+                  <span className="inline-flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    {estimateDuration(file.size)}
+                  </span>
+                </div>
               </div>
               <button
                 onClick={(e) => { e.stopPropagation(); removeFile(index) }}
@@ -118,6 +147,13 @@ export function FileDropZone({ onFilesSelected, disabled }: FileDropZoneProps) {
               </button>
             </div>
           ))}
+          <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+            <Info className="h-3.5 w-3.5 shrink-0" />
+            <span>
+              共 {formatFileSize(selectedFiles.reduce((s, f) => s + f.size, 0))}，预计音频时长{' '}
+              {estimateDuration(selectedFiles.reduce((s, f) => s + f.size, 0))}
+            </span>
+          </div>
           <button
             onClick={handleSubmit}
             disabled={disabled}

@@ -1,4 +1,4 @@
-import { FileAudio, Check, AlertCircle, Loader2, X, ExternalLink } from 'lucide-react'
+import { FileAudio, Check, AlertCircle, Loader2, X, ArrowRight } from 'lucide-react'
 import type { FileTranscriptionJob } from '../types/fileTranscription'
 import { formatFileSize } from '../types/fileTranscription'
 
@@ -47,7 +47,13 @@ export function FileTranscriptionProgress({
       {jobs.map((job) => (
         <div
           key={job.id}
-          className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-colors"
+          className={`flex items-center gap-3 rounded-lg border p-3 transition-all ${
+            job.status === 'completed'
+              ? 'border-emerald-200 bg-emerald-50/50 dark:border-emerald-800/50 dark:bg-emerald-950/20'
+              : job.status === 'error'
+                ? 'border-destructive/30 bg-destructive/5'
+                : 'border-border bg-card'
+          }`}
         >
           <FileAudio className="h-4 w-4 text-muted-foreground flex-shrink-0" />
 
@@ -83,14 +89,14 @@ export function FileTranscriptionProgress({
             )}
           </div>
 
-          <div className="flex items-center gap-1 flex-shrink-0">
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             {job.status === 'completed' && job.sessionId && (
               <button
                 onClick={() => onOpenResult(job.id)}
-                className="rounded-md p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-                title="查看转录结果"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary hover:text-primary-foreground transition-all"
               >
-                <ExternalLink className="h-4 w-4" />
+                查看转录
+                <ArrowRight className="h-3.5 w-3.5" />
               </button>
             )}
             {(job.status === 'uploading' || job.status === 'transcribing' || job.status === 'queued') && (
