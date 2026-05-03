@@ -116,6 +116,51 @@ export function AiSidePanel({
     (p.aiSidePanelQuickKeyPoints as string) || 'What are the key points?',
   ]
 
+  const PANEL_MIN = 280
+  const PANEL_MAX = 600
+  const PANEL_DEFAULT = 360
+  const PANEL_STORAGE_KEY = 'ai-side-panel-width'
+
+  const [panelWidth, setPanelWidth] = useState(() => {
+    const saved = localStorage.getItem(PANEL_STORAGE_KEY)
+    return saved ? Math.min(PANEL_MAX, Math.max(PANEL_MIN, parseInt(saved, 10))) : PANEL_DEFAULT
+  })
+  const isResizing = useRef(false)
+
+  const handleResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    isResizing.current = true
+    const startX = e.clientX
+    const startWidth = panelWidth
+
+    const onMove = (ev: MouseEvent) => {
+      if (!isResizing.current) return
+      const delta = startX - ev.clientX
+      const newWidth = Math.min(PANEL_MAX, Math.max(PANEL_MIN, startWidth + delta))
+      setPanelWidth(newWidth)
+    }
+
+    const onUp = () => {
+      isResizing.current = false
+      document.removeEventListener('mousemove', onMove)
+      document.removeEventListener('mouseup', onUp)
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+      localStorage.setItem(PANEL_STORAGE_KEY, String(panelWidth))
+    }
+
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+    document.addEventListener('mousemove', onMove)
+    document.addEventListener('mouseup', onUp)
+  }, [panelWidth])
+
+  useEffect(() => {
+    if (!isResizing.current) {
+      localStorage.setItem(PANEL_STORAGE_KEY, String(panelWidth))
+    }
+  }, [panelWidth])
+
   if (!isOpen) {
     return (
       <button
@@ -129,7 +174,12 @@ export function AiSidePanel({
   }
 
   return (
-    <div className="flex h-full w-[340px] shrink-0 flex-col border-l border-border bg-card/50">
+    <div className="relative flex h-full shrink-0 flex-col border-l border-border bg-card/50" style={{ width: panelWidth }}>
+      {/* Resize handle */}
+      <div
+        className="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize z-20 hover:bg-primary/30 active:bg-primary/50 transition-colors"
+        onMouseDown={handleResizeStart}
+      />
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
         <div className="flex items-center gap-2">
