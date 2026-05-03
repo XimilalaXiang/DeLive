@@ -26,7 +26,7 @@ English | [简体中文](./README_ZH.md) | [繁體中文](./README_TW.md) | [日
 
 </div>
 
-DeLive is a desktop transcription workspace for system audio. It captures whatever your computer is playing, routes the audio through any of twelve ASR backends, keeps everything on your machine, and turns completed transcripts into searchable history with a full AI Review Desk — AI transcript correction, rich Markdown-rendered chat, Q&A threads, structured briefings, and mind maps.
+DeLive is a desktop transcription workspace for system audio. It captures whatever your computer is playing, routes the audio through any of twelve ASR backends, keeps everything on your machine, and turns completed transcripts into searchable history with a full AI Review Desk — AI transcript correction, rich Markdown-rendered chat, Q&A threads, structured briefings, and mind maps. It also supports uploading audio/video files for offline transcription, with ten cloud engines available for file transcription.
 
 <div align="center">
 
@@ -85,6 +85,7 @@ DeLive is a desktop transcription workspace for system audio. It captures whatev
 - [x] **Desktop integration** — tray, global shortcut, auto-launch, updater, diagnostics export
 - [x] **Security hardening** — trusted-window IPC, CSP injection, navigation guard, path allowlist, encrypted secret storage
 - [x] **Open API & MCP ecosystem** — local REST API, real-time WebSocket, MCP server for AI agents, token-based authentication, and agent skill definition
+- [x] **File transcription** — upload audio/video files and transcribe them offline with ten ASR engines, producing timestamped text with speaker diarization and multi-language detection
 - [x] **Cross-platform** — Windows, macOS, and Linux
 
 ## 📥 Download
@@ -109,20 +110,20 @@ Get the latest release for your platform:
 
 ## 🔌 Supported ASR Providers
 
-| Provider | Type | Transport | Audio path | Highlights |
-|----------|------|-----------|------------|------------|
-| **Soniox V4** | Cloud | Realtime streaming | `MediaRecorder` (`webm/opus`) → WebSocket | Token-level realtime transcription, realtime translation, bilingual captions, speaker diarization |
-| **Volcengine** | Cloud | Realtime streaming | `AudioWorklet` PCM16 → embedded proxy → WebSocket | Chinese-oriented realtime path; proxy injects required headers from Electron |
-| **ElevenLabs** | Cloud | Realtime streaming | `AudioWorklet` PCM16 → embedded proxy → WebSocket | Scribe v2 Realtime; 99 languages including Chinese; audio sent as base64 JSON |
-| **Mistral AI** | Cloud | Realtime streaming | `AudioWorklet` PCM16 → embedded proxy → WebSocket | Voxtral Realtime via `wss://api.mistral.ai`; proxy injects `Authorization` header |
-| **Gladia** | Cloud | Realtime streaming | `AudioWorklet` PCM16 → embedded proxy → WebSocket | Solaria-1 realtime; 100+ languages; <300ms latency; proxy handles session init + `x-gladia-key` auth |
-| **Deepgram** | Cloud | Realtime streaming | `AudioWorklet` PCM16 → embedded proxy → WebSocket | Nova-3 / Nova-2 streaming ASR; proxy injects `Authorization: Token` header |
-| **AssemblyAI** | Cloud | Realtime streaming | `AudioWorklet` PCM16 → embedded proxy → WebSocket | Universal-3 Pro streaming; best for English and multilingual content |
-| **Cloudflare Workers AI** | Cloud | Windowed batch retranscription | `AudioWorklet` PCM16 → WAV → REST | Whisper-based; low cost with free tier; VAD filter and anti-hallucination |
-| **SiliconFlow** | Cloud | Windowed batch retranscription | `AudioWorklet` PCM16 → WAV → REST | SenseVoice, TeleSpeech, and Qwen Omni-backed transcription flow |
-| **Groq** | Cloud | Windowed batch retranscription | `AudioWorklet` PCM16 → WAV → REST | Whisper `large-v3-turbo` / `large-v3` style flow with quasi-realtime session updates |
-| **Local OpenAI-compatible** | Local service | Windowed batch retranscription | `MediaRecorder` (`webm/opus`) → `/v1/audio/transcriptions` | Works with Ollama or other compatible gateways; supports service/model discovery and optional Ollama pull |
-| **Local `whisper.cpp`** | Local runtime | Electron-managed local runtime | `AudioWorklet` PCM16 → local `/inference` | Starts `whisper-server`, manages binary/model assets, and stays fully local |
+| Provider | Type | Transport | Audio path | File | Highlights |
+|----------|------|-----------|------------|------|------------|
+| **Soniox V4** | Cloud | Realtime streaming | `MediaRecorder` (`webm/opus`) → WebSocket | Yes | Token-level realtime transcription, realtime translation, bilingual captions, speaker diarization |
+| **Volcengine** | Cloud | Realtime streaming | `AudioWorklet` PCM16 → embedded proxy → WebSocket | Yes | Chinese-oriented realtime path; proxy injects required headers from Electron |
+| **ElevenLabs** | Cloud | Realtime streaming | `AudioWorklet` PCM16 → embedded proxy → WebSocket | Yes | Scribe v2 Realtime; 99 languages including Chinese; audio sent as base64 JSON |
+| **Mistral AI** | Cloud | Realtime streaming | `AudioWorklet` PCM16 → embedded proxy → WebSocket | Yes | Voxtral Realtime via `wss://api.mistral.ai`; proxy injects `Authorization` header |
+| **Gladia** | Cloud | Realtime streaming | `AudioWorklet` PCM16 → embedded proxy → WebSocket | Yes | Solaria-1 realtime; 100+ languages; <300ms latency; proxy handles session init + `x-gladia-key` auth |
+| **Deepgram** | Cloud | Realtime streaming | `AudioWorklet` PCM16 → embedded proxy → WebSocket | Yes | Nova-3 / Nova-2 streaming ASR; proxy injects `Authorization: Token` header |
+| **AssemblyAI** | Cloud | Realtime streaming | `AudioWorklet` PCM16 → embedded proxy → WebSocket | Yes | Universal-3 Pro streaming; best for English and multilingual content |
+| **Cloudflare Workers AI** | Cloud | Windowed batch retranscription | `AudioWorklet` PCM16 → WAV → REST | Yes | Whisper-based; low cost with free tier; VAD filter and anti-hallucination |
+| **SiliconFlow** | Cloud | Windowed batch retranscription | `AudioWorklet` PCM16 → WAV → REST | Yes | SenseVoice, TeleSpeech, and Qwen Omni-backed transcription flow |
+| **Groq** | Cloud | Windowed batch retranscription | `AudioWorklet` PCM16 → WAV → REST | Yes | Whisper `large-v3-turbo` / `large-v3` style flow with quasi-realtime session updates |
+| **Local OpenAI-compatible** | Local service | Windowed batch retranscription | `MediaRecorder` (`webm/opus`) → `/v1/audio/transcriptions` | — | Works with Ollama or other compatible gateways; supports service/model discovery and optional Ollama pull |
+| **Local `whisper.cpp`** | Local runtime | Electron-managed local runtime | `AudioWorklet` PCM16 → local `/inference` | — | Starts `whisper-server`, manages binary/model assets, and stays fully local |
 
 ## 🚀 Quick Start
 
