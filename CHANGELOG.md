@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.2] - 2026-05-04
+
+### Added / 新增
+- 🎨 **New color themes: Pink, Slate, Orange** — three new accent color themes for more personalization options
+- 🎨 **新增主题配色：樱粉、石板灰、橙韵** — 三个全新主题色，提供更多个性化选择
+
+### Changed / 变更
+- 🎨 **Default theme changed to Violet** — new installations now use Violet as the default accent color instead of Cyan
+- 🎨 **默认主题改为紫罗兰** — 新安装默认使用紫罗兰主题色代替青蓝
+
+### Fixed / 修复
+- 🔧 **Volc (火山引擎) desktop transcription timeout** — fixed 8-second idle timeout error when selecting desktop capture source by acquiring audio stream before connecting to the provider
+- 🔧 **火山引擎桌面转录超时** — 修复选择桌面捕获源时因 8 秒无音频数据导致的超时断开，改为先获取音频源再连接服务
+- 🔧 **Settings page fullscreen layout** — cloud providers no longer show an awkward two-column layout with isolated Language Hints section in fullscreen mode
+- 🔧 **设置页面全屏布局** — 云服务商不再在全屏模式下显示不协调的两栏布局
+
+---
+
 ## [2.2.1] - 2026-05-03
 
 ### Added / 新增
