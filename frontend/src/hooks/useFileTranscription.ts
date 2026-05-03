@@ -711,13 +711,11 @@ async function executeDeepgram(
   updateJob(jobId, { status: 'uploading', progress: 20 })
 
   updateJob(jobId, { status: 'transcribing', progress: 40 })
-  const singleLang = config.languageHints?.length === 1 ? config.languageHints[0] : undefined
   const response = await deepgramTranscribeFile(
     apiKey,
     file,
     {
       model: config.model || 'nova-3',
-      language: singleLang,
       diarize: config.enableSpeakerDiarization,
       punctuate: true,
       utterances: true,
