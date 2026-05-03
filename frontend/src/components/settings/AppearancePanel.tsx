@@ -1,4 +1,4 @@
-import { Check, Globe, Palette, Star } from 'lucide-react'
+import { Check, Globe, Palette } from 'lucide-react'
 import type { Language, Translations } from '../../i18n'
 import { colorThemes, type ColorThemeId } from '../../themes'
 
@@ -88,9 +88,6 @@ export function AppearancePanel({
                 colorTheme === theme.id ? 'text-foreground' : 'text-muted-foreground'
               }`}>
                 {t.settings?.[theme.labelKey as keyof typeof t.settings] as string || theme.id}
-                {theme.id === 'cyan' && (
-                  <Star className="w-2.5 h-2.5 fill-current" />
-                )}
               </span>
             </button>
           ))}

@@ -14,7 +14,6 @@ import {
   Power,
   RefreshCw,
   Sparkles,
-  Star,
   Upload,
   Shuffle,
 } from 'lucide-react'
@@ -175,9 +174,6 @@ export function GeneralSettingsPanel({
                 colorTheme === theme.id ? 'text-foreground' : 'text-muted-foreground'
               }`}>
                 {t.settings?.[theme.labelKey as keyof typeof t.settings] as string || theme.id}
-                {theme.id === 'cyan' && (
-                  <Star className="w-2.5 h-2.5 fill-current" />
-                )}
               </span>
             </button>
           ))}
