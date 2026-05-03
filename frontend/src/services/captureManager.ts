@@ -63,6 +63,33 @@ export class CaptureManager {
     return stream
   }
 
+  /**
+   * Phase 1: Only request display audio (shows the source picker dialog).
+   * Returns the MediaStream without starting any recording pipeline.
+   * Call startWithStream() after provider connect to begin capturing.
+   */
+  async acquireStream(): Promise<MediaStream> {
+    const stream = await this.requestDisplayAudio()
+    this.mediaStream = stream
+    return stream
+  }
+
+  /**
+   * Phase 2: Start the recording pipeline on an already-acquired stream.
+   * Must be called after acquireStream().
+   */
+  async startWithStream(
+    capabilities: CapturePipelineCapabilities,
+    callbacks: CaptureCallbacks,
+  ): Promise<void> {
+    if (!this.mediaStream) {
+      throw new Error('No stream acquired. Call acquireStream() first.')
+    }
+    this.callbacks = callbacks
+    await this.startPipeline(capabilities, this.mediaStream)
+    this.listenDeviceChanges()
+  }
+
   get isRestarting(): boolean {
     return this._isRestarting
   }

@@ -200,18 +200,37 @@ export function useASR(options: UseASROptions = {}) {
       return
     }
 
-    setRecordingState('starting')
     captionRef.current.clear()
     console.log(
       `[useASR] 开始录制，提供商: ${vendorId}, transport=${setup.providerInfo.capabilities.transport.type}`,
     )
 
+    const capture = captureRef.current
+
+    // Phase 1: Show source picker dialog BEFORE connecting to provider.
+    // This prevents realtime providers (e.g. Volc) from timing out while the
+    // user is choosing a desktop source.
+    try {
+      setRecordingState('starting')
+      await capture.acquireStream()
+    } catch (error) {
+      setRecordingState('idle')
+      if (error instanceof Error) {
+        options.onError?.(
+          error.name === 'NotAllowedError' ? '用户取消了屏幕共享' : error.message,
+        )
+      } else {
+        options.onError?.('获取音频源失败')
+      }
+      return
+    }
+
+    // Phase 2: Connect provider, then start the audio pipeline immediately.
     try {
       const providerCallbacks = buildProviderCallbacks()
       await psm.connect(vendorId, setup.connectConfig, providerCallbacks)
 
-      const capture = captureRef.current
-      await capture.start(
+      await capture.startWithStream(
         setup.providerInfo.capabilities,
         {
           onAudioData: (data) => psm.sendAudio(data),
@@ -245,14 +264,12 @@ export function useASR(options: UseASROptions = {}) {
       console.log('[useASR] 录制已开始')
     } catch (error) {
       console.error('[useASR] 启动失败:', error)
-      captureRef.current.stop()
+      capture.stop()
       await providerSessionRef.current.disconnect()
       setRecordingState('idle')
 
       if (error instanceof Error) {
-        options.onError?.(
-          error.name === 'NotAllowedError' ? '用户取消了屏幕共享' : error.message,
-        )
+        options.onError?.(error.message)
       } else {
         options.onError?.('启动录制失败')
       }
