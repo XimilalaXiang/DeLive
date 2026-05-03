@@ -268,8 +268,10 @@ export function ServiceSettingsPanel({
     .filter(field => field.key !== 'languageHints' && !guideManagedFieldKeys.has(field.key))
     .map(field => translateConfigField(providerId, field, t))
 
+  const hasRightColumn = shouldShowLocalSetupGuide || shouldShowBundledRuntimeGuide
+
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+    <div className={`grid gap-6 ${hasRightColumn ? 'xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]' : ''}`}>
       <div className="space-y-6">
         <section className="workspace-panel-muted p-4">
           <div className="space-y-3">
@@ -297,50 +299,72 @@ export function ServiceSettingsPanel({
             {renderTestButton()}
           </section>
         )}
-      </div>
 
-      <div className="space-y-6">
-        {shouldShowLocalSetupGuide && currentProvider && (
+        {!hasRightColumn && (
           <section className="workspace-panel-muted p-4">
-            <LocalModelSetupGuide
-              provider={currentProvider}
-              config={buildEditableProviderConfig()}
-              onModelChange={(value) => updateFormField('model', value)}
-            />
+            <div className="space-y-3">
+              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                {t.settings.languageHints}
+              </label>
+              <input
+                type="text"
+                value={languageHints}
+                onChange={(e) => onLanguageHintsChange(e.target.value)}
+                placeholder={t.settings.languageHintsPlaceholder}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              />
+              <p className="text-xs text-muted-foreground">
+                {t.settings.languageHintsDesc}
+              </p>
+            </div>
           </section>
         )}
-
-        {shouldShowBundledRuntimeGuide && currentProvider && (
-          <section className="workspace-panel-muted p-4">
-            <BundledRuntimeSetupGuide
-              provider={currentProvider}
-              config={buildEditableProviderConfig()}
-              onRunConfigTest={onRunConfigTest}
-              testStatus={testStatus}
-              testMessage={testMessage}
-              onConfigPatch={onBundledRuntimePatch}
-            />
-          </section>
-        )}
-
-        <section className="workspace-panel-muted p-4">
-          <div className="space-y-3">
-            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              {t.settings.languageHints}
-            </label>
-            <input
-              type="text"
-              value={languageHints}
-              onChange={(e) => onLanguageHintsChange(e.target.value)}
-              placeholder={t.settings.languageHintsPlaceholder}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            />
-            <p className="text-xs text-muted-foreground">
-              {t.settings.languageHintsDesc}
-            </p>
-          </div>
-        </section>
       </div>
+
+      {hasRightColumn && (
+        <div className="space-y-6">
+          {shouldShowLocalSetupGuide && currentProvider && (
+            <section className="workspace-panel-muted p-4">
+              <LocalModelSetupGuide
+                provider={currentProvider}
+                config={buildEditableProviderConfig()}
+                onModelChange={(value) => updateFormField('model', value)}
+              />
+            </section>
+          )}
+
+          {shouldShowBundledRuntimeGuide && currentProvider && (
+            <section className="workspace-panel-muted p-4">
+              <BundledRuntimeSetupGuide
+                provider={currentProvider}
+                config={buildEditableProviderConfig()}
+                onRunConfigTest={onRunConfigTest}
+                testStatus={testStatus}
+                testMessage={testMessage}
+                onConfigPatch={onBundledRuntimePatch}
+              />
+            </section>
+          )}
+
+          <section className="workspace-panel-muted p-4">
+            <div className="space-y-3">
+              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                {t.settings.languageHints}
+              </label>
+              <input
+                type="text"
+                value={languageHints}
+                onChange={(e) => onLanguageHintsChange(e.target.value)}
+                placeholder={t.settings.languageHintsPlaceholder}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              />
+              <p className="text-xs text-muted-foreground">
+                {t.settings.languageHintsDesc}
+              </p>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   )
 }
