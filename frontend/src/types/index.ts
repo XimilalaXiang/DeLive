@@ -224,6 +224,7 @@ export interface AiPostProcessConfig {
   modelAssignment?: Partial<Record<AiFeatureKey, string>>
   correctionMode?: 'quick' | 'review'
   preferCorrectedText?: 'auto' | 'original' | 'corrected'
+  enableStreaming?: boolean
 }
 
 export interface OpenApiConfig {

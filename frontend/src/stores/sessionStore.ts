@@ -13,6 +13,7 @@ import type {
 import type { TranscriptToken } from '../types/asr'
 import {
   askQuestionForSession,
+  askQuestionForSessionStreaming,
   generateSessionBriefing,
   generateSessionMindMap as generateMindMapForSession,
   resolveModelForFeature,
@@ -108,6 +109,11 @@ export interface SessionState {
     question: string,
     options?: { conversationId?: string },
   ) => Promise<TranscriptAskTurn>
+  askSessionQuestionStreaming: (
+    sessionId: string,
+    question: string,
+    options?: { conversationId?: string; signal?: AbortSignal },
+  ) => Promise<void>
   generateSessionPostProcess: (
     sessionId: string,
     options?: { overwrite?: boolean },
@@ -550,6 +556,70 @@ export const useSessionStore = create<SessionState>((set, get) => {
         replaceSessionAskHistory(sessionId, nextHistory)
         throw error
       }
+    },
+    askSessionQuestionStreaming: async (sessionId, question, options) => {
+      const normalizedQuestion = question.trim()
+      if (!normalizedQuestion) throw new Error('请输入问题')
+
+      const session = get().sessions.find((item) => item.id === sessionId)
+      if (!session) throw new Error('未找到要提问的会话')
+
+      const conversationId = options?.conversationId?.trim() || 'default'
+      const pendingTurn: TranscriptAskTurn = {
+        id: generateId(),
+        conversationId,
+        question: normalizedQuestion,
+        createdAt: Date.now(),
+        status: 'pending',
+      }
+
+      replaceSessionAskHistory(sessionId, [...(session.askHistory || []), pendingTurn])
+
+      const updateTurnAnswer = (partialAnswer: string) => {
+        const latestSession = get().sessions.find((item) => item.id === sessionId)
+        const nextHistory = (latestSession?.askHistory || [pendingTurn]).map((turn) =>
+          turn.id === pendingTurn.id ? { ...turn, answer: partialAnswer } : turn,
+        )
+        replaceSessionAskHistory(sessionId, nextHistory)
+      }
+
+      await askQuestionForSessionStreaming(
+        { ...session, askHistory: [...(session.askHistory || []), pendingTurn] },
+        normalizedQuestion,
+        useSettingsStore.getState().settings,
+        {
+          onChunk: (partialAnswer) => updateTurnAnswer(partialAnswer),
+          onDone: (_fullAnswer, result) => {
+            const latestSession = get().sessions.find((item) => item.id === sessionId)
+            const nextTurn: TranscriptAskTurn = {
+              ...pendingTurn,
+              answer: result.answer,
+              citations: result.citations,
+              answeredAt: Date.now(),
+              model: result.model,
+              status: 'success',
+            }
+            const nextHistory = (latestSession?.askHistory || [pendingTurn]).map((turn) =>
+              turn.id === pendingTurn.id ? nextTurn : turn,
+            )
+            replaceSessionAskHistory(sessionId, nextHistory)
+          },
+          onError: (error) => {
+            const latestSession = get().sessions.find((item) => item.id === sessionId)
+            const nextTurn: TranscriptAskTurn = {
+              ...pendingTurn,
+              answeredAt: Date.now(),
+              status: 'error',
+              error: error.message,
+            }
+            const nextHistory = (latestSession?.askHistory || [pendingTurn]).map((turn) =>
+              turn.id === pendingTurn.id ? nextTurn : turn,
+            )
+            replaceSessionAskHistory(sessionId, nextHistory)
+          },
+        },
+        { conversationId, signal: options?.signal },
+      )
     },
     generateSessionPostProcess: async (sessionId, options) => {
       const session = get().sessions.find((item) => item.id === sessionId)

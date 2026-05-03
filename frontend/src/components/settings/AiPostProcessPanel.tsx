@@ -376,6 +376,35 @@ export function AiPostProcessPanel({
         </div>
       </section>
 
+      {/* Streaming mode */}
+      <section className="workspace-panel-muted p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium leading-none flex items-center gap-2">
+            <Sparkles className="w-3.5 h-3.5 text-muted-foreground" />
+            {isZh ? 'AI 流式输出' : 'AI Streaming Output'}
+          </label>
+          <button
+            onClick={() => updateAiPostProcessConfig({ enableStreaming: !(cfg.enableStreaming !== false) })}
+            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors duration-200 ease-in-out ${
+              cfg.enableStreaming !== false ? 'bg-primary' : 'bg-input'
+            }`}
+            role="switch"
+            aria-checked={cfg.enableStreaming !== false}
+          >
+            <span
+              className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-background shadow-sm ring-0 transition duration-200 ease-in-out ${
+                cfg.enableStreaming !== false ? 'translate-x-4' : 'translate-x-0.5'
+              } mt-0.5`}
+            />
+          </button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {isZh
+            ? '启用后 AI 对话回复将逐字显示，体验更流畅。关闭后等待完整回复后一次性显示。'
+            : 'When enabled, AI chat responses stream in token by token for a smoother experience. When disabled, the full response is shown at once.'}
+        </p>
+      </section>
+
       {/* Correction mode */}
       <section className="workspace-panel-muted p-4 space-y-3">
         <label className="text-sm font-medium leading-none flex items-center gap-2">

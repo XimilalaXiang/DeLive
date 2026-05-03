@@ -629,6 +629,112 @@ export async function askQuestionForSession(
   return parseSessionQaResponse(content, model)
 }
 
+export interface AskStreamCallbacks {
+  onChunk: (partialAnswer: string) => void
+  onDone: (fullAnswer: string, result: SessionQaResult) => void
+  onError: (error: Error) => void
+}
+
+export async function askQuestionForSessionStreaming(
+  session: TranscriptSession,
+  question: string,
+  settings: AppSettings,
+  callbacks: AskStreamCallbacks,
+  options?: { conversationId?: string; signal?: AbortSignal },
+): Promise<void> {
+  const config = getAiConfig(settings)
+  const baseUrl = config.baseUrl?.trim().replace(/\/+$/, '') || DEFAULT_AI_BASE_URL
+  const model = resolveModelForFeature(config, 'chat')
+  const promptLanguage = config.promptLanguage || DEFAULT_PROMPT_LANGUAGE
+  const normalizedQuestion = question.trim()
+
+  if (!config.enabled) throw new Error('请先在设置中启用 AI 后处理')
+  if (!model) throw new Error('请先配置 AI 模型')
+  if (!session.transcript.trim()) throw new Error('当前会话没有可用于问答的转录内容')
+  if (!normalizedQuestion) throw new Error('请输入问题')
+
+  const conversationId = options?.conversationId?.trim()
+
+  const res = await fetch(`${baseUrl}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(config.apiKey?.trim() ? { Authorization: `Bearer ${config.apiKey.trim()}` } : {}),
+    },
+    body: JSON.stringify({
+      model,
+      temperature: 0.2,
+      stream: true,
+      messages: [
+        { role: 'system', content: buildAskSystemPrompt(promptLanguage) },
+        {
+          role: 'user',
+          content: buildAskUserPrompt({
+            ...session,
+            askHistory: conversationId
+              ? (session.askHistory || []).filter((turn) => (
+                (turn.conversationId || 'default') === conversationId
+              ))
+              : session.askHistory,
+          }, normalizedQuestion, promptLanguage, config.preferCorrectedText),
+        },
+      ],
+    }),
+    signal: options?.signal,
+  })
+
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => '')
+    throw new Error(errorText || `AI 请求失败: HTTP ${res.status}`)
+  }
+
+  const reader = res.body?.getReader()
+  if (!reader) throw new Error('Response body is not readable')
+
+  const decoder = new TextDecoder()
+  let buffer = ''
+  let fullText = ''
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() || ''
+
+      for (const line of lines) {
+        const trimmed = line.trim()
+        if (!trimmed || !trimmed.startsWith('data:')) continue
+        const data = trimmed.slice(5).trim()
+        if (data === '[DONE]') continue
+
+        try {
+          const parsed = JSON.parse(data) as {
+            choices?: Array<{ delta?: { content?: string } }>
+          }
+          const content = parsed.choices?.[0]?.delta?.content
+          if (content) {
+            fullText += content
+            callbacks.onChunk(fullText)
+          }
+        } catch {
+          // skip malformed JSON chunks
+        }
+      }
+    }
+
+    const result = parseSessionQaResponse(fullText, model)
+    callbacks.onDone(fullText, result)
+  } catch (err) {
+    if (options?.signal?.aborted) return
+    callbacks.onError(err instanceof Error ? err : new Error(String(err)))
+  } finally {
+    reader.releaseLock()
+  }
+}
+
 export async function generateSessionMindMap(
   session: TranscriptSession,
   settings: AppSettings,

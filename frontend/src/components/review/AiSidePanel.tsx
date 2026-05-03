@@ -36,7 +36,9 @@ export function AiSidePanel({
   const { t } = useUIStore()
   const p = t.preview as Record<string, unknown>
   const settings = useSettingsStore((state) => state.settings)
+  const enableStreaming = settings.aiPostProcess?.enableStreaming !== false
   const askSessionQuestion = useSessionStore((state) => state.askSessionQuestion)
+  const askSessionQuestionStreaming = useSessionStore((state) => state.askSessionQuestionStreaming)
   const deleteSessionConversation = useSessionStore((state) => state.deleteSessionConversation)
   const [draft, setDraft] = useState('')
   const [copiedId, setCopiedId] = useState<string | null>(null)
@@ -62,9 +64,10 @@ export function AiSidePanel({
     }
   }, [selectedText, isOpen, p.aiSidePanelQuotePrefix])
 
+  const lastAnswer = panelHistory[panelHistory.length - 1]?.answer
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [panelHistory.length])
+  }, [panelHistory.length, lastAnswer])
 
   const adjustTextareaHeight = useCallback(() => {
     const textarea = textareaRef.current
@@ -79,12 +82,19 @@ export function AiSidePanel({
 
   const handleSend = async () => {
     if (!draft.trim() || isPending || !aiConfigured || !hasTranscript) return
+    const question = draft.trim()
+    setDraft('')
+    onClearSelection?.()
     try {
-      await askSessionQuestion(session.id, draft.trim(), {
-        conversationId: sidePanelConversationId,
-      })
-      setDraft('')
-      onClearSelection?.()
+      if (enableStreaming) {
+        await askSessionQuestionStreaming(session.id, question, {
+          conversationId: sidePanelConversationId,
+        })
+      } else {
+        await askSessionQuestion(session.id, question, {
+          conversationId: sidePanelConversationId,
+        })
+      }
     } catch (err) {
       console.error('[AiSidePanel] Ask failed:', err)
     }
@@ -204,11 +214,18 @@ export function AiSidePanel({
                   <div className="min-w-0 flex-1">
                     {turn.status === 'pending' ? (
                       <div className="rounded-xl rounded-tl-sm bg-muted/40 px-3 py-2">
-                        <div className="flex items-center gap-1.5 py-1">
-                          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary/60 [animation-delay:0ms]" />
-                          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary/60 [animation-delay:150ms]" />
-                          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary/60 [animation-delay:300ms]" />
-                        </div>
+                        {turn.answer ? (
+                          <div className="text-xs [&_p]:text-xs [&_li]:text-xs [&_h1]:text-sm [&_h2]:text-xs [&_h3]:text-xs">
+                            <MarkdownRenderer content={turn.answer} />
+                            <span className="inline-block h-3 w-1.5 animate-pulse bg-primary/70 rounded-sm ml-0.5 align-middle" />
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5 py-1">
+                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary/60 [animation-delay:0ms]" />
+                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary/60 [animation-delay:150ms]" />
+                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary/60 [animation-delay:300ms]" />
+                          </div>
+                        )}
                       </div>
                     ) : turn.status === 'error' ? (
                       <div className="rounded-xl rounded-tl-sm border border-destructive/20 bg-destructive/5 px-3 py-2">

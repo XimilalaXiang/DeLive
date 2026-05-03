@@ -67,7 +67,9 @@ function MessageActionButton({
 export function ChatTab({ session }: ChatTabProps) {
   const { t } = useUIStore()
   const settings = useSettingsStore((state) => state.settings)
+  const enableStreaming = settings.aiPostProcess?.enableStreaming !== false
   const askSessionQuestion = useSessionStore((state) => state.askSessionQuestion)
+  const askSessionQuestionStreaming = useSessionStore((state) => state.askSessionQuestionStreaming)
   const deleteSessionConversation = useSessionStore((state) => state.deleteSessionConversation)
   const [questionDraft, setQuestionDraft] = useState('')
   const [activeConversationId, setActiveConversationId] = useState<string>('default')
@@ -110,9 +112,9 @@ export function ChatTab({ session }: ChatTabProps) {
   const displayedAskHistory = askHistory.filter(
     (turn) => (turn.conversationId || 'default') === activeConversationId,
   )
-  const latestAskStatus = displayedAskHistory.length > 0
-    ? displayedAskHistory[displayedAskHistory.length - 1]?.status
-    : undefined
+  const latestTurn = displayedAskHistory[displayedAskHistory.length - 1]
+  const latestAskStatus = latestTurn?.status
+  const latestAnswer = latestTurn?.answer
 
   useEffect(() => {
     if (isNewThread) return
@@ -137,7 +139,7 @@ export function ChatTab({ session }: ChatTabProps) {
 
   useEffect(() => {
     scrollToBottom()
-  }, [displayedAskHistory.length, latestAskStatus, activeConversationId, session.id, scrollToBottom])
+  }, [displayedAskHistory.length, latestAskStatus, latestAnswer, activeConversationId, session.id, scrollToBottom])
 
   // Track scroll position for "scroll to bottom" button
   const handleScroll = useCallback(() => {
@@ -162,13 +164,18 @@ export function ChatTab({ session }: ChatTabProps) {
 
   const handleAskQuestion = async () => {
     if (!session || askPending || !questionDraft.trim()) return
+    const question = questionDraft
+    setQuestionDraft('')
+    if (textareaRef.current) textareaRef.current.style.height = 'auto'
     try {
-      await askSessionQuestion(session.id, questionDraft, {
-        conversationId: activeConversationId,
-      })
-      setQuestionDraft('')
-      if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto'
+      if (enableStreaming) {
+        await askSessionQuestionStreaming(session.id, question, {
+          conversationId: activeConversationId,
+        })
+      } else {
+        await askSessionQuestion(session.id, question, {
+          conversationId: activeConversationId,
+        })
       }
     } catch (error) {
       console.error('[ChatTab] Session QA failed:', error)
@@ -205,13 +212,19 @@ export function ChatTab({ session }: ChatTabProps) {
   const handleRegenerate = useCallback(async (question: string) => {
     if (askPending || !question.trim()) return
     try {
-      await askSessionQuestion(session.id, question, {
-        conversationId: activeConversationId,
-      })
+      if (enableStreaming) {
+        await askSessionQuestionStreaming(session.id, question, {
+          conversationId: activeConversationId,
+        })
+      } else {
+        await askSessionQuestion(session.id, question, {
+          conversationId: activeConversationId,
+        })
+      }
     } catch (error) {
       console.error('[ChatTab] Regenerate failed:', error)
     }
-  }, [askPending, session.id, activeConversationId, askSessionQuestion])
+  }, [askPending, session.id, activeConversationId, askSessionQuestion, askSessionQuestionStreaming, enableStreaming])
 
   const getConversationLabel = (
     conversationId: string,
@@ -329,11 +342,20 @@ export function ChatTab({ session }: ChatTabProps) {
                     <div className="min-w-0 flex-1">
                       {turn.status === 'pending' ? (
                         <div className="rounded-2xl rounded-tl-md bg-muted/40 px-4 py-3 space-y-3">
-                          <div className="flex items-center gap-2 text-xs font-medium text-primary">
-                            <Sparkles className="h-3.5 w-3.5" />
-                            {t.preview.askThinking}
-                          </div>
-                          <ThinkingIndicator />
+                          {turn.answer ? (
+                            <>
+                              <MarkdownRenderer content={turn.answer} />
+                              <span className="inline-block h-3.5 w-1.5 animate-pulse bg-primary/70 rounded-sm align-middle" />
+                            </>
+                          ) : (
+                            <>
+                              <div className="flex items-center gap-2 text-xs font-medium text-primary">
+                                <Sparkles className="h-3.5 w-3.5" />
+                                {t.preview.askThinking}
+                              </div>
+                              <ThinkingIndicator />
+                            </>
+                          )}
                         </div>
                       ) : turn.status === 'error' ? (
                         <div className="rounded-2xl rounded-tl-md border border-destructive/20 bg-destructive/5 px-4 py-3">
