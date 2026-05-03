@@ -25,6 +25,13 @@ const RANGE_WEEKS: Record<TimeRange, number> = {
   '1y': 53,
 }
 
+const CELL_SIZE: Record<TimeRange, number> = {
+  '1w': 14,
+  '1m': 14,
+  '6m': 13,
+  '1y': 12,
+}
+
 const DAYS_PER_WEEK = 7
 const HEATMAP_RANGE_KEY = 'heatmap-range'
 
@@ -86,6 +93,7 @@ export function ActivityHeatmap({ sessions, onDateClick, activeDate }: ActivityH
   }, [sessions])
 
   const weeks = RANGE_WEEKS[range]
+  const cellSize = CELL_SIZE[range]
 
   const { grid, monthLabels } = useMemo(() => {
     const today = new Date()
@@ -267,8 +275,8 @@ export function ActivityHeatmap({ sessions, onDateClick, activeDate }: ActivityH
         <div
           className="grid gap-[2px] w-fit"
           style={{
-            gridTemplateColumns: `20px repeat(${weeks}, 12px)`,
-            gridTemplateRows: `14px repeat(${DAYS_PER_WEEK}, 12px)`,
+            gridTemplateColumns: `20px repeat(${weeks}, ${cellSize}px)`,
+            gridTemplateRows: `14px repeat(${DAYS_PER_WEEK}, ${cellSize}px)`,
           }}
         >
           {/* Top-left corner spacer */}
