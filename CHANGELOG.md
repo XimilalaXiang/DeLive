@@ -9,6 +9,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.1] - 2026-05-03
+
+### Added / 新增
+- 🤖 **AI side panel resizing** — drag the left edge of the AI side panel to resize its width; width is persisted across sessions
+- 🤖 **AI 侧边栏拉伸** — 拖拽 AI 侧边栏左边缘可调整宽度，宽度跨会话持久保存
+- 🎙️ **Real-time audio waveform** — live waveform visualization during recording
+- 🎙️ **实时音频波形** — 录音时显示实时波形可视化
+- 📤 **File upload UX** — added format hints and size estimation for file uploads
+- 📤 **文件上传体验** — 文件上传新增格式提示和大小预估
+- 💬 **AI streaming output** — AI chat conversations now display streaming responses in real-time
+- 💬 **AI 流式输出** — AI 对话现在实时显示流式响应
+
+### Changed / 变更
+- 🎨 **Premium UI overhaul** — reduced visual noise with softer borders, restrained primary color usage, lighter font weights, and increased whitespace for a calmer, more elegant interface
+- 🎨 **高级 UI 全面优化** — 边框淡化、主题色克制使用、字重减轻、留白增大，打造更沉稳优雅的界面
+- 🗂️ **Tab bar redesign** — Notion/Dovetail style tab bar with neutral active state and bottom indicator
+- 🗂️ **Tab 栏重设计** — Notion/Dovetail 风格，中性激活态配底部指示条
+- 💬 **AI message bubbles** — user messages use foreground color, AI responses have transparent background
+- 💬 **AI 消息气泡** — 用户消息使用前景色，AI 回复透明背景
+- 📋 **Sidebar simplification** — active state uses left border indicator instead of primary color highlight
+- 📋 **侧边栏精简** — 激活态使用左侧竖线替代主题色高亮
+- 🎯 **Theme color picker** — redesigned from rectangular swatches to simple filled circles with checkmark selection
+- 🎯 **主题色选择器** — 从矩形色块重新设计为简洁的纯色圆形加对勾选中
+- 🗣️ **Speaker diarization** — upgraded to Dovetail-style colored badges
+- 🗣️ **说话人分离** — 升级为 Dovetail 风格彩色标签
+- 📑 **Review tabs** — restructured from 6 tabs to 4 (Transcript, Summary, Chat, MindMap) for cleaner navigation
+- 📑 **回顾标签页** — 从 6 个标签精简为 4 个（转录、总结、对话、思维导图）
+
+### Fixed / 修复
+- 🔧 **AI side panel confirmation** — require user confirmation before opening AI side panel
+- 🔧 **AI 侧边栏确认** — 打开 AI 侧边栏前需要用户确认
+- 🔧 **AppearancePanel theme picker** — fixed duplicate theme picker not matching new circle design
+- 🔧 **外观面板主题选择器** — 修复重复的主题选择器未匹配新圆形设计
+- 🔧 **Cyan theme star icon** — removed unwanted star icon from cyan theme label
+- 🔧 **青蓝主题星标** — 移除青蓝主题标签旁的多余星标图标
+
+---
+
 ## [2.2.0] - 2026-05-03
 
 ### Added / 新增
