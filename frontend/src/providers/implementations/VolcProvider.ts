@@ -22,7 +22,7 @@ export class VolcProvider extends BaseASRProvider {
   readonly info: ASRProviderInfo = {
     id: 'volc' as ASRVendor,
     name: '火山引擎',
-    description: '字节跳动旗下语音识别服务，支持中文优化',
+    description: '字节跳动旗下语音识别服务，支持中文优化，实时 + 文件转录',
     type: 'cloud',
     supportsStreaming: true,
     capabilities: {
@@ -48,7 +48,10 @@ export class VolcProvider extends BaseASRProvider {
           acceptedFileKinds: ['audio'],
         },
         fileTranscription: {
-          availability: 'unsupported',
+          availability: 'compatible',
+          executionMode: 'single-request',
+          inputSources: ['file'],
+          acceptedFileKinds: ['audio'],
         },
       },
       supportsConfigTest: true,
