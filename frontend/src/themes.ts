@@ -575,9 +575,9 @@ const orange: ColorTheme = {
 // Brand theme — Cyan is the primary brand identity
 // Other themes are user accent preferences
 // ─────────────────────────────────────────────
-export const colorThemes: ColorTheme[] = [cyan, violet, rose, green, amber, pink, slate, orange]
+export const colorThemes: ColorTheme[] = [violet, cyan, rose, green, amber, pink, slate, orange]
 
-export const defaultColorTheme: ColorThemeId = 'cyan'
+export const defaultColorTheme: ColorThemeId = 'violet'
 
 export function getColorTheme(id: ColorThemeId): ColorTheme {
   return colorThemes.find(t => t.id === id) || colorThemes[0]
