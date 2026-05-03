@@ -263,12 +263,12 @@ export function ActivityHeatmap({ sessions, onDateClick, activeDate }: ActivityH
       )}
 
       {/* Heatmap grid — collapsible */}
-      {!collapsed && <div className="relative">
+      {!collapsed && <div className="relative overflow-x-auto">
         <div
-          className="grid gap-[2px]"
+          className="grid gap-[2px] w-fit"
           style={{
-            gridTemplateColumns: `20px repeat(${weeks}, 1fr)`,
-            gridTemplateRows: `14px repeat(${DAYS_PER_WEEK}, 1fr)`,
+            gridTemplateColumns: `20px repeat(${weeks}, 12px)`,
+            gridTemplateRows: `14px repeat(${DAYS_PER_WEEK}, 12px)`,
           }}
         >
           {/* Top-left corner spacer */}
@@ -299,7 +299,7 @@ export function ActivityHeatmap({ sessions, onDateClick, activeDate }: ActivityH
                 return (
                   <div
                     key={`c-${weekIdx}-${dayIdx}`}
-                    className={`aspect-square rounded-[3px] cursor-pointer transition-all duration-100 ${levelClasses[level]} ${
+                    className={`rounded-[3px] cursor-pointer transition-all duration-100 ${levelClasses[level]} ${
                       isActive ? 'ring-2 ring-primary ring-offset-1 ring-offset-background' : 'hover:ring-1 hover:ring-foreground/20'
                     }`}
                     onClick={() => onDateClick?.(cell.date)}
