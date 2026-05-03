@@ -9,6 +9,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.0] - 2026-05-03
+
+### Added / 新增
+- 📁 **File transcription** — upload audio/video files and transcribe offline with ten cloud ASR engines: Soniox, Volcengine, ElevenLabs, Mistral AI, Gladia, Deepgram, AssemblyAI, Cloudflare Workers AI, SiliconFlow, and Groq
+- 📁 **文件转录** — 上传音频/视频文件，使用十种云端 ASR 引擎离线转录：Soniox、火山引擎、ElevenLabs、Mistral AI、Gladia、Deepgram、AssemblyAI、Cloudflare Workers AI、硅基流动和 Groq
+- 🗣️ Speaker diarization and word-level timestamps for file transcription (provider-dependent)
+- 🗣️ 文件转录支持说话人分离和词级时间戳（取决于引擎）
+- 🌐 Multi-language detection and language hints for file transcription
+- 🌐 文件转录支持多语言检测和语言提示
+
+### Changed / 变更
+- 📂 Sidebar navigation renamed from "文件转录" (File Transcription) to "文件" (File) for brevity
+- 📂 侧栏导航从「文件转录」改为「文件」，更简洁
+- 🎨 File transcription provider selector unified with settings page styling
+- 🎨 文件转录提供商选择器与设置页面风格统一
+
+### Fixed / 修复
+- 🔧 **Volcengine file transcription** — correctly recognize appKey/accessKey in file transcription UI
+- 🔧 **火山引擎文件转录** — 在文件转录 UI 中正确识别 appKey/accessKey
+- 🔧 **Deepgram file transcription** — use `detect_language` instead of fixed language, fix speakerId mapping, fall back to whisper-large when Nova-3 returns empty results
+- 🔧 **Deepgram 文件转录** — 使用 `detect_language` 代替固定语言，修复 speakerId 映射，Nova-3 返回空结果时回退到 whisper-large
+- 🔧 **Gladia file transcription** — disable `code_switching` to prevent empty results, add empty result detection and diagnostics
+- 🔧 **Gladia 文件转录** — 禁用 `code_switching` 防止返回空结果，新增空结果检测和诊断
+- 🔧 **Cloudflare file transcription** — add file size limit check and improved error handling
+- 🔧 **Cloudflare 文件转录** — 添加文件大小限制检查和改进的错误处理
+- 🔧 **Language hints** — properly parse language hints from text input to array
+- 🔧 **语言提示** — 正确解析文本输入的语言提示为数组
+
+### Docs / 文档
+- 📝 Updated all four READMEs (EN, ZH, TW, JA) with file transcription feature, complete 12-provider coverage, updated architecture diagrams
+- 📝 更新全部四个 README（英文、简中、繁中、日文），新增文件转录功能、完善 12 个提供商覆盖、更新架构图
+- 📝 Updated docs site (docs.delive.me) and landing page (delive.me) with file transcription feature cards and provider comparison updates
+- 📝 更新文档站（docs.delive.me）和官网（delive.me），新增文件转录功能卡片和提供商对比表更新
+
+---
+
 ## [2.1.1] - 2026-05-01
 
 ### Fixed / 修复

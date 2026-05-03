@@ -9,7 +9,7 @@ hero:
     alt: DeLive
   actions:
     - theme: brand
-      text: Download v2.1.0
+      text: Download v2.2.0
       link: https://github.com/XimilalaXiang/DeLive/releases/latest
     - theme: alt
       text: Get Started →
