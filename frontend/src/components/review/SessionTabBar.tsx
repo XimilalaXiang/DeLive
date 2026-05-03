@@ -51,7 +51,7 @@ export function SessionTabBar({ activeTab, onTabChange }: SessionTabBarProps) {
 
   return (
     <div
-      className="relative flex items-center gap-1 border-b border-border bg-background/70 px-6"
+      className="relative flex items-center gap-0.5 border-b border-border/40 px-5"
       role="tablist"
       aria-label="Review tabs"
     >
@@ -81,10 +81,10 @@ export function SessionTabBar({ activeTab, onTabChange }: SessionTabBarProps) {
               onTabChange(next.id)
               tabRefs.current.get(next.id)?.focus()
             }}
-            className={`relative inline-flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors ${
+            className={`relative inline-flex items-center gap-2 px-3.5 py-3 text-[13px] transition-colors ${
               isActive
-                ? 'text-primary'
-                : 'text-muted-foreground hover:text-foreground'
+                ? 'text-foreground font-medium'
+                : 'text-muted-foreground font-normal hover:text-foreground'
             }`}
           >
             <Icon className="h-4 w-4" />
@@ -95,7 +95,7 @@ export function SessionTabBar({ activeTab, onTabChange }: SessionTabBarProps) {
 
       {/* Animated active indicator */}
       <span
-        className="absolute bottom-0 h-0.5 rounded-t-full bg-primary transition-all duration-250 ease-out"
+        className="absolute bottom-0 h-0.5 rounded-t-full bg-foreground/80 transition-all duration-250 ease-out"
         style={{ left: indicator.left, width: indicator.width }}
       />
     </div>

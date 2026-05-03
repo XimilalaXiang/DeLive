@@ -52,16 +52,16 @@ body {
 
 @layer components {
   .workspace-panel {
-    @apply rounded-2xl border border-border/70 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+    @apply rounded-2xl border border-border/40 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.04), 0 4px 12px -2px rgb(0 0 0 / 0.06);
   }
 
   .workspace-panel-muted {
-    @apply rounded-2xl border border-border/60 bg-muted/30 shadow-sm;
+    @apply rounded-2xl border border-border/30 bg-muted/20;
   }
 
   .workspace-kicker {
-    @apply text-xs font-semibold uppercase tracking-[0.2em] text-primary/80;
+    @apply text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground;
   }
 
   .workspace-heading {
@@ -73,12 +73,12 @@ body {
   }
 
   .workspace-badge {
-    @apply inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/80 px-3 py-1.5 text-xs font-medium text-muted-foreground;
+    @apply inline-flex items-center gap-2 rounded-full border border-border/40 bg-background/80 px-3 py-1.5 text-xs font-medium text-muted-foreground;
   }
 }
 
 .dark .workspace-panel {
-  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.08), 0 4px 6px -1px rgb(0 0 0 / 0.3);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.05), 0 4px 12px -2px rgb(0 0 0 / 0.4);
 }
 
 /* ===== Elevation 层级系统 ===== */

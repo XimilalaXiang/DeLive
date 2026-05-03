@@ -338,7 +338,7 @@ function App() {
                 <TranscriptDisplay contentHeightClassName="h-[min(50vh,36rem)] min-h-[24rem]" />
               </div>
 
-              <div className="workspace-panel p-5 animate-reveal-up delay-2 space-y-3">
+              <div className="workspace-panel p-6 animate-reveal-up delay-2 space-y-4">
                 {recordingState === 'idle' && <TopicPicker />}
                 <RecordingControls onError={handleError} startRecording={startRecording} stopRecording={stopRecording} switchConfig={switchConfig} switchProvider={switchProvider} />
                 <WaveformVisualizer

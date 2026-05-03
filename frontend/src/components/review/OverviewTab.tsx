@@ -67,7 +67,7 @@ export function OverviewTab({ session }: OverviewTabProps) {
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
       {/* Speaker Labels */}
       {sessionSpeakers.length > 0 && (
-        <div className="rounded-xl border border-border bg-card/70 p-5 space-y-3">
+        <div className="rounded-xl border border-border/30 bg-card/70 p-5 space-y-4">
           <div className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
             {t.preview.speakerLabels || 'Speaker labels'}
           </div>
@@ -108,13 +108,13 @@ export function OverviewTab({ session }: OverviewTabProps) {
               ) : (
                 <div
                   key={speaker.id}
-                  className="flex items-center gap-2 rounded-full border border-border bg-muted/50 px-3 py-1.5"
+                  className="flex items-center gap-2 rounded-full border border-border/30 bg-muted/30 px-3 py-1.5"
                 >
                   {(() => {
                     const idx = speakerIds.indexOf(speaker.id)
                     const c = OVERVIEW_SPEAKER_COLORS[idx % OVERVIEW_SPEAKER_COLORS.length]
                     return (
-                      <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-bold ${c.bg} ${c.text}`}>
+                      <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-semibold ${c.bg} ${c.text}`}>
                         S{idx + 1}
                       </span>
                     )
@@ -137,7 +137,7 @@ export function OverviewTab({ session }: OverviewTabProps) {
       )}
 
       {/* Topic */}
-      <div className="rounded-xl border border-border bg-card/70 p-5 space-y-3">
+      <div className="rounded-xl border border-border/30 bg-card/70 p-5 space-y-4">
         <div className="flex items-center justify-between">
           <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             <FolderOpen className="w-3.5 h-3.5" />
@@ -154,7 +154,7 @@ export function OverviewTab({ session }: OverviewTabProps) {
                   <span className="text-sm font-medium text-foreground">{currentTopic.name}</span>
                   <button
                     onClick={() => updateSessionTopic(session.id, undefined)}
-                    className="ml-auto inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    className="ml-auto inline-flex items-center gap-1 rounded-md border border-border/30 px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                   >
                     <X className="h-3 w-3" />
                     {t.topics.removeFromTopic}

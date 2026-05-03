@@ -120,7 +120,7 @@ export function AiSidePanel({
     return (
       <button
         onClick={onToggle}
-        className="absolute right-4 top-4 z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-background/90 text-muted-foreground shadow-sm backdrop-blur transition-colors hover:bg-accent hover:text-foreground"
+        className="absolute right-4 top-4 z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border/40 bg-background/90 text-muted-foreground shadow-sm backdrop-blur transition-colors hover:bg-accent hover:text-foreground"
         title={(p.aiSidePanelOpen as string) || 'Open AI Panel'}
       >
         <PanelRightOpen className="h-4 w-4" />
@@ -133,7 +133,7 @@ export function AiSidePanel({
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
         <div className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-primary" />
+          <Sparkles className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm font-medium">
             {(p.aiSidePanelTitle as string) || 'AI Assistant'}
           </span>
@@ -169,7 +169,7 @@ export function AiSidePanel({
 
         {panelHistory.length === 0 ? (
           <div className="flex flex-col items-center gap-4 pt-8 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
               <Sparkles className="h-6 w-6" />
             </div>
             <p className="text-xs text-muted-foreground max-w-[240px]">
@@ -181,7 +181,7 @@ export function AiSidePanel({
                   <button
                     key={action}
                     onClick={() => setDraft(action)}
-                    className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs text-foreground transition-colors hover:border-primary/30 hover:bg-primary/5"
+                    className="flex items-center gap-2 rounded-lg border border-border/40 px-3 py-2 text-xs text-foreground transition-colors hover:border-foreground/20 hover:bg-accent"
                   >
                     <ArrowUpRight className="h-3 w-3 text-muted-foreground shrink-0" />
                     <span className="text-left">{action}</span>
@@ -197,33 +197,33 @@ export function AiSidePanel({
                 {/* User */}
                 <div className="flex items-start gap-2 justify-end">
                   <div className="max-w-[85%]">
-                    <div className="rounded-xl rounded-tr-sm bg-primary px-3 py-2 text-xs leading-relaxed text-primary-foreground">
+                    <div className="rounded-xl rounded-tr-sm bg-foreground px-3 py-2 text-xs leading-relaxed text-background">
                       <p className="whitespace-pre-wrap">{turn.question}</p>
                     </div>
                   </div>
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-foreground/10 text-foreground">
                     <User className="h-3 w-3" />
                   </div>
                 </div>
 
                 {/* AI */}
                 <div className="group/msg flex items-start gap-2">
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
                     <Sparkles className="h-3 w-3" />
                   </div>
                   <div className="min-w-0 flex-1">
                     {turn.status === 'pending' ? (
-                      <div className="rounded-xl rounded-tl-sm bg-muted/40 px-3 py-2">
+                      <div className="rounded-xl rounded-tl-sm px-3 py-2">
                         {turn.answer ? (
                           <div className="text-xs [&_p]:text-xs [&_li]:text-xs [&_h1]:text-sm [&_h2]:text-xs [&_h3]:text-xs">
                             <MarkdownRenderer content={turn.answer} />
-                            <span className="inline-block h-3 w-1.5 animate-pulse bg-primary/70 rounded-sm ml-0.5 align-middle" />
+                            <span className="inline-block h-3 w-1.5 animate-pulse bg-foreground/40 rounded-sm ml-0.5 align-middle" />
                           </div>
                         ) : (
                           <div className="flex items-center gap-1.5 py-1">
-                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary/60 [animation-delay:0ms]" />
-                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary/60 [animation-delay:150ms]" />
-                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary/60 [animation-delay:300ms]" />
+                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-foreground/40 [animation-delay:0ms]" />
+                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-foreground/40 [animation-delay:150ms]" />
+                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-foreground/40 [animation-delay:300ms]" />
                           </div>
                         )}
                       </div>
@@ -232,7 +232,7 @@ export function AiSidePanel({
                         <p className="text-xs text-destructive">{turn.error}</p>
                       </div>
                     ) : (
-                      <div className="rounded-xl rounded-tl-sm bg-muted/30 px-3 py-2">
+                      <div className="rounded-xl rounded-tl-sm px-3 py-2">
                         <div className="text-xs [&_p]:text-xs [&_li]:text-xs [&_h1]:text-sm [&_h2]:text-xs [&_h3]:text-xs">
                           <MarkdownRenderer content={turn.answer || ''} />
                         </div>

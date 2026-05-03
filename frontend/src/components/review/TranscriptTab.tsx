@@ -109,7 +109,7 @@ export function TranscriptTab({ session }: TranscriptTabProps) {
                   {/* Speaker circle badge — shown on speaker change */}
                   <div className="w-7 shrink-0 pt-0.5 flex justify-center">
                     {!isSameSpeaker && segment.speakerId ? (
-                      <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold ${colors.bg} ${colors.text}`}>
+                      <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-semibold ${colors.bg} ${colors.text}`}>
                         {getSpeakerShortLabel(segment.speakerId, speakerIds)}
                       </span>
                     ) : (

@@ -30,9 +30,9 @@ interface ChatTabProps {
 function ThinkingIndicator() {
   return (
     <div className="flex items-center gap-1.5 py-1">
-      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary/60 [animation-delay:0ms]" />
-      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary/60 [animation-delay:150ms]" />
-      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary/60 [animation-delay:300ms]" />
+      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-foreground/40 [animation-delay:0ms]" />
+      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-foreground/40 [animation-delay:150ms]" />
+      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-foreground/40 [animation-delay:300ms]" />
     </div>
   )
 }
@@ -257,8 +257,8 @@ export function ChatTab({ session }: ChatTabProps) {
                 onClick={() => handleSelectConversation(conversation.id)}
                 className={`inline-flex max-w-[180px] items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-all ${
                   conversation.id === activeConversationId
-                    ? 'border-primary/30 bg-primary/10 text-primary shadow-sm'
-                    : 'border-border/60 bg-background/80 text-muted-foreground hover:border-primary/20 hover:text-foreground'
+                    ? 'border-foreground/20 bg-accent text-foreground shadow-sm'
+                    : 'border-border/40 bg-background/80 text-muted-foreground hover:border-foreground/15 hover:text-foreground'
                 }`}
                 title={conversation.firstTurn?.question}
               >
@@ -276,7 +276,7 @@ export function ChatTab({ session }: ChatTabProps) {
             </div>
           ))}
           {showNewThreadPill && (
-            <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">
+            <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-foreground/20 bg-accent px-2.5 py-1 text-[11px] font-medium text-foreground">
               {t.preview.askNewConversationLabel}
             </span>
           )}
@@ -316,7 +316,7 @@ export function ChatTab({ session }: ChatTabProps) {
                   {/* User message */}
                   <div className="flex items-start gap-3 justify-end">
                     <div className="max-w-[80%]">
-                      <div className="rounded-2xl rounded-tr-md bg-primary px-4 py-3 text-sm leading-relaxed text-primary-foreground shadow-sm">
+                      <div className="rounded-2xl rounded-tr-md bg-foreground px-4 py-3 text-sm leading-relaxed text-background shadow-sm">
                         <p className="whitespace-pre-wrap">{turn.question}</p>
                       </div>
                       {/* User message actions */}
@@ -329,23 +329,23 @@ export function ChatTab({ session }: ChatTabProps) {
                         />
                       </div>
                     </div>
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-foreground/10 text-foreground">
                       <User className="h-4 w-4" />
                     </div>
                   </div>
 
                   {/* AI message */}
                   <div className="group/msg flex items-start gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
                       <Sparkles className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">
                       {turn.status === 'pending' ? (
-                        <div className="rounded-2xl rounded-tl-md bg-muted/40 px-4 py-3 space-y-3">
+                        <div className="rounded-2xl rounded-tl-md px-4 py-3 space-y-3">
                           {turn.answer ? (
                             <>
                               <MarkdownRenderer content={turn.answer} />
-                              <span className="inline-block h-3.5 w-1.5 animate-pulse bg-primary/70 rounded-sm align-middle" />
+                              <span className="inline-block h-3.5 w-1.5 animate-pulse bg-foreground/40 rounded-sm align-middle" />
                             </>
                           ) : (
                             <>
@@ -364,7 +364,7 @@ export function ChatTab({ session }: ChatTabProps) {
                           </p>
                         </div>
                       ) : (
-                        <div className="rounded-2xl rounded-tl-md bg-muted/30 px-4 py-3">
+                        <div className="rounded-2xl rounded-tl-md px-4 py-3">
                           <MarkdownRenderer content={turn.answer || ''} />
                         </div>
                       )}
@@ -379,7 +379,7 @@ export function ChatTab({ session }: ChatTabProps) {
                             {turn.citations.map((citation, cidx) => (
                               <div
                                 key={`${citation.quote}-${cidx}`}
-                                className="rounded-lg border border-border/60 bg-muted/30 px-3 py-2"
+                                className="rounded-lg border border-border/30 bg-muted/20 px-3 py-2"
                               >
                                 <div className="inline-flex items-center gap-1 text-[10px] font-medium text-muted-foreground">
                                   <Quote className="w-2.5 h-2.5" />
@@ -433,7 +433,7 @@ export function ChatTab({ session }: ChatTabProps) {
                     <button
                       key={suggestion}
                       onClick={() => setQuestionDraft(suggestion)}
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 py-2 text-xs font-medium text-foreground shadow-sm transition-all hover:border-primary/30 hover:bg-primary/5 hover:text-primary hover:shadow-md active:scale-[0.98]"
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-border/40 bg-card px-3.5 py-2 text-xs font-medium text-foreground shadow-sm transition-all hover:border-foreground/20 hover:bg-accent hover:shadow-md active:scale-[0.98]"
                     >
                       <ArrowUpRight className="h-3 w-3 text-muted-foreground" />
                       {suggestion}
@@ -449,7 +449,7 @@ export function ChatTab({ session }: ChatTabProps) {
         {showScrollBtn && (
           <button
             onClick={() => scrollToBottom()}
-            className="absolute bottom-3 left-1/2 z-10 -translate-x-1/2 inline-flex items-center gap-1.5 rounded-full border border-border bg-background/95 px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-lg backdrop-blur transition-all hover:bg-accent hover:text-foreground"
+            className="absolute bottom-3 left-1/2 z-10 -translate-x-1/2 inline-flex items-center gap-1.5 rounded-full border border-border/40 bg-background/95 px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-lg backdrop-blur transition-all hover:bg-accent hover:text-foreground"
           >
             <ChevronDown className="h-3.5 w-3.5" />
             {t.preview.askScrollToBottom}
