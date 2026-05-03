@@ -80,3 +80,4 @@ rules/
 skills/
 !skills/delive-transcript-analyzer/
 skills-lock.json
+.wrangler/
