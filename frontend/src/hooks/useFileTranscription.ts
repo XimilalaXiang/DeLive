@@ -51,7 +51,6 @@ import {
   waitForCompletion as assemblyaiWaitForCompletion,
   type AssemblyAIWord,
   type AssemblyAIUtterance,
-  type AssemblyAITranscriptResponse,
 } from '../utils/assemblyaiFileApi'
 
 /* ─── Soniox result conversion ──────────────────────────────── */
