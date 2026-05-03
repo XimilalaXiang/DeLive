@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState, useCallback } from 'react'
-import { FileText, Clock, Languages } from 'lucide-react'
+import { FileText, Clock, Languages, Play } from 'lucide-react'
 import type { TranscriptSession } from '../../types'
 import { useUIStore } from '../../stores/uiStore'
 
@@ -22,18 +22,23 @@ function getSpeakerLabel(
   return speakerNameMap[speakerId] || speakerId
 }
 
-const SPEAKER_COLORS = [
-  'bg-primary/10 text-primary',
-  'bg-info/10 text-info',
-  'bg-warning/10 text-warning',
-  'bg-success/10 text-success',
-  'bg-destructive/10 text-destructive',
-  'bg-accent text-accent-foreground',
+function getSpeakerShortLabel(speakerId: string, speakerIds: string[]): string {
+  const index = speakerIds.indexOf(speakerId)
+  return `S${index + 1}`
+}
+
+const SPEAKER_BADGE_COLORS = [
+  { bg: 'bg-blue-500', text: 'text-white', border: 'border-blue-200 dark:border-blue-800', label: 'text-blue-700 dark:text-blue-300', highlight: 'bg-blue-50 dark:bg-blue-950/30' },
+  { bg: 'bg-emerald-500', text: 'text-white', border: 'border-emerald-200 dark:border-emerald-800', label: 'text-emerald-700 dark:text-emerald-300', highlight: 'bg-emerald-50 dark:bg-emerald-950/30' },
+  { bg: 'bg-amber-500', text: 'text-white', border: 'border-amber-200 dark:border-amber-800', label: 'text-amber-700 dark:text-amber-300', highlight: 'bg-amber-50 dark:bg-amber-950/30' },
+  { bg: 'bg-purple-500', text: 'text-white', border: 'border-purple-200 dark:border-purple-800', label: 'text-purple-700 dark:text-purple-300', highlight: 'bg-purple-50 dark:bg-purple-950/30' },
+  { bg: 'bg-rose-500', text: 'text-white', border: 'border-rose-200 dark:border-rose-800', label: 'text-rose-700 dark:text-rose-300', highlight: 'bg-rose-50 dark:bg-rose-950/30' },
+  { bg: 'bg-cyan-500', text: 'text-white', border: 'border-cyan-200 dark:border-cyan-800', label: 'text-cyan-700 dark:text-cyan-300', highlight: 'bg-cyan-50 dark:bg-cyan-950/30' },
 ]
 
-function getSpeakerColor(speakerId: string, speakerIds: string[]): string {
+function getSpeakerBadgeColor(speakerId: string, speakerIds: string[]) {
   const index = speakerIds.indexOf(speakerId)
-  return SPEAKER_COLORS[index % SPEAKER_COLORS.length]
+  return SPEAKER_BADGE_COLORS[index % SPEAKER_BADGE_COLORS.length]
 }
 
 export function TranscriptTab({ session }: TranscriptTabProps) {
@@ -83,42 +88,63 @@ export function TranscriptTab({ session }: TranscriptTabProps) {
     <div ref={contentRef} className="flex-1 overflow-y-auto">
       <div className="mx-auto max-w-3xl px-6 py-6">
         {speakerSegments.length > 0 ? (
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             {speakerSegments.map((segment, index) => {
               const prevSegment = index > 0 ? speakerSegments[index - 1] : null
               const isSameSpeaker = prevSegment?.speakerId === segment.speakerId
               const isHovered = hoveredIndex === index
+              const colors = segment.speakerId
+                ? getSpeakerBadgeColor(segment.speakerId, speakerIds)
+                : SPEAKER_BADGE_COLORS[0]
 
               return (
                 <div
                   key={`${segment.speakerId || 'speaker'}-${index}`}
                   className={`group flex items-start gap-3 rounded-lg px-3 py-2 transition-colors ${
-                    isHovered ? 'bg-muted/50' : ''
+                    isHovered ? colors.highlight : ''
                   }`}
                   onMouseEnter={() => handleSegmentHover(index)}
                   onMouseLeave={() => handleSegmentHover(null)}
                 >
-                  {/* Timestamp */}
-                  <div className="w-10 shrink-0 pt-0.5 text-right">
-                    {segment.startMs != null ? (
-                      <span className={`font-mono text-[10px] tabular-nums transition-colors ${
-                        isHovered ? 'text-muted-foreground' : 'text-muted-foreground/40'
-                      }`}>
-                        {formatMs(segment.startMs)}
+                  {/* Speaker circle badge — shown on speaker change */}
+                  <div className="w-7 shrink-0 pt-0.5 flex justify-center">
+                    {!isSameSpeaker && segment.speakerId ? (
+                      <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold ${colors.bg} ${colors.text}`}>
+                        {getSpeakerShortLabel(segment.speakerId, speakerIds)}
                       </span>
                     ) : (
-                      <Clock className="ml-auto h-3 w-3 text-muted-foreground/20" />
+                      <span className="h-6 w-6" />
                     )}
                   </div>
 
-                  {/* Speaker badge + text */}
+                  {/* Speaker name + timestamp header */}
                   <div className="min-w-0 flex-1">
                     {!isSameSpeaker && segment.speakerId && (
-                      <span className={`mb-1 inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
-                        getSpeakerColor(segment.speakerId, speakerIds)
-                      }`}>
-                        {getSpeakerLabel(segment.speakerId, speakerNameMap)}
-                      </span>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`text-xs font-semibold ${colors.label}`}>
+                          {getSpeakerLabel(segment.speakerId, speakerNameMap)}
+                        </span>
+                        {segment.startMs != null && (
+                          <button
+                            className="inline-flex items-center gap-1 text-[10px] font-mono tabular-nums text-muted-foreground/60 hover:text-primary transition-colors"
+                            title={t.preview.jumpToTimestamp || 'Jump to timestamp'}
+                          >
+                            <Play className="h-2.5 w-2.5" />
+                            {formatMs(segment.startMs)}
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    {isSameSpeaker && segment.startMs != null && (
+                      <button
+                        className={`mb-0.5 inline-flex items-center gap-1 text-[10px] font-mono tabular-nums transition-colors ${
+                          isHovered ? 'text-muted-foreground' : 'text-muted-foreground/30'
+                        } hover:text-primary`}
+                        title={t.preview.jumpToTimestamp || 'Jump to timestamp'}
+                      >
+                        <Play className="h-2.5 w-2.5" />
+                        {formatMs(segment.startMs)}
+                      </button>
                     )}
                     <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground/90 m-0">
                       {segment.text}

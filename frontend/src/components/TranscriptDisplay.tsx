@@ -11,11 +11,27 @@ interface TranscriptDisplayProps {
 }
 
 function getSpeakerLabel(speakerId: string | undefined): string {
-  if (!speakerId) {
-    return 'Speaker'
-  }
-
+  if (!speakerId) return 'Speaker'
   return speakerId
+}
+
+const LIVE_SPEAKER_COLORS = [
+  { bg: 'bg-blue-500', text: 'text-white', label: 'text-blue-600 dark:text-blue-400' },
+  { bg: 'bg-emerald-500', text: 'text-white', label: 'text-emerald-600 dark:text-emerald-400' },
+  { bg: 'bg-amber-500', text: 'text-white', label: 'text-amber-600 dark:text-amber-400' },
+  { bg: 'bg-purple-500', text: 'text-white', label: 'text-purple-600 dark:text-purple-400' },
+  { bg: 'bg-rose-500', text: 'text-white', label: 'text-rose-600 dark:text-rose-400' },
+  { bg: 'bg-cyan-500', text: 'text-white', label: 'text-cyan-600 dark:text-cyan-400' },
+]
+
+function getLiveSpeakerColor(speakerId: string, allIds: string[]) {
+  const index = allIds.indexOf(speakerId)
+  return LIVE_SPEAKER_COLORS[(index >= 0 ? index : 0) % LIVE_SPEAKER_COLORS.length]
+}
+
+function getSpeakerShortLabel(speakerId: string, allIds: string[]): string {
+  const index = allIds.indexOf(speakerId)
+  return `S${(index >= 0 ? index : 0) + 1}`
 }
 
 export function TranscriptDisplay({
@@ -180,17 +196,40 @@ export function TranscriptDisplay({
           <div className="prose prose-sm dark:prose-invert max-w-none">
             {showSource && (
               speakerDiarizationEnabled ? (
-                <div className="space-y-4">
-                  {currentSegments.map((segment, index) => (
-                    <div key={`${segment.speakerId || 'speaker'}-${index}`} className="space-y-1">
-                      <div className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                        {getSpeakerLabel(segment.speakerId)}
-                      </div>
-                      <p className="text-base leading-relaxed whitespace-pre-wrap text-foreground/90 font-medium">
-                        {segment.text}
-                      </p>
-                    </div>
-                  ))}
+                <div className="space-y-3">
+                  {(() => {
+                    const allSpeakerIds = [...new Set(currentSegments.map(s => s.speakerId).filter(Boolean) as string[])]
+                    return currentSegments.map((segment, index) => {
+                      const prevSegment = index > 0 ? currentSegments[index - 1] : null
+                      const isSameSpeaker = prevSegment?.speakerId === segment.speakerId
+                      const colors = segment.speakerId
+                        ? getLiveSpeakerColor(segment.speakerId, allSpeakerIds)
+                        : LIVE_SPEAKER_COLORS[0]
+                      return (
+                        <div key={`${segment.speakerId || 'speaker'}-${index}`} className="flex items-start gap-2.5">
+                          <div className="w-7 shrink-0 pt-0.5 flex justify-center">
+                            {!isSameSpeaker && segment.speakerId ? (
+                              <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold ${colors.bg} ${colors.text}`}>
+                                {getSpeakerShortLabel(segment.speakerId, allSpeakerIds)}
+                              </span>
+                            ) : (
+                              <span className="h-6 w-6" />
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            {!isSameSpeaker && segment.speakerId && (
+                              <div className={`text-xs font-semibold mb-0.5 ${colors.label}`}>
+                                {getSpeakerLabel(segment.speakerId)}
+                              </div>
+                            )}
+                            <p className="text-base leading-relaxed whitespace-pre-wrap text-foreground/90 font-medium m-0">
+                              {segment.text}
+                            </p>
+                          </div>
+                        </div>
+                      )
+                    })
+                  })()}
                   {nonFinalTranscript && (
                     <p className="text-base leading-relaxed whitespace-pre-wrap text-muted-foreground transition-colors duration-300">
                       {nonFinalTranscript}

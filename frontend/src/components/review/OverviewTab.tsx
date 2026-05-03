@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import {
   Pencil,
   Check,
@@ -10,6 +10,15 @@ import type { TranscriptSession, TranscriptSpeaker } from '../../types'
 import { useUIStore } from '../../stores/uiStore'
 import { useSessionStore } from '../../stores/sessionStore'
 import { useTopicStore } from '../../stores/topicStore'
+
+const OVERVIEW_SPEAKER_COLORS = [
+  { bg: 'bg-blue-500', text: 'text-white' },
+  { bg: 'bg-emerald-500', text: 'text-white' },
+  { bg: 'bg-amber-500', text: 'text-white' },
+  { bg: 'bg-purple-500', text: 'text-white' },
+  { bg: 'bg-rose-500', text: 'text-white' },
+  { bg: 'bg-cyan-500', text: 'text-white' },
+]
 
 interface OverviewTabProps {
   session: TranscriptSession
@@ -31,6 +40,7 @@ export function OverviewTab({ session }: OverviewTabProps) {
       speaker.displayName?.trim() || speaker.label?.trim() || speaker.id,
     ]),
   )
+  const speakerIds = useMemo(() => sessionSpeakers.map(s => s.id), [sessionSpeakers])
 
   const startEditingSpeaker = (speaker: TranscriptSpeaker) => {
     setEditingSpeakerId(speaker.id)
@@ -100,6 +110,15 @@ export function OverviewTab({ session }: OverviewTabProps) {
                   key={speaker.id}
                   className="flex items-center gap-2 rounded-full border border-border bg-muted/50 px-3 py-1.5"
                 >
+                  {(() => {
+                    const idx = speakerIds.indexOf(speaker.id)
+                    const c = OVERVIEW_SPEAKER_COLORS[idx % OVERVIEW_SPEAKER_COLORS.length]
+                    return (
+                      <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-bold ${c.bg} ${c.text}`}>
+                        S{idx + 1}
+                      </span>
+                    )
+                  })()}
                   <span className="text-sm font-medium text-foreground">
                     {speakerNameMap[speaker.id]}
                   </span>
