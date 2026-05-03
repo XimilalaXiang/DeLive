@@ -24,7 +24,7 @@ export class AssemblyAIProvider extends BaseASRProvider {
   readonly info: ASRProviderInfo = {
     id: 'assemblyai' as ASRVendor,
     name: 'AssemblyAI',
-    description: 'AssemblyAI Universal-3 Pro 实时语音转录，支持 6 种语言（en/es/de/fr/pt/it）',
+    description: 'AssemblyAI 实时语音转录 + 文件转录，支持 99+ 种语言、说话人分离',
     type: 'cloud',
     supportsStreaming: true,
     capabilities: {
@@ -50,7 +50,10 @@ export class AssemblyAIProvider extends BaseASRProvider {
           acceptedFileKinds: ['audio'],
         },
         fileTranscription: {
-          availability: 'unsupported',
+          availability: 'compatible',
+          executionMode: 'native-job',
+          inputSources: ['file'],
+          acceptedFileKinds: ['audio', 'video'],
         },
       },
       supportsConfigTest: true,

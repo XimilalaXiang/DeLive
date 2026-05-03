@@ -1,12 +1,20 @@
 /**
- * AssemblyAI Streaming ASR 特定类型定义
+ * AssemblyAI ASR 特定类型定义
+ *
+ * 实时流式仅支持 6 种语言 (Universal-3 Pro Streaming)
+ * 文件转录支持 99+ 种语言 (Universal-2 / Best / Nano)
  */
 
 export const ASSEMBLYAI_DEFAULT_MODEL = 'u3-rt-pro'
 
 export const ASSEMBLYAI_SUPPORTED_LANGUAGES = [
   'en', 'en-US', 'en-GB', 'en-AU',
+  'zh', 'ja', 'ko',
   'es', 'fr', 'de', 'pt', 'it',
+  'ru', 'ar', 'hi', 'nl', 'pl', 'sv', 'da', 'fi', 'no',
+  'tr', 'uk', 'cs', 'el', 'hu', 'ro', 'bg', 'sk', 'hr',
+  'th', 'vi', 'id', 'ms', 'tl',
+  'he', 'fa',
 ] as const
 
 export type AssemblyAISupportedLanguage = typeof ASSEMBLYAI_SUPPORTED_LANGUAGES[number]

@@ -45,6 +45,14 @@ import {
   type DeepgramFileWord,
   type DeepgramFileUtterance,
 } from '../utils/deepgramFileApi'
+import {
+  uploadFile as assemblyaiUploadFile,
+  createTranscription as assemblyaiCreateTranscription,
+  waitForCompletion as assemblyaiWaitForCompletion,
+  type AssemblyAIWord,
+  type AssemblyAIUtterance,
+  type AssemblyAITranscriptResponse,
+} from '../utils/assemblyaiFileApi'
 
 /* ─── Soniox result conversion ──────────────────────────────── */
 
@@ -700,6 +708,103 @@ function deepgramExtractSpeakers(utterances: DeepgramFileUtterance[]): Transcrip
     .map((id) => ({ id: String(id), label: `Speaker ${id}` }))
 }
 
+/* ─── AssemblyAI result conversion ──────────────────────────── */
+
+function assemblyaiWordsToTokens(words: AssemblyAIWord[]): TranscriptTokenData[] {
+  return words.map((w) => ({
+    text: w.text,
+    isFinal: true as const,
+    startMs: w.start,
+    endMs: w.end,
+    confidence: w.confidence,
+    speaker: w.speaker ?? undefined,
+  }))
+}
+
+function assemblyaiUtterancesToSegments(utterances: AssemblyAIUtterance[]): TranscriptSegment[] {
+  return utterances.map((u) => ({
+    text: u.text,
+    startMs: u.start,
+    endMs: u.end,
+    isFinal: true as const,
+    speakerId: u.speaker,
+  }))
+}
+
+function assemblyaiExtractSpeakers(utterances: AssemblyAIUtterance[]): TranscriptSpeaker[] {
+  const speakerSet = new Set<string>()
+  for (const u of utterances) {
+    if (u.speaker) speakerSet.add(u.speaker)
+  }
+  return Array.from(speakerSet)
+    .sort()
+    .map((id) => ({ id, label: `Speaker ${id}` }))
+}
+
+async function executeAssemblyAI(
+  file: File,
+  config: FileTranscriptionConfig,
+  apiKey: string,
+  jobId: string,
+  updateJob: (id: string, u: Record<string, unknown>) => void,
+  signal: AbortSignal,
+): Promise<TranscriptionResult> {
+  updateJob(jobId, { status: 'uploading', progress: 10 })
+
+  const uploadUrl = await assemblyaiUploadFile(apiKey, file, signal)
+  console.debug('[AssemblyAI] File uploaded:', uploadUrl.substring(0, 60) + '...')
+
+  updateJob(jobId, { status: 'transcribing', progress: 30 })
+
+  const singleLang = config.languageHints?.length === 1 ? config.languageHints[0] : undefined
+
+  const transcriptId = await assemblyaiCreateTranscription(
+    apiKey,
+    uploadUrl,
+    {
+      language_code: singleLang,
+      speaker_labels: config.enableSpeakerDiarization,
+      speech_model: config.model || undefined,
+    },
+    signal,
+  )
+  console.debug('[AssemblyAI] Transcription created:', transcriptId)
+
+  updateJob(jobId, { progress: 40 })
+
+  const result = await assemblyaiWaitForCompletion(apiKey, transcriptId, signal, (status) => {
+    const progressMap: Record<string, number> = { queued: 40, processing: 60 }
+    updateJob(jobId, { progress: progressMap[status] ?? 50 })
+  })
+
+  updateJob(jobId, { progress: 90 })
+  console.debug('[AssemblyAI] Transcription completed. Text length:', result.text?.length ?? 0, 'Words:', result.words?.length ?? 0)
+
+  const transcript = result.text ?? ''
+  const words = result.words ?? []
+  const utterances = result.utterances ?? []
+  const durationMs = (result.audio_duration ?? 0) * 1000
+
+  if (!transcript && words.length === 0) {
+    console.warn('[AssemblyAI] Empty transcription result. Full response:', JSON.stringify(result))
+    throw new Error('AssemblyAI returned an empty transcription result. Please check the audio file or try a different provider.')
+  }
+
+  const tokens: TranscriptTokenData[] = words.length > 0
+    ? assemblyaiWordsToTokens(words)
+    : [{ text: transcript, isFinal: true as const, startMs: 0, endMs: durationMs }]
+
+  const segments: TranscriptSegment[] = utterances.length > 0
+    ? assemblyaiUtterancesToSegments(utterances)
+    : [{ text: transcript.trim(), startMs: 0, endMs: durationMs, isFinal: true as const }]
+
+  const speakers = assemblyaiExtractSpeakers(utterances)
+
+  return { transcript, tokens, segments, speakers, durationMs }
+}
+
+/* ─── Deepgram helpers ─────────────────────────────────────── */
+
 function parseDeepgramResponse(response: import('../utils/deepgramFileApi').DeepgramFileTranscriptionResponse) {
   const channel = response.results.channels[0]
   const alt = channel?.alternatives[0]
@@ -845,6 +950,8 @@ export function useFileTranscription() {
           result = await executeElevenLabs(file, config, apiKey!, jobId, updateJob, controller.signal)
         } else if (providerId === 'deepgram') {
           result = await executeDeepgram(file, config, apiKey!, jobId, updateJob, controller.signal)
+        } else if (providerId === 'assemblyai') {
+          result = await executeAssemblyAI(file, config, apiKey!, jobId, updateJob, controller.signal)
         } else {
           result = await executeSoniox(file, config, apiKey!, jobId, updateJob, controller.signal)
         }
