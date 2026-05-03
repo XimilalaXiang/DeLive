@@ -6,20 +6,20 @@ DeLive 通过统一的 Provider 注册机制支持十二种 ASR 后端。每个 
 
 ## Provider 对比
 
-| Provider | 类型 | 传输方式 | 音频格式 | 流式 | 翻译 | 说话人分离 |
-|----------|------|---------|---------|------|------|-----------|
-| Soniox V4 | 云端 | WebSocket | MediaRecorder (WebM/Opus) | 是 | 是 | 是 |
-| 火山引擎 | 云端 | WebSocket（经代理） | AudioWorklet (PCM16) | 是 | 否 | 否 |
-| ElevenLabs | 云端 | WebSocket（经代理） | AudioWorklet (PCM16) | 是 | 否 | 否 |
-| Mistral AI | 云端 | WebSocket（经代理） | AudioWorklet (PCM16) | 是 | 否 | 否 |
-| Gladia | 云端 | WebSocket（经代理） | AudioWorklet (PCM16) | 是 | 否 | 否 |
-| Deepgram | 云端 | WebSocket（经代理） | AudioWorklet (PCM16) | 是 | 否 | 否 |
-| AssemblyAI | 云端 | WebSocket（经代理） | AudioWorklet (PCM16) | 是 | 否 | 否 |
-| Cloudflare Workers AI | 云端 | REST（批量） | AudioWorklet (PCM16) | 否 | 否 | 否 |
-| 硅基流动 | 云端 | REST（批量） | AudioWorklet (PCM16) | 否 | 否 | 否 |
-| Groq | 云端 | REST（批量） | AudioWorklet (PCM16) | 否 | 否 | 否 |
-| 本地 OpenAI | 本地 | REST（批量） | MediaRecorder (WebM/Opus) | 否 | 否 | 否 |
-| whisper.cpp | 本地 | REST（本地） | AudioWorklet (PCM16) | 否 | 否 | 否 |
+| Provider | 类型 | 传输方式 | 音频格式 | 流式 | 翻译 | 说话人分离 | 文件 |
+|----------|------|---------|---------|------|------|-----------|------|
+| Soniox V4 | 云端 | WebSocket | MediaRecorder (WebM/Opus) | 是 | 是 | 是 | 是 |
+| 火山引擎 | 云端 | WebSocket（经代理） | AudioWorklet (PCM16) | 是 | 否 | 否 | 是 |
+| ElevenLabs | 云端 | WebSocket（经代理） | AudioWorklet (PCM16) | 是 | 否 | 否 | 是 |
+| Mistral AI | 云端 | WebSocket（经代理） | AudioWorklet (PCM16) | 是 | 否 | 否 | 是 |
+| Gladia | 云端 | WebSocket（经代理） | AudioWorklet (PCM16) | 是 | 否 | 否 | 是 |
+| Deepgram | 云端 | WebSocket（经代理） | AudioWorklet (PCM16) | 是 | 否 | 否 | 是 |
+| AssemblyAI | 云端 | WebSocket（经代理） | AudioWorklet (PCM16) | 是 | 否 | 否 | 是 |
+| Cloudflare Workers AI | 云端 | REST（批量） | AudioWorklet (PCM16) | 否 | 否 | 否 | 是 |
+| 硅基流动 | 云端 | REST（批量） | AudioWorklet (PCM16) | 否 | 否 | 否 | 是 |
+| Groq | 云端 | REST（批量） | AudioWorklet (PCM16) | 否 | 否 | 否 | 是 |
+| 本地 OpenAI | 本地 | REST（批量） | MediaRecorder (WebM/Opus) | 否 | 否 | 否 | 否 |
+| whisper.cpp | 本地 | REST（本地） | AudioWorklet (PCM16) | 否 | 否 | 否 | 否 |
 
 ## 执行模式
 

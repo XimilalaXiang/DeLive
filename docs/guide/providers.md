@@ -6,20 +6,20 @@ DeLive supports twelve ASR backends through a unified provider registry. Each pr
 
 ## Provider Comparison
 
-| Provider | Type | Transport | Audio | Streaming | Translation | Diarization |
-|----------|------|-----------|-------|-----------|-------------|-------------|
-| Soniox V4 | Cloud | WebSocket | MediaRecorder (WebM/Opus) | Yes | Yes | Yes |
-| Volcengine | Cloud | WebSocket (via proxy) | AudioWorklet (PCM16) | Yes | No | No |
-| ElevenLabs | Cloud | WebSocket (via proxy) | AudioWorklet (PCM16) | Yes | No | No |
-| Mistral AI | Cloud | WebSocket (via proxy) | AudioWorklet (PCM16) | Yes | No | No |
-| Gladia | Cloud | WebSocket (via proxy) | AudioWorklet (PCM16) | Yes | No | No |
-| Deepgram | Cloud | WebSocket (via proxy) | AudioWorklet (PCM16) | Yes | No | No |
-| AssemblyAI | Cloud | WebSocket (via proxy) | AudioWorklet (PCM16) | Yes | No | No |
-| Cloudflare Workers AI | Cloud | REST (batch) | AudioWorklet (PCM16) | No | No | No |
-| SiliconFlow | Cloud | REST (batch) | AudioWorklet (PCM16) | No | No | No |
-| Groq | Cloud | REST (batch) | AudioWorklet (PCM16) | No | No | No |
-| Local OpenAI | Local | REST (batch) | MediaRecorder (WebM/Opus) | No | No | No |
-| whisper.cpp | Local | REST (local) | AudioWorklet (PCM16) | No | No | No |
+| Provider | Type | Transport | Audio | Streaming | Translation | Diarization | File |
+|----------|------|-----------|-------|-----------|-------------|-------------|------|
+| Soniox V4 | Cloud | WebSocket | MediaRecorder (WebM/Opus) | Yes | Yes | Yes | Yes |
+| Volcengine | Cloud | WebSocket (via proxy) | AudioWorklet (PCM16) | Yes | No | No | Yes |
+| ElevenLabs | Cloud | WebSocket (via proxy) | AudioWorklet (PCM16) | Yes | No | No | Yes |
+| Mistral AI | Cloud | WebSocket (via proxy) | AudioWorklet (PCM16) | Yes | No | No | Yes |
+| Gladia | Cloud | WebSocket (via proxy) | AudioWorklet (PCM16) | Yes | No | No | Yes |
+| Deepgram | Cloud | WebSocket (via proxy) | AudioWorklet (PCM16) | Yes | No | No | Yes |
+| AssemblyAI | Cloud | WebSocket (via proxy) | AudioWorklet (PCM16) | Yes | No | No | Yes |
+| Cloudflare Workers AI | Cloud | REST (batch) | AudioWorklet (PCM16) | No | No | No | Yes |
+| SiliconFlow | Cloud | REST (batch) | AudioWorklet (PCM16) | No | No | No | Yes |
+| Groq | Cloud | REST (batch) | AudioWorklet (PCM16) | No | No | No | Yes |
+| Local OpenAI | Local | REST (batch) | MediaRecorder (WebM/Opus) | No | No | No | No |
+| whisper.cpp | Local | REST (local) | AudioWorklet (PCM16) | No | No | No | No |
 
 ## Execution Modes
 

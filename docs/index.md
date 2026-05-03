@@ -33,6 +33,9 @@ features:
   - icon: 🌐
     title: Open API & MCP Ecosystem
     details: Local REST API (8 endpoints), real-time WebSocket streaming, standalone MCP server for Claude Desktop and Cursor, Agent Skill definition, and Agent Skills for one-call transcription inside any agent.
+  - icon: 📁
+    title: File Transcription
+    details: Upload audio or video files and transcribe them offline using ten cloud ASR engines. Supports speaker diarization, word-level timestamps, and multi-language detection.
   - icon: 🎨
     title: Five Themes, Light & Dark
     details: Cyan, Violet, Rose, Green, and Amber accent palettes — each with full light and dark mode. New persistent sidebar navigation and Command Palette (Ctrl+K).
@@ -253,9 +256,14 @@ features:
 </div>
 
 <div class="whats-new">
-  <h2>What's New in v2.1.0</h2>
-  <p class="subtitle">Cloudflare Workers AI, Gladia, AI Correction enhancements, and more</p>
+  <h2>What's New</h2>
+  <p class="subtitle">File transcription, Cloudflare Workers AI, Gladia, AI Correction enhancements, and more</p>
   <div class="new-features">
+    <div class="new-feature">
+      <div class="icon">📁</div>
+      <h3>File Transcription</h3>
+      <p>Upload audio or video files and transcribe them offline. Ten cloud ASR engines supported — Soniox, Volcengine, ElevenLabs, Mistral, Gladia, Deepgram, AssemblyAI, Cloudflare, SiliconFlow, and Groq — with speaker diarization and word-level timestamps.</p>
+    </div>
     <div class="new-feature">
       <div class="icon">☁️</div>
       <h3>Cloudflare Workers AI</h3>

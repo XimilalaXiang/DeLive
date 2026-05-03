@@ -33,6 +33,9 @@ features:
   - icon: 🌐
     title: 开放 API 与 MCP 生态
     details: 本地 REST API（8 个端点）、实时 WebSocket 流、独立 MCP 服务器（支持 Claude Desktop 和 Cursor）、Agent Skill 定义、Agent Skills 一键调用转录 — AI 集成一步到位。
+  - icon: 📁
+    title: 文件转录
+    details: 上传音频/视频文件，使用十种云端 ASR 引擎离线转录。支持说话人分离、词级时间戳和多语言检测。
   - icon: 🎨
     title: 五套主题，明暗切换
     details: 青蓝、紫罗兰、玫瑰、绿色、琥珀五种配色。全新持久化侧栏导航和命令面板（Ctrl+K）。
@@ -253,9 +256,14 @@ features:
 </div>
 
 <div class="whats-new">
-  <h2>v2.1.0 新特性</h2>
-  <p class="subtitle">新增 Cloudflare Workers AI 和 Gladia 提供商、AI 纠错增强等</p>
+  <h2>最新特性</h2>
+  <p class="subtitle">文件转录、Cloudflare Workers AI、Gladia、AI 纠错增强等</p>
   <div class="new-features">
+    <div class="new-feature">
+      <div class="icon">📁</div>
+      <h3>文件转录</h3>
+      <p>上传音频/视频文件，使用十种云端 ASR 引擎离线转录 — Soniox、火山引擎、ElevenLabs、Mistral、Gladia、Deepgram、AssemblyAI、Cloudflare、硅基流动和 Groq。支持说话人分离和词级时间戳。</p>
+    </div>
     <div class="new-feature">
       <div class="icon">☁️</div>
       <h3>Cloudflare Workers AI</h3>
