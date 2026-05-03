@@ -112,6 +112,9 @@ export const zh = {
     themeRose: '玫瑰',
     themeGreen: '翡翠',
     themeAmber: '琥珀',
+    themePink: '樱粉',
+    themeSlate: '石板灰',
+    themeOrange: '橙韵',
     // 诊断信息
     diagnostics: '诊断信息',
     exportDiagnostics: '导出诊断包',

@@ -114,6 +114,9 @@ export const en: Translations = {
     themeRose: 'Rose',
     themeGreen: 'Emerald',
     themeAmber: 'Amber',
+    themePink: 'Pink',
+    themeSlate: 'Slate',
+    themeOrange: 'Orange',
     // Diagnostics
     diagnostics: 'Diagnostics',
     exportDiagnostics: 'Export Diagnostics',

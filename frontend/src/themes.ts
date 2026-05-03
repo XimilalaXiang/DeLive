@@ -10,7 +10,7 @@
  *   Amber     — warm-dashboard
  */
 
-export type ColorThemeId = 'cyan' | 'violet' | 'rose' | 'green' | 'amber'
+export type ColorThemeId = 'cyan' | 'violet' | 'rose' | 'green' | 'amber' | 'pink' | 'slate' | 'orange'
 
 /** Full set of HSL tokens (values only, e.g. "192 91% 37%") */
 export interface ThemeTokens {
@@ -376,11 +376,206 @@ const amber: ColorTheme = {
 }
 
 // ─────────────────────────────────────────────
+// Theme 6: Pink — Soft / Playful
+// Inspired by: Sakura pink (#ec4899, #db2777)
+// ─────────────────────────────────────────────
+const pink: ColorTheme = {
+  id: 'pink',
+  labelKey: 'themePink',
+  preview: '#db2777',
+  previewBg: '#1a0d15',
+  light: {
+    background: '330 25% 99%',
+    foreground: '325 12% 12%',
+    card: '330 20% 100%',
+    cardForeground: '325 12% 12%',
+    popover: '330 20% 100%',
+    popoverForeground: '325 12% 12%',
+    primary: '322 81% 50%',
+    primaryForeground: '0 0% 100%',
+    secondary: '325 18% 95%',
+    secondaryForeground: '325 12% 12%',
+    muted: '325 18% 95%',
+    mutedForeground: '325 8% 50%',
+    accent: '325 18% 95%',
+    accentForeground: '325 12% 12%',
+    destructive: '0 84% 60%',
+    destructiveForeground: '0 0% 98%',
+    border: '325 14% 90%',
+    input: '325 14% 90%',
+    ring: '322 81% 50%',
+    warning: '38 92% 50%',
+    warningForeground: '0 0% 100%',
+    success: '142 71% 45%',
+    successForeground: '0 0% 100%',
+    info: '199 89% 48%',
+    infoForeground: '0 0% 100%',
+  },
+  dark: {
+    background: '325 18% 6%',
+    foreground: '330 12% 96%',
+    card: '325 16% 9%',
+    cardForeground: '330 12% 96%',
+    popover: '325 16% 9%',
+    popoverForeground: '330 12% 96%',
+    primary: '322 85% 62%',
+    primaryForeground: '325 18% 6%',
+    secondary: '325 14% 15%',
+    secondaryForeground: '330 12% 96%',
+    muted: '325 14% 15%',
+    mutedForeground: '325 8% 58%',
+    accent: '325 14% 15%',
+    accentForeground: '330 12% 96%',
+    destructive: '0 63% 31%',
+    destructiveForeground: '0 0% 98%',
+    border: '325 13% 18%',
+    input: '325 13% 18%',
+    ring: '322 85% 62%',
+    warning: '38 92% 50%',
+    warningForeground: '38 20% 10%',
+    success: '142 71% 45%',
+    successForeground: '142 20% 10%',
+    info: '199 89% 48%',
+    infoForeground: '199 20% 10%',
+  },
+}
+
+// ─────────────────────────────────────────────
+// Theme 7: Slate — Neutral / Professional
+// Inspired by: monochrome design (#64748b, #475569)
+// ─────────────────────────────────────────────
+const slate: ColorTheme = {
+  id: 'slate',
+  labelKey: 'themeSlate',
+  preview: '#475569',
+  previewBg: '#0f1218',
+  light: {
+    background: '210 15% 99%',
+    foreground: '222 12% 12%',
+    card: '210 12% 100%',
+    cardForeground: '222 12% 12%',
+    popover: '210 12% 100%',
+    popoverForeground: '222 12% 12%',
+    primary: '215 16% 37%',
+    primaryForeground: '0 0% 100%',
+    secondary: '215 14% 95%',
+    secondaryForeground: '222 12% 12%',
+    muted: '215 14% 95%',
+    mutedForeground: '215 8% 48%',
+    accent: '215 14% 95%',
+    accentForeground: '222 12% 12%',
+    destructive: '0 84% 60%',
+    destructiveForeground: '0 0% 98%',
+    border: '215 12% 89%',
+    input: '215 12% 89%',
+    ring: '215 16% 37%',
+    warning: '38 92% 50%',
+    warningForeground: '0 0% 100%',
+    success: '142 71% 45%',
+    successForeground: '0 0% 100%',
+    info: '199 89% 48%',
+    infoForeground: '0 0% 100%',
+  },
+  dark: {
+    background: '222 16% 7%',
+    foreground: '215 12% 96%',
+    card: '222 14% 10%',
+    cardForeground: '215 12% 96%',
+    popover: '222 14% 10%',
+    popoverForeground: '215 12% 96%',
+    primary: '215 20% 58%',
+    primaryForeground: '222 16% 7%',
+    secondary: '222 12% 15%',
+    secondaryForeground: '215 12% 96%',
+    muted: '222 12% 15%',
+    mutedForeground: '215 8% 56%',
+    accent: '222 12% 15%',
+    accentForeground: '215 12% 96%',
+    destructive: '0 63% 31%',
+    destructiveForeground: '0 0% 98%',
+    border: '222 11% 18%',
+    input: '222 11% 18%',
+    ring: '215 20% 58%',
+    warning: '38 92% 50%',
+    warningForeground: '38 20% 10%',
+    success: '142 71% 45%',
+    successForeground: '142 20% 10%',
+    info: '199 89% 48%',
+    infoForeground: '199 20% 10%',
+  },
+}
+
+// ─────────────────────────────────────────────
+// Theme 8: Orange — Energetic / Creative
+// Inspired by: Hacker News / Vercel (#ea580c, #f97316)
+// ─────────────────────────────────────────────
+const orange: ColorTheme = {
+  id: 'orange',
+  labelKey: 'themeOrange',
+  preview: '#ea580c',
+  previewBg: '#1a120a',
+  light: {
+    background: '25 25% 99%',
+    foreground: '20 15% 12%',
+    card: '25 20% 100%',
+    cardForeground: '20 15% 12%',
+    popover: '25 20% 100%',
+    popoverForeground: '20 15% 12%',
+    primary: '21 90% 48%',
+    primaryForeground: '0 0% 100%',
+    secondary: '24 18% 95%',
+    secondaryForeground: '20 15% 12%',
+    muted: '24 18% 95%',
+    mutedForeground: '20 8% 48%',
+    accent: '24 18% 95%',
+    accentForeground: '20 15% 12%',
+    destructive: '0 84% 60%',
+    destructiveForeground: '0 0% 98%',
+    border: '24 14% 89%',
+    input: '24 14% 89%',
+    ring: '21 90% 48%',
+    warning: '38 92% 50%',
+    warningForeground: '0 0% 100%',
+    success: '142 71% 45%',
+    successForeground: '0 0% 100%',
+    info: '199 89% 48%',
+    infoForeground: '0 0% 100%',
+  },
+  dark: {
+    background: '20 18% 6%',
+    foreground: '24 14% 96%',
+    card: '20 16% 9%',
+    cardForeground: '24 14% 96%',
+    popover: '20 16% 9%',
+    popoverForeground: '24 14% 96%',
+    primary: '21 90% 55%',
+    primaryForeground: '20 18% 6%',
+    secondary: '20 14% 14%',
+    secondaryForeground: '24 14% 96%',
+    muted: '20 14% 14%',
+    mutedForeground: '20 8% 56%',
+    accent: '20 14% 14%',
+    accentForeground: '24 14% 96%',
+    destructive: '0 63% 31%',
+    destructiveForeground: '0 0% 98%',
+    border: '20 12% 17%',
+    input: '20 12% 17%',
+    ring: '21 90% 55%',
+    warning: '38 92% 50%',
+    warningForeground: '38 20% 10%',
+    success: '142 71% 45%',
+    successForeground: '142 20% 10%',
+    info: '199 89% 48%',
+    infoForeground: '199 20% 10%',
+  },
+}
+
+// ─────────────────────────────────────────────
 // Registry
 // Brand theme — Cyan is the primary brand identity
 // Other themes are user accent preferences
 // ─────────────────────────────────────────────
-export const colorThemes: ColorTheme[] = [cyan, violet, rose, green, amber]
+export const colorThemes: ColorTheme[] = [cyan, violet, rose, green, amber, pink, slate, orange]
 
 export const defaultColorTheme: ColorThemeId = 'cyan'
 
