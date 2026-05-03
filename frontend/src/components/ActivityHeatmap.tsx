@@ -16,24 +16,8 @@ interface DayData {
   duration: number
 }
 
-type TimeRange = '1w' | '1m' | '6m' | '1y'
-
-const RANGE_WEEKS: Record<TimeRange, number> = {
-  '1w': 1,
-  '1m': 5,
-  '6m': 26,
-  '1y': 53,
-}
-
-const CELL_SIZE: Record<TimeRange, number> = {
-  '1w': 14,
-  '1m': 14,
-  '6m': 13,
-  '1y': 12,
-}
-
+const WEEKS = 53
 const DAYS_PER_WEEK = 7
-const HEATMAP_RANGE_KEY = 'heatmap-range'
 
 function pad(n: number): string {
   return n < 10 ? `0${n}` : `${n}`
@@ -66,12 +50,6 @@ export function ActivityHeatmap({ sessions, onDateClick, activeDate }: ActivityH
   const hm = (t as Translations).heatmap
   const [tooltip, setTooltip] = useState<{ x: number; y: number; data: DayData } | null>(null)
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem(HEATMAP_COLLAPSED_KEY) === 'true')
-  const [range, setRange] = useState<TimeRange>(() => (localStorage.getItem(HEATMAP_RANGE_KEY) as TimeRange) || '1y')
-
-  const handleRangeChange = useCallback((r: TimeRange) => {
-    setRange(r)
-    localStorage.setItem(HEATMAP_RANGE_KEY, r)
-  }, [])
 
   const toggleCollapsed = useCallback(() => {
     setCollapsed((prev) => {
@@ -92,19 +70,19 @@ export function ActivityHeatmap({ sessions, onDateClick, activeDate }: ActivityH
     return map
   }, [sessions])
 
-  const weeks = RANGE_WEEKS[range]
-  const cellSize = CELL_SIZE[range]
-
   const { grid, monthLabels } = useMemo(() => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     const todayStr = toDateStr(today)
 
+    // Last week ends with Saturday of the week containing today
+    // dayOfWeek: 0=Sun, 6=Sat
     const endOfLastWeek = new Date(today)
     endOfLastWeek.setDate(today.getDate() + (6 - today.getDay()))
 
+    // Start from (WEEKS - 1) full weeks before that week's Sunday
     const startDate = new Date(endOfLastWeek)
-    startDate.setDate(endOfLastWeek.getDate() - (weeks * 7 - 1))
+    startDate.setDate(endOfLastWeek.getDate() - (WEEKS * 7 - 1))
 
     const cells: DayData[][] = []
     const months: { label: string; col: number }[] = []
@@ -115,7 +93,7 @@ export function ActivityHeatmap({ sessions, onDateClick, activeDate }: ActivityH
     let lastMonth = -1
     const cursor = new Date(startDate)
 
-    for (let week = 0; week < weeks; week++) {
+    for (let week = 0; week < WEEKS; week++) {
       const col: DayData[] = []
       for (let day = 0; day < DAYS_PER_WEEK; day++) {
         const dateStr = toDateStr(cursor)
@@ -138,7 +116,7 @@ export function ActivityHeatmap({ sessions, onDateClick, activeDate }: ActivityH
     }
 
     return { grid: cells, monthLabels: months }
-  }, [dailyMap, language, weeks])
+  }, [dailyMap, language])
 
   const summary = useMemo(() => {
     const now = new Date()
@@ -246,37 +224,13 @@ export function ActivityHeatmap({ sessions, onDateClick, activeDate }: ActivityH
         </div>
       </button>
 
-      {/* Time range selector */}
-      {!collapsed && (
-        <div className="flex items-center gap-1">
-          {([
-            { key: '1w' as TimeRange, label: language === 'zh' ? '1周' : '1W' },
-            { key: '1m' as TimeRange, label: language === 'zh' ? '1月' : '1M' },
-            { key: '6m' as TimeRange, label: language === 'zh' ? '6月' : '6M' },
-            { key: '1y' as TimeRange, label: language === 'zh' ? '1年' : '1Y' },
-          ]).map(({ key, label }) => (
-            <button
-              key={key}
-              onClick={() => handleRangeChange(key)}
-              className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors ${
-                range === key
-                  ? 'bg-accent text-foreground'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      )}
-
       {/* Heatmap grid — collapsible */}
-      {!collapsed && <div className="relative overflow-x-auto">
+      {!collapsed && <div className="relative">
         <div
-          className="grid gap-[2px] w-fit"
+          className="grid gap-[2px]"
           style={{
-            gridTemplateColumns: `20px repeat(${weeks}, ${cellSize}px)`,
-            gridTemplateRows: `14px repeat(${DAYS_PER_WEEK}, ${cellSize}px)`,
+            gridTemplateColumns: `20px repeat(${WEEKS}, 1fr)`,
+            gridTemplateRows: `14px repeat(${DAYS_PER_WEEK}, 1fr)`,
           }}
         >
           {/* Top-left corner spacer */}
@@ -307,7 +261,7 @@ export function ActivityHeatmap({ sessions, onDateClick, activeDate }: ActivityH
                 return (
                   <div
                     key={`c-${weekIdx}-${dayIdx}`}
-                    className={`rounded-[3px] cursor-pointer transition-all duration-100 ${levelClasses[level]} ${
+                    className={`aspect-square rounded-[3px] cursor-pointer transition-all duration-100 ${levelClasses[level]} ${
                       isActive ? 'ring-2 ring-primary ring-offset-1 ring-offset-background' : 'hover:ring-1 hover:ring-foreground/20'
                     }`}
                     onClick={() => onDateClick?.(cell.date)}
