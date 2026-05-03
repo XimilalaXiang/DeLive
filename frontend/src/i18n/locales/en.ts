@@ -430,6 +430,7 @@ export const en: Translations = {
     tabMindMap: 'Mind Map',
     tabTranscript: 'Transcript',
     tabCorrection: 'AI Correction',
+    jumpToTimestamp: 'Jump to timestamp',
     tabSummary: 'Summary',
     summarySectionOverview: 'Session Overview',
     summarySectionAi: 'AI Analysis',

@@ -428,6 +428,7 @@ export const zh = {
     tabMindMap: '思维导图',
     tabTranscript: '转录文本',
     tabCorrection: 'AI 纠错',
+    jumpToTimestamp: '跳转到时间点',
     tabSummary: '摘要',
     summarySectionOverview: '会话概览',
     summarySectionAi: 'AI 分析',

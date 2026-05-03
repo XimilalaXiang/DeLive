@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState, useCallback } from 'react'
-import { FileText, Clock, Languages, Play } from 'lucide-react'
+import { FileText, Languages, Play } from 'lucide-react'
 import type { TranscriptSession } from '../../types'
 import { useUIStore } from '../../stores/uiStore'
 
