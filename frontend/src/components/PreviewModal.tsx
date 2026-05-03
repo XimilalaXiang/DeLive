@@ -1,4 +1,5 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
+import { Sparkles } from 'lucide-react'
 import type { TranscriptSession } from '../types'
 import {
   SessionHeader,
@@ -30,10 +31,13 @@ export function PreviewModal({
   const [activeTab, setActiveTab] = useState<ReviewTab>('transcript')
   const [aiPanelOpen, setAiPanelOpen] = useState(false)
   const [selectedText, setSelectedText] = useState<string | undefined>()
+  const [floatingBtn, setFloatingBtn] = useState<{ x: number; y: number; text: string } | null>(null)
+  const tabPanelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setActiveTab('transcript')
     setAiPanelOpen(false)
+    setFloatingBtn(null)
   }, [session?.id])
 
   const handleToggleAiPanel = useCallback(() => {
@@ -44,18 +48,50 @@ export function PreviewModal({
     setSelectedText(undefined)
   }, [])
 
+  const handleAskAiFromSelection = useCallback(() => {
+    if (!floatingBtn) return
+    setSelectedText(floatingBtn.text)
+    setAiPanelOpen(true)
+    setFloatingBtn(null)
+    window.getSelection()?.removeAllRanges()
+  }, [floatingBtn])
+
   useEffect(() => {
     if (activeTab !== 'transcript') return undefined
+
     const handleMouseUp = () => {
-      const selection = window.getSelection()?.toString().trim()
-      if (selection && selection.length > 5) {
-        setSelectedText(selection)
-        if (!aiPanelOpen) setAiPanelOpen(true)
-      }
+      setTimeout(() => {
+        const sel = window.getSelection()
+        const text = sel?.toString().trim()
+        if (!text || text.length < 5 || !sel?.rangeCount) {
+          setFloatingBtn(null)
+          return
+        }
+        const range = sel.getRangeAt(0)
+        const rect = range.getBoundingClientRect()
+        const panelRect = tabPanelRef.current?.getBoundingClientRect()
+        if (!panelRect) return
+        setFloatingBtn({
+          x: Math.min(rect.right - panelRect.left, panelRect.width - 120),
+          y: rect.top - panelRect.top - 40,
+          text,
+        })
+      }, 10)
     }
+
+    const handleMouseDown = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (target.closest('[data-ask-ai-btn]')) return
+      setFloatingBtn(null)
+    }
+
     document.addEventListener('mouseup', handleMouseUp)
-    return () => document.removeEventListener('mouseup', handleMouseUp)
-  }, [activeTab, aiPanelOpen])
+    document.addEventListener('mousedown', handleMouseDown)
+    return () => {
+      document.removeEventListener('mouseup', handleMouseUp)
+      document.removeEventListener('mousedown', handleMouseDown)
+    }
+  }, [activeTab])
 
   useEffect(() => {
     if (!session) return undefined
@@ -110,8 +146,9 @@ export function PreviewModal({
       />
       <SessionTabBar activeTab={activeTab} onTabChange={setActiveTab} />
       <div
+        ref={tabPanelRef}
         key={activeTab}
-        className="flex-1 overflow-hidden flex animate-tab-enter"
+        className="flex-1 overflow-hidden flex animate-tab-enter relative"
         role="tabpanel"
         id={`tabpanel-${activeTab}`}
         aria-labelledby={`tab-${activeTab}`}
@@ -134,6 +171,17 @@ export function PreviewModal({
             selectedText={selectedText}
             onClearSelection={handleClearSelection}
           />
+        )}
+        {activeTab === 'transcript' && floatingBtn && (
+          <button
+            data-ask-ai-btn
+            onClick={handleAskAiFromSelection}
+            className="absolute z-20 inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-background/95 px-3 py-1.5 text-xs font-medium text-primary shadow-lg backdrop-blur transition-all hover:bg-primary hover:text-primary-foreground active:scale-95 animate-in fade-in zoom-in-95 duration-150"
+            style={{ left: floatingBtn.x, top: Math.max(0, floatingBtn.y) }}
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            Ask AI
+          </button>
         )}
       </div>
     </>
