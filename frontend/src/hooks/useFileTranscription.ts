@@ -700,6 +700,31 @@ function deepgramExtractSpeakers(utterances: DeepgramFileUtterance[]): Transcrip
     .map((id) => ({ id: String(id), label: `Speaker ${id}` }))
 }
 
+function parseDeepgramResponse(response: import('../utils/deepgramFileApi').DeepgramFileTranscriptionResponse) {
+  const channel = response.results.channels[0]
+  const alt = channel?.alternatives[0]
+  const transcript = alt?.transcript ?? ''
+  const words = alt?.words ?? []
+  const utterances = response.results.utterances ?? []
+
+  const tokens: TranscriptTokenData[] = words.length > 0
+    ? deepgramWordsToTokens(words)
+    : transcript
+      ? [{ text: transcript, isFinal: true as const, startMs: 0, endMs: (response.metadata.duration ?? 0) * 1000 }]
+      : []
+
+  const segments: TranscriptSegment[] = utterances.length > 0
+    ? deepgramUtterancesToSegments(utterances)
+    : transcript
+      ? [{ text: transcript.trim(), startMs: 0, endMs: (response.metadata.duration ?? 0) * 1000, isFinal: true as const }]
+      : []
+
+  const speakers = deepgramExtractSpeakers(utterances)
+  const durationMs = (response.metadata.duration ?? 0) * 1000
+
+  return { transcript, tokens, segments, speakers, durationMs, words, utterances }
+}
+
 async function executeDeepgram(
   file: File,
   config: FileTranscriptionConfig,
@@ -710,12 +735,14 @@ async function executeDeepgram(
 ): Promise<TranscriptionResult> {
   updateJob(jobId, { status: 'uploading', progress: 20 })
 
+  const requestedModel = config.model || 'nova-3'
+
   updateJob(jobId, { status: 'transcribing', progress: 40 })
-  const response = await deepgramTranscribeFile(
+  let response = await deepgramTranscribeFile(
     apiKey,
     file,
     {
-      model: config.model || 'nova-3',
+      model: requestedModel,
       diarize: config.enableSpeakerDiarization,
       punctuate: true,
       utterances: true,
@@ -724,44 +751,45 @@ async function executeDeepgram(
     signal,
   )
 
-  updateJob(jobId, { progress: 90 })
+  updateJob(jobId, { progress: 80 })
 
-  console.debug('[Deepgram] Raw response metadata:', JSON.stringify(response.metadata))
-  console.debug('[Deepgram] Channels count:', response.results.channels.length)
+  let parsed = parseDeepgramResponse(response)
 
-  const channel = response.results.channels[0]
-  const alt = channel?.alternatives[0]
-  const transcript = alt?.transcript ?? ''
-  const words = alt?.words ?? []
-  const utterances = response.results.utterances ?? []
+  console.debug('[Deepgram] model:', requestedModel, 'transcript length:', parsed.transcript.length, 'words:', parsed.words.length)
 
-  console.debug('[Deepgram] transcript length:', transcript.length, 'words:', words.length, 'utterances:', utterances.length)
-  if (transcript.length > 0) {
-    console.debug('[Deepgram] transcript preview:', transcript.slice(0, 200))
+  if (!parsed.transcript && parsed.words.length === 0 && requestedModel.startsWith('nova')) {
+    console.warn('[Deepgram] Nova returned empty result, retrying with whisper-large model...')
+    updateJob(jobId, { status: 'transcribing', progress: 50 })
+
+    response = await deepgramTranscribeFile(
+      apiKey,
+      file,
+      {
+        model: 'whisper-large',
+        diarize: config.enableSpeakerDiarization,
+        punctuate: true,
+        utterances: true,
+        smartFormat: true,
+      },
+      signal,
+    )
+
+    updateJob(jobId, { progress: 90 })
+    parsed = parseDeepgramResponse(response)
+    console.debug('[Deepgram] whisper-large fallback result: transcript length:', parsed.transcript.length, 'words:', parsed.words.length)
   }
 
-  if (!transcript && words.length === 0) {
-    console.warn('[Deepgram] Empty transcription result. Full response:', JSON.stringify(response))
+  if (!parsed.transcript && parsed.words.length === 0) {
+    console.warn('[Deepgram] Empty transcription result after all attempts. Full response:', JSON.stringify(response))
     throw new Error('Deepgram returned an empty transcription result. Please check the audio file or try a different provider.')
   }
 
-  const tokens = words.length > 0
-    ? deepgramWordsToTokens(words)
-    : [{ text: transcript, isFinal: true, startMs: 0, endMs: (response.metadata.duration ?? 0) * 1000 }]
-
-  const segments = utterances.length > 0
-    ? deepgramUtterancesToSegments(utterances)
-    : [{ text: transcript.trim(), startMs: 0, endMs: (response.metadata.duration ?? 0) * 1000, isFinal: true }]
-
-  const speakers = deepgramExtractSpeakers(utterances)
-  const durationMs = (response.metadata.duration ?? 0) * 1000
-
   return {
-    transcript,
-    tokens,
-    segments,
-    speakers,
-    durationMs,
+    transcript: parsed.transcript,
+    tokens: parsed.tokens,
+    segments: parsed.segments,
+    speakers: parsed.speakers,
+    durationMs: parsed.durationMs,
   }
 }
 
