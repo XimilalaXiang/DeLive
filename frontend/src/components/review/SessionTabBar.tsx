@@ -1,15 +1,14 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
 import {
   Sparkles,
-  Bot,
   MessageSquareQuote,
   Network,
   FileText,
-  SpellCheck,
+  LayoutList,
 } from 'lucide-react'
 import { useUIStore } from '../../stores/uiStore'
 
-export type ReviewTab = 'overview' | 'ai' | 'chat' | 'mindmap' | 'transcript' | 'correction'
+export type ReviewTab = 'transcript' | 'summary' | 'chat' | 'mindmap'
 
 interface SessionTabBarProps {
   activeTab: ReviewTab
@@ -18,9 +17,7 @@ interface SessionTabBarProps {
 
 const TAB_CONFIG: { id: ReviewTab; icon: typeof Sparkles; labelKey: string }[] = [
   { id: 'transcript', icon: FileText, labelKey: 'tabTranscript' },
-  { id: 'correction', icon: SpellCheck, labelKey: 'tabCorrection' },
-  { id: 'overview', icon: Sparkles, labelKey: 'tabOverview' },
-  { id: 'ai', icon: Bot, labelKey: 'tabAi' },
+  { id: 'summary', icon: LayoutList, labelKey: 'tabSummary' },
   { id: 'chat', icon: MessageSquareQuote, labelKey: 'tabChat' },
   { id: 'mindmap', icon: Network, labelKey: 'tabMindMap' },
 ]

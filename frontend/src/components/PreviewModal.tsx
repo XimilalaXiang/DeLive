@@ -3,12 +3,10 @@ import type { TranscriptSession } from '../types'
 import {
   SessionHeader,
   SessionTabBar,
-  OverviewTab,
-  AiTab,
   ChatTab,
   MindMapTab,
   TranscriptTab,
-  CorrectionTab,
+  SummaryTab,
 } from './review'
 import type { ReviewTab } from './review'
 
@@ -41,9 +39,9 @@ export function PreviewModal({
       if (event.key === 'Escape') {
         onClose()
       }
-      if ((event.ctrlKey || event.metaKey) && event.key >= '1' && event.key <= '6') {
+      if ((event.ctrlKey || event.metaKey) && event.key >= '1' && event.key <= '4') {
         event.preventDefault()
-        const tabs: ReviewTab[] = ['transcript', 'correction', 'overview', 'ai', 'chat', 'mindmap']
+        const tabs: ReviewTab[] = ['transcript', 'summary', 'chat', 'mindmap']
         const index = parseInt(event.key, 10) - 1
         if (index >= 0 && index < tabs.length) {
           setActiveTab(tabs[index])
@@ -65,18 +63,13 @@ export function PreviewModal({
 
   const tabContent = (() => {
     switch (activeTab) {
-      case 'overview':
-        return <OverviewTab session={session} />
-      case 'ai':
-        return <AiTab session={session} />
+      case 'summary':
+        return <SummaryTab session={session} />
       case 'chat':
         return <ChatTab session={session} />
       case 'mindmap':
         return <MindMapTab session={session} />
-      case 'correction':
-        return <CorrectionTab session={session} />
       case 'transcript':
-        return <TranscriptTab session={session} />
       default:
         return <TranscriptTab session={session} />
     }
