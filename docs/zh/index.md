@@ -9,7 +9,7 @@ hero:
     alt: DeLive
   actions:
     - theme: brand
-      text: 下载 v2.2.0
+      text: 下载 v2.2.2
       link: https://github.com/XimilalaXiang/DeLive/releases/latest
     - theme: alt
       text: 快速开始 →
@@ -23,7 +23,7 @@ features:
     details: Soniox、火山引擎、ElevenLabs、Mistral AI、Gladia、Deepgram、AssemblyAI、Cloudflare Workers AI、硅基流动、Groq、本地 OpenAI 兼容、本地 whisper.cpp — 三种执行模式覆盖所有场景。
   - icon: 🧠
     title: AI 复盘工作台
-    details: 全页工作台，六个标签页 — AI 纠错（快速纠错 & 逐条审查模式 + 智能文本源选择）、概览（摘要、行动项、关键词、章节）、转录文本导出、AI 分析、多线程对话、Markmap 思维导图。
+    details: 全页工作台，四个标签页 — 转录（带 AI 侧边栏）、总结（概览、行动项、关键词）、多线程对话（流式输出）、Markmap 思维导图。AI 纠错支持智能文本源选择。
   - icon: 💬
     title: 悬浮字幕窗
     details: 始终置顶、可拖拽的字幕窗口，支持原文、翻译和双语三种模式。字体、颜色、阴影、背景完全可自定义。
@@ -37,8 +37,8 @@ features:
     title: 文件转录
     details: 上传音频/视频文件，使用十种云端 ASR 引擎离线转录。支持说话人分离、词级时间戳和多语言检测。
   - icon: 🎨
-    title: 五套主题，明暗切换
-    details: 青蓝、紫罗兰、玫瑰、绿色、琥珀五种配色。全新持久化侧栏导航和命令面板（Ctrl+K）。
+    title: 八套主题，明暗切换
+    details: 紫罗兰、青蓝、玫瑰、绿色、琥珀、樱粉、石板灰、橙韵八种配色。全新持久化侧栏导航和命令面板（Ctrl+K）。
 ---
 
 <style>
@@ -257,7 +257,7 @@ features:
 
 <div class="whats-new">
   <h2>最新特性</h2>
-  <p class="subtitle">文件转录、Cloudflare Workers AI、Gladia、AI 纠错增强等</p>
+  <p class="subtitle">高级 UI 重构、八种主题配色、AI 流式对话、实时波形等</p>
   <div class="new-features">
     <div class="new-feature">
       <div class="icon">📁</div>

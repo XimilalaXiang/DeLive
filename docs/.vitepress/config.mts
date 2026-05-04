@@ -37,7 +37,7 @@ export default withMermaid(
             { text: 'Architecture', link: '/architecture/overview' },
             { text: 'Development', link: '/development/setup' },
             {
-              text: 'v2.2.0',
+              text: 'v2.2.2',
               items: [
                 { text: 'Changelog', link: 'https://github.com/XimilalaXiang/DeLive/blob/main/CHANGELOG.md' },
                 { text: 'Download', link: 'https://github.com/XimilalaXiang/DeLive/releases/latest' },
@@ -121,7 +121,7 @@ export default withMermaid(
             { text: '架构', link: '/zh/architecture/overview' },
             { text: '开发', link: '/zh/development/setup' },
             {
-              text: 'v2.2.0',
+              text: 'v2.2.2',
               items: [
                 { text: '更新日志', link: 'https://github.com/XimilalaXiang/DeLive/blob/main/CHANGELOG.md' },
                 { text: '下载', link: 'https://github.com/XimilalaXiang/DeLive/releases/latest' },
