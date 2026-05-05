@@ -90,7 +90,7 @@ export class GladiaProvider extends BaseASRProvider {
 
     if (!apiKey) {
       this.emitError(this.createError('MISSING_API_KEY', '请提供 Gladia API Key'))
-      return
+      throw new Error('Missing Gladia API Key')
     }
 
     this._config = config
@@ -196,6 +196,8 @@ export class GladiaProvider extends BaseASRProvider {
     if (data instanceof Blob) {
       data.arrayBuffer().then(buffer => {
         this.ws?.send(buffer)
+      }).catch((err: unknown) => {
+        console.warn('[GladiaProvider] 音频数据读取失败:', err)
       })
     } else {
       this.ws.send(data)

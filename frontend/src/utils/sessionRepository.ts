@@ -22,6 +22,16 @@ export interface SessionLaunchState {
 
 let cachedSessions: TranscriptSession[] = []
 let cacheReady = false
+let persistErrorHandler: ((error: unknown) => void) | null = null
+
+export function setSessionPersistErrorHandler(handler: (error: unknown) => void): void {
+  persistErrorHandler = handler
+}
+
+function onPersistError(error: unknown): void {
+  console.error('[sessionRepository] Persistence failed — in-memory state diverged from disk:', error)
+  persistErrorHandler?.(error)
+}
 
 function normalizeSession(session: TranscriptSession): TranscriptSession {
   return normalizeTranscriptSession(session)
@@ -40,9 +50,7 @@ function updateCachedSessions(sessions: TranscriptSession[]): TranscriptSession[
 function persistSessions(sessions: TranscriptSession[]): TranscriptSession[] {
   const nextSessions = updateCachedSessions(sessions)
 
-  void saveSessions(nextSessions).catch((error) => {
-    console.error('[sessionRepository] Failed to persist sessions:', error)
-  })
+  void saveSessions(nextSessions).catch(onPersistError)
 
   return nextSessions
 }
@@ -55,9 +63,7 @@ function persistSingleSession(sessionId: string, sessions: TranscriptSession[]):
     return nextSessions
   }
 
-  void upsertSession(targetSession).catch((error) => {
-    console.error('[sessionRepository] Failed to persist session:', error)
-  })
+  void upsertSession(targetSession).catch(onPersistError)
 
   return nextSessions
 }
@@ -70,9 +76,7 @@ function persistSessionBatch(sessionIds: string[], sessions: TranscriptSession[]
     return nextSessions
   }
 
-  void upsertSessions(targets).catch((error) => {
-    console.error('[sessionRepository] Failed to persist session batch:', error)
-  })
+  void upsertSessions(targets).catch(onPersistError)
 
   return nextSessions
 }
@@ -80,9 +84,7 @@ function persistSessionBatch(sessionIds: string[], sessions: TranscriptSession[]
 function persistSessionDeletion(sessionId: string, sessions: TranscriptSession[]): TranscriptSession[] {
   const nextSessions = updateCachedSessions(sessions)
 
-  void deleteSessionById(sessionId).catch((error) => {
-    console.error('[sessionRepository] Failed to delete session:', error)
-  })
+  void deleteSessionById(sessionId).catch(onPersistError)
 
   return nextSessions
 }

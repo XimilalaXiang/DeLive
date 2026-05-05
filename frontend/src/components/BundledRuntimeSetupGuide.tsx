@@ -120,7 +120,7 @@ export function BundledRuntimeSetupGuide({
       setStatusState('error')
       setActionMessage(error instanceof Error ? error.message : t.bundledRuntime.loadBinaryPresetFailed)
     }
-  }, [binaryDownloadUrl])
+  }, [binaryDownloadUrl, t])
 
   useEffect(() => {
     void refreshStatus()

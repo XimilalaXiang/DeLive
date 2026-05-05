@@ -250,9 +250,23 @@ export async function importDataOverwrite(
   }
 
   const currentSettings = getSettings()
+
+  // Preserve current environment's API keys so importing a backup doesn't wipe credentials
+  const mergedProviderConfigs = { ...(normalized.settings.providerConfigs ?? {}) }
+  const currentProviderConfigs = currentSettings.providerConfigs ?? {}
+  for (const [providerId, currentConfig] of Object.entries(currentProviderConfigs)) {
+    if (currentConfig.apiKey && mergedProviderConfigs[providerId]) {
+      mergedProviderConfigs[providerId] = {
+        ...mergedProviderConfigs[providerId],
+        apiKey: currentConfig.apiKey,
+      }
+    }
+  }
+
   saveSettings({
     ...normalized.settings,
     apiKey: currentSettings.apiKey || normalized.settings.apiKey,
+    providerConfigs: mergedProviderConfigs,
   })
 
   return {

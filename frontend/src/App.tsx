@@ -119,7 +119,7 @@ function App() {
     return () => {
       cancelled = true
     }
-  }, [initTheme, loadSettings, loadSessions, loadTags])
+  }, [initTheme, loadSettings, loadSessions, loadTags, loadTopics])
 
   // 初始化完成后同步字幕样式到主进程，确保字幕窗口使用用户保存的样式
   useEffect(() => {

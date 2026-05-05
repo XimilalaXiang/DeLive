@@ -165,53 +165,53 @@ const electronAPI: ElectronAPI = {
     ipcRenderer.send('api-notify-session-end', sessionId)
   },
 
-  onApiGetSessions: (callback: (event: unknown) => void) => {
-    const listener = (event: Electron.IpcRendererEvent) => callback(event)
+  onApiGetSessions: (callback: (event: unknown, reqId: string) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, reqId: string) => callback(_event, reqId)
     ipcRenderer.on('api-get-sessions', listener)
     return () => ipcRenderer.removeListener('api-get-sessions', listener)
   },
-  apiRespondSessions: (sessions: SessionSummary[]) => {
-    ipcRenderer.send('api-respond-sessions', sessions)
+  apiRespondSessions: (reqId: string, sessions: SessionSummary[]) => {
+    ipcRenderer.send('api-respond-sessions', reqId, sessions)
   },
-  onApiGetSessionDetail: (callback: (event: unknown, sessionId: string) => void) => {
-    const listener = (_event: Electron.IpcRendererEvent, sessionId: string) => callback(_event, sessionId)
+  onApiGetSessionDetail: (callback: (event: unknown, reqId: string, sessionId: string) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, reqId: string, sessionId: string) => callback(_event, reqId, sessionId)
     ipcRenderer.on('api-get-session-detail', listener)
     return () => ipcRenderer.removeListener('api-get-session-detail', listener)
   },
-  apiRespondSessionDetail: (session: SessionDetail | null) => {
-    ipcRenderer.send('api-respond-session-detail', session)
+  apiRespondSessionDetail: (reqId: string, session: SessionDetail | null) => {
+    ipcRenderer.send('api-respond-session-detail', reqId, session)
   },
-  onApiSearchSessions: (callback: (event: unknown, query: string) => void) => {
-    const listener = (_event: Electron.IpcRendererEvent, query: string) => callback(_event, query)
+  onApiSearchSessions: (callback: (event: unknown, reqId: string, query: string) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, reqId: string, query: string) => callback(_event, reqId, query)
     ipcRenderer.on('api-search-sessions', listener)
     return () => ipcRenderer.removeListener('api-search-sessions', listener)
   },
-  apiRespondSearchSessions: (sessions: SessionSummary[]) => {
-    ipcRenderer.send('api-respond-search-sessions', sessions)
+  apiRespondSearchSessions: (reqId: string, sessions: SessionSummary[]) => {
+    ipcRenderer.send('api-respond-search-sessions', reqId, sessions)
   },
-  onApiGetTopics: (callback: (event: unknown) => void) => {
-    const listener = (event: Electron.IpcRendererEvent) => callback(event)
+  onApiGetTopics: (callback: (event: unknown, reqId: string) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, reqId: string) => callback(_event, reqId)
     ipcRenderer.on('api-get-topics', listener)
     return () => ipcRenderer.removeListener('api-get-topics', listener)
   },
-  apiRespondTopics: (topics: ApiTopicData[]) => {
-    ipcRenderer.send('api-respond-topics', topics)
+  apiRespondTopics: (reqId: string, topics: ApiTopicData[]) => {
+    ipcRenderer.send('api-respond-topics', reqId, topics)
   },
-  onApiGetTags: (callback: (event: unknown) => void) => {
-    const listener = (event: Electron.IpcRendererEvent) => callback(event)
+  onApiGetTags: (callback: (event: unknown, reqId: string) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, reqId: string) => callback(_event, reqId)
     ipcRenderer.on('api-get-tags', listener)
     return () => ipcRenderer.removeListener('api-get-tags', listener)
   },
-  apiRespondTags: (tags: ApiTagData[]) => {
-    ipcRenderer.send('api-respond-tags', tags)
+  apiRespondTags: (reqId: string, tags: ApiTagData[]) => {
+    ipcRenderer.send('api-respond-tags', reqId, tags)
   },
-  onApiGetRecordingStatus: (callback: (event: unknown) => void) => {
-    const listener = (event: Electron.IpcRendererEvent) => callback(event)
+  onApiGetRecordingStatus: (callback: (event: unknown, reqId: string) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, reqId: string) => callback(_event, reqId)
     ipcRenderer.on('api-get-recording-status', listener)
     return () => ipcRenderer.removeListener('api-get-recording-status', listener)
   },
-  apiRespondRecordingStatus: (status: ApiRecordingStatus) => {
-    ipcRenderer.send('api-respond-recording-status', status)
+  apiRespondRecordingStatus: (reqId: string, status: ApiRecordingStatus) => {
+    ipcRenderer.send('api-respond-recording-status', reqId, status)
   },
 
   apiUpdateOpenApiConfig: (config: { enabled: boolean; token: string }) => {

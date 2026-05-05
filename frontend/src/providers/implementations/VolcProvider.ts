@@ -97,7 +97,7 @@ export class VolcProvider extends BaseASRProvider {
 
     if (!appKey || !accessKey) {
       this.emitError(this.createError('MISSING_CREDENTIALS', '请提供 App Key 和 Access Key'))
-      return
+      throw new Error('Missing Volc Engine App Key or Access Key')
     }
 
     this._config = config
@@ -209,6 +209,8 @@ export class VolcProvider extends BaseASRProvider {
     if (data instanceof Blob) {
       data.arrayBuffer().then(buffer => {
         this.ws?.send(buffer)
+      }).catch((err: unknown) => {
+        console.warn('[VolcProvider] 音频数据读取失败:', err)
       })
     } else {
       this.ws.send(data)

@@ -541,6 +541,7 @@ export async function generateSessionBriefing(
       'Content-Type': 'application/json',
       ...(config.apiKey?.trim() ? { Authorization: `Bearer ${config.apiKey.trim()}` } : {}),
     },
+    signal: AbortSignal.timeout(120_000),
     body: JSON.stringify({
       model,
       temperature: 0.2,
@@ -599,6 +600,7 @@ export async function askQuestionForSession(
       'Content-Type': 'application/json',
       ...(config.apiKey?.trim() ? { Authorization: `Bearer ${config.apiKey.trim()}` } : {}),
     },
+    signal: AbortSignal.timeout(120_000),
     body: JSON.stringify({
       model,
       temperature: 0.2,
@@ -762,6 +764,7 @@ export async function generateSessionMindMap(
       'Content-Type': 'application/json',
       ...(config.apiKey?.trim() ? { Authorization: `Bearer ${config.apiKey.trim()}` } : {}),
     },
+    signal: AbortSignal.timeout(120_000),
     body: JSON.stringify({
       model,
       temperature: 0.2,

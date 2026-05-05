@@ -284,7 +284,8 @@ function handleVolcConnection(clientWs: NodeWebSocket, req: IncomingMessage): vo
   volcWs.on('close', (code, reason) => {
     console.log(`[VolcProxy] 火山引擎 WebSocket 关闭: ${code} ${reason}`)
     if (!clientClosed) {
-      clientWs.close(code, reason.toString())
+      const safeCode = code >= 1000 && code <= 4999 ? code : 1000
+      clientWs.close(safeCode, reason.toString())
     }
   })
 

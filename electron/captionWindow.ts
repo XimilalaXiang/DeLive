@@ -129,14 +129,10 @@ export function createCaptionWindowController(options: CaptionControllerOptions)
 
     console.log(`[CaptionDebug] ${message}`, payload)
 
-    try {
-      fs.appendFileSync(
-        getCaptionDebugLogPath(),
-        `${new Date().toISOString()} ${message} ${JSON.stringify(payload)}\n`
-      )
-    } catch (error) {
-      console.warn('[CaptionDebug] 写入日志文件失败:', error)
-    }
+    const logLine = `${new Date().toISOString()} ${message} ${JSON.stringify(payload)}\n`
+    fs.appendFile(getCaptionDebugLogPath(), logLine, (err) => {
+      if (err) console.warn('[CaptionDebug] 写入日志文件失败:', err)
+    })
   }
 
   function isEnabled(): boolean {

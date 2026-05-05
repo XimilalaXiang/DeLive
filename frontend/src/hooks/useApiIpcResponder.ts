@@ -122,51 +122,51 @@ export function useApiIpcResponder(): void {
     const cleanups: Array<() => void> = [unsubscribeStore]
 
     cleanups.push(
-      api.onApiGetSessions(() => {
+      api.onApiGetSessions((_event, reqId) => {
         const sessions = useSessionStore.getState().sessions
-        api.apiRespondSessions(sessions.map(toSessionSummary))
+        api.apiRespondSessions(reqId, sessions.map(toSessionSummary))
       }),
     )
 
     cleanups.push(
-      api.onApiGetSessionDetail((_event, sessionId) => {
+      api.onApiGetSessionDetail((_event, reqId, sessionId) => {
         const session = useSessionStore.getState().sessions.find(s => s.id === sessionId)
-        api.apiRespondSessionDetail(session ? toSessionDetail(session) : null)
+        api.apiRespondSessionDetail(reqId, session ? toSessionDetail(session) : null)
       }),
     )
 
     cleanups.push(
-      api.onApiSearchSessions((_event, query) => {
+      api.onApiSearchSessions((_event, reqId, query) => {
         const lowerQuery = query.toLowerCase()
         const sessions = useSessionStore.getState().sessions.filter(s =>
           s.title.toLowerCase().includes(lowerQuery)
           || (s.transcript ?? '').toLowerCase().includes(lowerQuery),
         )
-        api.apiRespondSearchSessions(sessions.map(toSessionSummary))
+        api.apiRespondSearchSessions(reqId, sessions.map(toSessionSummary))
       }),
     )
 
     cleanups.push(
-      api.onApiGetTopics(() => {
-        api.apiRespondTopics(getTopics())
+      api.onApiGetTopics((_event, reqId) => {
+        api.apiRespondTopics(reqId, getTopics())
       }),
     )
 
     cleanups.push(
-      api.onApiGetTags(() => {
-        api.apiRespondTags(getTags())
+      api.onApiGetTags((_event, reqId) => {
+        api.apiRespondTags(reqId, getTags())
       }),
     )
 
     cleanups.push(
-      api.onApiGetRecordingStatus(() => {
+      api.onApiGetRecordingStatus((_event, reqId) => {
         const { recordingState, currentSessionId } = useSessionStore.getState()
         const status: ApiRecordingStatus = {
           isRecording: recordingState === 'recording',
           currentSessionId,
           recordingState,
         }
-        api.apiRespondRecordingStatus(status)
+        api.apiRespondRecordingStatus(reqId, status)
       }),
     )
 

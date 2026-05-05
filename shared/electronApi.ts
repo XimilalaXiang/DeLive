@@ -319,18 +319,18 @@ export interface ElectronAPI {
   apiNotifySessionStart: (sessionId: string) => void
   apiNotifySessionEnd: (sessionId: string) => void
 
-  onApiGetSessions: (callback: (event: unknown) => void) => () => void
-  apiRespondSessions: (sessions: SessionSummary[]) => void
-  onApiGetSessionDetail: (callback: (event: unknown, sessionId: string) => void) => () => void
-  apiRespondSessionDetail: (session: SessionDetail | null) => void
-  onApiSearchSessions: (callback: (event: unknown, query: string) => void) => () => void
-  apiRespondSearchSessions: (sessions: SessionSummary[]) => void
-  onApiGetTopics: (callback: (event: unknown) => void) => () => void
-  apiRespondTopics: (topics: ApiTopicData[]) => void
-  onApiGetTags: (callback: (event: unknown) => void) => () => void
-  apiRespondTags: (tags: ApiTagData[]) => void
-  onApiGetRecordingStatus: (callback: (event: unknown) => void) => () => void
-  apiRespondRecordingStatus: (status: ApiRecordingStatus) => void
+  onApiGetSessions: (callback: (event: unknown, reqId: string) => void) => () => void
+  apiRespondSessions: (reqId: string, sessions: SessionSummary[]) => void
+  onApiGetSessionDetail: (callback: (event: unknown, reqId: string, sessionId: string) => void) => () => void
+  apiRespondSessionDetail: (reqId: string, session: SessionDetail | null) => void
+  onApiSearchSessions: (callback: (event: unknown, reqId: string, query: string) => void) => () => void
+  apiRespondSearchSessions: (reqId: string, sessions: SessionSummary[]) => void
+  onApiGetTopics: (callback: (event: unknown, reqId: string) => void) => () => void
+  apiRespondTopics: (reqId: string, topics: ApiTopicData[]) => void
+  onApiGetTags: (callback: (event: unknown, reqId: string) => void) => () => void
+  apiRespondTags: (reqId: string, tags: ApiTagData[]) => void
+  onApiGetRecordingStatus: (callback: (event: unknown, reqId: string) => void) => () => void
+  apiRespondRecordingStatus: (reqId: string, status: ApiRecordingStatus) => void
 
   apiUpdateOpenApiConfig: (config: { enabled: boolean; token: string }) => void
 

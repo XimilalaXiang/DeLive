@@ -70,7 +70,10 @@ export function openAppDatabase(): Promise<IDBDatabase> {
     dbPromise = new Promise((resolve, reject) => {
       const request = indexedDB.open(DB_NAME, DB_VERSION)
 
-      request.onerror = () => reject(request.error ?? new Error('Failed to open IndexedDB'))
+      request.onerror = () => {
+        dbPromise = null
+        reject(request.error ?? new Error('Failed to open IndexedDB'))
+      }
       request.onsuccess = () => resolve(request.result)
       request.onupgradeneeded = () => {
         const db = request.result

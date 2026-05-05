@@ -71,13 +71,21 @@ export async function s3List(
   const prefix = config.prefix.replace(/\/+$/, '')
 
   try {
-    const response = await client.send(new ListObjectsV2Command({
-      Bucket: config.bucket,
-      Prefix: prefix ? `${prefix}/` : undefined,
-      MaxKeys: 100,
-    }))
+    const allContents: Array<{ Key?: string; LastModified?: Date; Size?: number }> = []
+    let continuationToken: string | undefined
 
-    const files: CloudBackupIpcFileInfo[] = (response.Contents ?? [])
+    do {
+      const response = await client.send(new ListObjectsV2Command({
+        Bucket: config.bucket,
+        Prefix: prefix ? `${prefix}/` : undefined,
+        MaxKeys: 1000,
+        ContinuationToken: continuationToken,
+      }))
+      allContents.push(...(response.Contents ?? []))
+      continuationToken = response.IsTruncated ? response.NextContinuationToken : undefined
+    } while (continuationToken)
+
+    const files: CloudBackupIpcFileInfo[] = allContents
       .filter(obj => obj.Key?.endsWith('.json'))
       .sort((a, b) => {
         const ta = a.LastModified?.getTime() ?? 0

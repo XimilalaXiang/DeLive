@@ -82,7 +82,7 @@ export class AssemblyAIProvider extends BaseASRProvider {
 
     if (!apiKey) {
       this.emitError(this.createError('MISSING_API_KEY', '请提供 AssemblyAI API Key'))
-      return
+      throw new Error('Missing AssemblyAI API Key')
     }
 
     this._config = config
@@ -187,6 +187,8 @@ export class AssemblyAIProvider extends BaseASRProvider {
     if (data instanceof Blob) {
       data.arrayBuffer().then(buffer => {
         this.ws?.send(buffer)
+      }).catch((err: unknown) => {
+        console.warn('[AssemblyAIProvider] 音频数据读取失败:', err)
       })
     } else {
       this.ws.send(data)

@@ -131,8 +131,10 @@ function handleAssemblyAIConnection(clientWs: NodeWebSocket, req: IncomingMessag
 
   aaiWs.on('close', (code, reason) => {
     console.log(`[AssemblyAIProxy] AssemblyAI WebSocket 关闭: ${code} ${reason}`)
+    aaiReady = false
     if (!clientClosed) {
-      clientWs.close(code, reason.toString())
+      const safeCode = code >= 1000 && code <= 4999 ? code : 1000
+      clientWs.close(safeCode, reason.toString())
     }
   })
 

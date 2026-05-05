@@ -312,26 +312,36 @@ export function installRuntimeBinaryFile(runtimeId: string, sourcePath: string):
       throw new Error(`压缩包中未找到 ${canonicalBinaryName}`)
     }
 
-    fs.rmSync(binariesPath, { recursive: true, force: true })
-    fs.mkdirSync(binariesPath, { recursive: true })
+    // Extract to a temp directory first, then atomically replace to avoid partial state on failure
+    const tempPath = `${binariesPath}_tmp_${Date.now()}`
+    fs.mkdirSync(tempPath, { recursive: true })
 
-    for (const entry of entries) {
-      if (entry.isDirectory) continue
-      const relativeName = entry.entryName.replace(/\\/g, '/')
-      const fileName = relativeName.split('/').pop()
-      if (!fileName) continue
-      const outputPath = path.join(binariesPath, fileName)
-      fs.writeFileSync(outputPath, entry.getData())
-    }
+    try {
+      for (const entry of entries) {
+        if (entry.isDirectory) continue
+        const relativeName = entry.entryName.replace(/\\/g, '/')
+        const fileName = relativeName.split('/').pop()
+        if (!fileName) continue
+        const outputPath = path.join(tempPath, fileName)
+        fs.writeFileSync(outputPath, entry.getData())
+      }
 
-    if (!fileExists(targetPath)) {
-      const fallbackBinary = fs.readdirSync(binariesPath)
-        .map((fileName) => path.join(binariesPath, fileName))
-        .find((filePath) => definition.binaryFileNames.includes(path.basename(filePath)))
+      const expectedBinary = path.join(tempPath, canonicalBinaryName)
+      const fallbackBinary = !fileExists(expectedBinary)
+        ? fs.readdirSync(tempPath)
+          .map((name) => path.join(tempPath, name))
+          .find((p) => definition.binaryFileNames.includes(path.basename(p)))
+        : null
 
-      if (!fallbackBinary) {
+      if (!fileExists(expectedBinary) && !fallbackBinary) {
         throw new Error(`解压完成，但未找到 ${canonicalBinaryName}`)
       }
+
+      fs.rmSync(binariesPath, { recursive: true, force: true })
+      fs.renameSync(tempPath, binariesPath)
+    } catch (error) {
+      fs.rmSync(tempPath, { recursive: true, force: true })
+      throw error
     }
   } else {
     fs.copyFileSync(sourcePath, targetPath)
