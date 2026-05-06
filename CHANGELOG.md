@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.3] - 2026-05-06
+
+### Fixed / 修复
+- 🔧 **Provider switch diarization content loss** — switching to a diarization-enabled provider (e.g. Soniox) no longer hides previously transcribed text; historical content now renders above speaker segments
+- 🔧 **切换发言人识别模式内容丢失** — 切换到启用多发言人识别的提供商（如 Soniox）时，之前的转录内容不再消失，历史文本现在渲染在说话人分段之上
+- 🔧 **IndexedDB retry on open failure** — if IndexedDB fails to open, subsequent calls now retry instead of permanently returning a rejected promise
+- 🔧 **IndexedDB 打开失败后可重试** — IndexedDB 打开失败时后续调用现在会重试，而不是永久返回被拒绝的 Promise
+- 🔧 **WebSocket close code RangeError** — proxy cores now sanitize upstream close codes to valid ranges before forwarding, preventing `RangeError` crashes
+- 🔧 **WebSocket 关闭码 RangeError** — 代理核心现在在转发前将上游关闭码清理为合法范围，防止 `RangeError` 崩溃
+- 🔧 **S3 backup listing pagination** — S3 backup list now fetches all objects using pagination instead of being capped at 100
+- 🔧 **S3 备份列表分页** — S3 备份列表现在使用分页获取所有对象，不再硬编码 100 条上限
+- 🔧 **Backup import overwrites provider API keys** — importing backup data now preserves existing provider API keys and credentials instead of overwriting them
+- 🔧 **备份导入覆盖 API Key** — 导入备份数据时现在保留现有的提供商 API Key 和凭据，不再覆盖
+- 🔧 **AI post-processing timeout** — non-streaming AI fetch calls (briefing, Q&A, mind map) now have a 120-second timeout to prevent indefinite hangs
+- 🔧 **AI 后处理超时** — 非流式 AI 请求（摘要、问答、思维导图）现在有 120 秒超时，防止无限挂起
+- 🔧 **Local runtime exit handler race condition** — fixed state race where the exit handler could read stale status by reordering spawn and state initialization
+- 🔧 **本地运行时退出处理竞态** — 修复退出处理器读取陈旧状态的竞态条件，重新排列 spawn 和状态初始化顺序
+- 🔧 **Frontend TypeScript compilation** — excluded Node-only proxy core files from frontend `tsconfig.json` to prevent browser-target compilation errors
+- 🔧 **前端 TypeScript 编译** — 从前端 `tsconfig.json` 排除 Node-only 代理核心文件，防止浏览器目标编译错误
+
+---
+
 ## [2.2.2] - 2026-05-04
 
 ### Added / 新增
