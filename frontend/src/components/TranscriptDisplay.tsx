@@ -47,6 +47,7 @@ export function TranscriptDisplay({
     nonFinalTranslatedTranscript,
     currentSegments,
     recordingState,
+    transcriptPrefix,
   } = useSessionStore()
   
   // 获取当前提供商名称
@@ -197,6 +198,11 @@ export function TranscriptDisplay({
             {showSource && (
               speakerDiarizationEnabled ? (
                 <div className="space-y-3">
+                  {transcriptPrefix && (
+                    <p className="text-base leading-relaxed whitespace-pre-wrap text-foreground/90 font-medium">
+                      {transcriptPrefix}
+                    </p>
+                  )}
                   {(() => {
                     const allSpeakerIds = [...new Set(currentSegments.map(s => s.speakerId).filter(Boolean) as string[])]
                     return currentSegments.map((segment, index) => {
