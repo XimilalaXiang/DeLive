@@ -153,7 +153,8 @@ function handleMistralConnection(clientWs: NodeWebSocket, req: IncomingMessage):
   mistralWs.on('close', (code, reason) => {
     console.log(`[MistralProxy] Mistral WebSocket 关闭: ${code} ${reason}`)
     if (!clientClosed) {
-      clientWs.close(code, reason.toString())
+      const safeCode = (code === 1000 || (code >= 3000 && code <= 4999)) ? code : 1000
+      clientWs.close(safeCode, reason.toString())
     }
   })
 

@@ -144,7 +144,8 @@ function handleDeepgramConnection(clientWs: NodeWebSocket, req: IncomingMessage)
   deepgramWs.on('close', (code, reason) => {
     console.log(`[DeepgramProxy] Deepgram WebSocket 关闭: ${code} ${reason}`)
     if (!clientClosed) {
-      clientWs.close(code, reason.toString())
+      const safeCode = (code === 1000 || (code >= 3000 && code <= 4999)) ? code : 1000
+      clientWs.close(safeCode, reason.toString())
     }
   })
 
