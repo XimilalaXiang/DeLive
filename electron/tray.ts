@@ -5,6 +5,8 @@ import path from 'path'
 
 const EMBEDDED_ICON_32_BASE64 = 'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAADjklEQVR4nNWXS08TURSAB6addjrT4NrgFqOJaX0sNMaKGx8b97ox+ke6FApSikIf9EEBQetajY+EqPggdkAoInTaTumUlxtjtLpAPeZOO7etdF5aFp7kLun3zTnn3nMgiP8uEkDaw8X9bLjgYoaFy+iw4ZzLHsp2EG5o3R0oQIttRLzARMUwE139yERXgYmgkwcmnAdmWADbcA7oUG6LDmbCtgB/Hv1NU9j2ePEEExNfsDER2GgBlOC2EDpZsAWzQAczYA3wMxY/3/n35CkwsSPiLQlsEE4HMkD7eaD9abAOpn2Ee8pkiN0WE/awMfHJv8LpoTRYh1bAOrj8mAhm2/TRE0CyseKD5sElAbDe+vBYVybYJqS9ARysNz+A5eaSTwNecBmBH7snwtF7Bb1wsAwsgcWXOtOYDtDCRAuvjHz51rcf0tENH3gPlv7UTMMrahsRLxhNe2n7l3RkuD2QhtvLn+Ha0/XGcN8iWPoXweJNndshwMTEiBq8LSxA+2i+ruZYoPLljgkBULxYKynCqf4UUH0LoXq6G1rZaGFT7cvv8F8k2L64gGsuC8hpd07kJIHptZIy3JsCs3dhi0gkSMy3x4sdWmmf3vgu/fjhuwVccyxQqbnzdrYqoACnvAsoA0D1zB6sSb/QqVVzLHBnFde8KlBuOOd4rYAy3Nw3D1Tv/MWqAJpqGg03vS4L5HHNywI/ccM5agVU4OYb78DcM3ulKhARLmk9MtPr38oCk3lccwSXBCoNVyegBu/9Q4CN5E5rvXCygHNSwDWXBeSGc4xnygLFkjq8dw6oXq5aAnso26H1vGKBCQHXHAtUGs4xxpevYfGrKtzcMwdUF3eg7hrSoeyG2ts+mf4s1bw9yuOaVwXKDecYrRVQhps83OaO7YlGm4zKYLH707A3UoWjtGOBSsMdiqclgedIQAneMwukhwvufIoD/HkDU01KOxaoNBzjW4TxpU9w9WFBEW7ycEB6kmcbziPan3lpZLBslbalo9Vw9XDuteK+aB1aOaV7qvkW4cgYD4fHeN3w8nl7siFcDrTD6YFr3vMGcLIr2UdoRgJI6+Dy/WbDTd1JfSuZFMFsG9rhmgbvSj4iupI6l1I53FMmtMM1Je21o9do0L6l45Qv9cwonOzm3piucy6iKQHQgtYotMmY++Y3VeAbZDcXUrznTQk3tFLe1AE0z9FEQwcNFult37V/TncxfgMkp/kkbDW+hQAAAABJRU5ErkJggg=='
 
+const TRAY_TEMPLATE_BASE64 = 'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAg0lEQVR4nO2WSw7AIAhEtfe/s+6NkIGh6mLepklT6ZNPtDUhBM9gFn9FP09LsAKdXB8WQHcKZyQigKY7VJaIAJruUFk8Aaq70XiWAN3daDxLgO5uNB47hjQSeFbgyAh6An15spjxvBIcGcXMWVD1XYpd8LF5/6sEIgBTdSO6yhMSQqSZ0ZgbE7r4RQ4AAAAASUVORK5CYII='
+
 interface CreateAppTrayOptions {
   getMainWindow: () => BrowserWindow | null
   onQuit: () => void
@@ -66,6 +68,17 @@ function loadIconFromPath(filePath: string): NativeImage | null {
   }
 }
 
+function createMacTrayIcon(): NativeImage {
+  const trayIcon = nativeImage.createFromDataURL(`data:image/png;base64,${TRAY_TEMPLATE_BASE64}`)
+  if (!trayIcon.isEmpty()) {
+    trayIcon.setTemplateImage(true)
+    console.log('[Tray] macOS: using dedicated template icon (32x32 sound-wave)')
+    return trayIcon
+  }
+  console.warn('[Tray] macOS: dedicated template icon failed, falling back to app icon')
+  return nativeImage.createEmpty()
+}
+
 function resizeForTray(image: NativeImage): NativeImage {
   if (process.platform !== 'darwin') return image
 
@@ -79,6 +92,11 @@ function resizeForTray(image: NativeImage): NativeImage {
 }
 
 function loadTrayIcon(): NativeImage {
+  if (process.platform === 'darwin') {
+    const macIcon = createMacTrayIcon()
+    if (!macIcon.isEmpty()) return macIcon
+  }
+
   const candidates = getIconCandidates()
   console.log('[Tray] 尝试加载图标，候选路径:', candidates)
 
