@@ -69,11 +69,18 @@ function loadIconFromPath(filePath: string): NativeImage | null {
 }
 
 function createMacTrayIcon(): NativeImage {
-  const trayIcon = nativeImage.createFromDataURL(`data:image/png;base64,${TRAY_TEMPLATE_BASE64}`)
-  if (!trayIcon.isEmpty()) {
-    trayIcon.setTemplateImage(true)
-    console.log('[Tray] macOS: using dedicated template icon (32x32 sound-wave)')
-    return trayIcon
+  try {
+    const buf = Buffer.from(TRAY_TEMPLATE_BASE64, 'base64')
+    const trayIcon = nativeImage.createFromBuffer(buf)
+    const size = trayIcon.getSize()
+    console.log(`[Tray] macOS: template buffer ${buf.length} bytes, image ${size.width}x${size.height}, empty=${trayIcon.isEmpty()}`)
+    if (!trayIcon.isEmpty() && size.width > 0) {
+      trayIcon.setTemplateImage(true)
+      console.log('[Tray] macOS: using dedicated template icon')
+      return trayIcon
+    }
+  } catch (err) {
+    console.error('[Tray] macOS: createFromBuffer failed:', err)
   }
   console.warn('[Tray] macOS: dedicated template icon failed, falling back to app icon')
   return nativeImage.createEmpty()
