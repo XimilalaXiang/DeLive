@@ -5,7 +5,7 @@ import path from 'path'
 
 const EMBEDDED_ICON_32_BASE64 = 'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAADjklEQVR4nNWXS08TURSAB6addjrT4NrgFqOJaX0sNMaKGx8b97ox+ke6FApSikIf9EEBQetajY+EqPggdkAoInTaTumUlxtjtLpAPeZOO7etdF5aFp7kLun3zTnn3nMgiP8uEkDaw8X9bLjgYoaFy+iw4ZzLHsp2EG5o3R0oQIttRLzARMUwE139yERXgYmgkwcmnAdmWADbcA7oUG6LDmbCtgB/Hv1NU9j2ePEEExNfsDER2GgBlOC2EDpZsAWzQAczYA3wMxY/3/n35CkwsSPiLQlsEE4HMkD7eaD9abAOpn2Ee8pkiN0WE/awMfHJv8LpoTRYh1bAOrj8mAhm2/TRE0CyseKD5sElAbDe+vBYVybYJqS9ARysNz+A5eaSTwNecBmBH7snwtF7Bb1wsAwsgcWXOtOYDtDCRAuvjHz51rcf0tENH3gPlv7UTMMrahsRLxhNe2n7l3RkuD2QhtvLn+Ha0/XGcN8iWPoXweJNndshwMTEiBq8LSxA+2i+ruZYoPLljgkBULxYKynCqf4UUH0LoXq6G1rZaGFT7cvv8F8k2L64gGsuC8hpd07kJIHptZIy3JsCs3dhi0gkSMy3x4sdWmmf3vgu/fjhuwVccyxQqbnzdrYqoACnvAsoA0D1zB6sSb/QqVVzLHBnFde8KlBuOOd4rYAy3Nw3D1Tv/MWqAJpqGg03vS4L5HHNywI/ccM5agVU4OYb78DcM3ulKhARLmk9MtPr38oCk3lccwSXBCoNVyegBu/9Q4CN5E5rvXCygHNSwDWXBeSGc4xnygLFkjq8dw6oXq5aAnso26H1vGKBCQHXHAtUGs4xxpevYfGrKtzcMwdUF3eg7hrSoeyG2ts+mf4s1bw9yuOaVwXKDecYrRVQhps83OaO7YlGm4zKYLH707A3UoWjtGOBSsMdiqclgedIQAneMwukhwvufIoD/HkDU01KOxaoNBzjW4TxpU9w9WFBEW7ycEB6kmcbziPan3lpZLBslbalo9Vw9XDuteK+aB1aOaV7qvkW4cgYD4fHeN3w8nl7siFcDrTD6YFr3vMGcLIr2UdoRgJI6+Dy/WbDTd1JfSuZFMFsG9rhmgbvSj4iupI6l1I53FMmtMM1Je21o9do0L6l45Qv9cwonOzm3piucy6iKQHQgtYotMmY++Y3VeAbZDcXUrznTQk3tFLe1AE0z9FEQwcNFult37V/TncxfgMkp/kkbDW+hQAAAABJRU5ErkJggg=='
 
-const TRAY_TEMPLATE_BASE64 = 'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABmJLR0QA/wD/AP+gvaeTAAACJklEQVRYheXXy04UURAG4A/HlZLIRgFho/gURiMrozuNexVeA4VnUHkBrtEX8LJSI3GFK3kERwy6ElQwknFRNXGQnkvPDBv9k5N0TlX9Vae7uqoO/zsGSupXcAlXMIazuf8RVbzGGvb7FWAdo5jHF9TwKx2u56rmXg2f8Qgj/XBcwRx2sIcF3MSJAt0TKVtM3R3MJkdXGMILcaoVnCthex6rafs8uUo738Aubpc1bsDd5NgoE8RxcfJdkWy9YjK5nunwc8yJV3enD87rmErOe+0UR0XyrHRI/CZXJ3iMbQy3UpoXGdxpwtVyNeJ6rr8xkdwPm5FVxH++0KHzZgH8yFWEJWxpkguTSXajiXHR6y4KoGivjlspu1wknBXVrKjIlHHWKoCT6eN+feNYg3Acn/C9iXE/8E2U6rGiAEaxeYTO66j608QOBFBTvjt2gwENn6gxgE0NkR4hxkT7PhRAFWdEohwVBnE6fR0K4JX4P682MV7L1Quupc+XRcKKyNDFEoRlC9GyFoWImGT2RD/vNoB2pfhBK8IR0TBWOwygTDN6gq/aNCOiStXEMNEvTCfnTCfKFTFG7Yr+0Csmk+upEvNh40g21YPz6eR4j1NljYfEGFUTw8RECdsL4pvXxMlLO6+jIsaobZHBS6KlFhWrwZQt42fazOhhLG/EsPh9tsSp9kU5Xce7fN5P2Vbqts12uruaXRTT8riDV7MP4mr21hFczf5d/AaQmJQxZxecJQAAAABJRU5ErkJggg=='
+const TRAY_TEMPLATE_BASE64 = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAPElEQVR4nGNgGPbgLQMDwxtKDPgPxVQz4C0hF71FU4BuAEEX/SegYQgY8IbSMEAH6BrQLWAgBEjWMAQBANLfKvQuv4UHAAAAAElFTkSuQmCC=='
 
 interface CreateAppTrayOptions {
   getMainWindow: () => BrowserWindow | null
@@ -19,7 +19,7 @@ function getIconCandidates(): string[] {
   const candidates: string[] = []
 
   const preferredIconFiles = process.platform === 'darwin'
-    ? ['icon.icns', 'icon.png', 'icon.ico']
+    ? ['icon.icns', 'icon-16.png', 'icon.png', 'icon.ico']
     : process.platform === 'linux'
       ? ['icon.png', 'icon.ico']
       : ['icon.ico', 'icon.png']
@@ -75,9 +75,10 @@ function createMacTrayIcon(): NativeImage {
     const size = trayIcon.getSize()
     console.log(`[Tray] macOS: template buffer ${buf.length} bytes, image ${size.width}x${size.height}, empty=${trayIcon.isEmpty()}`)
     if (!trayIcon.isEmpty() && size.width > 0) {
-      trayIcon.setTemplateImage(true)
-      console.log('[Tray] macOS: using dedicated template icon')
-      return trayIcon
+      const resized = trayIcon.resize({ width: 16, height: 16 })
+      resized.setTemplateImage(true)
+      console.log('[Tray] macOS: using dedicated template icon (resized to 16x16)')
+      return resized
     }
   } catch (err) {
     console.error('[Tray] macOS: createFromBuffer failed:', err)
@@ -101,7 +102,7 @@ function resizeForTray(image: NativeImage): NativeImage {
 function loadTrayIcon(): NativeImage {
   if (process.platform === 'darwin') {
     const macIcon = createMacTrayIcon()
-    if (!macIcon.isEmpty()) return macIcon
+    if (!macIcon.isEmpty()) return resizeForTray(macIcon)
   }
 
   const candidates = getIconCandidates()
@@ -129,31 +130,7 @@ export function createAppTray(options: CreateAppTrayOptions): Tray | null {
   try {
     const tray = new Tray(loadTrayIcon())
     options.debug?.('createTray.success')
-    const i18n = getElectronStrings()
-    tray.setToolTip(i18n.trayTooltip)
-
-    const contextMenu = Menu.buildFromTemplate([
-      {
-        label: i18n.trayShowWindow,
-        click: () => {
-          const mainWindow = options.getMainWindow()
-          if (process.platform === 'darwin') app.dock?.show()
-          mainWindow?.show()
-          mainWindow?.focus()
-        },
-      },
-      {
-        type: 'separator',
-      },
-      {
-        label: i18n.trayQuit,
-        click: () => {
-          options.onQuit()
-        },
-      },
-    ])
-
-    tray.setContextMenu(contextMenu)
+    rebuildTrayMenu(tray, options)
     tray.on('click', () => {
       const mainWindow = options.getMainWindow()
       if (mainWindow?.isVisible()) {
@@ -172,4 +149,32 @@ export function createAppTray(options: CreateAppTrayOptions): Tray | null {
     })
     return null
   }
+}
+
+export function rebuildTrayMenu(tray: Tray, options: CreateAppTrayOptions) {
+  const i18n = getElectronStrings()
+  tray.setToolTip(i18n.trayTooltip)
+
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: i18n.trayShowWindow,
+      click: () => {
+        const mainWindow = options.getMainWindow()
+        if (process.platform === 'darwin') app.dock?.show()
+        mainWindow?.show()
+        mainWindow?.focus()
+      },
+    },
+    {
+      type: 'separator',
+    },
+    {
+      label: i18n.trayQuit,
+      click: () => {
+        options.onQuit()
+      },
+    },
+  ])
+
+  tray.setContextMenu(contextMenu)
 }
