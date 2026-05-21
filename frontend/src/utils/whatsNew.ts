@@ -7,6 +7,38 @@ export interface WhatsNewEntry {
 
 const entries: WhatsNewEntry[] = [
   {
+    version: '2.2.4',
+    date: '2026-05-21',
+    features: [
+      {
+        zh: '越南语翻译目标 — 翻译语言下拉菜单和 Soniox 支持语言新增越南语',
+        en: 'Vietnamese translation target — Vietnamese added to translation language dropdown and Soniox supported languages',
+      },
+      {
+        zh: '文件转录国际化 — 文件上传/转录界面全面支持中英双语',
+        en: 'File transcription i18n — file upload/transcription UI fully supports bilingual display',
+      },
+    ],
+    fixes: [
+      {
+        zh: '修复 macOS 托盘图标过大的问题，使用 16×16 模板图像并正确缩放',
+        en: 'Fixed macOS tray icon appearing oversized by using 16×16 template image with proper resize',
+      },
+      {
+        zh: '修复托盘菜单在切换语言后不更新的问题，现在动态重建',
+        en: 'Fixed tray menu not updating after language change — now dynamically rebuilds',
+      },
+      {
+        zh: 'Electron 语言持久化从不可靠的 LevelDB 切换到 prefs.json',
+        en: 'Electron language persistence switched from unreliable LevelDB to prefs.json',
+      },
+      {
+        zh: '修复文件转录组件中函数类型 i18n key 可能导致的运行时错误',
+        en: 'Fixed potential runtime errors from function-valued i18n keys in file transcription components',
+      },
+    ],
+  },
+  {
     version: '2.1.1',
     date: '2026-05-01',
     features: [],

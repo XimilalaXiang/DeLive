@@ -9,6 +9,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.4] - 2026-05-21
+
+### Added / 新增
+- 🇻🇳 **Vietnamese translation target** — Vietnamese added to translation language dropdown and Soniox supported languages
+- 🇻🇳 **越南语翻译目标** — 翻译语言下拉菜单和 Soniox 支持语言新增越南语
+- 🌐 **File transcription i18n** — 27 new i18n keys replacing hardcoded Chinese strings in file upload/transcription UI
+- 🌐 **文件转录国际化** — 27 个新 i18n key 替换文件上传/转录界面中的硬编码中文
+- 🇯🇵 **Japanese README alignment** — Japanese README structure aligned with other language versions (community contribution)
+- 🇯🇵 **日文 README 对齐** — 日文 README 结构与其他语言版本对齐（社区贡献）
+
+### Fixed / 修复
+- 🔧 **macOS tray icon sizing** — fixed tray icon appearing oversized on macOS by using 16×16 template image with proper resize
+- 🔧 **macOS 托盘图标尺寸** — 修复 macOS 托盘图标过大的问题，使用 16×16 模板图像并正确缩放
+- 🔧 **Tray icon loadTrayIcon() bug** — fixed macOS icon skipping `resizeForTray()` due to early return
+- 🔧 **托盘图标 loadTrayIcon() 缺陷** — 修复 macOS 图标因提前返回而跳过 `resizeForTray()` 的问题
+- 🔧 **Tray menu localization** — tray menu now dynamically rebuilds when language changes via IPC
+- 🔧 **托盘菜单本地化** — 托盘菜单现在在语言通过 IPC 变更时动态重建
+- 🔧 **Electron language persistence** — switched from unreliable LevelDB to `prefs.json` for saving language preference
+- 🔧 **Electron 语言持久化** — 从不可靠的 LevelDB 切换到 `prefs.json` 保存语言偏好
+- 🔧 **i18n function key safety** — added optional chaining (`?.()`) for function-valued i18n keys in file transcription components to prevent runtime errors
+- 🔧 **i18n 函数键安全性** — 为文件转录组件中的函数类型 i18n key 添加可选链调用（`?.()`），防止运行时错误
+
+### Docs / 文档
+- 📝 Streamlined all READMEs by linking to documentation site instead of duplicating content
+- 📝 精简所有 README，改为链接到文档站而非重复内容
+
+---
+
 ## [2.2.3] - 2026-05-06
 
 ### Fixed / 修复
