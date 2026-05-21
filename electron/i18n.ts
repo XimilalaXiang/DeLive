@@ -35,24 +35,35 @@ const strings = {
   },
 } as const
 
+const LANG_PREFS_FILE = 'prefs.json'
+
 function getSavedLang(): Lang {
   try {
     const userDataPath = app.getPath('userData')
-    const prefsPath = path.join(userDataPath, 'Local Storage', 'leveldb')
+    const prefsPath = path.join(userDataPath, LANG_PREFS_FILE)
     if (fs.existsSync(prefsPath)) {
-      const files = fs.readdirSync(prefsPath).filter(f => f.endsWith('.log') || f.endsWith('.ldb'))
-      for (const file of files) {
-        try {
-          const buf = fs.readFileSync(path.join(prefsPath, file))
-          const text = buf.toString('utf8')
-          if (text.includes('"language"') && text.includes('"en"')) {
-            return 'en'
-          }
-        } catch { /* ignore */ }
-      }
+      const raw = fs.readFileSync(prefsPath, 'utf8')
+      const prefs = JSON.parse(raw)
+      if (prefs.language === 'en') return 'en'
+      if (prefs.language === 'zh') return 'zh'
     }
   } catch { /* ignore */ }
   return 'zh'
+}
+
+function saveLang(lang: Lang): void {
+  try {
+    const userDataPath = app.getPath('userData')
+    const prefsPath = path.join(userDataPath, LANG_PREFS_FILE)
+    let prefs: Record<string, unknown> = {}
+    if (fs.existsSync(prefsPath)) {
+      try {
+        prefs = JSON.parse(fs.readFileSync(prefsPath, 'utf8'))
+      } catch { /* ignore corrupt file */ }
+    }
+    prefs.language = lang
+    fs.writeFileSync(prefsPath, JSON.stringify(prefs, null, 2), 'utf8')
+  } catch { /* ignore */ }
 }
 
 let cachedLang: Lang | null = null
@@ -64,6 +75,11 @@ export function getElectronStrings() {
   return strings[cachedLang]
 }
 
-export function refreshElectronLang() {
-  cachedLang = getSavedLang()
+export function refreshElectronLang(lang?: Lang) {
+  if (lang) {
+    cachedLang = lang
+    saveLang(lang)
+  } else {
+    cachedLang = getSavedLang()
+  }
 }

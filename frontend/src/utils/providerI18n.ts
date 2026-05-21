@@ -126,6 +126,7 @@ const LANG_LABEL_MAP: Record<string, keyof ProviderStrings> = {
   es: 'langEs',
   fr: 'langFr',
   de: 'langDe',
+  vi: 'langVi',
 }
 
 function lookup(p: ProviderStrings, key: keyof ProviderStrings | undefined): string | undefined {

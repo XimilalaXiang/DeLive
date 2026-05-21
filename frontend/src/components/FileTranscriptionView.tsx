@@ -84,11 +84,11 @@ export function FileTranscriptionView() {
     if (!ft || ft.availability === 'unsupported') return null
     switch (ft.executionMode) {
       case 'native-job':
-        return { label: '异步', className: 'bg-info/20 text-info' }
+        return { label: t.file?.modeAsync || 'Async', className: 'bg-info/20 text-info' }
       case 'single-request':
-        return { label: '同步', className: 'bg-success/20 text-success' }
+        return { label: t.file?.modeSync || 'Sync', className: 'bg-success/20 text-success' }
       case 'local-runtime':
-        return { label: '本地', className: 'bg-warning/20 text-warning' }
+        return { label: t.file?.modeLocal || 'Local', className: 'bg-warning/20 text-warning' }
       default:
         return null
     }
@@ -171,10 +171,10 @@ export function FileTranscriptionView() {
             <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-muted/30">
               <div>
                 <h3 id="file-provider-selector-title" className="text-base font-semibold">
-                  选择文件转录服务
+                  {t.file?.selectProviderTitle || 'Select File Transcription Service'}
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  选择适合您需求的语音转录引擎
+                  {t.file?.selectProviderSubtitle || 'Choose a transcription engine that fits your needs'}
                 </p>
               </div>
               <button
@@ -231,9 +231,9 @@ export function FileTranscriptionView() {
             <FileAudio className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-lg font-semibold">文件转录</h1>
+            <h1 className="text-lg font-semibold">{t.file?.title || 'File Transcription'}</h1>
             <p className="text-sm text-muted-foreground">
-              上传音频/视频文件，使用 AI 引擎转录为文本
+              {t.file?.subtitle || 'Upload audio/video files and transcribe with AI'}
             </p>
           </div>
         </div>
@@ -261,7 +261,7 @@ export function FileTranscriptionView() {
               {selectedProvider ? getProviderName(selectedProvider, t) : 'Soniox'}
             </div>
             <div className="text-xs text-muted-foreground">
-              {selectedProvider ? getProviderDescription(selectedProvider, t) : '点击选择服务'}
+              {selectedProvider ? getProviderDescription(selectedProvider, t) : t.file?.selectProviderFallback || 'Click to select service'}
             </div>
           </div>
           <ChevronDown className="w-5 h-5 text-muted-foreground" />
@@ -271,7 +271,7 @@ export function FileTranscriptionView() {
         {!hasApiKey && (
           <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30 p-4">
             <p className="text-sm text-amber-800 dark:text-amber-200">
-              请先在设置 → Provider → {selectedProvider ? getProviderName(selectedProvider, t) : selectedProviderId} 中配置 API Key
+              {t.file?.apiKeyWarning(selectedProvider ? getProviderName(selectedProvider, t) : selectedProviderId) || 'Please configure API Key'}
             </p>
           </div>
         )}
@@ -280,7 +280,7 @@ export function FileTranscriptionView() {
         {selectedProviderId === 'cloudflare' && hasApiKey && (
           <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/30 p-4">
             <p className="text-sm text-blue-800 dark:text-blue-200">
-              Cloudflare Workers AI 限制文件大小约 2 MB。较大的文件请选择 Groq、Gladia 或 ElevenLabs。
+              {t.file?.cloudflareSizeWarning || 'Cloudflare Workers AI limits file size to ~2 MB.'}
             </p>
           </div>
         )}
@@ -303,9 +303,7 @@ export function FileTranscriptionView() {
         {jobs.length === 0 && (
           <div className="text-center py-4">
             <p className="text-xs text-muted-foreground">
-              转录完成后，会自动创建一个 Session，你可以在 Review Desk 中查看、
-              <br />
-              进行 AI 摘要、对话、思维导图等后处理操作。
+              {t.file?.helpText || 'After transcription completes, a Session is automatically created.'}
             </p>
           </div>
         )}

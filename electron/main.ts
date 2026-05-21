@@ -8,7 +8,7 @@ import { createLocalRuntimeController } from './localRuntime'
 import { registerLocalRuntimeIpc } from './localRuntimeIpc'
 import { createMainWindow } from './mainWindow'
 import { registerAppShortcuts } from './shortcuts'
-import { createAppTray, findIconPath } from './tray'
+import { createAppTray, findIconPath, rebuildTrayMenu } from './tray'
 import { registerUpdaterIpc } from './updaterIpc'
 import { installLogInterceptor, registerDiagnosticsIpc } from './diagnosticsIpc'
 import { registerTrustedWindow } from './ipcSecurity'
@@ -17,6 +17,7 @@ import { startVolcProxyServer } from './volcProxy'
 import { registerApiIpc } from './apiIpc'
 import { attachApiServer } from './apiServer'
 import { registerCloudBackupIpc } from './cloudBackup/cloudBackupIpc'
+import { refreshElectronLang, getElectronStrings } from './i18n'
 
 installLogInterceptor()
 
@@ -247,4 +248,22 @@ registerCloudBackupIpc(ipcMain)
 registerApiIpc({
   ipcMain,
   getMainWindow: () => mainWindow,
+})
+
+ipcMain.handle('lang:change', (_event, lang: string) => {
+  if (lang === 'zh' || lang === 'en') {
+    refreshElectronLang(lang as 'zh' | 'en')
+  } else {
+    refreshElectronLang()
+  }
+  if (tray && !tray.isDestroyed()) {
+    rebuildTrayMenu(tray, {
+      getMainWindow: () => mainWindow,
+      onQuit: () => {
+        isQuitting = true
+        app.quit()
+      },
+      debug: (message, extra) => captionController.debug(message, extra),
+    })
+  }
 })

@@ -340,6 +340,8 @@ export interface ElectronAPI {
   cloudBackupDownload: (config: CloudBackupIpcConfig, key: string) => Promise<{ ok: boolean; data?: string; error?: string }>
   cloudBackupDelete: (config: CloudBackupIpcConfig, key: string) => Promise<{ ok: boolean; error?: string }>
 
+  langChange: (lang: string) => Promise<void>
+
   isElectron: boolean
   platform: 'win32' | 'darwin' | 'linux'
   supportsAutoLaunch: boolean

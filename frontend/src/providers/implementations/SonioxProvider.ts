@@ -118,6 +118,7 @@ export class SonioxProvider extends BaseASRProvider {
           { value: 'it', label: 'Italiano' },
           { value: 'pt', label: 'Português' },
           { value: 'ru', label: 'Русский' },
+          { value: 'vi', label: 'Tiếng Việt' },
         ],
         description: '仅在启用实时翻译时生效。',
       },

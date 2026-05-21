@@ -1,6 +1,7 @@
 import { useCallback, useState, useRef } from 'react'
 import { Upload, FileAudio, X, Info, Clock } from 'lucide-react'
 import { isAcceptedAudioFile, formatFileSize, ACCEPTED_AUDIO_EXTENSIONS } from '../types/fileTranscription'
+import { useUIStore } from '../stores/uiStore'
 
 function estimateDuration(sizeBytes: number): string {
   const sizeMB = sizeBytes / (1024 * 1024)
@@ -12,20 +13,21 @@ function estimateDuration(sizeBytes: number): string {
   return `~${hours}h ${mins}m`
 }
 
-const FORMAT_GROUPS = [
-  { label: 'Audio', formats: ['MP3', 'WAV', 'M4A', 'FLAC', 'OGG', 'AAC', 'WMA', 'Opus'] },
-  { label: 'Video', formats: ['MP4', 'WebM', 'MPEG'] },
-]
-
 interface FileDropZoneProps {
   onFilesSelected: (files: File[]) => void
   disabled?: boolean
 }
 
 export function FileDropZone({ onFilesSelected, disabled }: FileDropZoneProps) {
+  const { t } = useUIStore()
   const [isDragging, setIsDragging] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
+
+  const formatGroups = [
+    { label: t.file?.formatAudio || 'Audio', formats: ['MP3', 'WAV', 'M4A', 'FLAC', 'OGG', 'AAC', 'WMA', 'Opus'] },
+    { label: t.file?.formatVideo || 'Video', formats: ['MP4', 'WebM', 'MPEG'] },
+  ]
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -94,10 +96,10 @@ export function FileDropZone({ onFilesSelected, disabled }: FileDropZoneProps) {
         </div>
         <div className="text-center">
           <p className="text-sm font-medium">
-            {isDragging ? '松开以添加文件' : '拖拽音频/视频文件到此处，或点击选择'}
+            {isDragging ? t.file?.draggingPrompt : t.file?.dropPrompt}
           </p>
           <div className="mt-2 space-y-1">
-            {FORMAT_GROUPS.map((group) => (
+            {formatGroups.map((group) => (
               <div key={group.label} className="flex items-center justify-center gap-1.5 flex-wrap">
                 <span className="text-[10px] font-semibold text-muted-foreground uppercase">{group.label}:</span>
                 {group.formats.map((fmt) => (
@@ -120,7 +122,7 @@ export function FileDropZone({ onFilesSelected, disabled }: FileDropZoneProps) {
       {selectedFiles.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs font-medium text-muted-foreground">
-            已选择 {selectedFiles.length} 个文件
+            {t.file?.selectedFiles(selectedFiles.length)}
           </p>
           {selectedFiles.map((file, index) => (
             <div
@@ -150,8 +152,7 @@ export function FileDropZone({ onFilesSelected, disabled }: FileDropZoneProps) {
           <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
             <Info className="h-3.5 w-3.5 shrink-0" />
             <span>
-              共 {formatFileSize(selectedFiles.reduce((s, f) => s + f.size, 0))}，预计音频时长{' '}
-              {estimateDuration(selectedFiles.reduce((s, f) => s + f.size, 0))}
+              {t.file?.totalSizeAndDuration(formatFileSize(selectedFiles.reduce((s, f) => s + f.size, 0)), estimateDuration(selectedFiles.reduce((s, f) => s + f.size, 0)))}
             </span>
           </div>
           <button
@@ -159,7 +160,7 @@ export function FileDropZone({ onFilesSelected, disabled }: FileDropZoneProps) {
             disabled={disabled}
             className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
           >
-            开始转录 ({selectedFiles.length} 个文件)
+            {t.file?.startTranscription(selectedFiles.length)}
           </button>
         </div>
       )}

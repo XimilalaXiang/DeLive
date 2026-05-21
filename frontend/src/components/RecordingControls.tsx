@@ -17,6 +17,7 @@ const TRANSLATION_OPTIONS = [
   { value: 'es', label: 'Español' },
   { value: 'fr', label: 'Français' },
   { value: 'de', label: 'Deutsch' },
+  { value: 'vi', label: 'Tiếng Việt' },
 ]
 
 interface RecordingControlsProps {

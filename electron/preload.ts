@@ -224,6 +224,8 @@ const electronAPI: ElectronAPI = {
   cloudBackupDownload: (config, key) => ipcRenderer.invoke('cloud-backup-download', config, key),
   cloudBackupDelete: (config, key) => ipcRenderer.invoke('cloud-backup-delete', config, key),
 
+  langChange: (lang: string) => ipcRenderer.invoke('lang:change', lang),
+
   isElectron: true,
   platform: process.platform as 'win32' | 'darwin' | 'linux',
 

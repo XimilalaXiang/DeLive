@@ -1,6 +1,7 @@
 import { FileAudio, Check, AlertCircle, Loader2, X, ArrowRight } from 'lucide-react'
 import type { FileTranscriptionJob } from '../types/fileTranscription'
 import { formatFileSize } from '../types/fileTranscription'
+import { useUIStore } from '../stores/uiStore'
 
 interface FileTranscriptionProgressProps {
   jobs: FileTranscriptionJob[]
@@ -9,40 +10,42 @@ interface FileTranscriptionProgressProps {
   onRemove: (jobId: string) => void
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  queued: '排队中',
-  uploading: '上传中',
-  transcribing: '转录中',
-  completed: '已完成',
-  error: '出错',
-  cancelled: '已取消',
-}
-
-function JobStatusIcon({ status }: { status: string }) {
-  switch (status) {
-    case 'completed':
-      return <Check className="h-4 w-4 text-emerald-500" />
-    case 'error':
-      return <AlertCircle className="h-4 w-4 text-destructive" />
-    case 'cancelled':
-      return <X className="h-4 w-4 text-muted-foreground" />
-    default:
-      return <Loader2 className="h-4 w-4 text-primary animate-spin" />
-  }
-}
-
 export function FileTranscriptionProgress({
   jobs,
   onCancel,
   onOpenResult,
   onRemove,
 }: FileTranscriptionProgressProps) {
+  const { t } = useUIStore()
+
+  const statusLabels = {
+    queued: t.file?.statusQueued || 'Queued',
+    uploading: t.file?.statusUploading || 'Uploading',
+    transcribing: t.file?.statusTranscribing || 'Transcribing',
+    completed: t.file?.statusCompleted || 'Completed',
+    error: t.file?.statusError || 'Error',
+    cancelled: t.file?.statusCancelled || 'Cancelled',
+  }
+
   if (jobs.length === 0) return null
+
+  const JobStatusIcon = ({ status }: { status: string }) => {
+    switch (status) {
+      case 'completed':
+        return <Check className="h-4 w-4 text-emerald-500" />
+      case 'error':
+        return <AlertCircle className="h-4 w-4 text-destructive" />
+      case 'cancelled':
+        return <X className="h-4 w-4 text-muted-foreground" />
+      default:
+        return <Loader2 className="h-4 w-4 text-primary animate-spin" />
+    }
+  }
 
   return (
     <div className="space-y-2">
       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-        转录任务
+        {t.file?.progressTitle || 'Transcription Tasks'}
       </p>
       {jobs.map((job) => (
         <div
@@ -65,9 +68,9 @@ export function FileTranscriptionProgress({
 
             <div className="mt-1 flex items-center gap-2">
               <JobStatusIcon status={job.status} />
-              <span className="text-xs text-muted-foreground">
-                {STATUS_LABELS[job.status] || job.status}
-              </span>
+                <span className="text-xs text-muted-foreground">
+                  {statusLabels[job.status as keyof typeof statusLabels] || job.status}
+                </span>
               {job.audioDurationMs && job.status === 'completed' && (
                 <span className="text-xs text-muted-foreground">
                   · {Math.round(job.audioDurationMs / 1000)}s
@@ -95,7 +98,7 @@ export function FileTranscriptionProgress({
                 onClick={() => onOpenResult(job.id)}
                 className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary hover:text-primary-foreground transition-all"
               >
-                查看转录
+                {t.file?.viewTranscript || 'View Transcript'}
                 <ArrowRight className="h-3.5 w-3.5" />
               </button>
             )}
@@ -103,7 +106,7 @@ export function FileTranscriptionProgress({
               <button
                 onClick={() => onCancel(job.id)}
                 className="rounded-md p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                title="取消"
+                title={t.file?.cancel || 'Cancel'}
               >
                 <X className="h-4 w-4" />
               </button>
@@ -112,7 +115,7 @@ export function FileTranscriptionProgress({
               <button
                 onClick={() => onRemove(job.id)}
                 className="rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-                title="移除"
+                title={t.file?.remove || 'Remove'}
               >
                 <X className="h-4 w-4" />
               </button>

@@ -64,12 +64,16 @@
       "frontend/public/**/*",
       "local-runtimes/**/*",
       "build/icon.ico",
-      "build/icon.png"
+      "build/icon.png",
+      "build/icon.icns",
+      "build/icon-16.png"
     ],
     "asarUnpack": [
       "local-runtimes/**/*",
       "build/icon.ico",
-      "build/icon.png"
+      "build/icon.png",
+      "build/icon.icns",
+      "build/icon-16.png"
     ],
     "extraResources": [
       {
@@ -111,6 +115,10 @@
         {
           "from": "build/icon.icns",
           "to": "build/icon.icns"
+        },
+        {
+          "from": "build/icon-16.png",
+          "to": "build/icon-16.png"
         }
       ],
       "target": [

@@ -72,6 +72,9 @@ export const useUIStore = create<UIState>((set, get) => ({
   setLanguage: (lang) => {
     saveLanguage(lang)
     set({ language: lang, t: getTranslations(lang) })
+    if (window.electronAPI?.langChange) {
+      window.electronAPI.langChange(lang).catch(() => {})
+    }
   },
 
   theme: 'system',
