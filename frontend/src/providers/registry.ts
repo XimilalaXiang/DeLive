@@ -21,6 +21,7 @@ import { GladiaProvider } from './implementations/GladiaProvider'
 import { CloudflareProvider } from './implementations/CloudflareProvider'
 import { LocalOpenAIProvider } from './implementations/LocalOpenAIProvider'
 import { WhisperCppRuntimeProvider } from './implementations/WhisperCppRuntimeProvider'
+import { SixtydbProvider } from './implementations/SixtydbProvider'
 
 // Provider 注册表
 class ProviderRegistry {
@@ -130,6 +131,11 @@ function registerDefaultProviders(): void {
   providerRegistry.register({
     info: new WhisperCppRuntimeProvider().info,
     create: () => new WhisperCppRuntimeProvider(),
+  })
+
+  providerRegistry.register({
+    info: new SixtydbProvider().info,
+    create: () => new SixtydbProvider(),
   })
 }
 
