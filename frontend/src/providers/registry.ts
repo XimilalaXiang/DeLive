@@ -22,6 +22,7 @@ import { CloudflareProvider } from './implementations/CloudflareProvider'
 import { LocalOpenAIProvider } from './implementations/LocalOpenAIProvider'
 import { WhisperCppRuntimeProvider } from './implementations/WhisperCppRuntimeProvider'
 import { SixtydbProvider } from './implementations/SixtydbProvider'
+import { SenseVoiceProvider } from './implementations/SenseVoiceProvider'
 
 // Provider 注册表
 class ProviderRegistry {
@@ -136,6 +137,11 @@ function registerDefaultProviders(): void {
   providerRegistry.register({
     info: new SixtydbProvider().info,
     create: () => new SixtydbProvider(),
+  })
+
+  providerRegistry.register({
+    info: new SenseVoiceProvider().info,
+    create: () => new SenseVoiceProvider(),
   })
 }
 

@@ -12,6 +12,7 @@ export enum ASRVendor {
   LocalOpenAI = 'local_openai',
   LocalWhisperCpp = 'local_whisper_cpp',
   Sixtydb = 'sixtydb',
+  SenseVoice = 'sensevoice',
 }
 
 export type ProviderType = 'cloud' | 'local'
