@@ -1,17 +1,17 @@
 /**
- * 60db STT Realtime ASR proxy core.
+ * 60db STT Realtime ASR 代理核心
  *
- * Architectural parity with elevenlabsProxyCore.ts. 60db authenticates via
- * `?apiKey=` in the URL — the proxy is largely a passthrough but still gives:
- *   - api key never appears in browser DevTools network tab
- *   - centralized logging
- *   - consistent cancellation + error handling with the other 12 providers
+ * 架构对齐 elevenlabsProxyCore.ts。60db 通过 URL 参数 `?apiKey=` 认证，
+ * 代理主要作为透传层，但提供以下价值：
+ *   - API Key 不会出现在浏览器 DevTools 网络面板中
+ *   - 集中式日志
+ *   - 与其他 provider 一致的取消和错误处理
  *
- * 60db STT WS protocol (wss://api.60db.ai/ws/stt):
- *   server → client: connection_established → connected → session_started →
+ * 60db STT WS 协议 (wss://api.60db.ai/ws/stt)：
+ *   服务端 → 客户端：connection_established → connected → session_started →
  *                    speech_started → transcription (interim/final) → session_stopped
- *   client → server: { type: "start", languages, config: { encoding, sample_rate, ... } }
- *                    raw binary PCM16 frames (no JSON wrapping needed)
+ *   客户端 → 服务端：{ type: "start", languages, config: { encoding, sample_rate, ... } }
+ *                    原始二进制 PCM16 帧（无需 JSON 包装）
  *                    { type: "stop" }
  */
 
@@ -25,30 +25,34 @@ const SIXTYDB_WS_BASE = 'wss://api.60db.ai/ws/stt'
 interface SixtydbProxyConfig {
   apiKey: string
   language?: string
+  languageHints?: string[]
   diarize?: boolean
 }
 
 function parseProxyConfig(req: IncomingMessage): SixtydbProxyConfig {
   const url = new URL(req.url || '', `http://${req.headers.host}`)
+  const hintsRaw = url.searchParams.get('languageHints') || ''
+  const hints = hintsRaw ? hintsRaw.split(',').map(s => s.trim()).filter(Boolean) : []
   return {
     apiKey: url.searchParams.get('apiKey') || '',
     language: url.searchParams.get('language') || '',
+    languageHints: hints,
     diarize: url.searchParams.get('diarize') === 'true',
   }
 }
 
 function handleSixtydbConnection(clientWs: NodeWebSocket, req: IncomingMessage): void {
-  console.log('[SixtydbProxy] new client connection')
+  console.log('[SixtydbProxy] 新客户端连接')
 
   const config = parseProxyConfig(req)
   if (!config.apiKey) {
-    console.error('[SixtydbProxy] missing apiKey')
+    console.error('[SixtydbProxy] 缺少 apiKey')
     clientWs.close(4001, 'Missing apiKey')
     return
   }
 
   const wsUrl = `${SIXTYDB_WS_BASE}?apiKey=${encodeURIComponent(config.apiKey)}`
-  console.log(`[SixtydbProxy] dialing upstream: language=${config.language || 'auto'} diarize=${config.diarize}`)
+  console.log(`[SixtydbProxy] 连接到 60db: language=${config.language || 'auto'} diarize=${config.diarize}`)
 
   const agent = getWsProxyAgent()
   const upstream = new NodeWebSocket(wsUrl, { agent })
@@ -57,7 +61,7 @@ function handleSixtydbConnection(clientWs: NodeWebSocket, req: IncomingMessage):
   let clientClosed = false
 
   upstream.on('open', () => {
-    console.log('[SixtydbProxy] upstream connected, waiting for session_started...')
+    console.log('[SixtydbProxy] 60db WebSocket 已连接，等待 session_started...')
   })
 
   upstream.on('message', (data: Buffer) => {
@@ -67,13 +71,14 @@ function handleSixtydbConnection(clientWs: NodeWebSocket, req: IncomingMessage):
     try {
       msg = JSON.parse(data.toString())
     } catch (err) {
-      console.error('[SixtydbProxy] failed to parse upstream message:', err)
+      console.error('[SixtydbProxy] 解析上游消息失败:', err)
       return
     }
 
-    // Handshake: connection_established (outer-key) → send start.
     if (msg.connection_established) {
-      const languages = config.language ? [config.language] : null
+      const languages = config.languageHints?.length
+        ? config.languageHints
+        : config.language ? [config.language] : null
       const startMsg = {
         type: 'start',
         languages,
@@ -92,12 +97,11 @@ function handleSixtydbConnection(clientWs: NodeWebSocket, req: IncomingMessage):
     }
 
     if (msg.type === 'connected') {
-      // Proxy ready notice; we wait for session_started before announcing to client.
       return
     }
 
     if (msg.type === 'session_started') {
-      console.log(`[SixtydbProxy] session_started: id=${(msg as { session_id?: string }).session_id}`)
+      console.log(`[SixtydbProxy] Session 开始: id=${(msg as { session_id?: string }).session_id}`)
       sessionReady = true
       clientWs.send(JSON.stringify({ type: 'ready' }))
       return
@@ -106,12 +110,12 @@ function handleSixtydbConnection(clientWs: NodeWebSocket, req: IncomingMessage):
     if (msg.type === 'transcription') {
       const text = (msg as { text?: string }).text || ''
       if (!text) return
-      // 60db two-phase: is_final=true + speech_final=false is the fast first emit;
-      // speech_final=true is the canonical answer. We mirror Deepgram-style by
-      // treating only speech_final as the "final" event, everything else as partial.
+      // 60db 两阶段 finals：is_final=true + speech_final=false 是快速首次输出；
+      // speech_final=true 是最终确认结果。我们按 Deepgram 风格，
+      // 仅将 speech_final 作为 "final" 事件，其余均为 partial。
       const speechFinal = !!(msg as { speech_final?: boolean }).speech_final
       if (speechFinal) {
-        console.log(`[SixtydbProxy] final: ${text.substring(0, 60)}`)
+        console.log(`[SixtydbProxy] 最终结果: ${text.substring(0, 60)}`)
         clientWs.send(JSON.stringify({ type: 'final', text, raw: msg }))
       } else {
         clientWs.send(JSON.stringify({ type: 'partial', text, raw: msg }))
@@ -122,21 +126,24 @@ function handleSixtydbConnection(clientWs: NodeWebSocket, req: IncomingMessage):
     if (msg.type === 'error') {
       const errorMsg = (msg as { error?: string }).error || 'Unknown error'
       const errorCode = (msg as { error_code?: string }).error_code || 'unknown'
-      console.error(`[SixtydbProxy] upstream error: ${errorCode} - ${errorMsg}`)
+      console.error(`[SixtydbProxy] 上游错误: ${errorCode} - ${errorMsg}`)
       clientWs.send(JSON.stringify({
         type: 'error',
-        message: `60db: ${errorCode} - ${errorMsg}`,
+        message: `60db 错误: ${errorCode} - ${errorMsg}`,
       }))
       return
     }
 
     if (msg.type === 'session_stopped') {
-      console.log('[SixtydbProxy] session_stopped')
+      console.log('[SixtydbProxy] 会话已停止')
+      sessionReady = false
+      clientWs.send(JSON.stringify({ type: 'session_stopped' }))
+      return
     }
   })
 
   upstream.on('error', (error) => {
-    console.error('[SixtydbProxy] upstream WebSocket error:', error.message)
+    console.error('[SixtydbProxy] 60db WebSocket 错误:', error.message)
     if (!clientClosed) {
       clientWs.send(JSON.stringify({
         type: 'error',
@@ -147,7 +154,7 @@ function handleSixtydbConnection(clientWs: NodeWebSocket, req: IncomingMessage):
   })
 
   upstream.on('close', (code, reason) => {
-    console.log(`[SixtydbProxy] upstream closed: ${code} ${reason}`)
+    console.log(`[SixtydbProxy] 60db WebSocket 关闭: ${code} ${reason}`)
     if (!clientClosed) {
       const safeCode = (code === 1000 || (code >= 3000 && code <= 4999)) ? code : 1000
       clientWs.close(safeCode, reason.toString())
@@ -156,13 +163,10 @@ function handleSixtydbConnection(clientWs: NodeWebSocket, req: IncomingMessage):
 
   clientWs.on('message', (data: Buffer) => {
     if (!sessionReady) {
-      console.warn('[SixtydbProxy] session not ready, dropping data')
+      console.warn('[SixtydbProxy] 60db 未就绪，忽略数据')
       return
     }
 
-    // Browser sends raw PCM16 binary frames OR a JSON control message.
-    // 60db accepts raw binary frames natively (auto-detect on first binary
-    // frame per docs) — pass them straight through.
     let isBinary = true
     try {
       const text = data.toString('utf-8')
@@ -170,14 +174,13 @@ function handleSixtydbConnection(clientWs: NodeWebSocket, req: IncomingMessage):
         const message = JSON.parse(text)
         isBinary = false
         if (message.type === 'audio_end' || message.type === 'terminate') {
-          // Tell 60db to wrap up; it will reply with session_stopped + billing summary.
           upstream.send(JSON.stringify({ type: 'stop' }))
-          console.log('[SixtydbProxy] forwarded stop to upstream')
+          console.log('[SixtydbProxy] 发送 stop 到上游')
           return
         }
       }
     } catch {
-      // non-JSON → binary audio
+      // 非 JSON → 二进制音频
     }
 
     if (isBinary) {
@@ -186,7 +189,7 @@ function handleSixtydbConnection(clientWs: NodeWebSocket, req: IncomingMessage):
   })
 
   clientWs.on('close', () => {
-    console.log('[SixtydbProxy] client disconnected')
+    console.log('[SixtydbProxy] 客户端断开连接')
     clientClosed = true
     if (upstream.readyState === NodeWebSocket.OPEN) {
       try { upstream.send(JSON.stringify({ type: 'stop' })) } catch { /* ignore */ }
@@ -195,9 +198,12 @@ function handleSixtydbConnection(clientWs: NodeWebSocket, req: IncomingMessage):
   })
 
   clientWs.on('error', (error) => {
-    console.error('[SixtydbProxy] client WebSocket error:', error)
+    console.error('[SixtydbProxy] 客户端 WebSocket 错误:', error)
     clientClosed = true
-    upstream.close(1000, 'Client error')
+    if (upstream.readyState === NodeWebSocket.OPEN) {
+      try { upstream.send(JSON.stringify({ type: 'stop' })) } catch { /* ignore */ }
+      upstream.close(1000, 'Client error')
+    }
   })
 }
 
@@ -206,19 +212,19 @@ function formatSixtydbConnectionError(error: Error): string {
   const lower = msg.toLowerCase()
 
   if (lower.includes('401') || lower.includes('unauthorized')) {
-    return '60db API key is invalid or expired — check your API key setting.'
+    return '60db API Key 无效或已过期，请检查 API Key 设置'
   }
   if (lower.includes('403') || lower.includes('forbidden')) {
-    return '60db API key lacks permission — check your workspace access.'
+    return '60db API Key 无权限，请检查账户权限'
   }
   if (lower.includes('enotfound') || lower.includes('getaddrinfo')) {
-    return 'Could not resolve api.60db.ai — check your network connection.'
+    return '无法解析 60db 服务地址 api.60db.ai，请检查网络连接'
   }
   if (lower.includes('timeout') || lower.includes('etimedout')) {
-    return 'Connection to 60db timed out — check your network.'
+    return '连接 60db 超时，请检查网络连通性'
   }
   if (lower.includes('econnreset') || lower.includes('socket hang up')) {
-    return '60db connection was reset — please retry.'
+    return '60db 连接被重置，请稍后重试'
   }
   return msg
 }
