@@ -5,7 +5,7 @@ let cachedPort: number | null = null
 export async function getProxyPort(): Promise<number> {
   if (cachedPort != null) return cachedPort
 
-  const api = (window as Record<string, unknown>).electronAPI as
+  const api = (window as unknown as Record<string, unknown>).electronAPI as
     | { getProxyPort?: () => Promise<number> }
     | undefined
 
