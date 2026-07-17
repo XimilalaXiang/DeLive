@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Check, Clipboard, Eye, EyeOff, Key, Network, Shuffle } from 'lucide-react'
 import { Switch } from '../ui'
 import type { Translations } from '../../i18n'
 import type { OpenApiConfig } from '../../types'
+import { getProxyPort } from '../../utils/proxyUrl'
 
 interface OpenApiPanelProps {
   t: Translations
@@ -26,6 +27,11 @@ export function OpenApiPanel({
 }: OpenApiPanelProps) {
   const [showApiToken, setShowApiToken] = useState(false)
   const [copiedField, setCopiedField] = useState<string | null>(null)
+  const [proxyPort, setProxyPort] = useState(23456)
+
+  useEffect(() => {
+    void getProxyPort().then(setProxyPort)
+  }, [])
 
   function copyToClipboard(text: string, field: string): void {
     void navigator.clipboard.writeText(text).then(() => {
@@ -108,11 +114,11 @@ export function OpenApiPanel({
                   {t.settings.openApiRestUrl}
                 </span>
                 <code className="text-xs font-mono flex-1 truncate">
-                  http://localhost:23456/api/v1/
+                  {`http://localhost:${proxyPort}/api/v1/`}
                 </code>
                 <button
                   type="button"
-                  onClick={() => copyToClipboard('http://localhost:23456/api/v1/', 'rest')}
+                  onClick={() => copyToClipboard(`http://localhost:${proxyPort}/api/v1/`, 'rest')}
                   className="p-1 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {copiedField === 'rest' ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Clipboard className="w-3.5 h-3.5" />}
@@ -123,11 +129,11 @@ export function OpenApiPanel({
                   {t.settings.openApiWsUrl}
                 </span>
                 <code className="text-xs font-mono flex-1 truncate">
-                  ws://localhost:23456/ws/live
+                  {`ws://localhost:${proxyPort}/ws/live`}
                 </code>
                 <button
                   type="button"
-                  onClick={() => copyToClipboard('ws://localhost:23456/ws/live', 'ws')}
+                  onClick={() => copyToClipboard(`ws://localhost:${proxyPort}/ws/live`, 'ws')}
                   className="p-1 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {copiedField === 'ws' ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Clipboard className="w-3.5 h-3.5" />}

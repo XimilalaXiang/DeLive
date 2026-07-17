@@ -13,8 +13,7 @@ import type {
   ASRVendor,
 } from '../../types/asr'
 
-// 本地代理服务器地址
-const PROXY_WS_URL = 'ws://localhost:23456/ws/volc'
+import { getProxyWsUrl } from '../../utils/proxyUrl'
 
 export class VolcProvider extends BaseASRProvider {
   readonly id: ASRVendor = 'volc' as ASRVendor
@@ -115,7 +114,8 @@ export class VolcProvider extends BaseASRProvider {
           enableDdc: 'true', // 语义顺滑
         })
 
-        const proxyUrl = `${PROXY_WS_URL}?${params.toString()}`
+        const baseUrl = await getProxyWsUrl('/ws/volc')
+        const proxyUrl = `${baseUrl}?${params.toString()}`
         console.log('[VolcProvider] 连接到代理服务器...')
         
         this.ws = new WebSocket(proxyUrl)

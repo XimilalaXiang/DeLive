@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent, type Ref } from 'react'
+import { useState, useEffect, type ChangeEvent, type Ref } from 'react'
 import {
   AlertCircle,
   Check,
@@ -21,6 +21,7 @@ import { Switch } from '../ui'
 import type { Language, Translations } from '../../i18n'
 import type { AiPostProcessConfig, AppSettings, OpenApiConfig } from '../../types'
 import { colorThemes, type ColorThemeId } from '../../themes'
+import { getProxyPort } from '../../utils/proxyUrl'
 
 interface ImportMessage {
   type: 'success' | 'error'
@@ -86,6 +87,11 @@ export function GeneralSettingsPanel({
   const [showAiApiKey, setShowAiApiKey] = useState(false)
   const [showApiToken, setShowApiToken] = useState(false)
   const [copiedField, setCopiedField] = useState<string | null>(null)
+  const [proxyPort, setProxyPort] = useState(23456)
+
+  useEffect(() => {
+    void getProxyPort().then(setProxyPort)
+  }, [])
 
   function generateRandomToken(): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
@@ -347,11 +353,11 @@ export function GeneralSettingsPanel({
                       {t.settings.openApiRestUrl}
                     </span>
                     <code className="text-xs font-mono flex-1 truncate">
-                      http://localhost:23456/api/v1/
+                      {`http://localhost:${proxyPort}/api/v1/`}
                     </code>
                     <button
                       type="button"
-                      onClick={() => copyToClipboard('http://localhost:23456/api/v1/', 'rest')}
+                      onClick={() => copyToClipboard(`http://localhost:${proxyPort}/api/v1/`, 'rest')}
                       className="p-1 text-muted-foreground hover:text-foreground transition-colors"
                     >
                       {copiedField === 'rest' ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Clipboard className="w-3.5 h-3.5" />}
@@ -362,11 +368,11 @@ export function GeneralSettingsPanel({
                       {t.settings.openApiWsUrl}
                     </span>
                     <code className="text-xs font-mono flex-1 truncate">
-                      ws://localhost:23456/ws/live
+                      {`ws://localhost:${proxyPort}/ws/live`}
                     </code>
                     <button
                       type="button"
-                      onClick={() => copyToClipboard('ws://localhost:23456/ws/live', 'ws')}
+                      onClick={() => copyToClipboard(`ws://localhost:${proxyPort}/ws/live`, 'ws')}
                       className="p-1 text-muted-foreground hover:text-foreground transition-colors"
                     >
                       {copiedField === 'ws' ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Clipboard className="w-3.5 h-3.5" />}

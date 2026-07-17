@@ -341,6 +341,7 @@ export interface ElectronAPI {
   cloudBackupDelete: (config: CloudBackupIpcConfig, key: string) => Promise<{ ok: boolean; error?: string }>
 
   langChange: (lang: string) => Promise<void>
+  getProxyPort: () => Promise<number>
 
   isElectron: boolean
   platform: 'win32' | 'darwin' | 'linux'

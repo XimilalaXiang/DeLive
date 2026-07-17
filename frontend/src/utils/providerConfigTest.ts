@@ -1,6 +1,7 @@
 import type { ProviderConfigData } from '../types'
 import type { ASRProviderInfo, ASRVendor } from '../types/asr'
 import { createBundledRuntimeManager } from './localRuntimeManager'
+import { getProxyWsUrl } from './proxyUrl'
 import { GROQ_DEFAULT_BASE_URL, GROQ_DEFAULT_MODEL } from '../types/asr/vendors/groq'
 import { SILICONFLOW_DEFAULT_MODEL } from '../types/asr/vendors/siliconflow'
 import { MISTRAL_REALTIME_MODEL } from '../types/asr/vendors/mistral'
@@ -113,6 +114,7 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
       throw new Error('请输入 Access Token')
     }
 
+    const volcBaseUrl = await getProxyWsUrl('/ws/volc')
     await new Promise<void>((resolve, reject) => {
       const params = new URLSearchParams({
         appKey,
@@ -121,7 +123,7 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
         bidiStreaming: 'true',
         enableDdc: 'true',
       })
-      const proxyUrl = `ws://localhost:23456/ws/volc?${params.toString()}`
+      const proxyUrl = `${volcBaseUrl}?${params.toString()}`
       let ws: WebSocket | null = null
       let lastProxyErrorMessage = ''
 
@@ -188,13 +190,14 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
       throw new Error('请输入 Mistral API Key')
     }
 
+    const mistralBaseUrl = await getProxyWsUrl('/ws/mistral')
     await new Promise<void>((resolve, reject) => {
       const params = new URLSearchParams({
         apiKey,
         model: MISTRAL_REALTIME_MODEL,
         language: '',
       })
-      const proxyUrl = `ws://localhost:23456/ws/mistral?${params.toString()}`
+      const proxyUrl = `${mistralBaseUrl}?${params.toString()}`
       let ws: WebSocket | null = null
 
       const timeout = setTimeout(() => {
@@ -259,13 +262,14 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
       throw new Error('请输入 Deepgram API Key')
     }
 
+    const deepgramBaseUrl = await getProxyWsUrl('/ws/deepgram')
     await new Promise<void>((resolve, reject) => {
       const params = new URLSearchParams({
         apiKey,
         model: DEEPGRAM_DEFAULT_MODEL,
         language: '',
       })
-      const proxyUrl = `ws://localhost:23456/ws/deepgram?${params.toString()}`
+      const proxyUrl = `${deepgramBaseUrl}?${params.toString()}`
       let ws: WebSocket | null = null
 
       const timeout = setTimeout(() => {
@@ -330,12 +334,13 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
       throw new Error('请输入 AssemblyAI API Key')
     }
 
+    const assemblyaiBaseUrl = await getProxyWsUrl('/ws/assemblyai')
     await new Promise<void>((resolve, reject) => {
       const params = new URLSearchParams({
         apiKey,
         model: ASSEMBLYAI_DEFAULT_MODEL,
       })
-      const proxyUrl = `ws://localhost:23456/ws/assemblyai?${params.toString()}`
+      const proxyUrl = `${assemblyaiBaseUrl}?${params.toString()}`
       let ws: WebSocket | null = null
 
       const timeout = setTimeout(() => {
@@ -400,13 +405,14 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
       throw new Error('请输入 ElevenLabs API Key')
     }
 
+    const elevenlabsBaseUrl = await getProxyWsUrl('/ws/elevenlabs')
     await new Promise<void>((resolve, reject) => {
       const params = new URLSearchParams({
         apiKey,
         model: ELEVENLABS_DEFAULT_MODEL,
         language: '',
       })
-      const proxyUrl = `ws://localhost:23456/ws/elevenlabs?${params.toString()}`
+      const proxyUrl = `${elevenlabsBaseUrl}?${params.toString()}`
       let ws: WebSocket | null = null
 
       const timeout = setTimeout(() => {
@@ -471,13 +477,14 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
       throw new Error('请输入 Gladia API Key')
     }
 
+    const gladiaBaseUrl = await getProxyWsUrl('/ws/gladia')
     await new Promise<void>((resolve, reject) => {
       const params = new URLSearchParams({
         apiKey,
         model: GLADIA_DEFAULT_MODEL,
         language: '',
       })
-      const proxyUrl = `ws://localhost:23456/ws/gladia?${params.toString()}`
+      const proxyUrl = `${gladiaBaseUrl}?${params.toString()}`
       let ws: WebSocket | null = null
 
       const timeout = setTimeout(() => {

@@ -8,7 +8,36 @@ import { attachAssemblyAIProxyServer } from '../shared/assemblyaiProxyCore'
 import { attachElevenLabsProxyServer } from '../shared/elevenlabsProxyCore'
 import { attachGladiaProxyServer } from '../shared/gladiaProxyCore'
 
-export function startVolcProxyServer(port = 23456): Server {
+const DEFAULT_PORT = 23456
+const FALLBACK_PORTS = [23456, 23457, 23458, 23459, 23460]
+
+let actualProxyPort = DEFAULT_PORT
+
+export function getProxyPort(): number {
+  return actualProxyPort
+}
+
+function tryListen(server: Server, port: number): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const onError = (error: NodeJS.ErrnoException) => {
+      server.removeListener('listening', onListening)
+      if (error.code === 'EADDRINUSE') {
+        reject(error)
+      } else {
+        reject(error)
+      }
+    }
+    const onListening = () => {
+      server.removeListener('error', onError)
+      resolve(port)
+    }
+    server.once('error', onError)
+    server.once('listening', onListening)
+    server.listen(port)
+  })
+}
+
+export async function startVolcProxyServer(): Promise<{ server: Server; port: number }> {
   const server = createServer()
 
   const volcWss = new WebSocketServer({ noServer: true })
@@ -61,23 +90,32 @@ export function startVolcProxyServer(port = 23456): Server {
     }
   })
 
-  server.listen(port, () => {
-    console.log(`[Proxy] 内置代理服务器已启动: http://localhost:${port}`)
-    console.log(`[Proxy] 火山引擎: ws://localhost:${port}/ws/volc`)
-    console.log(`[Proxy] Mistral: ws://localhost:${port}/ws/mistral`)
-    console.log(`[Proxy] Deepgram: ws://localhost:${port}/ws/deepgram`)
-    console.log(`[Proxy] AssemblyAI: ws://localhost:${port}/ws/assemblyai`)
-    console.log(`[Proxy] ElevenLabs: ws://localhost:${port}/ws/elevenlabs`)
-    console.log(`[Proxy] Gladia: ws://localhost:${port}/ws/gladia`)
-  })
+  let boundPort: number | null = null
+  for (const port of FALLBACK_PORTS) {
+    try {
+      boundPort = await tryListen(server, port)
+      break
+    } catch (err) {
+      const code = (err as NodeJS.ErrnoException).code
+      if (code === 'EADDRINUSE') {
+        console.warn(`[Proxy] 端口 ${port} 已被占用，尝试下一个...`)
+      } else {
+        console.error(`[Proxy] 端口 ${port} 绑定失败:`, err)
+      }
+    }
+  }
+
+  if (boundPort == null) {
+    console.error('[Proxy] 所有候选端口均被占用，无法启动代理服务器')
+    throw new Error('所有代理候选端口 (23456-23460) 均被占用')
+  }
+
+  actualProxyPort = boundPort
+  console.log(`[Proxy] 内置代理服务器已启动: http://localhost:${boundPort}`)
 
   server.on('error', (error: NodeJS.ErrnoException) => {
-    if (error.code === 'EADDRINUSE') {
-      console.log(`[Proxy] 端口 ${port} 已被占用，代理服务器可能已在运行`)
-    } else {
-      console.error('[Proxy] 服务器错误:', error)
-    }
+    console.error('[Proxy] 服务器运行时错误:', error)
   })
 
-  return server
+  return { server, port: boundPort }
 }

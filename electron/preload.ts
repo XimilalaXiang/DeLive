@@ -225,6 +225,7 @@ const electronAPI: ElectronAPI = {
   cloudBackupDelete: (config, key) => ipcRenderer.invoke('cloud-backup-delete', config, key),
 
   langChange: (lang: string) => ipcRenderer.invoke('lang:change', lang),
+  getProxyPort: () => ipcRenderer.invoke('get-proxy-port') as Promise<number>,
 
   isElectron: true,
   platform: process.platform as 'win32' | 'darwin' | 'linux',

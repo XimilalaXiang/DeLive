@@ -17,7 +17,7 @@ import {
   SIXTYDB_SUPPORTED_LANGUAGES,
 } from '../../types/asr/vendors/sixtydb'
 
-const PROXY_WS_URL = 'ws://localhost:23456/ws/sixtydb'
+import { getProxyWsUrl } from '../../utils/proxyUrl'
 
 export class SixtydbProvider extends BaseASRProvider {
   readonly id = ASRVendor.Sixtydb
@@ -112,7 +112,8 @@ export class SixtydbProvider extends BaseASRProvider {
           if (hintsStr) params.set('languageHints', hintsStr)
         }
 
-        const proxyUrl = `${PROXY_WS_URL}?${params.toString()}`
+        const baseUrl = await getProxyWsUrl('/ws/sixtydb')
+        const proxyUrl = `${baseUrl}?${params.toString()}`
         console.log('[SixtydbProvider] 连接到代理服务器...')
 
         this.ws = new WebSocket(proxyUrl)
