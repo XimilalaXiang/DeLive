@@ -231,6 +231,56 @@ export function CloudflareLogo({ size = defaultSize, className, ...props }: Logo
   )
 }
 
+export function SixtydbLogo({ size = defaultSize, className, ...props }: LogoProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" />
+      <text
+        x="12"
+        y="15.5"
+        textAnchor="middle"
+        fontSize="8"
+        fontWeight="700"
+        fontFamily="ui-sans-serif, system-ui, -apple-system"
+        fill="currentColor"
+      >
+        60db
+      </text>
+    </svg>
+  )
+}
+
+export function SenseVoiceLogo({ size = defaultSize, className, ...props }: LogoProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <rect x="2" y="2" width="20" height="20" rx="4" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M7 12c0-2.8 2.2-5 5-5s5 2.2 5 5-2.2 5-5 5"
+        fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
+      />
+      <circle cx="12" cy="12" r="1.8" fill="currentColor" />
+      <path
+        d="M5 8.5h2M5 15.5h2M17 8.5h2M17 15.5h2"
+        stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
 export function WhisperCppLogo({ size = defaultSize, className }: LogoProps) {
   return (
     <img
@@ -257,6 +307,8 @@ const PROVIDER_LOGO_MAP: Record<string, (props: AnyLogoProps) => JSX.Element> = 
   cloudflare: CloudflareLogo,
   local_openai: OpenAILogo,
   local_whisper_cpp: WhisperCppLogo,
+  sixtydb: SixtydbLogo,
+  sensevoice: SenseVoiceLogo,
 }
 
 export function getProviderLogo(

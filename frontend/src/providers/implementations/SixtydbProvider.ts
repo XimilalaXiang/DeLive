@@ -1,30 +1,32 @@
 /**
- * Gladia Streaming ASR Provider 实现
+ * 60db STT Realtime ASR Provider 实现
  *
- * 通过本地代理连接 Gladia Live Streaming API，
- * 代理负责 HTTP POST session 初始化 + x-gladia-key header 认证。
+ * 通过本地代理连接 60db Realtime STT API，
+ * 代理负责 API Key 隐藏和协议归一化（两阶段 finals → 统一 partial/final）。
+ *
+ * Docs: https://docs.60db.ai/api-reference/websocket/stt
  */
 
 import { BaseASRProvider } from '../base'
 import type {
   ASRProviderInfo,
   ProviderConfig,
-  ASRVendor,
 } from '../../types/asr'
+import { ASRVendor } from '../../types/asr'
 import {
-  GLADIA_DEFAULT_MODEL,
-  GLADIA_SUPPORTED_LANGUAGES,
-} from '../../types/asr/vendors/gladia'
+  SIXTYDB_SUPPORTED_LANGUAGES,
+} from '../../types/asr/vendors/sixtydb'
 
 import { getProxyWsUrl } from '../../utils/proxyUrl'
 
-export class GladiaProvider extends BaseASRProvider {
-  readonly id: ASRVendor = 'gladia' as ASRVendor
+export class SixtydbProvider extends BaseASRProvider {
+  readonly id = ASRVendor.Sixtydb
 
   readonly info: ASRProviderInfo = {
-    id: 'gladia' as ASRVendor,
-    name: 'Gladia',
-    description: 'Gladia Solaria-1 实时语音转录，支持 100+ 种语言，<300ms 延迟',
+    id: ASRVendor.Sixtydb,
+    name: '60db',
+    description:
+      '60db 实时语音转录，支持 ~40 种语言（含印度语系 + 英语混合切换），基于句子的连续模式，可选说话人分离',
     type: 'cloud',
     supportsStreaming: true,
     capabilities: {
@@ -51,7 +53,7 @@ export class GladiaProvider extends BaseASRProvider {
         },
         fileTranscription: {
           availability: 'compatible',
-          executionMode: 'native-job',
+          executionMode: 'single-request',
           inputSources: ['file'],
           acceptedFileKinds: ['audio', 'video'],
         },
@@ -59,25 +61,25 @@ export class GladiaProvider extends BaseASRProvider {
       supportsConfigTest: true,
     },
     requiredConfigKeys: ['apiKey'],
-    supportedLanguages: [...GLADIA_SUPPORTED_LANGUAGES],
-    website: 'https://app.gladia.io/',
-    docsUrl: 'https://docs.gladia.io/chapters/introduction',
+    supportedLanguages: [...SIXTYDB_SUPPORTED_LANGUAGES],
+    website: 'https://60db.ai',
+    docsUrl: 'https://docs.60db.ai/api-reference/websocket/stt',
     configFields: [
       {
         key: 'apiKey',
         label: 'API Key',
         type: 'password',
         required: true,
-        placeholder: '输入你的 Gladia API Key',
-        description: '从 app.gladia.io 获取 API Key',
+        placeholder: 'sk_live_...',
+        description: '从 docs.60db.ai 获取 API Key',
       },
       {
         key: 'languageHints',
         label: '语言提示 (Language Hints)',
         type: 'text',
         required: false,
-        placeholder: 'zh, en',
-        description: '用逗号分隔的语言代码。留空启用自动语言检测。例如: zh, en, ja',
+        placeholder: 'en, hi',
+        description: '用逗号分隔的 ISO 639-1 语言代码（最多 5 个）。留空则自动检测语言。',
       },
     ],
   }
@@ -89,30 +91,36 @@ export class GladiaProvider extends BaseASRProvider {
     const apiKey = config.apiKey as string
 
     if (!apiKey) {
-      this.emitError(this.createError('MISSING_API_KEY', '请提供 Gladia API Key'))
-      return
+      const error = this.createError('MISSING_API_KEY', '请提供 60db API Key')
+      this.emitError(error)
+      throw new Error(error.message)
     }
 
     this._config = config
     this.setState('connecting')
 
-    const proxyBaseUrl = await getProxyWsUrl('/ws/gladia')
+    const proxyBaseUrl = await getProxyWsUrl('/ws/sixtydb')
 
     return new Promise((resolve, reject) => {
       try {
         const params = new URLSearchParams({
           apiKey,
-          model: GLADIA_DEFAULT_MODEL,
           language: (config.language as string) || '',
         })
 
+        const hints = config.languageHints as string[] | string | undefined
+        if (hints) {
+          const hintsStr = Array.isArray(hints) ? hints.join(',') : hints
+          if (hintsStr) params.set('languageHints', hintsStr)
+        }
+
         const proxyUrl = `${proxyBaseUrl}?${params.toString()}`
-        console.log('[GladiaProvider] 连接到代理服务器...')
+        console.log('[SixtydbProvider] 连接到代理服务器...')
 
         this.ws = new WebSocket(proxyUrl)
 
         this.ws.onopen = () => {
-          console.log('[GladiaProvider] 代理连接已建立，等待 Gladia 就绪...')
+          console.log('[SixtydbProvider] 代理连接已建立，等待 60db 就绪...')
         }
 
         this.ws.onmessage = (event) => {
@@ -121,7 +129,7 @@ export class GladiaProvider extends BaseASRProvider {
 
             switch (msg.type) {
               case 'ready':
-                console.log('[GladiaProvider] Gladia 已就绪')
+                console.log('[SixtydbProvider] 60db 已就绪')
                 this.wsReady = true
                 this.setState('connected')
                 resolve()
@@ -129,40 +137,46 @@ export class GladiaProvider extends BaseASRProvider {
 
               case 'partial':
                 if (msg.text) {
-                  console.log('[GladiaProvider] 中间结果:', msg.text.substring(0, 50))
+                  console.log('[SixtydbProvider] 中间结果:', msg.text.substring(0, 50))
                   this.emitPartial(msg.text)
                 }
                 break
 
               case 'final':
-                console.log('[GladiaProvider] 最终结果:', msg.text)
+                console.log('[SixtydbProvider] 最终结果:', msg.text)
                 this.emitFinal(msg.text || '')
                 this.emitFinished()
                 break
 
+              case 'session_stopped':
+                console.log('[SixtydbProvider] 会话已停止')
+                this.wsReady = false
+                this.setState('idle')
+                break
+
               case 'error':
-                console.error('[GladiaProvider] 服务器错误:', msg.message)
+                console.error('[SixtydbProvider] 服务器错误:', msg.message)
                 this.emitError(this.createError('SERVER_ERROR', msg.message || '服务器错误'))
                 break
             }
           } catch (e) {
-            console.error('[GladiaProvider] 解析消息失败:', e)
+            console.error('[SixtydbProvider] 解析消息失败:', e)
           }
         }
 
         this.ws.onerror = (error) => {
-          console.error('[GladiaProvider] WebSocket 错误:', error)
+          console.error('[SixtydbProvider] WebSocket 错误:', error)
           this.emitError(this.createError('WEBSOCKET_ERROR', 'WebSocket 连接错误，请确保应用代理已启动'))
           reject(new Error('WebSocket 连接错误'))
         }
 
         this.ws.onclose = (event) => {
-          console.log('[GladiaProvider] WebSocket 关闭:', event.code, event.reason)
+          console.log('[SixtydbProvider] WebSocket 关闭:', event.code, event.reason)
           this.wsReady = false
           this.setState('idle')
         }
       } catch (error) {
-        console.error('[GladiaProvider] 连接失败:', error)
+        console.error('[SixtydbProvider] 连接失败:', error)
         this.emitError(this.createError('CONNECTION_ERROR', '连接失败'))
         reject(error)
       }
@@ -170,7 +184,7 @@ export class GladiaProvider extends BaseASRProvider {
   }
 
   async disconnect(): Promise<void> {
-    console.log('[GladiaProvider] 断开连接...')
+    console.log('[SixtydbProvider] 断开连接...')
 
     if (this.ws && this.wsReady) {
       this.ws.send(JSON.stringify({ type: 'audio_end' }))
@@ -189,7 +203,7 @@ export class GladiaProvider extends BaseASRProvider {
 
   sendAudio(data: Blob | ArrayBuffer): void {
     if (!this.ws || !this.wsReady) {
-      console.warn('[GladiaProvider] WebSocket 未就绪，无法发送音频')
+      console.warn('[SixtydbProvider] WebSocket 未就绪，无法发送音频')
       return
     }
 
@@ -197,7 +211,9 @@ export class GladiaProvider extends BaseASRProvider {
 
     if (data instanceof Blob) {
       data.arrayBuffer().then(buffer => {
-        this.ws?.send(buffer)
+        if (this.ws && this.wsReady) {
+          this.ws.send(buffer)
+        }
       })
     } else {
       this.ws.send(data)

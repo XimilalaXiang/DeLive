@@ -109,8 +109,10 @@
       ],
       "artifactName": "${productName}-${version}-${arch}.${ext}"
     },
+    "afterPack": "./scripts/fix-mac-signing.mjs",
     "mac": {
       "icon": "build/icon.icns",
+      "identity": null,
       "extraResources": [
         {
           "from": "build/icon.icns",

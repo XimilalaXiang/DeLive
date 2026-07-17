@@ -93,6 +93,18 @@ jobs:
       
       - name: Build and Package
         run: npm run build && npx electron-builder --${{ matrix.platform }} --publish never
+
+      - name: Verify macOS code signing
+        if: matrix.platform == 'mac'
+        run: |
+          echo "=== 验证 macOS 代码签名 ==="
+          for app in release/mac*/DeLive.app; do
+            if [ -d "$app" ]; then
+              echo "检查: $app"
+              codesign --verify --deep --strict --verbose=2 "$app"
+              echo "✅ $app 签名验证通过"
+            fi
+          done
       
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

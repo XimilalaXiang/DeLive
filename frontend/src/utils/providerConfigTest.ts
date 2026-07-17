@@ -1,6 +1,7 @@
 import type { ProviderConfigData } from '../types'
 import type { ASRProviderInfo, ASRVendor } from '../types/asr'
 import { createBundledRuntimeManager } from './localRuntimeManager'
+import { getProxyWsUrl } from './proxyUrl'
 import { GROQ_DEFAULT_BASE_URL, GROQ_DEFAULT_MODEL } from '../types/asr/vendors/groq'
 import { SILICONFLOW_DEFAULT_MODEL } from '../types/asr/vendors/siliconflow'
 import { MISTRAL_REALTIME_MODEL } from '../types/asr/vendors/mistral'
@@ -9,6 +10,7 @@ import { ASSEMBLYAI_DEFAULT_MODEL } from '../types/asr/vendors/assemblyai'
 import { ELEVENLABS_DEFAULT_MODEL } from '../types/asr/vendors/elevenlabs'
 import { GLADIA_DEFAULT_MODEL } from '../types/asr/vendors/gladia'
 import { CLOUDFLARE_DEFAULT_MODEL } from '../types/asr/vendors/cloudflare'
+import { SENSEVOICE_DEFAULT_BASE_URL, SENSEVOICE_DEFAULT_MODEL } from '../types/asr/vendors/sensevoice'
 import { transcribeSiliconFlowAudio } from './siliconflow'
 
 type ProviderConfigTester = (config: ProviderConfigData) => Promise<void>
@@ -113,6 +115,7 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
       throw new Error('请输入 Access Token')
     }
 
+    const volcBaseUrl = await getProxyWsUrl('/ws/volc')
     await new Promise<void>((resolve, reject) => {
       const params = new URLSearchParams({
         appKey,
@@ -121,7 +124,7 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
         bidiStreaming: 'true',
         enableDdc: 'true',
       })
-      const proxyUrl = `ws://localhost:23456/ws/volc?${params.toString()}`
+      const proxyUrl = `${volcBaseUrl}?${params.toString()}`
       let ws: WebSocket | null = null
       let lastProxyErrorMessage = ''
 
@@ -188,13 +191,14 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
       throw new Error('请输入 Mistral API Key')
     }
 
+    const mistralBaseUrl = await getProxyWsUrl('/ws/mistral')
     await new Promise<void>((resolve, reject) => {
       const params = new URLSearchParams({
         apiKey,
         model: MISTRAL_REALTIME_MODEL,
         language: '',
       })
-      const proxyUrl = `ws://localhost:23456/ws/mistral?${params.toString()}`
+      const proxyUrl = `${mistralBaseUrl}?${params.toString()}`
       let ws: WebSocket | null = null
 
       const timeout = setTimeout(() => {
@@ -259,13 +263,14 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
       throw new Error('请输入 Deepgram API Key')
     }
 
+    const deepgramBaseUrl = await getProxyWsUrl('/ws/deepgram')
     await new Promise<void>((resolve, reject) => {
       const params = new URLSearchParams({
         apiKey,
         model: DEEPGRAM_DEFAULT_MODEL,
         language: '',
       })
-      const proxyUrl = `ws://localhost:23456/ws/deepgram?${params.toString()}`
+      const proxyUrl = `${deepgramBaseUrl}?${params.toString()}`
       let ws: WebSocket | null = null
 
       const timeout = setTimeout(() => {
@@ -330,12 +335,13 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
       throw new Error('请输入 AssemblyAI API Key')
     }
 
+    const assemblyaiBaseUrl = await getProxyWsUrl('/ws/assemblyai')
     await new Promise<void>((resolve, reject) => {
       const params = new URLSearchParams({
         apiKey,
         model: ASSEMBLYAI_DEFAULT_MODEL,
       })
-      const proxyUrl = `ws://localhost:23456/ws/assemblyai?${params.toString()}`
+      const proxyUrl = `${assemblyaiBaseUrl}?${params.toString()}`
       let ws: WebSocket | null = null
 
       const timeout = setTimeout(() => {
@@ -400,13 +406,14 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
       throw new Error('请输入 ElevenLabs API Key')
     }
 
+    const elevenlabsBaseUrl = await getProxyWsUrl('/ws/elevenlabs')
     await new Promise<void>((resolve, reject) => {
       const params = new URLSearchParams({
         apiKey,
         model: ELEVENLABS_DEFAULT_MODEL,
         language: '',
       })
-      const proxyUrl = `ws://localhost:23456/ws/elevenlabs?${params.toString()}`
+      const proxyUrl = `${elevenlabsBaseUrl}?${params.toString()}`
       let ws: WebSocket | null = null
 
       const timeout = setTimeout(() => {
@@ -471,13 +478,14 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
       throw new Error('请输入 Gladia API Key')
     }
 
+    const gladiaBaseUrl = await getProxyWsUrl('/ws/gladia')
     await new Promise<void>((resolve, reject) => {
       const params = new URLSearchParams({
         apiKey,
         model: GLADIA_DEFAULT_MODEL,
         language: '',
       })
-      const proxyUrl = `ws://localhost:23456/ws/gladia?${params.toString()}`
+      const proxyUrl = `${gladiaBaseUrl}?${params.toString()}`
       let ws: WebSocket | null = null
 
       const timeout = setTimeout(() => {
@@ -664,6 +672,117 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
       wavBlob: createSilentWavBlob(),
       language,
     })
+  },
+  sixtydb: async (config) => {
+    const apiKey = typeof config.apiKey === 'string' ? config.apiKey.trim() : ''
+
+    if (!apiKey) {
+      throw new Error('请输入 60db API Key')
+    }
+
+    const sixtydbBaseUrl = await getProxyWsUrl('/ws/sixtydb')
+    await new Promise<void>((resolve, reject) => {
+      const params = new URLSearchParams({
+        apiKey,
+        language: '',
+      })
+      const proxyUrl = `${sixtydbBaseUrl}?${params.toString()}`
+      let ws: WebSocket | null = null
+
+      const timeout = setTimeout(() => {
+        ws?.close()
+        reject(new Error('连接超时，请检查网络或确保代理服务器已启动'))
+      }, 15000)
+
+      try {
+        ws = new WebSocket(proxyUrl)
+      } catch {
+        clearTimeout(timeout)
+        reject(new Error('无法连接到代理服务器，请确保服务器已启动'))
+        return
+      }
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data) as {
+            type?: string
+            message?: string
+          }
+
+          if (msg.type === 'ready') {
+            clearTimeout(timeout)
+            ws?.send(JSON.stringify({ type: 'stop' }))
+            setTimeout(() => {
+              ws?.close(1000, 'test complete')
+              resolve()
+            }, 500)
+            return
+          }
+
+          if (msg.type === 'error') {
+            clearTimeout(timeout)
+            ws?.close()
+            reject(new Error(msg.message || '60db 连接失败'))
+          }
+        } catch {
+          // ignore invalid payload
+        }
+      }
+
+      ws.onerror = () => {
+        clearTimeout(timeout)
+        reject(new Error('无法连接到代理服务器，请确保后端服务已启动'))
+      }
+
+      ws.onclose = (event) => {
+        clearTimeout(timeout)
+        if (event.code === 4001) {
+          reject(new Error('缺少 API Key'))
+        } else if (event.code === 4002) {
+          reject(new Error('60db API 连接失败，请检查 API Key 是否正确'))
+        }
+      }
+    })
+  },
+  sensevoice: async (config) => {
+    const rawBaseUrl = typeof config.baseUrl === 'string' ? config.baseUrl.trim() : ''
+    const baseUrl = (rawBaseUrl || SENSEVOICE_DEFAULT_BASE_URL).replace(/\/+$/, '')
+
+    try {
+      new URL(baseUrl)
+    } catch {
+      throw new Error('服务地址格式不正确')
+    }
+
+    const healthRes = await fetch(`${baseUrl}/health`, {
+      signal: AbortSignal.timeout(5000),
+    }).catch((err: Error) => {
+      throw new Error(`无法连接 funasr-server (${baseUrl})：${err.message}。请确认服务已启动。`)
+    })
+
+    if (!healthRes.ok) {
+      throw new Error(`funasr-server 健康检查失败: HTTP ${healthRes.status}`)
+    }
+
+    const model = typeof config.model === 'string' && config.model.trim()
+      ? config.model.trim()
+      : SENSEVOICE_DEFAULT_MODEL
+
+    const wavBlob = createSilentWavBlob()
+    const formData = new FormData()
+    formData.append('file', wavBlob, 'test.wav')
+    formData.append('model', model)
+    formData.append('response_format', 'json')
+
+    const response = await fetch(`${baseUrl}/v1/audio/transcriptions`, {
+      method: 'POST',
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const details = await response.text().catch(() => '')
+      throw new Error(details || `funasr-server 转录测试失败: HTTP ${response.status}`)
+    }
   },
   local_whisper_cpp: async (config) => {
     if (!window.electronAPI?.isElectron) {

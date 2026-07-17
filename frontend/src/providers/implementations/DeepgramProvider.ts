@@ -16,7 +16,7 @@ import {
   DEEPGRAM_SUPPORTED_LANGUAGES,
 } from '../../types/asr/vendors/deepgram'
 
-const PROXY_WS_URL = 'ws://localhost:23456/ws/deepgram'
+import { getProxyWsUrl } from '../../utils/proxyUrl'
 
 export class DeepgramProvider extends BaseASRProvider {
   readonly id: ASRVendor = 'deepgram' as ASRVendor
@@ -96,6 +96,8 @@ export class DeepgramProvider extends BaseASRProvider {
     this._config = config
     this.setState('connecting')
 
+    const proxyBaseUrl = await getProxyWsUrl('/ws/deepgram')
+
     return new Promise((resolve, reject) => {
       try {
         const params = new URLSearchParams({
@@ -104,7 +106,7 @@ export class DeepgramProvider extends BaseASRProvider {
           language: (config.language as string) || '',
         })
 
-        const proxyUrl = `${PROXY_WS_URL}?${params.toString()}`
+        const proxyUrl = `${proxyBaseUrl}?${params.toString()}`
         console.log('[DeepgramProvider] 连接到代理服务器...')
 
         this.ws = new WebSocket(proxyUrl)

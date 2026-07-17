@@ -13,7 +13,7 @@ import { registerUpdaterIpc } from './updaterIpc'
 import { installLogInterceptor, registerDiagnosticsIpc } from './diagnosticsIpc'
 import { registerTrustedWindow } from './ipcSecurity'
 import { registerSafeStorageIpc } from './safeStorageIpc'
-import { startVolcProxyServer } from './volcProxy'
+import { startVolcProxyServer, getProxyPort } from './volcProxy'
 import { registerApiIpc } from './apiIpc'
 import { attachApiServer } from './apiServer'
 import { registerCloudBackupIpc } from './cloudBackup/cloudBackupIpc'
@@ -132,7 +132,8 @@ if (!gotTheLock) {
       }
     }
 
-    const httpServer = startVolcProxyServer()
+    const { server: httpServer, port: proxyPort } = await startVolcProxyServer()
+    console.log(`[Main] 代理服务器运行在端口: ${proxyPort}`)
     attachApiServer({ server: httpServer })
 
     createWindow()
@@ -249,6 +250,8 @@ registerApiIpc({
   ipcMain,
   getMainWindow: () => mainWindow,
 })
+
+ipcMain.handle('get-proxy-port', () => getProxyPort())
 
 ipcMain.handle('lang:change', (_event, lang: string) => {
   if (lang === 'zh' || lang === 'en') {
