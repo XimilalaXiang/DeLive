@@ -231,6 +231,32 @@ export function CloudflareLogo({ size = defaultSize, className, ...props }: Logo
   )
 }
 
+export function SixtydbLogo({ size = defaultSize, className, ...props }: LogoProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" />
+      <text
+        x="12"
+        y="15.5"
+        textAnchor="middle"
+        fontSize="8"
+        fontWeight="700"
+        fontFamily="ui-sans-serif, system-ui, -apple-system"
+        fill="currentColor"
+      >
+        60db
+      </text>
+    </svg>
+  )
+}
+
 export function WhisperCppLogo({ size = defaultSize, className }: LogoProps) {
   return (
     <img
@@ -257,6 +283,7 @@ const PROVIDER_LOGO_MAP: Record<string, (props: AnyLogoProps) => JSX.Element> = 
   cloudflare: CloudflareLogo,
   local_openai: OpenAILogo,
   local_whisper_cpp: WhisperCppLogo,
+  sixtydb: SixtydbLogo,
 }
 
 export function getProviderLogo(
