@@ -88,6 +88,8 @@ export class AssemblyAIProvider extends BaseASRProvider {
     this._config = config
     this.setState('connecting')
 
+    const proxyBaseUrl = await getProxyWsUrl('/ws/assemblyai')
+
     return new Promise((resolve, reject) => {
       try {
         const params = new URLSearchParams({
@@ -95,8 +97,7 @@ export class AssemblyAIProvider extends BaseASRProvider {
           model: ASSEMBLYAI_DEFAULT_MODEL,
         })
 
-        const baseUrl = await getProxyWsUrl('/ws/assemblyai')
-        const proxyUrl = `${baseUrl}?${params.toString()}`
+        const proxyUrl = `${proxyBaseUrl}?${params.toString()}`
         console.log('[AssemblyAIProvider] 连接到代理服务器...')
 
         this.ws = new WebSocket(proxyUrl)

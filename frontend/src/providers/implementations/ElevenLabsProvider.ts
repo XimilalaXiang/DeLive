@@ -96,6 +96,8 @@ export class ElevenLabsProvider extends BaseASRProvider {
     this._config = config
     this.setState('connecting')
 
+    const proxyBaseUrl = await getProxyWsUrl('/ws/elevenlabs')
+
     return new Promise((resolve, reject) => {
       try {
         const params = new URLSearchParams({
@@ -104,8 +106,7 @@ export class ElevenLabsProvider extends BaseASRProvider {
           language: (config.language as string) || '',
         })
 
-        const baseUrl = await getProxyWsUrl('/ws/elevenlabs')
-        const proxyUrl = `${baseUrl}?${params.toString()}`
+        const proxyUrl = `${proxyBaseUrl}?${params.toString()}`
         console.log('[ElevenLabsProvider] 连接到代理服务器...')
 
         this.ws = new WebSocket(proxyUrl)

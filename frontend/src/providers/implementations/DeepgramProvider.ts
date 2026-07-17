@@ -96,6 +96,8 @@ export class DeepgramProvider extends BaseASRProvider {
     this._config = config
     this.setState('connecting')
 
+    const proxyBaseUrl = await getProxyWsUrl('/ws/deepgram')
+
     return new Promise((resolve, reject) => {
       try {
         const params = new URLSearchParams({
@@ -104,8 +106,7 @@ export class DeepgramProvider extends BaseASRProvider {
           language: (config.language as string) || '',
         })
 
-        const baseUrl = await getProxyWsUrl('/ws/deepgram')
-        const proxyUrl = `${baseUrl}?${params.toString()}`
+        const proxyUrl = `${proxyBaseUrl}?${params.toString()}`
         console.log('[DeepgramProvider] 连接到代理服务器...')
 
         this.ws = new WebSocket(proxyUrl)

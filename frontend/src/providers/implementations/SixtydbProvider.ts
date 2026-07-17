@@ -99,6 +99,8 @@ export class SixtydbProvider extends BaseASRProvider {
     this._config = config
     this.setState('connecting')
 
+    const proxyBaseUrl = await getProxyWsUrl('/ws/sixtydb')
+
     return new Promise((resolve, reject) => {
       try {
         const params = new URLSearchParams({
@@ -112,8 +114,7 @@ export class SixtydbProvider extends BaseASRProvider {
           if (hintsStr) params.set('languageHints', hintsStr)
         }
 
-        const baseUrl = await getProxyWsUrl('/ws/sixtydb')
-        const proxyUrl = `${baseUrl}?${params.toString()}`
+        const proxyUrl = `${proxyBaseUrl}?${params.toString()}`
         console.log('[SixtydbProvider] 连接到代理服务器...')
 
         this.ws = new WebSocket(proxyUrl)

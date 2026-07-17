@@ -7,6 +7,7 @@ import { attachDeepgramProxyServer } from '../shared/deepgramProxyCore'
 import { attachAssemblyAIProxyServer } from '../shared/assemblyaiProxyCore'
 import { attachElevenLabsProxyServer } from '../shared/elevenlabsProxyCore'
 import { attachGladiaProxyServer } from '../shared/gladiaProxyCore'
+import { attachSixtydbProxyServer } from '../shared/sixtydbProxyCore'
 
 const DEFAULT_PORT = 23456
 const FALLBACK_PORTS = [23456, 23457, 23458, 23459, 23460]
@@ -21,11 +22,7 @@ function tryListen(server: Server, port: number): Promise<number> {
   return new Promise((resolve, reject) => {
     const onError = (error: NodeJS.ErrnoException) => {
       server.removeListener('listening', onListening)
-      if (error.code === 'EADDRINUSE') {
-        reject(error)
-      } else {
-        reject(error)
-      }
+      reject(error)
     }
     const onListening = () => {
       server.removeListener('error', onError)
@@ -58,6 +55,9 @@ export async function startVolcProxyServer(): Promise<{ server: Server; port: nu
   const gladiaWss = new WebSocketServer({ noServer: true })
   attachGladiaProxyServer(gladiaWss)
 
+  const sixtydbWss = new WebSocketServer({ noServer: true })
+  attachSixtydbProxyServer(sixtydbWss)
+
   server.on('upgrade', (request, socket, head) => {
     const { pathname } = new URL(request.url || '', `http://${request.headers.host}`)
 
@@ -84,6 +84,10 @@ export async function startVolcProxyServer(): Promise<{ server: Server; port: nu
     } else if (pathname === '/ws/gladia') {
       gladiaWss.handleUpgrade(request, socket, head, (ws) => {
         gladiaWss.emit('connection', ws, request)
+      })
+    } else if (pathname === '/ws/sixtydb') {
+      sixtydbWss.handleUpgrade(request, socket, head, (ws) => {
+        sixtydbWss.emit('connection', ws, request)
       })
     } else {
       socket.destroy()

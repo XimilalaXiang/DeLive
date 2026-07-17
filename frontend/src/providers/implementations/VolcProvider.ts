@@ -102,20 +102,20 @@ export class VolcProvider extends BaseASRProvider {
     this._config = config
     this.setState('connecting')
 
+    const proxyBaseUrl = await getProxyWsUrl('/ws/volc')
+
     return new Promise((resolve, reject) => {
       try {
-        // 构建代理 URL，通过 URL 参数传递配置
         const params = new URLSearchParams({
           appKey,
           accessKey,
           language: (config.language as string) || '',
-          modelV2: 'true', // 使用 V2 模型
+          modelV2: 'true',
           bidiStreaming: 'true',
-          enableDdc: 'true', // 语义顺滑
+          enableDdc: 'true',
         })
 
-        const baseUrl = await getProxyWsUrl('/ws/volc')
-        const proxyUrl = `${baseUrl}?${params.toString()}`
+        const proxyUrl = `${proxyBaseUrl}?${params.toString()}`
         console.log('[VolcProvider] 连接到代理服务器...')
         
         this.ws = new WebSocket(proxyUrl)
