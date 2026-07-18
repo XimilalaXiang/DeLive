@@ -34,13 +34,27 @@ export interface SonioxConfig {
   sample_rate?: number
   num_channels?: number
   language_hints?: string[]
+  language_hints_strict?: boolean
   enable_language_identification?: boolean
   enable_speaker_diarization?: boolean
   enable_endpoint_detection?: boolean
-  translation?: {
-    type: 'one_way'
-    target_language: string
-  }
+  max_endpoint_delay_ms?: number
+  endpoint_sensitivity?: number
+  endpoint_latency_adjustment_level?: number
+  client_reference_id?: string
+  context?: SonioxContext
+  translation?: SonioxTranslationConfig
+}
+
+export type SonioxTranslationConfig =
+  | { type: 'one_way'; target_language: string }
+  | { type: 'two_way'; language_a: string; language_b: string }
+
+export interface SonioxContext {
+  general?: Array<{ key: string; value: string }>
+  text?: string
+  terms?: string[]
+  translation_terms?: Array<{ source: string; target: string }>
 }
 
 // Soniox 提供商特定配置
@@ -51,10 +65,14 @@ export interface SonioxProviderConfig {
   enableLanguageIdentification?: boolean
   enableSpeakerDiarization?: boolean
   enableEndpointDetection?: boolean
+  endpointSensitivity?: number
   translationEnabled?: boolean
+  translationMode?: 'one_way' | 'two_way'
   translationTargetLanguage?: string
+  translationLanguageA?: string
+  translationLanguageB?: string
 }
 
 // Soniox 常量
 export const SONIOX_WEBSOCKET_URL = 'wss://stt-rt.soniox.com/transcribe-websocket'
-export const SONIOX_DEFAULT_MODEL = 'stt-rt-v4'
+export const SONIOX_DEFAULT_MODEL = 'stt-rt-v5'
