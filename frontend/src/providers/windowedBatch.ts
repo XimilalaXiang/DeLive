@@ -4,6 +4,48 @@ import { HypothesisBuffer, wordsToText } from '../utils/hypothesisBuffer'
 import type { TimestampedWord } from '../utils/hypothesisBuffer'
 import { BaseASRProvider } from './base'
 
+/**
+ * Providers like whisper.cpp, LocalOpenAI, SenseVoice return the entire
+ * transcription as a single TimestampedWord {start:0, end:0, text}.
+ * HypothesisBuffer.flush() needs word-level granularity to diff consecutive
+ * results. Without splitting, flush() never commits — all text stays as
+ * "partial" and gets replaced when the 45s audio window rolls over.
+ *
+ * Strategy:
+ *  1. Space-separated text (EN, KO, etc.) → split on whitespace, keep
+ *     trailing whitespace in each token so wordsToText('') reconstructs
+ *     the original string.
+ *  2. No-space text (CJK ideographs, kana) → split per character.
+ */
+function splitSingleBlobResult(words: TimestampedWord[]): TimestampedWord[] {
+  if (words.length !== 1 || (words[0].start !== 0 && words[0].end !== 0)) {
+    return words
+  }
+
+  const text = words[0].text
+  if (!text.trim()) return words
+
+  const spaceTokens = text.match(/\S+\s*/g)
+  if (spaceTokens && spaceTokens.length > 1) {
+    const dur = 0.5
+    return spaceTokens.map((tok, i) => ({
+      start: i * dur,
+      end: (i + 1) * dur,
+      text: tok,
+    }))
+  }
+
+  const chars = [...text.trim()]
+  if (chars.length <= 1) return words
+
+  const dur = 0.1
+  return chars.map((ch, i) => ({
+    start: i * dur,
+    end: (i + 1) * dur,
+    text: ch,
+  }))
+}
+
 type WindowedBatchScheduleMode = 'interval' | 'debounce'
 
 export interface TimedProviderChunk<TChunk> {
@@ -193,7 +235,8 @@ export abstract class WindowedBatchTranscriptionProvider<TChunk> extends BaseASR
       const prompt = this.committedText.length > 0
         ? this.committedText.slice(-200)
         : undefined
-      const words = await this.transcribeWindow(chunks, config, prompt)
+      const rawWords = await this.transcribeWindow(chunks, config, prompt)
+      const words = splitSingleBlobResult(rawWords)
 
       this.hypothesis.insert(words, this.bufferTimeOffsetSec)
       const committed = isFinal
