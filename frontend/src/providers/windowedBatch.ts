@@ -5,16 +5,17 @@ import type { TimestampedWord } from '../utils/hypothesisBuffer'
 import { BaseASRProvider } from './base'
 
 /**
- * Split a single-blob transcription result into individual words so that
- * HypothesisBuffer can perform word-level diff/commit.
+ * Providers like whisper.cpp, LocalOpenAI, SenseVoice return the entire
+ * transcription as a single TimestampedWord {start:0, end:0, text}.
+ * HypothesisBuffer.flush() needs word-level granularity to diff consecutive
+ * results. Without splitting, flush() never commits — all text stays as
+ * "partial" and gets replaced when the 45s audio window rolls over.
  *
- * Many batch providers (whisper.cpp, LocalOpenAI, SiliconFlow, Cloudflare)
- * return the entire transcription as one TimestampedWord with start=0, end=0.
- * HypothesisBuffer.flush() requires word-level granularity to detect which
- * parts of the transcription are stable across consecutive calls. Without
- * splitting, flush() never commits anything and all text stays as "partial",
- * which gets replaced when the audio window rolls over — causing the user to
- * see previously transcribed text disappear.
+ * Strategy:
+ *  1. Space-separated text (EN, KO, etc.) → split on whitespace, keep
+ *     trailing whitespace in each token so wordsToText('') reconstructs
+ *     the original string.
+ *  2. No-space text (CJK ideographs, kana) → split per character.
  */
 function splitSingleBlobResult(words: TimestampedWord[]): TimestampedWord[] {
   if (words.length !== 1 || (words[0].start !== 0 && words[0].end !== 0)) {
@@ -24,14 +25,24 @@ function splitSingleBlobResult(words: TimestampedWord[]): TimestampedWord[] {
   const text = words[0].text
   if (!text.trim()) return words
 
-  const tokens = text.match(/\S+/g)
-  if (!tokens || tokens.length <= 1) return words
+  const spaceTokens = text.match(/\S+\s*/g)
+  if (spaceTokens && spaceTokens.length > 1) {
+    const dur = 0.5
+    return spaceTokens.map((tok, i) => ({
+      start: i * dur,
+      end: (i + 1) * dur,
+      text: tok,
+    }))
+  }
 
-  const wordDuration = 0.5
-  return tokens.map((token, i) => ({
-    start: i * wordDuration,
-    end: (i + 1) * wordDuration,
-    text: token,
+  const chars = [...text.trim()]
+  if (chars.length <= 1) return words
+
+  const dur = 0.1
+  return chars.map((ch, i) => ({
+    start: i * dur,
+    end: (i + 1) * dur,
+    text: ch,
   }))
 }
 

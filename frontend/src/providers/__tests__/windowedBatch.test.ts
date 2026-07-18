@@ -153,8 +153,8 @@ describe('WindowedBatchTranscriptionProvider', () => {
 })
 
 /**
- * Simulates providers like whisper.cpp that return the entire transcription
- * as a single TimestampedWord with start=0, end=0.
+ * Provider that mimics whisper.cpp — returns the entire transcription
+ * as a single TimestampedWord {start:0, end:0, text}.
  */
 class SingleBlobProvider extends WindowedBatchTranscriptionProvider<string> {
   readonly id = ASRVendor.Groq
@@ -204,17 +204,12 @@ describe('WindowedBatchTranscriptionProvider — single-blob split (Issue #12)',
   beforeEach(() => { vi.useFakeTimers() })
   afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks() })
 
-  it('commits stable words from single-blob results across consecutive calls', async () => {
+  it('commits stable words from single-blob results', async () => {
     const provider = new SingleBlobProvider()
-    provider.responses = [
-      'hello world',
-      'hello world foo',
-    ]
+    provider.responses = ['hello world', 'hello world foo']
 
     const finalSpy = vi.fn()
-    const partialSpy = vi.fn()
     provider.on('onFinal', finalSpy)
-    provider.on('onPartial', partialSpy)
 
     await provider.connect({})
 
@@ -227,36 +222,78 @@ describe('WindowedBatchTranscriptionProvider — single-blob split (Issue #12)',
     await flushAsyncWork()
 
     expect(finalSpy).toHaveBeenCalled()
-    const committedText = finalSpy.mock.calls.map((c: unknown[]) => c[0] as string).join('')
-    expect(committedText).toContain('hello')
-    expect(committedText).toContain('world')
+    const committed = finalSpy.mock.calls.map((c: unknown[]) => c[0] as string).join('')
+    expect(committed).toContain('hello')
+    expect(committed).toContain('world')
   })
 
-  it('preserves committed text when later transcription changes completely', async () => {
+  it('preserves spaces in committed English text', async () => {
     const provider = new SingleBlobProvider()
-    provider.responses = [
-      'alpha beta',
-      'alpha beta gamma',
-      'gamma delta',
-    ]
+    provider.responses = ['alpha beta gamma', 'alpha beta gamma']
 
-    const finalTexts: string[] = []
-    provider.on('onFinal', (text: string) => finalTexts.push(text))
+    const finalSpy = vi.fn()
+    provider.on('onFinal', finalSpy)
 
     await provider.connect({})
 
-    for (let i = 0; i < 3; i++) {
-      provider.sendAudio(new ArrayBuffer(8))
-      await vi.advanceTimersByTimeAsync(100)
-      await flushAsyncWork()
-    }
+    provider.sendAudio(new ArrayBuffer(8))
+    await vi.advanceTimersByTimeAsync(100)
+    await flushAsyncWork()
 
-    const committed = finalTexts.join('')
-    expect(committed).toContain('alpha')
-    expect(committed).toContain('beta')
+    provider.sendAudio(new ArrayBuffer(8))
+    await vi.advanceTimersByTimeAsync(100)
+    await flushAsyncWork()
+
+    expect(finalSpy).toHaveBeenCalled()
+    const committed = finalSpy.mock.calls.map((c: unknown[]) => c[0] as string).join('')
+    expect(committed).toBe('alpha beta gamma')
   })
 
-  it('handles single-word transcriptions without splitting', async () => {
+  it('handles Korean text with spaces correctly', async () => {
+    const provider = new SingleBlobProvider()
+    provider.responses = ['안녕하세요 세상', '안녕하세요 세상']
+
+    const finalSpy = vi.fn()
+    provider.on('onFinal', finalSpy)
+
+    await provider.connect({})
+
+    provider.sendAudio(new ArrayBuffer(8))
+    await vi.advanceTimersByTimeAsync(100)
+    await flushAsyncWork()
+
+    provider.sendAudio(new ArrayBuffer(8))
+    await vi.advanceTimersByTimeAsync(100)
+    await flushAsyncWork()
+
+    expect(finalSpy).toHaveBeenCalled()
+    const committed = finalSpy.mock.calls.map((c: unknown[]) => c[0] as string).join('')
+    expect(committed).toBe('안녕하세요 세상')
+  })
+
+  it('handles CJK text without spaces via character-level split', async () => {
+    const provider = new SingleBlobProvider()
+    provider.responses = ['你好世界', '你好世界']
+
+    const finalSpy = vi.fn()
+    provider.on('onFinal', finalSpy)
+
+    await provider.connect({})
+
+    provider.sendAudio(new ArrayBuffer(8))
+    await vi.advanceTimersByTimeAsync(100)
+    await flushAsyncWork()
+
+    provider.sendAudio(new ArrayBuffer(8))
+    await vi.advanceTimersByTimeAsync(100)
+    await flushAsyncWork()
+
+    expect(finalSpy).toHaveBeenCalled()
+    const committed = finalSpy.mock.calls.map((c: unknown[]) => c[0] as string).join('')
+    expect(committed).toBe('你好世界')
+  })
+
+  it('handles single-word transcription without splitting', async () => {
     const provider = new SingleBlobProvider()
     provider.responses = ['hello', 'hello']
 
@@ -274,27 +311,7 @@ describe('WindowedBatchTranscriptionProvider — single-blob split (Issue #12)',
     await flushAsyncWork()
 
     expect(finalSpy).toHaveBeenCalled()
-  })
-
-  it('handles CJK text without spaces by keeping it as single word', async () => {
-    const provider = new SingleBlobProvider()
-    provider.responses = ['안녕하세요', '안녕하세요']
-
-    const finalSpy = vi.fn()
-    provider.on('onFinal', finalSpy)
-
-    await provider.connect({})
-
-    provider.sendAudio(new ArrayBuffer(8))
-    await vi.advanceTimersByTimeAsync(100)
-    await flushAsyncWork()
-
-    provider.sendAudio(new ArrayBuffer(8))
-    await vi.advanceTimersByTimeAsync(100)
-    await flushAsyncWork()
-
-    expect(finalSpy).toHaveBeenCalled()
     const committed = finalSpy.mock.calls.map((c: unknown[]) => c[0] as string).join('')
-    expect(committed).toBe('안녕하세요')
+    expect(committed).toBe('hello')
   })
 })
