@@ -16,6 +16,7 @@ import {
   type SonioxConfig,
   type SonioxResponse,
   type SonioxToken,
+  type SonioxTranslationConfig,
 } from '../../types/asr/vendors/soniox'
 
 export class SonioxProvider extends BaseASRProvider {
@@ -23,8 +24,8 @@ export class SonioxProvider extends BaseASRProvider {
 
   readonly info: ASRProviderInfo = {
     id: 'soniox' as ASRVendor,
-    name: 'Soniox V4',
-    description: '高精度实时语音识别，支持 60+ 种语言，可选实时翻译',
+    name: 'Soniox V5',
+    description: '高精度实时语音识别，支持 60+ 种语言，可选单向/双向实时翻译',
     type: 'cloud',
     supportsStreaming: true,
     capabilities: {
@@ -94,6 +95,21 @@ export class SonioxProvider extends BaseASRProvider {
         description: '提示可能使用的语言，提高识别准确率',
       },
       {
+        key: 'endpointSensitivity',
+        label: '端点检测灵敏度',
+        type: 'select',
+        required: false,
+        defaultValue: '0',
+        options: [
+          { value: '-1', label: '最低（等待更久再断句）' },
+          { value: '-0.5', label: '较低' },
+          { value: '0', label: '默认' },
+          { value: '0.5', label: '较高' },
+          { value: '1', label: '最高（更快断句）' },
+        ],
+        description: 'V5 新功能：控制语音端点检测的灵敏度。值越高断句越快，适合语音指令；值越低等待越久，适合长对话。',
+      },
+      {
         key: 'translationEnabled',
         label: '启用实时翻译',
         type: 'boolean',
@@ -102,8 +118,20 @@ export class SonioxProvider extends BaseASRProvider {
         description: '开启后，Soniox 将返回实时翻译文本。',
       },
       {
+        key: 'translationMode',
+        label: '翻译模式',
+        type: 'select',
+        required: false,
+        defaultValue: 'one_way',
+        options: [
+          { value: 'one_way', label: '单向翻译' },
+          { value: 'two_way', label: '双向翻译（V5 新功能）' },
+        ],
+        description: '单向翻译将所有语音翻译为目标语言；双向翻译在两种语言间互译。',
+      },
+      {
         key: 'translationTargetLanguage',
-        label: '翻译目标语言',
+        label: '单向翻译目标语言',
         type: 'select',
         required: false,
         defaultValue: 'en',
@@ -120,7 +148,41 @@ export class SonioxProvider extends BaseASRProvider {
           { value: 'ru', label: 'Русский' },
           { value: 'vi', label: 'Tiếng Việt' },
         ],
-        description: '仅在启用实时翻译时生效。',
+        description: '仅在单向翻译模式下生效。',
+      },
+      {
+        key: 'translationLanguageA',
+        label: '双向翻译语言 A',
+        type: 'select',
+        required: false,
+        defaultValue: 'zh',
+        options: [
+          { value: 'zh', label: '中文' },
+          { value: 'en', label: 'English' },
+          { value: 'ja', label: '日本語' },
+          { value: 'ko', label: '한국어' },
+          { value: 'es', label: 'Español' },
+          { value: 'fr', label: 'Français' },
+          { value: 'de', label: 'Deutsch' },
+        ],
+        description: '仅在双向翻译模式下生效。',
+      },
+      {
+        key: 'translationLanguageB',
+        label: '双向翻译语言 B',
+        type: 'select',
+        required: false,
+        defaultValue: 'en',
+        options: [
+          { value: 'en', label: 'English' },
+          { value: 'zh', label: '中文' },
+          { value: 'ja', label: '日本語' },
+          { value: 'ko', label: '한국어' },
+          { value: 'es', label: 'Español' },
+          { value: 'fr', label: 'Français' },
+          { value: 'de', label: 'Deutsch' },
+        ],
+        description: '仅在双向翻译模式下生效。',
       },
       {
         key: 'enableSpeakerDiarization',
@@ -155,7 +217,6 @@ export class SonioxProvider extends BaseASRProvider {
         this.ws.onopen = () => {
           console.log('[SonioxProvider] WebSocket 已连接')
           
-          // 发送配置
           const sonioxConfig: SonioxConfig = {
             api_key: apiKey,
             model: (config.model as string) || SONIOX_DEFAULT_MODEL,
@@ -166,11 +227,13 @@ export class SonioxProvider extends BaseASRProvider {
             enable_endpoint_detection: true,
           }
 
-          if (config.translationEnabled && typeof config.translationTargetLanguage === 'string') {
-            sonioxConfig.translation = {
-              type: 'one_way',
-              target_language: config.translationTargetLanguage,
-            }
+          const sensitivity = Number(config.endpointSensitivity)
+          if (!isNaN(sensitivity) && sensitivity !== 0) {
+            sonioxConfig.endpoint_sensitivity = Math.max(-1, Math.min(1, sensitivity))
+          }
+
+          if (config.translationEnabled) {
+            sonioxConfig.translation = this.buildTranslationConfig(config)
           }
           
           console.log('[SonioxProvider] 发送配置:', { ...sonioxConfig, api_key: '***' })
@@ -306,7 +369,19 @@ export class SonioxProvider extends BaseASRProvider {
     return { finalText, partialText, tokens }
   }
 
-  // 将 Soniox Token 转换为通用 Token 格式
+  private buildTranslationConfig(config: ProviderConfig): SonioxTranslationConfig {
+    const mode = config.translationMode as string
+    if (mode === 'two_way') {
+      const langA = (config.translationLanguageA as string) || 'zh'
+      const langB = (config.translationLanguageB as string) || 'en'
+      return { type: 'two_way', language_a: langA, language_b: langB }
+    }
+    return {
+      type: 'one_way',
+      target_language: (config.translationTargetLanguage as string) || 'en',
+    }
+  }
+
   private normalizeToken(sonioxToken: SonioxToken): TranscriptToken {
     return {
       text: sonioxToken.text,

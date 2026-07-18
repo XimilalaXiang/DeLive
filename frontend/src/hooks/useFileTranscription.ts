@@ -193,7 +193,7 @@ async function executeSoniox(
   updateJob(jobId, { status: 'transcribing', progress: 40 })
   const transcription = await sonioxCreateTranscription(apiKey, {
     fileId: fileInfo.id,
-    model: config.model || 'stt-async-v4',
+    model: config.model || 'stt-async-v5',
     languageHints: config.languageHints,
     enableSpeakerDiarization: config.enableSpeakerDiarization,
     translation: config.translationEnabled && config.translationTargetLanguage

@@ -1,5 +1,5 @@
 const SONIOX_API_BASE = 'https://api.soniox.com/v1'
-const DEFAULT_ASYNC_MODEL = 'stt-async-v4'
+const DEFAULT_ASYNC_MODEL = 'stt-async-v5'
 const POLL_INTERVAL_MS = 3000
 
 export interface SonioxFileInfo {

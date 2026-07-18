@@ -61,7 +61,7 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
       ws.onopen = () => {
         ws.send(JSON.stringify({
           api_key: apiKey,
-          model: typeof config.model === 'string' && config.model.trim() ? config.model.trim() : 'stt-rt-v4',
+          model: typeof config.model === 'string' && config.model.trim() ? config.model.trim() : 'stt-rt-v5',
           audio_format: 'auto',
           language_hints: Array.isArray(config.languageHints) && config.languageHints.length > 0
             ? config.languageHints
