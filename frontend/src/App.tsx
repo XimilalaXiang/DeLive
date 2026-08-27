@@ -55,6 +55,14 @@ function App() {
   const [whatsNewShowAll, setWhatsNewShowAll] = useState(false)
 
   useEffect(() => {
+    // The main process keeps its own copy of the language for the tray, the
+    // window title, and the shortcut names. It only ever heard about a change
+    // the user made, so a language restored from storage at startup never
+    // reached it and everything outside the renderer stayed Chinese.
+    void window.electronAPI?.langChange?.(useUIStore.getState().language).catch(() => {})
+  }, [])
+
+  useEffect(() => {
     if (prevRecordingState.current === 'recording' && recordingState === 'idle') {
       const sessions = useSessionStore.getState().sessions
       if (sessions.length > 0) {
