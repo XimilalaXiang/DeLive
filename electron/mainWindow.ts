@@ -1,6 +1,7 @@
 import { app, BrowserWindow, shell, type BrowserWindowConstructorOptions } from 'electron'
 import path from 'path'
 import { buildCSP, isAllowedNavigationUrl } from './ipcSecurity'
+import { getElectronStrings } from './i18n'
 
 interface CreateMainWindowOptions {
   isDev: boolean
@@ -26,7 +27,7 @@ export function createMainWindow(options: CreateMainWindowOptions): BrowserWindo
     height: 800,
     minWidth: 800,
     minHeight: 600,
-    title: 'DeLive - 桌面音频实时转录',
+    title: getElectronStrings().windowTitle,
     icon: options.windowIconPath || undefined,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),

@@ -213,7 +213,7 @@ export interface AiPostProcessConfig {
   provider?: 'openai-compatible'
   baseUrl?: string
   apiKey?: string
-  promptLanguage?: 'zh' | 'en'
+  promptLanguage?: 'zh' | 'en' | 'ko'
 
   /** @deprecated Use defaultModel instead */
   model?: string

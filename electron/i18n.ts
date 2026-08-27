@@ -2,13 +2,14 @@ import { app } from 'electron'
 import fs from 'fs'
 import path from 'path'
 
-type Lang = 'zh' | 'en'
+type Lang = 'zh' | 'en' | 'ko'
 
 const strings = {
   zh: {
     trayShowWindow: '显示主窗口',
     trayQuit: '退出',
     trayTooltip: 'DeLive - 桌面音频实时转录',
+    windowTitle: 'DeLive - 桌面音频实时转录',
     shortcutToggleWindow: '显示/隐藏窗口',
     shortcutToggleWindowAlt: '显示/隐藏窗口(备用)',
     shortcutToggleRecording: '开始/停止录制',
@@ -19,10 +20,26 @@ const strings = {
     updateInstallNow: '立即安装',
     updateLater: '稍后',
   },
+  ko: {
+    trayShowWindow: '메인 창 표시',
+    trayQuit: '종료',
+    trayTooltip: 'DeLive - 데스크톱 오디오 실시간 전사',
+    windowTitle: 'DeLive - 데스크톱 오디오 실시간 전사',
+    shortcutToggleWindow: '창 표시/숨기기',
+    shortcutToggleWindowAlt: '창 표시/숨기기(대체)',
+    shortcutToggleRecording: '녹음 시작/중지',
+    shortcutToggleRecordingAlt: '녹음 시작/중지(대체)',
+    updateReady: '업데이트 준비 완료',
+    updateDetail: (version: string) => `${version} 버전을 내려받았습니다`,
+    updateInstallPrompt: '"지금 설치"를 누르면 앱을 닫고 업데이트를 설치합니다. "나중에"를 누르면 다음 실행 시 자동으로 설치합니다.',
+    updateInstallNow: '지금 설치',
+    updateLater: '나중에',
+  },
   en: {
     trayShowWindow: 'Show Main Window',
     trayQuit: 'Quit',
     trayTooltip: 'DeLive - Desktop Audio Transcription',
+    windowTitle: 'DeLive - Desktop Audio Transcription',
     shortcutToggleWindow: 'Show/Hide Window',
     shortcutToggleWindowAlt: 'Show/Hide Window (Alt)',
     shortcutToggleRecording: 'Start/Stop Recording',
@@ -46,6 +63,7 @@ function getSavedLang(): Lang {
       const prefs = JSON.parse(raw)
       if (prefs.language === 'en') return 'en'
       if (prefs.language === 'zh') return 'zh'
+      if (prefs.language === 'ko') return 'ko'
     }
   } catch { /* ignore */ }
   return 'zh'

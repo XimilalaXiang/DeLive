@@ -23,11 +23,19 @@ interface AiPostProcessPanelProps {
   updateAiPostProcessConfig: (config: Partial<AiPostProcessConfig>) => void
 }
 
-const AI_FEATURES: { key: AiFeatureKey; labelZh: string; labelEn: string }[] = [
-  { key: 'briefing', labelZh: 'AI 摘要', labelEn: 'AI Briefing' },
-  { key: 'chat', labelZh: 'AI 对话', labelEn: 'AI Chat' },
-  { key: 'mindmap', labelZh: 'AI 思维导图', labelEn: 'AI Mind Map' },
-  { key: 'correction', labelZh: 'AI 纠错', labelEn: 'AI Correction' },
+type Pick = (zh: string, en: string, ko: string) => string
+
+const PROMPT_LANGUAGE_OPTIONS: { id: 'zh' | 'en' | 'ko'; label: string }[] = [
+  { id: 'zh', label: '中文' },
+  { id: 'en', label: 'English' },
+  { id: 'ko', label: '한국어' },
+]
+
+const AI_FEATURES: { key: AiFeatureKey; labelZh: string; labelEn: string; labelKo: string }[] = [
+  { key: 'briefing', labelZh: 'AI 摘要', labelEn: 'AI Briefing', labelKo: 'AI 요약' },
+  { key: 'chat', labelZh: 'AI 对话', labelEn: 'AI Chat', labelKo: 'AI 대화' },
+  { key: 'mindmap', labelZh: 'AI 思维导图', labelEn: 'AI Mind Map', labelKo: 'AI 마인드맵' },
+  { key: 'correction', labelZh: 'AI 纠错', labelEn: 'AI Correction', labelKo: 'AI 교정' },
 ]
 
 export function AiPostProcessPanel({
@@ -37,7 +45,7 @@ export function AiPostProcessPanel({
   updateAiPostProcessConfig,
 }: AiPostProcessPanelProps) {
   const cfg = aiPostProcessConfig
-  const isZh = language === 'zh'
+  const pick: Pick = (zh, en, ko) => (language === 'ko' ? ko : language === 'zh' ? zh : en)
   const [showApiKey, setShowApiKey] = useState(false)
   const [fetchStatus, setFetchStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [fetchError, setFetchError] = useState('')
@@ -132,7 +140,7 @@ export function AiPostProcessPanel({
       <section className="workspace-panel-muted p-4 space-y-3">
         <label className="text-sm font-medium leading-none flex items-center gap-2">
           <Key className="w-3.5 h-3.5 text-muted-foreground" />
-          {isZh ? 'API 连接' : 'API Connection'}
+          {pick('API 连接', 'API Connection', 'API 연결')}
         </label>
 
         <div className="space-y-2">
@@ -190,7 +198,7 @@ export function AiPostProcessPanel({
           ) : (
             <RefreshCw className="w-4 h-4" />
           )}
-          {isZh ? '获取模型列表' : 'Fetch Model List'}
+          {pick('获取模型列表', 'Fetch Model List', '모델 목록 가져오기')}
         </button>
 
         {fetchStatus === 'error' && fetchError && (
@@ -203,9 +211,9 @@ export function AiPostProcessPanel({
         <section className="workspace-panel-muted p-4 space-y-3">
           <label className="text-sm font-medium leading-none flex items-center gap-2">
             <Sparkles className="w-3.5 h-3.5 text-muted-foreground" />
-            {isZh ? '可用模型' : 'Available Models'}
+            {pick('可用模型', 'Available Models', '사용 가능한 모델')}
             <span className="text-xs text-muted-foreground font-normal ml-auto">
-              {selected.length}/{cfg.availableModels!.length} {isZh ? '已选' : 'selected'}
+              {selected.length}/{cfg.availableModels!.length} {pick('已选', 'selected', '선택됨')}
             </span>
           </label>
 
@@ -215,7 +223,7 @@ export function AiPostProcessPanel({
               type="text"
               value={modelSearch}
               onChange={(e) => setModelSearch(e.target.value)}
-              placeholder={isZh ? '搜索模型...' : 'Search models...'}
+              placeholder={pick('搜索模型...', 'Search models...', '모델 검색...')}
               className="flex h-9 w-full rounded-md border border-input bg-background pl-9 pr-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             />
           </div>
@@ -223,7 +231,7 @@ export function AiPostProcessPanel({
           <div className="max-h-60 overflow-y-auto rounded-lg border border-input divide-y divide-border">
             {filteredModels.length === 0 && (
               <div className="px-3 py-4 text-center text-xs text-muted-foreground">
-                {isZh ? '无匹配模型' : 'No matching models'}
+                {pick('无匹配模型', 'No matching models', '일치하는 모델 없음')}
               </div>
             )}
             {filteredModels.map((modelId) => {
@@ -257,7 +265,7 @@ export function AiPostProcessPanel({
                         e.stopPropagation()
                         setDefaultModel(modelId)
                       }}
-                      title={isZh ? '设为默认模型' : 'Set as default'}
+                      title={pick('设为默认模型', 'Set as default', '기본 모델로 지정')}
                       className={`flex-shrink-0 p-1 rounded transition-colors ${
                         isDefault
                           ? 'text-yellow-500'
@@ -274,7 +282,7 @@ export function AiPostProcessPanel({
 
           {effectiveDefault && (
             <p className="text-xs text-muted-foreground">
-              {isZh ? '默认模型：' : 'Default: '}
+              {pick('默认模型：', 'Default: ', '기본 모델: ')}
               <span className="font-mono text-foreground">{effectiveDefault}</span>
             </p>
           )}
@@ -286,28 +294,30 @@ export function AiPostProcessPanel({
         <section className="workspace-panel-muted p-4 space-y-3">
           <label className="text-sm font-medium leading-none flex items-center gap-2">
             <Sparkles className="w-3.5 h-3.5 text-muted-foreground" />
-            {isZh ? '功能模型分配' : 'Model Assignment'}
+            {pick('功能模型分配', 'Model Assignment', '기능별 모델 지정')}
           </label>
           <p className="text-xs text-muted-foreground">
-            {isZh
-              ? '为每个 AI 功能指定模型，留空则使用默认模型'
-              : 'Assign a model per feature, or leave empty to use default'}
+            {pick(
+              '为每个 AI 功能指定模型，留空则使用默认模型',
+              'Assign a model per feature, or leave empty to use default',
+              'AI 기능별로 모델을 지정하세요. 비워 두면 기본 모델을 사용합니다',
+            )}
           </p>
 
           <div className="space-y-2">
-            {AI_FEATURES.map(({ key, labelZh, labelEn }) => {
+            {AI_FEATURES.map(({ key, labelZh, labelEn, labelKo }) => {
               const assigned = cfg.modelAssignment?.[key] || ''
               return (
                 <div key={key} className="p-3 rounded-lg bg-muted/50 space-y-2">
                   <span className="text-sm font-medium">
-                    {isZh ? labelZh : labelEn}
+                    {pick(labelZh, labelEn, labelKo)}
                   </span>
                   <ModelDropdown
                     value={assigned}
                     onChange={(v) => setFeatureModel(key, v)}
                     models={selected}
                     defaultModel={effectiveDefault}
-                    isZh={isZh}
+                    pick={pick}
                   />
                 </div>
               )
@@ -320,26 +330,19 @@ export function AiPostProcessPanel({
       <section className="workspace-panel-muted p-4 space-y-3">
         <label className="text-xs font-medium text-muted-foreground">{t.settings.aiPromptLanguage}</label>
         <div className="flex gap-2">
-          <button
-            onClick={() => updateAiPostProcessConfig({ promptLanguage: 'zh' })}
-            className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all ${
-              (cfg.promptLanguage || 'zh') === 'zh'
-                ? 'bg-primary/10 text-primary border-2 border-primary ring-2 ring-primary/20'
-                : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
-            }`}
-          >
-            中文
-          </button>
-          <button
-            onClick={() => updateAiPostProcessConfig({ promptLanguage: 'en' })}
-            className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all ${
-              (cfg.promptLanguage || 'zh') === 'en'
-                ? 'bg-primary/10 text-primary border-2 border-primary ring-2 ring-primary/20'
-                : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
-            }`}
-          >
-            English
-          </button>
+          {PROMPT_LANGUAGE_OPTIONS.map(({ id, label }) => (
+            <button
+              key={id}
+              onClick={() => updateAiPostProcessConfig({ promptLanguage: id })}
+              className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all ${
+                (cfg.promptLanguage || 'zh') === id
+                  ? 'bg-primary/10 text-primary border-2 border-primary ring-2 ring-primary/20'
+                  : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       </section>
 
@@ -381,7 +384,7 @@ export function AiPostProcessPanel({
         <div className="flex items-center justify-between">
           <label className="text-sm font-medium leading-none flex items-center gap-2">
             <Sparkles className="w-3.5 h-3.5 text-muted-foreground" />
-            {isZh ? 'AI 流式输出' : 'AI Streaming Output'}
+            {pick('AI 流式输出', 'AI Streaming Output', 'AI 스트리밍 출력')}
           </label>
           <button
             onClick={() => updateAiPostProcessConfig({ enableStreaming: !(cfg.enableStreaming !== false) })}
@@ -399,9 +402,11 @@ export function AiPostProcessPanel({
           </button>
         </div>
         <p className="text-xs text-muted-foreground">
-          {isZh
-            ? '启用后 AI 对话回复将逐字显示，体验更流畅。关闭后等待完整回复后一次性显示。'
-            : 'When enabled, AI chat responses stream in token by token for a smoother experience. When disabled, the full response is shown at once.'}
+          {pick(
+            '启用后 AI 对话回复将逐字显示，体验更流畅。关闭后等待完整回复后一次性显示。',
+            'When enabled, AI chat responses stream in token by token for a smoother experience. When disabled, the full response is shown at once.',
+            '켜면 AI 대화 답변이 한 글자씩 표시되어 더 자연스럽습니다. 끄면 답변이 완성된 뒤 한 번에 표시됩니다.',
+          )}
         </p>
       </section>
 
@@ -409,12 +414,14 @@ export function AiPostProcessPanel({
       <section className="workspace-panel-muted p-4 space-y-3">
         <label className="text-sm font-medium leading-none flex items-center gap-2">
           <Sparkles className="w-3.5 h-3.5 text-muted-foreground" />
-          {isZh ? 'AI 纠错模式' : 'AI Correction Mode'}
+          {pick('AI 纠错模式', 'AI Correction Mode', 'AI 교정 방식')}
         </label>
         <p className="text-xs text-muted-foreground">
-          {isZh
-            ? '选择 AI 纠错的工作方式。直接纠错会一次性输出修改后全文；先检测后纠错会先列出问题清单供你确认。'
-            : 'Choose how AI correction works. Quick mode outputs corrected text directly; Review mode lists issues for confirmation first.'}
+          {pick(
+            '选择 AI 纠错的工作方式。直接纠错会一次性输出修改后全文；先检测后纠错会先列出问题清单供你确认。',
+            'Choose how AI correction works. Quick mode outputs corrected text directly; Review mode lists issues for confirmation first.',
+            'AI 교정 방식을 선택하세요. 바로 교정은 수정된 전문을 한 번에 출력하고, 검토 후 교정은 문제 목록을 먼저 보여 줍니다.',
+          )}
         </p>
         <div className="flex gap-2">
           <button
@@ -425,7 +432,7 @@ export function AiPostProcessPanel({
                 : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
             }`}
           >
-            {isZh ? '直接纠错' : 'Quick Fix'}
+            {pick('直接纠错', 'Quick Fix', '바로 교정')}
           </button>
           <button
             onClick={() => updateAiPostProcessConfig({ correctionMode: 'review' })}
@@ -435,7 +442,7 @@ export function AiPostProcessPanel({
                 : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
             }`}
           >
-            {isZh ? '先检测后纠错' : 'Review & Fix'}
+            {pick('先检测后纠错', 'Review & Fix', '검토 후 교정')}
           </button>
         </div>
       </section>
@@ -448,13 +455,13 @@ function ModelDropdown({
   onChange,
   models,
   defaultModel,
-  isZh,
+  pick,
 }: {
   value: string
   onChange: (v: string) => void
   models: string[]
   defaultModel: string
-  isZh: boolean
+  pick: Pick
 }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -470,9 +477,11 @@ function ModelDropdown({
 
   const displayText = value
     ? value
-    : isZh
-      ? `使用默认${defaultModel ? ` · ${defaultModel}` : ''}`
-      : `Use default${defaultModel ? ` · ${defaultModel}` : ''}`
+    : pick(
+        `使用默认${defaultModel ? ` · ${defaultModel}` : ''}`,
+        `Use default${defaultModel ? ` · ${defaultModel}` : ''}`,
+        `기본값 사용${defaultModel ? ` · ${defaultModel}` : ''}`,
+      )
 
   return (
     <div ref={ref} className="relative">
@@ -503,7 +512,7 @@ function ModelDropdown({
             >
               <Check className={`w-3.5 h-3.5 shrink-0 ${!value ? 'opacity-100' : 'opacity-0'}`} />
               <span className="truncate">
-                {isZh ? '使用默认模型' : 'Use default model'}
+                {pick('使用默认模型', 'Use default model', '기본 모델 사용')}
                 {defaultModel && (
                   <span className="text-muted-foreground font-mono ml-1 text-xs">({defaultModel})</span>
                 )}

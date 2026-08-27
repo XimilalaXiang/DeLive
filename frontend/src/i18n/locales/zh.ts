@@ -93,6 +93,7 @@ export const zh = {
     interfaceLanguageDesc: '选择应用界面显示的语言',
     languageChinese: '中文',
     languageEnglish: 'English',
+    languageKorean: '한국어',
     // ASR 提供商设置
     asrProvider: '语音识别服务',
     asrProviderDesc: '选择语音识别服务提供商，不同提供商有不同的特性和价格',
@@ -208,6 +209,13 @@ export const zh = {
     localProviders: '本地模型',
     // Provider 名称 & 描述
     soniox: 'Soniox V5',
+    elevenlabsDesc: 'ElevenLabs Scribe v2 Realtime 实时语音转录，支持 90+ 种语言（含中文），150ms 超低延迟',
+    mistralDesc: 'Mistral Voxtral 实时语音转录，支持 13 种语言',
+    gladiaDesc: 'Gladia Solaria-1 实时语音转录，支持 100+ 种语言，<300ms 延迟',
+    deepgramDesc: 'Deepgram Nova-3 实时语音转录，支持 45+ 种语言（含中文普通话/粤语）',
+    assemblyaiDesc: 'AssemblyAI 实时语音转录 + 文件转录，支持 99+ 种语言、说话人分离',
+    sixtydbDesc: '60db 实时语音转录，支持 ~40 种语言（含印度语系 + 英语混合切换），基于句子的连续模式，可选说话人分离',
+    sensevoiceDesc: '本地 FunASR 语音转录，支持 SenseVoice（情感+音频事件检测）、Paraformer（中文生产级）等多种模型，无需 API 费用',
     sonioxDesc: '高精度实时语音识别，支持 60+ 种语言，可选单向/双向实时翻译',
     volc: '火山引擎',
     volcDesc: '字节跳动旗下语音识别服务，支持中文优化',
@@ -283,6 +291,41 @@ export const zh = {
     langFr: '法语',
     langDe: '德语',
     langVi: '越南语',
+    // 未映射字段补齐
+    fieldEndpointSensitivity: '端点检测灵敏度',
+    fieldEndpointSensitivityDesc: 'V5 新功能：控制语音端点检测的灵敏度。值越高断句越快，适合语音指令；值越低等待越久，适合长对话。',
+    optEndpointLowest: '最低（等待更久再断句）',
+    optEndpointLower: '较低',
+    optEndpointDefault: '默认',
+    optEndpointHigher: '较高',
+    optEndpointHighest: '最高（更快断句）',
+    fieldTranslationMode: '翻译模式',
+    fieldTranslationModeDesc: '单向翻译将所有语音翻译为目标语言；双向翻译在两种语言间互译。',
+    optTranslationOneWay: '单向翻译',
+    optTranslationTwoWay: '双向翻译（V5 新功能）',
+    fieldTranslationLanguageA: '双向翻译语言 A',
+    fieldTranslationLanguageB: '双向翻译语言 B',
+    fieldTranslationBidirectionalDesc: '仅在双向翻译模式下生效。',
+    fieldAssemblyaiApiKeyDesc: '从 assemblyai.com/dashboard 获取 API Key',
+    optWhisperLargeTurbo: 'Whisper Large V3 Turbo（推荐）',
+    optWhisperClassic: 'Whisper（经典版）',
+    optWhisperTinyEn: 'Whisper Tiny（仅英语）',
+    optQwenOmniInstruct: 'Qwen3-Omni-30B-A3B-Instruct（多模态）',
+    optQwenOmniThinking: 'Qwen3-Omni-30B-A3B-Thinking（多模态）',
+    optSenseVoice: 'SenseVoice — 多语言 + 情感/音频事件检测',
+    optParaformer: 'Paraformer — 中文生产级转录（含 VAD + 标点）',
+    optParaformerEn: 'Paraformer-EN — 英语专用',
+    optFunAsrNano: 'Fun-ASR-Nano — 31 语言 LLM-based ASR',
+    fieldDeepgramApiKeyDesc: '从 console.deepgram.com 获取 API Key',
+    fieldElevenlabsApiKeyDesc: '从 elevenlabs.io/app/settings/api-keys 获取 API Key',
+    fieldGladiaApiKeyDesc: '从 app.gladia.io 获取 API Key',
+    fieldMistralApiKeyDesc: '从 console.mistral.ai 获取 API Key',
+    fieldSixtydbApiKeyDesc: '从 docs.60db.ai 获取 API Key',
+    fieldApiKeyGenericPlaceholder: '输入你的 API Key',
+    fieldLanguageHintsDescAuto: '用逗号分隔的语言代码，留空则自动检测语言。',
+    fieldSenseVoiceBaseUrl: '服务地址',
+    fieldSenseVoiceBaseUrlDesc: 'funasr-server 服务地址。启动命令：funasr-server --device cuda --port 8000',
+    fieldSenseVoiceModelDesc: '选择 ASR 模型',
   },
 
   // 录制控制
@@ -585,6 +628,10 @@ export const zh = {
   },
 
   bundledRuntime: {
+
+    recommendedFilled: '已填入推荐流程：官方 binary + Base 模型 + 默认端口 8177',
+
+    filePickerUnsupported: '当前环境不支持文件选择',
     guideTitle: 'Bundled Runtime 引导',
     guideDesc: '当前 provider 走随应用打包的本地 runtime 路径。推荐顺序是：准备 binary、准备模型、启动 runtime、再测试配置或开始录制。',
     step1Title: '第 1 步：准备 runtime binary',
@@ -687,6 +734,7 @@ export const zh = {
     discoveredModels: '已发现模型（点击可回填）',
     modelReady: (name: string) => `模型已就绪：${name}`,
     modelNotFound: (name: string) => `未找到模型：${name}`,
+    noOneClickPull: '当前服务不支持一键拉取',
     oneClickPull: '一键拉取模型（Ollama）',
     pullNotSupportedShort: '当前服务不支持一键拉取',
     processing: '处理中...',
@@ -699,6 +747,7 @@ export const zh = {
     dragToAdjust: '拖拽调整位置',
     captionPlaceholder: '字幕将显示在这里',
   },
+
 
   servicePanel: {
     viewDocs: '查看文档',

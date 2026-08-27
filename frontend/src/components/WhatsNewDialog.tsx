@@ -33,7 +33,8 @@ export function WhatsNewDialog({ open, onClose, entry, allEntries, showAll }: Wh
   const entriesToShow = showAll && allEntries ? allEntries : entry ? [entry] : []
   if (entriesToShow.length === 0) return null
 
-  const title = lang === 'zh' ? '更新日志' : "What's New"
+  const pick = (zh: string, en: string, ko: string) => (language === 'ko' ? ko : language === 'zh' ? zh : en)
+  const title = pick('更新日志', "What's New", '변경 내역')
 
   return (
     <div
@@ -76,7 +77,7 @@ export function WhatsNewDialog({ open, onClose, entry, allEntries, showAll }: Wh
             onClick={onClose}
             className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
           >
-            {lang === 'zh' ? '知道了' : 'Got it'}
+            {pick('知道了', 'Got it', '확인')}
           </button>
         </div>
       </div>
@@ -85,6 +86,8 @@ export function WhatsNewDialog({ open, onClose, entry, allEntries, showAll }: Wh
 }
 
 function VersionSection({ entry, lang, showHeader }: { entry: WhatsNewEntry; lang: 'zh' | 'en'; showHeader?: boolean }) {
+  const { language } = useUIStore()
+  const pick = (zh: string, en: string, ko: string) => (language === 'ko' ? ko : language === 'zh' ? zh : en)
   return (
     <div>
       {showHeader && (
@@ -97,7 +100,7 @@ function VersionSection({ entry, lang, showHeader }: { entry: WhatsNewEntry; lan
         <div className="mb-3">
           <div className="flex items-center gap-1.5 mb-2 text-sm font-medium text-primary">
             <Sparkles className="h-3.5 w-3.5" />
-            <span>{lang === 'zh' ? '新功能' : 'New Features'}</span>
+            <span>{pick('新功能', 'New Features', '새 기능')}</span>
           </div>
           <ul className="space-y-1.5 text-sm text-foreground/90">
             {entry.features.map((f, i) => (
@@ -114,7 +117,7 @@ function VersionSection({ entry, lang, showHeader }: { entry: WhatsNewEntry; lan
         <div>
           <div className="flex items-center gap-1.5 mb-2 text-sm font-medium text-muted-foreground">
             <Wrench className="h-3.5 w-3.5" />
-            <span>{lang === 'zh' ? '修复' : 'Bug Fixes'}</span>
+            <span>{pick('修复', 'Bug Fixes', '버그 수정')}</span>
           </div>
           <ul className="space-y-1.5 text-sm text-foreground/70">
             {entry.fixes.map((f, i) => (

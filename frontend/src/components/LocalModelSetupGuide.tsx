@@ -100,7 +100,7 @@ export function LocalModelSetupGuide({
   const handleCheckModel = async () => {
     if (!serviceManager) {
       setModelStatus('error')
-      setMessage('当前提供商尚未接入本地运行时管理器')
+      setMessage(t.localModel.providerNoRuntime)
       return
     }
 
@@ -234,7 +234,7 @@ export function LocalModelSetupGuide({
             className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-medium text-primary hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-70"
           >
             {pullStatus === 'pulling' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <DownloadCloud className="h-3.5 w-3.5" />}
-            {canPullWithOneClick ? t.localModel.oneClickPull : '当前服务不支持一键拉取'}
+            {canPullWithOneClick ? t.localModel.oneClickPull : t.localModel.noOneClickPull}
           </button>
 
           {(pullMessage || pullPercent) && (

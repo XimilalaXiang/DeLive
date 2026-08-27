@@ -268,6 +268,21 @@ function extractJsonObject(raw: string): string {
 }
 
 function buildSystemPrompt(language: NonNullable<AiPostProcessConfig['promptLanguage']>): string {
+  if (language === 'ko') {
+    return [
+      '너는 전사 내용을 구조화된 회의록으로 정리하는 어시스턴트다.',
+      'titleSuggestion, tagSuggestions, summary, actionItems, keywords, chapters 여섯 개 키만 담은 JSON 객체만 반환한다.',
+      'titleSuggestion은 짧고 구체적인 제목이다.',
+      'tagSuggestions는 짧은 주제 태그의 배열이다.',
+      'summary는 간결한 문단이다.',
+      'actionItems는 실행 가능한 항목 문자열의 배열이다.',
+      'keywords는 짧은 키워드의 배열이다.',
+      'chapters는 title과 summary로 이루어진 객체의 배열이다.',
+      '전사 내용에 근거가 없는 사실은 지어내지 않는다.',
+      '모든 출력은 한국어로 작성한다.',
+    ].join(' ')
+  }
+
   if (language === 'en') {
     return [
       'You are an assistant that converts a transcript into structured meeting notes.',
@@ -301,6 +316,16 @@ function buildUserPrompt(
   preference?: AiPostProcessConfig['preferCorrectedText'],
 ): string {
   const transcriptBlock = buildSessionContextBlock(session, preference)
+
+  if (language === 'ko') {
+    return [
+      `세션 제목: ${session.title}`,
+      '아래 전사 내용을 회고에 쓸 수 있도록 구조화된 브리핑으로 정리해 줘.',
+      '간결하고 정확하며 바로 실행에 옮길 수 있게 써 줘.',
+      '전사 내용:',
+      transcriptBlock,
+    ].join('\n\n')
+  }
 
   if (language === 'en') {
     return [
@@ -350,6 +375,18 @@ function buildSessionContextBlock(
 }
 
 function buildAskSystemPrompt(language: NonNullable<AiPostProcessConfig['promptLanguage']>): string {
+  if (language === 'ko') {
+    return [
+      '너는 하나의 세션 전사 내용에 대해서만 답하는 어시스턴트다.',
+      'answer와 citations 두 개 키만 담은 JSON 객체만 반환한다.',
+      'answer는 반드시 전사 내용에만 근거해야 한다.',
+      'citations는 quote와 선택적 speakerLabel로 이루어진 객체의 배열이다.',
+      '가능하면 전사 내용의 짧은 원문을 그대로 인용한다.',
+      '전사 내용에 답이 없으면 없다고 분명히 밝힌다.',
+      '모든 출력은 한국어로 작성한다.',
+    ].join(' ')
+  }
+
   if (language === 'en') {
     return [
       'You answer questions about a single transcript session.',
@@ -386,6 +423,16 @@ function buildAskUserPrompt(
     ? previousTurns.map((turn) => `Q: ${turn.question}\nA: ${turn.answer}`).join('\n\n')
     : ''
 
+  if (language === 'ko') {
+    return [
+      `세션 제목: ${session.title}`,
+      historyBlock ? `이전 질문과 답변:\n${historyBlock}` : '',
+      `질문:\n${question.trim()}`,
+      '전사 내용:',
+      transcriptBlock,
+    ].filter(Boolean).join('\n\n')
+  }
+
   if (language === 'en') {
     return [
       `Session title: ${session.title}`,
@@ -406,6 +453,18 @@ function buildAskUserPrompt(
 }
 
 function buildMindMapSystemPrompt(language: NonNullable<AiPostProcessConfig['promptLanguage']>): string {
+  if (language === 'ko') {
+    return [
+      '너는 하나의 세션 전사 내용을 Markmap 호환 Markdown 마인드맵으로 만드는 역할이다.',
+      'title과 markdown 두 개 키만 담은 JSON 객체만 반환한다.',
+      'markdown은 단일 # 루트 제목으로 시작하는 올바른 Markmap Markdown이어야 한다.',
+      '분기와 하위 분기는 ##, ### 같은 계층 제목으로 표현한다.',
+      '구조는 간결하고 읽기 쉬우며 전사 내용에 근거해야 한다.',
+      '코드 펜스는 넣지 않는다.',
+      '모든 출력은 한국어로 작성한다.',
+    ].join(' ')
+  }
+
   if (language === 'en') {
     return [
       'You generate a Markmap-compatible Markdown mind map for a single transcript session.',
@@ -442,6 +501,18 @@ function buildMindMapUserPrompt(
   const keywordsBlock = session.postProcess?.keywords?.length
     ? `Keywords:\n${session.postProcess.keywords.join(', ')}`
     : ''
+
+  if (language === 'ko') {
+    return [
+      `세션 제목: ${session.title}`,
+      summaryBlock ? `요약:\n${session.postProcess?.summary?.trim()}` : '',
+      actionBlock ? `실행 항목:\n${session.postProcess?.actionItems?.join('\n')}` : '',
+      keywordsBlock ? `키워드:\n${session.postProcess?.keywords?.join(', ')}` : '',
+      '이 세션을 빠르게 훑어볼 수 있는 마인드맵을 만들어 줘.',
+      '전사 내용:',
+      transcriptBlock,
+    ].filter(Boolean).join('\n\n')
+  }
 
   if (language === 'en') {
     return [
