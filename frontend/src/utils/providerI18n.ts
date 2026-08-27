@@ -18,9 +18,42 @@ const FIELD_LABEL_MAP: Record<string, Record<string, keyof ProviderStrings>> = {
   soniox: {
     apiKey: 'fieldApiKey',
     languageHints: 'fieldLanguageHints',
+    endpointSensitivity: 'fieldEndpointSensitivity',
     translationEnabled: 'fieldTranslationEnabled',
+    translationMode: 'fieldTranslationMode',
     translationTargetLanguage: 'fieldTranslationTarget',
+    translationLanguageA: 'fieldTranslationLanguageA',
+    translationLanguageB: 'fieldTranslationLanguageB',
     enableSpeakerDiarization: 'fieldSpeakerDiarization',
+  },
+  assemblyai: {
+    apiKey: 'fieldApiKey',
+    languageHints: 'fieldLanguageHints',
+  },
+  deepgram: {
+    apiKey: 'fieldApiKey',
+    languageHints: 'fieldLanguageHints',
+  },
+  elevenlabs: {
+    apiKey: 'fieldApiKey',
+    languageHints: 'fieldLanguageHints',
+  },
+  gladia: {
+    apiKey: 'fieldApiKey',
+    languageHints: 'fieldLanguageHints',
+  },
+  mistral: {
+    apiKey: 'fieldApiKey',
+    languageHints: 'fieldLanguageHints',
+  },
+  sixtydb: {
+    apiKey: 'fieldApiKey',
+    languageHints: 'fieldLanguageHints',
+  },
+  sensevoice: {
+    baseUrl: 'fieldSenseVoiceBaseUrl',
+    model: 'fieldModel',
+    languageHints: 'fieldLanguageHints',
   },
   volc: {
     appKey: 'fieldVolcAppId',
@@ -61,9 +94,42 @@ const FIELD_DESC_MAP: Record<string, Record<string, keyof ProviderStrings>> = {
   soniox: {
     apiKey: 'fieldSonioxApiKeyDesc',
     languageHints: 'fieldLanguageHintsDescSoniox',
+    endpointSensitivity: 'fieldEndpointSensitivityDesc',
     translationEnabled: 'fieldTranslationEnabledDesc',
+    translationMode: 'fieldTranslationModeDesc',
     translationTargetLanguage: 'fieldTranslationTargetDesc',
+    translationLanguageA: 'fieldTranslationBidirectionalDesc',
+    translationLanguageB: 'fieldTranslationBidirectionalDesc',
     enableSpeakerDiarization: 'fieldSpeakerDiarizationDesc',
+  },
+  assemblyai: {
+    apiKey: 'fieldAssemblyaiApiKeyDesc',
+    languageHints: 'fieldLanguageHintsDesc',
+  },
+  deepgram: {
+    apiKey: 'fieldDeepgramApiKeyDesc',
+    languageHints: 'fieldLanguageHintsDesc',
+  },
+  elevenlabs: {
+    apiKey: 'fieldElevenlabsApiKeyDesc',
+    languageHints: 'fieldLanguageHintsDesc',
+  },
+  gladia: {
+    apiKey: 'fieldGladiaApiKeyDesc',
+    languageHints: 'fieldLanguageHintsDescAuto',
+  },
+  mistral: {
+    apiKey: 'fieldMistralApiKeyDesc',
+    languageHints: 'fieldLanguageHintsDesc',
+  },
+  sixtydb: {
+    apiKey: 'fieldSixtydbApiKeyDesc',
+    languageHints: 'fieldLanguageHintsDescAuto',
+  },
+  sensevoice: {
+    baseUrl: 'fieldSenseVoiceBaseUrlDesc',
+    model: 'fieldSenseVoiceModelDesc',
+    languageHints: 'fieldLanguageHintsDesc',
   },
   volc: {
     appKey: 'fieldVolcAppIdDesc',
@@ -106,6 +172,12 @@ const FIELD_PLACEHOLDER_MAP: Record<string, Record<string, keyof ProviderStrings
     accessKey: 'fieldVolcAccessTokenPlaceholder',
   },
   groq: { apiKey: 'fieldGroqApiKeyPlaceholder' },
+  assemblyai: { apiKey: 'fieldApiKeyGenericPlaceholder' },
+  deepgram: { apiKey: 'fieldApiKeyGenericPlaceholder' },
+  elevenlabs: { apiKey: 'fieldApiKeyGenericPlaceholder' },
+  gladia: { apiKey: 'fieldApiKeyGenericPlaceholder' },
+  mistral: { apiKey: 'fieldApiKeyGenericPlaceholder' },
+  sensevoice: { baseUrl: 'fieldBaseUrlPlaceholder' },
   siliconflow: { apiKey: 'fieldSiliconflowApiKeyPlaceholder' },
   local_openai: {
     baseUrl: 'fieldBaseUrlPlaceholder',
@@ -129,6 +201,48 @@ const LANG_LABEL_MAP: Record<string, keyof ProviderStrings> = {
   vi: 'langVi',
 }
 
+/**
+ * Select options whose values are not language codes. Without this they fall
+ * through to the raw label baked into the provider definition, which is
+ * Chinese regardless of the chosen interface language.
+ */
+const FIELD_OPTION_MAP: Record<string, Record<string, Record<string, keyof ProviderStrings>>> = {
+  soniox: {
+    endpointSensitivity: {
+      '-1': 'optEndpointLowest',
+      '-0.5': 'optEndpointLower',
+      '0': 'optEndpointDefault',
+      '0.5': 'optEndpointHigher',
+      '1': 'optEndpointHighest',
+    },
+    translationMode: {
+      one_way: 'optTranslationOneWay',
+      two_way: 'optTranslationTwoWay',
+    },
+  },
+  cloudflare: {
+    model: {
+      '@cf/openai/whisper-large-v3-turbo': 'optWhisperLargeTurbo',
+      '@cf/openai/whisper': 'optWhisperClassic',
+      '@cf/openai/whisper-tiny-en': 'optWhisperTinyEn',
+    },
+  },
+  siliconflow: {
+    model: {
+      'Qwen/Qwen3-Omni-30B-A3B-Instruct': 'optQwenOmniInstruct',
+      'Qwen/Qwen3-Omni-30B-A3B-Thinking': 'optQwenOmniThinking',
+    },
+  },
+  sensevoice: {
+    model: {
+      sensevoice: 'optSenseVoice',
+      paraformer: 'optParaformer',
+      'paraformer-en': 'optParaformerEn',
+      'fun-asr-nano': 'optFunAsrNano',
+    },
+  },
+}
+
 function lookup(p: ProviderStrings, key: keyof ProviderStrings | undefined): string | undefined {
   if (!key) return undefined
   return (p as Record<string, unknown>)[key as string] as string | undefined
@@ -144,9 +258,10 @@ export function translateConfigField(
   const descKey = FIELD_DESC_MAP[providerId]?.[field.key]
   const placeholderKey = FIELD_PLACEHOLDER_MAP[providerId]?.[field.key]
 
+  const optionKeys = FIELD_OPTION_MAP[providerId]?.[field.key]
   const translatedOptions = field.options?.map(opt => {
-    const langKey = LANG_LABEL_MAP[opt.value]
-    const translated = langKey ? lookup(p, langKey) : undefined
+    const key = optionKeys?.[opt.value] ?? LANG_LABEL_MAP[opt.value]
+    const translated = key ? lookup(p, key) : undefined
     return translated ? { ...opt, label: translated } : opt
   })
 
