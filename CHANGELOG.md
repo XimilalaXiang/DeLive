@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.0-beta.2] - 2026-09-21
+
+### 🧪 Beta preview / 测试预览版
+
+This is a **beta preview** release (`2.3.0-beta.2`). Stable users on `latest.yml` / non-prerelease channels will **not** receive this update automatically.
+
+此为 **测试预览版**（`2.3.0-beta.2`）。使用稳定版更新通道（`latest.yml` / 非预发布）的用户**不会**自动收到此更新。
+
+### Changed / 变更
+- 🎙️ **AssemblyAI labels** — UI and docs now show **Universal-3.5 Pro**; streaming API model id remains `u3-rt-pro`
+- 🎙️ **AssemblyAI 文案** — 界面与文档显示 **Universal-3.5 Pro**；流式 API 模型 ID 仍为 `u3-rt-pro`
+- ⚡ **ElevenLabs realtime models** — optional **Scribe v2 Realtime Turbo** and **Lite** variants (`scribe_v2_realtime_turbo` / `scribe_v2_realtime_lite`) in provider settings, wired through the proxy connect path
+- ⚡ **ElevenLabs 实时模型** — 提供商设置中可选 **Scribe v2 Realtime Turbo** 与 **Lite**（`scribe_v2_realtime_turbo` / `scribe_v2_realtime_lite`），经代理连接生效
+- 📁 **Gladia file transcription** — optional **Solaria-3** for async/file upload transcription; **live streaming stays on Solaria-1**
+- 📁 **Gladia 文件转录** — 异步/文件上传转录可选 **Solaria-3**；**实时流式仍为 Solaria-1**
+
+### Docs / 文档
+- 📝 **README & docs sync** — provider tables and guides updated for AssemblyAI Universal-3.5 Pro, ElevenLabs Turbo/Lite, and Gladia Solaria-3 (file) vs Solaria-1 (live)
+- 📝 **README 与文档同步** — 更新提供商表格与指南：AssemblyAI Universal-3.5 Pro、ElevenLabs Turbo/Lite、Gladia 文件 Solaria-3 与实时 Solaria-1
+
+---
+
 ## [2.3.0-beta.1] - 2026-09-21
 
 ### 🧪 Beta preview / 测试预览版

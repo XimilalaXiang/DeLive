@@ -29,6 +29,11 @@ const entries: WhatsNewEntry[] = [
         en: 'File upload transcription for local_openai and sensevoice providers',
         ko: 'local_openai 및 sensevoice에서 파일 업로드 전사 지원',
       },
+      {
+        zh: 'AssemblyAI 显示 Universal-3.5 Pro（API 仍为 u3-rt-pro）；ElevenLabs 可选 Turbo/Lite 实时模型；Gladia 文件转录可选 Solaria-3，实时仍为 Solaria-1（测试预览版 2.3.0-beta.2）',
+        en: 'AssemblyAI shows Universal-3.5 Pro (API still u3-rt-pro); optional ElevenLabs Scribe v2 Realtime Turbo/Lite; Gladia file transcription can use Solaria-3 while live stays Solaria-1 (beta preview 2.3.0-beta.2)',
+        ko: 'AssemblyAI Universal-3.5 Pro 표시(API u3-rt-pro 유지); ElevenLabs Scribe v2 Realtime Turbo/Lite 선택; Gladia 파일 전사 Solaria-3, 실시간은 Solaria-1 (베타 2.3.0-beta.2)',
+      },
     ],
     fixes: [
       {
