@@ -687,6 +687,13 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
         apiKey,
         language: '',
       })
+      const hints = config.languageHints
+      if (Array.isArray(hints) && hints.length > 0) {
+        const hintsStr = hints.map((item) => String(item).trim()).filter(Boolean).join(',')
+        if (hintsStr) {
+          params.set('languageHints', hintsStr)
+        }
+      }
       const proxyUrl = `${sixtydbBaseUrl}?${params.toString()}`
       let ws: WebSocket | null = null
 
