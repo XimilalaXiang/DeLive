@@ -53,6 +53,8 @@ import {
 import { useSettingsStore } from './settingsStore'
 import { useUIStore } from './uiStore'
 import { generateId } from '../utils/storageUtils'
+import { getTranslations } from '../i18n'
+import { throwUserError, userErrorMessage } from '../utils/userErrors'
 
 const SESSION_AUTOSAVE_DELAY_MS = 1200
 let sessionAutosaveTimer: ReturnType<typeof setTimeout> | null = null
@@ -457,7 +459,7 @@ export const useSessionStore = create<SessionState>((set, get) => {
     generateSessionMindMap: async (sessionId) => {
       const session = get().sessions.find((item) => item.id === sessionId)
       if (!session) {
-        throw new Error('未找到要生成思维导图的会话')
+        throwUserError('sessionNotFoundForMindMap')
       }
 
       const requestedAt = Date.now()
@@ -496,12 +498,12 @@ export const useSessionStore = create<SessionState>((set, get) => {
     askSessionQuestion: async (sessionId, question, options) => {
       const normalizedQuestion = question.trim()
       if (!normalizedQuestion) {
-        throw new Error('请输入问题')
+        throwUserError('enterQuestion')
       }
 
       const session = get().sessions.find((item) => item.id === sessionId)
       if (!session) {
-        throw new Error('未找到要提问的会话')
+        throwUserError('sessionNotFoundForAsk')
       }
 
       const conversationId = options?.conversationId?.trim() || 'default'
@@ -559,10 +561,10 @@ export const useSessionStore = create<SessionState>((set, get) => {
     },
     askSessionQuestionStreaming: async (sessionId, question, options) => {
       const normalizedQuestion = question.trim()
-      if (!normalizedQuestion) throw new Error('请输入问题')
+      if (!normalizedQuestion) throwUserError('enterQuestion')
 
       const session = get().sessions.find((item) => item.id === sessionId)
-      if (!session) throw new Error('未找到要提问的会话')
+      if (!session) throwUserError('sessionNotFoundForAsk')
 
       const conversationId = options?.conversationId?.trim() || 'default'
       const pendingTurn: TranscriptAskTurn = {
@@ -624,7 +626,7 @@ export const useSessionStore = create<SessionState>((set, get) => {
     generateSessionPostProcess: async (sessionId, options) => {
       const session = get().sessions.find((item) => item.id === sessionId)
       if (!session) {
-        throw new Error('未找到要分析的会话')
+        throwUserError('sessionNotFoundForAnalysis')
       }
 
       const requestedAt = Date.now()
@@ -757,7 +759,7 @@ export const useSessionStore = create<SessionState>((set, get) => {
 
     detectSessionCorrectionIssues: async (sessionId) => {
       const session = get().sessions.find((s) => s.id === sessionId)
-      if (!session) throw new Error('未找到要纠错的会话')
+      if (!session) throwUserError('sessionNotFoundForCorrection')
 
       get().updateSessionCorrection(sessionId, {
         status: 'detecting',
@@ -778,7 +780,11 @@ export const useSessionStore = create<SessionState>((set, get) => {
         })
         return issues
       } catch (error) {
-        const message = error instanceof Error ? error.message : '检测失败'
+        const lang = useUIStore.getState().language
+        const message =
+          error instanceof Error && error.message
+            ? error.message
+            : getTranslations(lang).localModel.detectFailed
         get().updateSessionCorrection(sessionId, {
           status: 'error',
           error: message,
@@ -789,7 +795,7 @@ export const useSessionStore = create<SessionState>((set, get) => {
 
     startSessionQuickCorrection: async (sessionId, onChunk) => {
       const session = get().sessions.find((s) => s.id === sessionId)
-      if (!session) throw new Error('未找到要纠错的会话')
+      if (!session) throwUserError('sessionNotFoundForCorrection')
 
       const model = resolveModelForFeature(
         { ...useSettingsStore.getState().settings.aiPostProcess } as import('../types').AiPostProcessConfig,
@@ -835,9 +841,10 @@ export const useSessionStore = create<SessionState>((set, get) => {
           },
         ).catch((err) => {
           get().clearCorrectionStreamingText(sessionId)
+          const lang = useUIStore.getState().language
           get().updateSessionCorrection(sessionId, {
             status: 'error',
-            error: err instanceof Error ? err.message : '纠错失败',
+            error: err instanceof Error ? err.message : userErrorMessage('correctionFailed', lang),
           })
           reject(err)
         })
@@ -846,7 +853,7 @@ export const useSessionStore = create<SessionState>((set, get) => {
 
     startSessionReviewCorrection: async (sessionId, acceptedIssues, onChunk) => {
       const session = get().sessions.find((s) => s.id === sessionId)
-      if (!session) throw new Error('未找到要纠错的会话')
+      if (!session) throwUserError('sessionNotFoundForCorrection')
 
       const model = resolveModelForFeature(
         { ...useSettingsStore.getState().settings.aiPostProcess } as import('../types').AiPostProcessConfig,
@@ -897,9 +904,10 @@ export const useSessionStore = create<SessionState>((set, get) => {
           },
         ).catch((err) => {
           get().clearCorrectionStreamingText(sessionId)
+          const lang = useUIStore.getState().language
           get().updateSessionCorrection(sessionId, {
             status: 'error',
-            error: err instanceof Error ? err.message : '纠错失败',
+            error: err instanceof Error ? err.message : userErrorMessage('correctionFailed', lang),
           })
           reject(err)
         })

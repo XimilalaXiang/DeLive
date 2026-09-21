@@ -1,3 +1,5 @@
+import { throwUserError } from '../utils/userErrors'
+
 function sanitizeFileNameSegment(value: string): string {
   return value
     .trim()
@@ -64,12 +66,12 @@ function createExportableSvg(svg: SVGSVGElement): {
 } {
   const mainGroup = svg.querySelector('g')
   if (!mainGroup) {
-    throw new Error('未找到思维导图 SVG 内容')
+    throwUserError('mindMapSvgNotFound')
   }
 
   const bbox = mainGroup.getBBox()
   if (bbox.width === 0 || bbox.height === 0) {
-    throw new Error('思维导图尺寸为空，无法导出')
+    throwUserError('mindMapEmptyDimensions')
   }
 
   const svgClone = svg.cloneNode(true) as SVGSVGElement
@@ -150,7 +152,7 @@ export async function exportMindMapPng(
     const context = canvas.getContext('2d')
 
     if (!context) {
-      throw new Error('Canvas context unavailable')
+      throwUserError('canvasContextUnavailable')
     }
 
     context.imageSmoothingEnabled = false
@@ -174,6 +176,6 @@ export async function exportMindMapPng(
     triggerDownload(pngBlob, `${filenameBase}.png`)
   } catch (error) {
     const message = error instanceof Error ? error.message : '未知错误'
-    throw new Error(`PNG 导出失败：${message}`)
+    throwUserError('pngExportFailed', undefined, message)
   }
 }

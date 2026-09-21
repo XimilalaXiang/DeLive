@@ -167,7 +167,7 @@ function normalizeAiPostProcessConfig(value: unknown): AiPostProcessConfig | und
   const provider = value.provider === 'openai-compatible'
     ? value.provider
     : 'openai-compatible'
-  const promptLanguage = value.promptLanguage === 'en' || value.promptLanguage === 'zh'
+  const promptLanguage = value.promptLanguage === 'en' || value.promptLanguage === 'zh' || value.promptLanguage === 'ko'
     ? value.promptLanguage
     : undefined
 

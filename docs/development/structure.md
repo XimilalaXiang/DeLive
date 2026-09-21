@@ -68,7 +68,7 @@ DeLive/
 │   │   │   └── asr/             # ASR-specific types
 │   │   ├── i18n/                # Internationalization
 │   │   │   ├── index.ts         # i18n setup
-│   │   │   └── locales/         # zh.ts, en.ts
+│   │   │   └── locales/         # zh.ts, en.ts, ko.ts (+ errors.*.ts)
 │   │   └── themes.ts            # 5 color themes with light/dark tokens
 │   ├── public/                  # Static assets
 │   ├── vite.config.ts           # Vite build config

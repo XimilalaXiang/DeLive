@@ -5,6 +5,7 @@ import type {
   TranscriptSession,
 } from '../types'
 import { resolveModelForFeature } from './aiPostProcess'
+import { throwUserError, userErrorMessage } from '../utils/userErrors'
 
 const DEFAULT_AI_BASE_URL = 'http://127.0.0.1:11434/v1'
 const DEFAULT_PROMPT_LANGUAGE: NonNullable<AiPostProcessConfig['promptLanguage']> = 'zh'
@@ -219,11 +220,11 @@ async function streamChatCompletion(
 
   if (!res.ok) {
     const errorText = await res.text().catch(() => '')
-    throw new Error(errorText || `AI 请求失败: HTTP ${res.status}`)
+    throw new Error(errorText || userErrorMessage('aiRequestFailed', undefined, res.status))
   }
 
   const reader = res.body?.getReader()
-  if (!reader) throw new Error('Response body is not readable')
+  if (!reader) throwUserError('responseBodyNotReadable')
 
   const decoder = new TextDecoder()
   let buffer = ''
@@ -292,7 +293,7 @@ function extractTextContent(choices: ChatCompletionResponse['choices']): string 
 
 function extractJsonArray(raw: string): string {
   const trimmed = raw.trim()
-  if (!trimmed) throw new Error('AI 未返回内容')
+  if (!trimmed) throwUserError('aiNoContent')
 
   const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i)
   if (fenced?.[1]) return fenced[1].trim()
@@ -301,7 +302,7 @@ function extractJsonArray(raw: string): string {
   const end = trimmed.lastIndexOf(']')
   if (start >= 0 && end > start) return trimmed.slice(start, end + 1)
 
-  throw new Error('AI 返回内容不是有效 JSON 数组')
+  throwUserError('aiInvalidJsonArray')
 }
 
 // --------------- Public API ---------------
@@ -320,9 +321,9 @@ export async function detectCorrectionIssues(
   const model = resolveModelForFeature(config, 'correction')
   const lang = config.promptLanguage || DEFAULT_PROMPT_LANGUAGE
 
-  if (!config.enabled) throw new Error('请先在设置中启用 AI 后处理')
-  if (!model) throw new Error('请先配置 AI 纠错模型')
-  if (!session.transcript.trim()) throw new Error('当前会话没有可用于纠错的转录内容')
+  if (!config.enabled) throwUserError('aiPostProcessDisabled')
+  if (!model) throwUserError('aiCorrectionModelNotConfigured')
+  if (!session.transcript.trim()) throwUserError('noTranscriptForCorrection')
 
   const res = await fetch(`${baseUrl}/chat/completions`, {
     method: 'POST',
@@ -342,7 +343,7 @@ export async function detectCorrectionIssues(
 
   if (!res.ok) {
     const errorText = await res.text().catch(() => '')
-    throw new Error(errorText || `AI 请求失败: HTTP ${res.status}`)
+    throw new Error(errorText || userErrorMessage('aiRequestFailed', undefined, res.status))
   }
 
   const payload = (await res.json()) as ChatCompletionResponse
@@ -360,10 +361,10 @@ export async function detectCorrectionIssues(
   try {
     parsed = JSON.parse(jsonText)
   } catch {
-    throw new Error('AI 返回内容无法解析为 JSON')
+    throwUserError('aiJsonParseFailed')
   }
 
-  if (!Array.isArray(parsed)) throw new Error('AI 返回的不是数组')
+  if (!Array.isArray(parsed)) throwUserError('aiResponseNotArray')
 
   const validCategories = new Set(['homophone', 'proper-noun', 'grammar', 'punctuation', 'other'])
   const issues: CorrectionIssue[] = parsed
@@ -395,9 +396,9 @@ export async function correctTranscriptQuick(
   const model = resolveModelForFeature(config, 'correction')
   const lang = config.promptLanguage || DEFAULT_PROMPT_LANGUAGE
 
-  if (!config.enabled) throw new Error('请先在设置中启用 AI 后处理')
-  if (!model) throw new Error('请先配置 AI 纠错模型')
-  if (!session.transcript.trim()) throw new Error('当前会话没有可用于纠错的转录内容')
+  if (!config.enabled) throwUserError('aiPostProcessDisabled')
+  if (!model) throwUserError('aiCorrectionModelNotConfigured')
+  if (!session.transcript.trim()) throwUserError('noTranscriptForCorrection')
 
   await streamChatCompletion(
     baseUrl,
@@ -423,9 +424,9 @@ export async function correctTranscriptWithReview(
   const model = resolveModelForFeature(config, 'correction')
   const lang = config.promptLanguage || DEFAULT_PROMPT_LANGUAGE
 
-  if (!config.enabled) throw new Error('请先在设置中启用 AI 后处理')
-  if (!model) throw new Error('请先配置 AI 纠错模型')
-  if (acceptedIssues.length === 0) throw new Error('没有已确认的修改项')
+  if (!config.enabled) throwUserError('aiPostProcessDisabled')
+  if (!model) throwUserError('aiCorrectionModelNotConfigured')
+  if (acceptedIssues.length === 0) throwUserError('noAcceptedIssues')
 
   await streamChatCompletion(
     baseUrl,

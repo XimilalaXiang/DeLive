@@ -1,5 +1,6 @@
 // Korean language pack
 import type { Translations } from './zh'
+import { koErrors } from './errors.ko'
 
 export const ko: Translations = {
   // App info
@@ -858,4 +859,6 @@ export const ko: Translations = {
     statusError: '오류',
     statusCancelled: '취소됨',
   },
+
+  errors: koErrors,
 }

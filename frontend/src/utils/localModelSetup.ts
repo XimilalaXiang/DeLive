@@ -1,3 +1,5 @@
+import { throwUserError, userErrorMessage } from './userErrors'
+
 export type LocalServiceKind = 'ollama' | 'openai'
 
 export interface LocalServiceProbeResult {
@@ -41,13 +43,13 @@ export function isModelInstalled(installedModels: string[], targetModel: string)
 export async function probeLocalService(baseUrl: string, apiKey?: string): Promise<LocalServiceProbeResult> {
   const normalizedBaseUrl = normalizeLocalServiceBaseUrl(baseUrl)
   if (!normalizedBaseUrl) {
-    throw new Error('请输入 Base URL')
+    throwUserError('enterBaseUrl')
   }
 
   try {
     new URL(normalizedBaseUrl)
   } catch {
-    throw new Error('Base URL 格式不正确')
+    throwUserError('invalidBaseUrl')
   }
 
   const headers = buildHeaders(apiKey)
@@ -81,7 +83,7 @@ export async function probeLocalService(baseUrl: string, apiKey?: string): Promi
   })
   if (!openAIResp.ok) {
     const details = await openAIResp.text().catch(() => '')
-    throw new Error(details || `服务返回错误: ${openAIResp.status}`)
+    throw new Error(details || userErrorMessage('localModelSetupServiceError', undefined, openAIResp.status))
   }
 
   const modelsPayload = await openAIResp.json() as {
@@ -105,10 +107,10 @@ export async function pullOllamaModel(
   const targetModel = model.trim()
 
   if (!normalizedBaseUrl) {
-    throw new Error('请输入 Base URL')
+    throwUserError('enterBaseUrl')
   }
   if (!targetModel) {
-    throw new Error('请输入模型名称')
+    throwUserError('enterModelName')
   }
 
   const response = await fetch(`${normalizedBaseUrl}/api/pull`, {
@@ -124,7 +126,7 @@ export async function pullOllamaModel(
 
   if (!response.ok) {
     const details = await response.text().catch(() => '')
-    throw new Error(details || `拉取失败: ${response.status}`)
+    throw new Error(details || userErrorMessage('localModelPullFailed', undefined, response.status))
   }
 
   // 某些实现可能返回一次性 JSON

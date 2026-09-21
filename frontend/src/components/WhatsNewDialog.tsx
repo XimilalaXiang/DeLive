@@ -2,6 +2,8 @@ import { useEffect, useCallback } from 'react'
 import { Sparkles, Wrench, X } from 'lucide-react'
 import { useUIStore } from '../stores/uiStore'
 import type { WhatsNewEntry } from '../utils/whatsNew'
+import { whatsNewLineText } from '../utils/whatsNew'
+import type { Language } from '../i18n'
 
 interface WhatsNewDialogProps {
   open: boolean
@@ -13,7 +15,6 @@ interface WhatsNewDialogProps {
 
 export function WhatsNewDialog({ open, onClose, entry, allEntries, showAll }: WhatsNewDialogProps) {
   const { language } = useUIStore()
-  const lang = language === 'zh' ? 'zh' : 'en'
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
@@ -68,7 +69,7 @@ export function WhatsNewDialog({ open, onClose, entry, allEntries, showAll }: Wh
 
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
           {entriesToShow.map((e) => (
-            <VersionSection key={e.version} entry={e} lang={lang} showHeader={showAll} />
+            <VersionSection key={e.version} entry={e} lang={language} showHeader={showAll} />
           ))}
         </div>
 
@@ -85,7 +86,7 @@ export function WhatsNewDialog({ open, onClose, entry, allEntries, showAll }: Wh
   )
 }
 
-function VersionSection({ entry, lang, showHeader }: { entry: WhatsNewEntry; lang: 'zh' | 'en'; showHeader?: boolean }) {
+function VersionSection({ entry, lang, showHeader }: { entry: WhatsNewEntry; lang: Language; showHeader?: boolean }) {
   const { language } = useUIStore()
   const pick = (zh: string, en: string, ko: string) => (language === 'ko' ? ko : language === 'zh' ? zh : en)
   return (
@@ -106,7 +107,7 @@ function VersionSection({ entry, lang, showHeader }: { entry: WhatsNewEntry; lan
             {entry.features.map((f, i) => (
               <li key={i} className="flex gap-2">
                 <span className="shrink-0 mt-1.5 h-1.5 w-1.5 rounded-full bg-primary/60" />
-                <span>{f[lang]}</span>
+                <span>{whatsNewLineText(f, lang)}</span>
               </li>
             ))}
           </ul>
@@ -123,7 +124,7 @@ function VersionSection({ entry, lang, showHeader }: { entry: WhatsNewEntry; lan
             {entry.fixes.map((f, i) => (
               <li key={i} className="flex gap-2">
                 <span className="shrink-0 mt-1.5 h-1.5 w-1.5 rounded-full bg-muted-foreground/40" />
-                <span>{f[lang]}</span>
+                <span>{whatsNewLineText(f, lang)}</span>
               </li>
             ))}
           </ul>

@@ -17,6 +17,7 @@ import { useSessionStore } from '../../stores/sessionStore'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { useUIStore } from '../../stores/uiStore'
 import { resolveModelForFeature } from '../../services/aiPostProcess'
+import { resolveUserFacingError } from '../../utils/userErrors'
 
 interface CorrectionTabProps {
   session: TranscriptSession
@@ -120,7 +121,7 @@ export function CorrectionTab({ session }: CorrectionTabProps) {
       await startSessionQuickCorrection(session.id)
       setLocalStatus('done')
     } catch (err) {
-      const msg = err instanceof Error ? err.message : '纠错失败'
+      const msg = resolveUserFacingError(err, language, 'correctionFailed')
       setLocalStatus('error')
       setLocalError(msg)
     } finally {
@@ -137,7 +138,9 @@ export function CorrectionTab({ session }: CorrectionTabProps) {
       await detectSessionCorrectionIssues(session.id)
       setLocalStatus('reviewing')
     } catch (err) {
-      const msg = err instanceof Error ? err.message : '检测失败'
+      const msg = err instanceof Error && err.message
+        ? err.message
+        : t.localModel.detectFailed
       setLocalStatus('error')
       setLocalError(msg)
     } finally {
@@ -159,7 +162,7 @@ export function CorrectionTab({ session }: CorrectionTabProps) {
       }
       setLocalStatus('done')
     } catch (err) {
-      const msg = err instanceof Error ? err.message : '纠错失败'
+      const msg = resolveUserFacingError(err, language, 'correctionFailed')
       setLocalStatus('error')
       setLocalError(msg)
     } finally {
