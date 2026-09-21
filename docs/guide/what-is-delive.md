@@ -12,11 +12,11 @@ DeLive supports **twelve ASR backends** behind a single unified interface. Cloud
 |----------|------|------|------------|
 | **Soniox V4** | Cloud | Real-time streaming | Token-level transcription, real-time translation, bilingual captions, speaker diarization |
 | **Volcengine** | Cloud | Real-time streaming | Chinese-oriented; embedded proxy handles required headers |
-| **ElevenLabs** | Cloud | Real-time streaming | Scribe v2 Realtime; 99 languages including Chinese |
+| **ElevenLabs** | Cloud | Real-time streaming | Scribe v2 Realtime (Standard / Turbo / Lite); 99 languages including Chinese |
 | **Mistral AI** | Cloud | Real-time streaming | Voxtral Realtime; embedded proxy handles authorization |
-| **Gladia** | Cloud | Real-time streaming | Solaria-1; 100+ languages; <300ms latency; proxy handles session init |
+| **Gladia** | Cloud | Real-time streaming | Live Solaria-1; file Solaria-1 or Solaria-3; 100+ languages; proxy handles session init |
 | **Deepgram** | Cloud | Real-time streaming | Nova-3 / Nova-2 streaming ASR; best for English and multilingual |
-| **AssemblyAI** | Cloud | Real-time streaming | Universal-3 Pro streaming; optimized for English |
+| **AssemblyAI** | Cloud | Real-time streaming | Universal-3.5 Pro streaming; optimized for English |
 | **Cloudflare Workers AI** | Cloud | Windowed batch | Whisper-based; low cost with free tier; VAD filter |
 | **SiliconFlow** | Cloud | Windowed batch | SenseVoice, TeleSpeech, and Qwen Omni models |
 | **Groq** | Cloud | Windowed batch | Whisper large-v3-turbo with quasi-realtime updates |

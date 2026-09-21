@@ -12,11 +12,11 @@ DeLive 在统一界面下支持 **十二种 ASR 后端**。云端服务需要 AP
 |----------|------|------|------|
 | **Soniox V4** | 云端 | 实时流式 | Token 级转录、实时翻译、双语字幕、说话人分离 |
 | **火山引擎** | 云端 | 实时流式 | 中文优化；内置代理处理所需 Header |
-| **ElevenLabs** | 云端 | 实时流式 | Scribe v2 Realtime；99 种语言含中文 |
+| **ElevenLabs** | 云端 | 实时流式 | Scribe v2 Realtime（标准 / Turbo / Lite）；99 种语言含中文 |
 | **Mistral AI** | 云端 | 实时流式 | Voxtral Realtime；内置代理处理认证 |
-| **Gladia** | 云端 | 实时流式 | Solaria-1；100+ 种语言；<300ms 延迟；代理处理会话初始化 |
+| **Gladia** | 云端 | 实时流式 | 实时 Solaria-1；文件 Solaria-1 / Solaria-3；100+ 种语言；代理处理会话初始化 |
 | **Deepgram** | 云端 | 实时流式 | Nova-3 / Nova-2 流式 ASR；最适合英语和多语言 |
-| **AssemblyAI** | 云端 | 实时流式 | Universal-3 Pro 流式；针对英语优化 |
+| **AssemblyAI** | 云端 | 实时流式 | Universal-3.5 Pro 流式；针对英语优化 |
 | **Cloudflare Workers AI** | 云端 | 窗口批处理 | 基于 Whisper；低成本、免费额度；VAD 过滤 |
 | **硅基流动** | 云端 | 窗口批处理 | SenseVoice、TeleSpeech、通义千问 Omni 模型 |
 | **Groq** | 云端 | 窗口批处理 | Whisper large-v3-turbo，准实时更新 |

@@ -7,7 +7,7 @@ import { SILICONFLOW_DEFAULT_MODEL } from '../types/asr/vendors/siliconflow'
 import { MISTRAL_REALTIME_MODEL } from '../types/asr/vendors/mistral'
 import { DEEPGRAM_DEFAULT_MODEL } from '../types/asr/vendors/deepgram'
 import { ASSEMBLYAI_DEFAULT_MODEL } from '../types/asr/vendors/assemblyai'
-import { ELEVENLABS_DEFAULT_MODEL } from '../types/asr/vendors/elevenlabs'
+import { resolveElevenLabsRealtimeModel } from '../types/asr/vendors/elevenlabs'
 import { GLADIA_DEFAULT_MODEL } from '../types/asr/vendors/gladia'
 import { CLOUDFLARE_DEFAULT_MODEL } from '../types/asr/vendors/cloudflare'
 import { SENSEVOICE_DEFAULT_BASE_URL, SENSEVOICE_DEFAULT_MODEL } from '../types/asr/vendors/sensevoice'
@@ -411,7 +411,7 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
     await new Promise<void>((resolve, reject) => {
       const params = new URLSearchParams({
         apiKey,
-        model: ELEVENLABS_DEFAULT_MODEL,
+        model: resolveElevenLabsRealtimeModel(config.model),
         language: '',
       })
       const proxyUrl = `${elevenlabsBaseUrl}?${params.toString()}`

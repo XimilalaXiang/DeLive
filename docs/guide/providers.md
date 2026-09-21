@@ -109,7 +109,7 @@ Uses a local WebSocket proxy (`/ws/deepgram` on port 23456) to inject `Authoriza
 
 ## AssemblyAI
 
-Universal-3 Pro real-time streaming ASR through AssemblyAI's WebSocket API.
+Universal-3.5 Pro real-time streaming ASR through AssemblyAI's WebSocket API.
 
 **Required:** `apiKey`
 
@@ -119,7 +119,7 @@ Uses a local WebSocket proxy (`/ws/assemblyai` on port 23456) to inject `Authori
 
 ## ElevenLabs
 
-Scribe v2 Realtime ASR through ElevenLabs' WebSocket API.
+Scribe v2 Realtime ASR through ElevenLabs' WebSocket API. Selectable realtime models: `scribe_v2_realtime` (default), `scribe_v2_realtime_turbo`, and `scribe_v2_realtime_lite`.
 
 **Required:** `apiKey`
 
@@ -129,13 +129,13 @@ Uses a local WebSocket proxy (`/ws/elevenlabs` on port 23456) to inject `xi-api-
 
 ## Gladia
 
-Solaria-1 real-time streaming ASR with sub-300ms latency and 100+ language support.
+Solaria-1 real-time streaming ASR with sub-300ms latency and 100+ language support. File/async transcription can use `solaria-1` (default) or `solaria-3` (pre-recorded only; EN/FR/DE/ES/IT).
 
 **Required:** `apiKey`
 
-**Optional:** `model`, `languageHints`
+**Optional:** `fileModel` (file jobs only), `languageHints`
 
-Uses a local WebSocket proxy (`/ws/gladia` on port 23456) that handles HTTP POST session initialization and injects the `x-gladia-key` authentication header. Supports live capture via system audio.
+Uses a local WebSocket proxy (`/ws/gladia` on port 23456) that handles HTTP POST session initialization and injects the `x-gladia-key` authentication header. Live capture always uses Solaria-1; `solaria-3` is never sent on the live WebSocket.
 
 ## Cloudflare Workers AI
 

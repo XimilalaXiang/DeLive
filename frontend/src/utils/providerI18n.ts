@@ -36,10 +36,12 @@ const FIELD_LABEL_MAP: Record<string, Record<string, keyof ProviderStrings>> = {
   },
   elevenlabs: {
     apiKey: 'fieldApiKey',
+    model: 'fieldModel',
     languageHints: 'fieldLanguageHints',
   },
   gladia: {
     apiKey: 'fieldApiKey',
+    fileModel: 'fieldGladiaFileModel',
     languageHints: 'fieldLanguageHints',
   },
   mistral: {
@@ -112,10 +114,12 @@ const FIELD_DESC_MAP: Record<string, Record<string, keyof ProviderStrings>> = {
   },
   elevenlabs: {
     apiKey: 'fieldElevenlabsApiKeyDesc',
+    model: 'fieldElevenlabsModelDesc',
     languageHints: 'fieldLanguageHintsDesc',
   },
   gladia: {
     apiKey: 'fieldGladiaApiKeyDesc',
+    fileModel: 'fieldGladiaFileModelDesc',
     languageHints: 'fieldLanguageHintsDescAuto',
   },
   mistral: {

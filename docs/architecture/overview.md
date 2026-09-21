@@ -110,7 +110,7 @@ flowchart TB
     silicon["SiliconFlow\nWindowed batch\nSenseVoice · Qwen"]
     mistral["Mistral AI\nReal-time streaming\nVoxtral Realtime"]
     deepgram["Deepgram\nReal-time streaming\nNova-3 · Nova-2"]
-    assemblyai["AssemblyAI\nReal-time streaming\nUniversal-3 Pro"]
+    assemblyai["AssemblyAI\nReal-time streaming\nUniversal-3.5 Pro"]
     elevenlabs["ElevenLabs\nReal-time streaming\nScribe v2 Realtime"]
   end
 

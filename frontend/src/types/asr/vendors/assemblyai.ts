@@ -1,7 +1,7 @@
 /**
  * AssemblyAI ASR 特定类型定义
  *
- * 实时流式仅支持 6 种语言 (Universal-3 Pro Streaming)
+ * 实时流式仅支持 6 种语言 (Universal-3.5 Pro Streaming)
  * 文件转录支持 99+ 种语言 (Universal-2 / Best / Nano)
  */
 

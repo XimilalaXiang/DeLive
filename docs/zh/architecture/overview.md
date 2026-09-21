@@ -110,7 +110,7 @@ flowchart TB
     silicon["硅基流动\n窗口批处理\nSenseVoice · Qwen"]
     mistral["Mistral AI\n实时流式\nVoxtral Realtime"]
     deepgram["Deepgram\n实时流式\nNova-3 · Nova-2"]
-    assemblyai["AssemblyAI\n实时流式\nUniversal-3 Pro"]
+    assemblyai["AssemblyAI\n实时流式\nUniversal-3.5 Pro"]
     elevenlabs["ElevenLabs\n实时流式\nScribe v2 Realtime"]
   end
 

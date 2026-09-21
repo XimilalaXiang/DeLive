@@ -37,6 +37,7 @@ import {
   waitForCompletion as gladiaWaitForCompletion,
   type GladiaUtterance,
 } from '../utils/gladiaFileApi'
+import { resolveGladiaFileModel } from '../types/asr/vendors/gladia'
 import {
   transcribeFile as elevenlabsTranscribeFile,
   type ElevenLabsWord,
@@ -558,6 +559,7 @@ async function executeGladia(
   jobId: string,
   updateJob: (id: string, u: Record<string, unknown>) => void,
   signal: AbortSignal,
+  fileModel?: string,
 ): Promise<TranscriptionResult> {
   updateJob(jobId, { status: 'uploading', progress: 10 })
   const uploadResult = await gladiaUploadFile(apiKey, file, signal)
@@ -568,6 +570,7 @@ async function executeGladia(
     apiKey,
     uploadResult.audio_url,
     {
+      model: fileModel,
       languages: config.languageHints,
       diarization: config.enableSpeakerDiarization,
     },
@@ -1164,7 +1167,8 @@ export function useFileTranscription() {
           const accountId = providerConfig?.accountId as string
           result = await executeCloudflare(file, config, apiToken, accountId, jobId, updateJob, controller.signal)
         } else if (providerId === 'gladia') {
-          result = await executeGladia(file, config, apiKey!, jobId, updateJob, controller.signal)
+          const fileModel = resolveGladiaFileModel(providerConfig?.fileModel)
+          result = await executeGladia(file, config, apiKey!, jobId, updateJob, controller.signal, fileModel)
         } else if (providerId === 'elevenlabs') {
           result = await executeElevenLabs(file, config, apiKey!, jobId, updateJob, controller.signal)
         } else if (providerId === 'deepgram') {

@@ -4,6 +4,33 @@
 
 export const GLADIA_DEFAULT_MODEL = 'solaria-1'
 
+/** Pre-recorded / async transcription models (live streaming stays on solaria-1). */
+export const GLADIA_FILE_MODELS = [
+  {
+    value: 'solaria-1',
+    label: 'Solaria-1',
+  },
+  {
+    value: 'solaria-3',
+    label: 'Solaria-3 (file only)',
+  },
+] as const
+
+export const GLADIA_DEFAULT_FILE_MODEL = 'solaria-1'
+
+const GLADIA_FILE_MODEL_VALUES = new Set(GLADIA_FILE_MODELS.map((item) => item.value))
+
+export function resolveGladiaFileModel(value: unknown): string {
+  if (typeof value !== 'string') {
+    return GLADIA_DEFAULT_FILE_MODEL
+  }
+  const trimmed = value.trim()
+  if (!trimmed || !GLADIA_FILE_MODEL_VALUES.has(trimmed)) {
+    return GLADIA_DEFAULT_FILE_MODEL
+  }
+  return trimmed
+}
+
 export const GLADIA_SUPPORTED_LANGUAGES = [
   'zh', 'en', 'es', 'fr', 'de', 'it', 'ja', 'ko', 'pt', 'ru',
   'hi', 'nl', 'pl', 'sv', 'tr', 'uk', 'vi',

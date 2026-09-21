@@ -84,9 +84,9 @@ DeLive は、PC で再生中のシステム音声をそのまま取り込み、�
 | **Volcengine** | クラウド | リアルタイムストリーミング | 対応 | 中国語に強く、組み込みプロキシに対応 |
 | **ElevenLabs** | クラウド | リアルタイムストリーミング | 対応 | Scribe v2 Realtime、99 言語 |
 | **Mistral AI** | クラウド | リアルタイムストリーミング | 対応 | Voxtral Realtime |
-| **Gladia** | クラウド | リアルタイムストリーミング | 対応 | Solaria-1、100+ 言語、300ms 未満の低遅延 |
+| **Gladia** | クラウド | リアルタイムストリーミング | 対応 | ライブ Solaria-1；ファイル Solaria-1 / Solaria-3、100+ 言語 |
 | **Deepgram** | クラウド | リアルタイムストリーミング | 対応 | Nova-3 / Nova-2 ストリーミング |
-| **AssemblyAI** | クラウド | リアルタイムストリーミング | 対応 | Universal-3 Pro ストリーミング |
+| **AssemblyAI** | クラウド | リアルタイムストリーミング | 対応 | Universal-3.5 Pro ストリーミング |
 | **Cloudflare Workers AI** | クラウド | ウィンドウバッチ | 対応 | Whisper ベース、低コストで無料枠あり |
 | **SiliconFlow** | クラウド | ウィンドウバッチ | 対応 | SenseVoice、TeleSpeech、Qwen Omni |
 | **Groq** | クラウド | ウィンドウバッチ | 対応 | Whisper large-v3-turbo / large-v3 |
