@@ -18,7 +18,9 @@ export const GLADIA_FILE_MODELS = [
 
 export const GLADIA_DEFAULT_FILE_MODEL = 'solaria-1'
 
-const GLADIA_FILE_MODEL_VALUES = new Set(GLADIA_FILE_MODELS.map((item) => item.value))
+const GLADIA_FILE_MODEL_VALUES = new Set<string>(
+  GLADIA_FILE_MODELS.map((item) => item.value),
+)
 
 export function resolveGladiaFileModel(value: unknown): string {
   if (typeof value !== 'string') {

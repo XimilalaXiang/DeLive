@@ -19,7 +19,7 @@ export const ELEVENLABS_REALTIME_MODELS = [
   },
 ] as const
 
-const ELEVENLABS_REALTIME_MODEL_VALUES = new Set(
+const ELEVENLABS_REALTIME_MODEL_VALUES = new Set<string>(
   ELEVENLABS_REALTIME_MODELS.map((item) => item.value),
 )
 
