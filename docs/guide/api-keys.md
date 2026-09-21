@@ -33,7 +33,7 @@ This page walks you through obtaining API keys for each cloud-based ASR provider
 2. Create an account with your email or Google/GitHub login
 3. Navigate to the **API** section in your dashboard
 4. Copy your **API Key**
-5. In DeLive, select **Soniox V4** as provider and paste the key
+5. In DeLive, select **Soniox V5** as provider and paste the key
 
 **DeLive field:** `apiKey`
 

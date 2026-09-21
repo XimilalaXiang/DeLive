@@ -33,7 +33,7 @@
 2. 使用邮箱或 Google/GitHub 注册
 3. 进入控制台，找到 **API** 板块
 4. 复制你的 **API Key**
-5. 在 DeLive 中选择 **Soniox V4**，粘贴 Key
+5. 在 DeLive 中选择 **Soniox V5**，粘贴 Key
 
 **DeLive 字段：** `apiKey`
 

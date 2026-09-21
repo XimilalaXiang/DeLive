@@ -8,7 +8,7 @@ DeLive supports twelve ASR backends through a unified provider registry. Each pr
 
 | Provider | Type | Transport | Audio | Streaming | Translation | Diarization | File |
 |----------|------|-----------|-------|-----------|-------------|-------------|------|
-| Soniox V4 | Cloud | WebSocket | MediaRecorder (WebM/Opus) | Yes | Yes | Yes | Yes |
+| Soniox V5 | Cloud | WebSocket | MediaRecorder (WebM/Opus) | Yes | Yes | Yes | Yes |
 | Volcengine | Cloud | WebSocket (via proxy) | AudioWorklet (PCM16) | Yes | No | No | Yes |
 | ElevenLabs | Cloud | WebSocket (via proxy) | AudioWorklet (PCM16) | Yes | No | No | Yes |
 | Mistral AI | Cloud | WebSocket (via proxy) | AudioWorklet (PCM16) | Yes | No | No | Yes |
@@ -47,13 +47,13 @@ Used by **whisper.cpp**. DeLive manages the `whisper-server` binary lifecycle:
 3. Audio is sent to `POST /inference` as WAV
 4. Process is stopped on disconnect or app quit
 
-## Soniox V4
+## Soniox V5
 
-The most feature-rich provider with real-time streaming, translation, and speaker diarization.
+The most feature-rich provider with real-time streaming, translation, and speaker diarization. DeLive uses Soniox real-time model **`stt-rt-v5`** by default.
 
 **Required:** `apiKey`
 
-**Optional:** `model`, `languageHints`, `translationEnabled`, `translationTargetLanguage`, `enableSpeakerDiarization`
+**Optional:** `model` (default `stt-rt-v5`), `languageHints`, `translationEnabled`, `translationTargetLanguage`, `enableSpeakerDiarization`
 
 **Features:**
 - Token-level real-time transcription

@@ -104,7 +104,7 @@ sequenceDiagram
 ```mermaid
 flowchart TB
   subgraph cloud["☁️ 云端 Provider"]
-    soniox["Soniox V4\n实时流式\n翻译 · 说话人区分"]
+    soniox["Soniox V5\n实时流式\n翻译 · 说话人区分"]
     volc["火山引擎\n实时流式\n中文优化"]
     groq["Groq\n窗口批处理\nWhisper large-v3-turbo"]
     silicon["硅基流动\n窗口批处理\nSenseVoice · Qwen"]

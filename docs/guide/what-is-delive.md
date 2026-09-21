@@ -10,7 +10,7 @@ DeLive supports **twelve ASR backends** behind a single unified interface. Cloud
 
 | Provider | Type | Mode | Highlights |
 |----------|------|------|------------|
-| **Soniox V4** | Cloud | Real-time streaming | Token-level transcription, real-time translation, bilingual captions, speaker diarization |
+| **Soniox V5** | Cloud | Real-time streaming | Token-level transcription, real-time translation, bilingual captions, speaker diarization |
 | **Volcengine** | Cloud | Real-time streaming | Chinese-oriented; embedded proxy handles required headers |
 | **ElevenLabs** | Cloud | Real-time streaming | Scribe v2 Realtime (Standard / Turbo / Lite); 99 languages including Chinese |
 | **Mistral AI** | Cloud | Real-time streaming | Voxtral Realtime; embedded proxy handles authorization |
