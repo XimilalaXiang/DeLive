@@ -23,7 +23,7 @@ DeLive provides a floating caption window that displays real-time transcription 
 | `dual` | Shows both source and translated text in dual lines |
 
 ::: tip
-Translation is currently available through **Soniox V4** with `translationEnabled` turned on. Other providers show source text only.
+Translation is currently available through **Soniox V5** with `translationEnabled` turned on. Other providers show source text only.
 :::
 
 ## How It Works

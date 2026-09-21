@@ -81,7 +81,7 @@ DeLive is a desktop transcription workspace for system audio. It captures whatev
 
 | Provider | Type | Transport | File | Highlights |
 |----------|------|-----------|------|------------|
-| **Soniox V4** | Cloud | Realtime streaming | Yes | Token-level transcription, realtime translation, bilingual captions, speaker diarization |
+| **Soniox V5** | Cloud | Realtime streaming | Yes | Token-level transcription, realtime translation, bilingual captions, speaker diarization |
 | **Volcengine** | Cloud | Realtime streaming | Yes | Chinese-oriented realtime path with embedded proxy |
 | **ElevenLabs** | Cloud | Realtime streaming | Yes | Scribe v2 Realtime (Standard / Turbo / Lite); 99 languages |
 | **Mistral AI** | Cloud | Realtime streaming | Yes | Voxtral Realtime |

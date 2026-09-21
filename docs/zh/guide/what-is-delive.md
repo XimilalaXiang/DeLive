@@ -10,7 +10,7 @@ DeLive 在统一界面下支持 **十二种 ASR 后端**。云端服务需要 AP
 
 | Provider | 类型 | 模式 | 亮点 |
 |----------|------|------|------|
-| **Soniox V4** | 云端 | 实时流式 | Token 级转录、实时翻译、双语字幕、说话人分离 |
+| **Soniox V5** | 云端 | 实时流式 | Token 级转录、实时翻译、双语字幕、说话人分离 |
 | **火山引擎** | 云端 | 实时流式 | 中文优化；内置代理处理所需 Header |
 | **ElevenLabs** | 云端 | 实时流式 | Scribe v2 Realtime（标准 / Turbo / Lite）；99 种语言含中文 |
 | **Mistral AI** | 云端 | 实时流式 | Voxtral Realtime；内置代理处理认证 |

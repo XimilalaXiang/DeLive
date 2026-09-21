@@ -8,7 +8,7 @@ DeLive 通过统一的 Provider 注册机制支持十二种 ASR 后端。每个 
 
 | Provider | 类型 | 传输方式 | 音频格式 | 流式 | 翻译 | 说话人分离 | 文件 |
 |----------|------|---------|---------|------|------|-----------|------|
-| Soniox V4 | 云端 | WebSocket | MediaRecorder (WebM/Opus) | 是 | 是 | 是 | 是 |
+| Soniox V5 | 云端 | WebSocket | MediaRecorder (WebM/Opus) | 是 | 是 | 是 | 是 |
 | 火山引擎 | 云端 | WebSocket（经代理） | AudioWorklet (PCM16) | 是 | 否 | 否 | 是 |
 | ElevenLabs | 云端 | WebSocket（经代理） | AudioWorklet (PCM16) | 是 | 否 | 否 | 是 |
 | Mistral AI | 云端 | WebSocket（经代理） | AudioWorklet (PCM16) | 是 | 否 | 否 | 是 |
@@ -47,13 +47,13 @@ DeLive 通过统一的 Provider 注册机制支持十二种 ASR 后端。每个 
 3. 音频以 WAV 格式发送到 `POST /inference`
 4. 断开连接或应用退出时停止进程
 
-## Soniox V4
+## Soniox V5
 
-功能最丰富的 Provider，支持实时流式、翻译和说话人分离。
+功能最丰富的 Provider，支持实时流式、翻译和说话人分离。DeLive 默认使用 Soniox 实时模型 **`stt-rt-v5`**。
 
 **必填：** `apiKey`
 
-**可选：** `model`、`languageHints`、`translationEnabled`、`translationTargetLanguage`、`enableSpeakerDiarization`
+**可选：** `model`（默认 `stt-rt-v5`）、`languageHints`、`translationEnabled`、`translationTargetLanguage`、`enableSpeakerDiarization`
 
 ## 火山引擎
 
