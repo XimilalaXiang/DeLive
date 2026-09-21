@@ -8,7 +8,7 @@
  *   - 与其他 provider 一致的取消和错误处理
  *
  * 60db STT WS 协议 (wss://api.60db.ai/ws/stt)：
- *   服务端 → 客户端：connection_established → connected → session_started →
+ *   服务端 → 客户端：connecting → connected → connection_established → session_started →
  *                    speech_started → transcription (interim/final) → session_stopped
  *   客户端 → 服务端：{ type: "start", languages, config: { encoding, sample_rate, ... } }
  *                    原始二进制 PCM16 帧（无需 JSON 包装）
@@ -21,6 +21,11 @@ import { WebSocket as NodeWebSocket, type WebSocketServer } from 'ws'
 import { getWsProxyAgent } from './proxyAgent'
 
 const SIXTYDB_WS_BASE = 'wss://api.60db.ai/ws/stt'
+
+/** STT frames use `type`; legacy TTS clients used a top-level `connection_established` key. */
+export function isSixtydbConnectionEstablished(msg: Record<string, unknown>): boolean {
+  return msg.type === 'connection_established' || Boolean(msg.connection_established)
+}
 
 interface SixtydbProxyConfig {
   apiKey: string
@@ -75,7 +80,7 @@ function handleSixtydbConnection(clientWs: NodeWebSocket, req: IncomingMessage):
       return
     }
 
-    if (msg.connection_established) {
+    if (isSixtydbConnectionEstablished(msg)) {
       const languages = config.languageHints?.length
         ? config.languageHints
         : config.language ? [config.language] : null
@@ -86,7 +91,7 @@ function handleSixtydbConnection(clientWs: NodeWebSocket, req: IncomingMessage):
           encoding: 'linear',
           sample_rate: 16000,
           continuous_mode: true,
-          utterance_end_ms: 500,
+          utterance_end_ms: 1000,
           interim_results_frequency: 300,
           diarize: !!config.diarize,
           audio_enhancement: 'adaptive',
