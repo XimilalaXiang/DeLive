@@ -272,7 +272,7 @@ features:
     <div class="new-feature">
       <div class="icon">🎙️</div>
       <h3>Gladia 实时 ASR</h3>
-      <p>Solaria-1 实时流式转录，延迟低于 300ms，支持 100+ 种语言。内嵌代理处理会话初始化和认证。</p>
+      <p>Solaria-1 实时流式；文件转录可选 Solaria-1 或 Solaria-3（异步）。内嵌代理处理会话初始化和认证。</p>
     </div>
     <div class="new-feature">
       <div class="icon">🤖</div>

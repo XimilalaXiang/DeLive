@@ -164,7 +164,7 @@ $200 in free credits covers thousands of minutes. No credit card required.
 
 **Website:** [assemblyai.com](https://www.assemblyai.com)
 
-**Pricing:** $50 in free credits on signup (no credit card). Universal-3 Pro pre-recorded at $0.21/hr, streaming at $0.45/hr.
+**Pricing:** $50 in free credits on signup (no credit card). Universal-3.5 Pro pre-recorded at $0.21/hr, streaming at $0.45/hr.
 
 **Steps:**
 

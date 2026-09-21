@@ -83,11 +83,11 @@ DeLive is a desktop transcription workspace for system audio. It captures whatev
 |----------|------|-----------|------|------------|
 | **Soniox V4** | Cloud | Realtime streaming | Yes | Token-level transcription, realtime translation, bilingual captions, speaker diarization |
 | **Volcengine** | Cloud | Realtime streaming | Yes | Chinese-oriented realtime path with embedded proxy |
-| **ElevenLabs** | Cloud | Realtime streaming | Yes | Scribe v2 Realtime; 99 languages |
+| **ElevenLabs** | Cloud | Realtime streaming | Yes | Scribe v2 Realtime (Standard / Turbo / Lite); 99 languages |
 | **Mistral AI** | Cloud | Realtime streaming | Yes | Voxtral Realtime |
-| **Gladia** | Cloud | Realtime streaming | Yes | Solaria-1; 100+ languages; <300ms latency |
+| **Gladia** | Cloud | Realtime streaming | Yes | Live: Solaria-1; file: Solaria-1 or Solaria-3; 100+ languages |
 | **Deepgram** | Cloud | Realtime streaming | Yes | Nova-3 / Nova-2 streaming |
-| **AssemblyAI** | Cloud | Realtime streaming | Yes | Universal-3 Pro streaming |
+| **AssemblyAI** | Cloud | Realtime streaming | Yes | Universal-3.5 Pro streaming |
 | **Cloudflare Workers AI** | Cloud | Windowed batch | Yes | Whisper-based; low cost with free tier |
 | **SiliconFlow** | Cloud | Windowed batch | Yes | SenseVoice, TeleSpeech, Qwen Omni |
 | **Groq** | Cloud | Windowed batch | Yes | Whisper large-v3-turbo / large-v3 |

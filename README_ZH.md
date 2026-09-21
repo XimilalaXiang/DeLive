@@ -82,11 +82,11 @@ DeLive 是一个面向系统音频的桌面转录工作台。它会把电脑正�
 |----------|------|----------|----------|------|
 | **Soniox V4** | 云端 | 实时流式 | 支持 | token 级实时转录、实时翻译、双语字幕、多发言人识别 |
 | **火山引擎** | 云端 | 实时流式 | 支持 | 中文场景友好，内置代理 |
-| **ElevenLabs** | 云端 | 实时流式 | 支持 | Scribe v2 Realtime，99 种语言 |
+| **ElevenLabs** | 云端 | 实时流式 | 支持 | Scribe v2 Realtime（标准 / Turbo / Lite），99 种语言 |
 | **Mistral AI** | 云端 | 实时流式 | 支持 | Voxtral Realtime |
-| **Gladia** | 云端 | 实时流式 | 支持 | Solaria-1，100+ 种语言，<300ms 延迟 |
+| **Gladia** | 云端 | 实时流式 | 支持 | 实时 Solaria-1；文件 Solaria-1 / Solaria-3，100+ 种语言 |
 | **Deepgram** | 云端 | 实时流式 | 支持 | Nova-3 / Nova-2 流式 |
-| **AssemblyAI** | 云端 | 实时流式 | 支持 | Universal-3 Pro 流式 |
+| **AssemblyAI** | 云端 | 实时流式 | 支持 | Universal-3.5 Pro 流式 |
 | **Cloudflare Workers AI** | 云端 | 窗口批处理 | 支持 | 基于 Whisper，低成本含免费额度 |
 | **硅基流动** | 云端 | 窗口批处理 | 支持 | SenseVoice、TeleSpeech、Qwen Omni |
 | **Groq** | 云端 | 窗口批处理 | 支持 | Whisper large-v3-turbo / large-v3 |

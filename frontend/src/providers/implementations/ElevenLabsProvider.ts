@@ -13,7 +13,9 @@ import type {
 } from '../../types/asr'
 import {
   ELEVENLABS_DEFAULT_MODEL,
+  ELEVENLABS_REALTIME_MODELS,
   ELEVENLABS_SUPPORTED_LANGUAGES,
+  resolveElevenLabsRealtimeModel,
 } from '../../types/asr/vendors/elevenlabs'
 
 import { getProxyWsUrl } from '../../utils/proxyUrl'
@@ -72,6 +74,15 @@ export class ElevenLabsProvider extends BaseASRProvider {
         description: '从 elevenlabs.io/app/settings/api-keys 获取 API Key',
       },
       {
+        key: 'model',
+        label: '模型',
+        type: 'select',
+        required: false,
+        defaultValue: ELEVENLABS_DEFAULT_MODEL,
+        options: ELEVENLABS_REALTIME_MODELS.map((item) => ({ value: item.value, label: item.label })),
+        description: 'ElevenLabs Scribe v2 实时转录模型（Standard / Turbo / Lite）。',
+      },
+      {
         key: 'languageHints',
         label: '语言提示 (Language Hints)',
         type: 'text',
@@ -102,7 +113,7 @@ export class ElevenLabsProvider extends BaseASRProvider {
       try {
         const params = new URLSearchParams({
           apiKey,
-          model: ELEVENLABS_DEFAULT_MODEL,
+          model: resolveElevenLabsRealtimeModel(config.model),
           language: (config.language as string) || '',
         })
 

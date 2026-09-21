@@ -52,6 +52,7 @@ export interface GladiaJobResult {
 }
 
 export interface GladiaTranscribeParams {
+  model?: string
   languages?: string[]
   diarization?: boolean
   diarizationConfig?: {
@@ -96,6 +97,10 @@ export async function createTranscription(
 ): Promise<{ id: string; result_url: string }> {
   const body: Record<string, unknown> = {
     audio_url: audioUrl,
+  }
+
+  if (params.model) {
+    body.model = params.model
   }
 
   if (params.languages?.length) {

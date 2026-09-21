@@ -272,7 +272,7 @@ features:
     <div class="new-feature">
       <div class="icon">🎙️</div>
       <h3>Gladia Realtime ASR</h3>
-      <p>Solaria-1 real-time streaming with sub-300ms latency and 100+ language support. Embedded proxy handles session init and authentication.</p>
+      <p>Solaria-1 real-time streaming; file jobs support Solaria-1 or Solaria-3 (async). Embedded proxy handles session init and authentication.</p>
     </div>
     <div class="new-feature">
       <div class="icon">🤖</div>

@@ -12,7 +12,9 @@ import type {
   ASRVendor,
 } from '../../types/asr'
 import {
+  GLADIA_DEFAULT_FILE_MODEL,
   GLADIA_DEFAULT_MODEL,
+  GLADIA_FILE_MODELS,
   GLADIA_SUPPORTED_LANGUAGES,
 } from '../../types/asr/vendors/gladia'
 
@@ -70,6 +72,15 @@ export class GladiaProvider extends BaseASRProvider {
         required: true,
         placeholder: '输入你的 Gladia API Key',
         description: '从 app.gladia.io 获取 API Key',
+      },
+      {
+        key: 'fileModel',
+        label: '文件转录模型',
+        type: 'select',
+        required: false,
+        defaultValue: GLADIA_DEFAULT_FILE_MODEL,
+        options: GLADIA_FILE_MODELS.map((item) => ({ value: item.value, label: item.label })),
+        description: '仅用于文件/异步转录。实时流式固定使用 Solaria-1；Solaria-3 仅支持预录音频（EU 核心语言）。',
       },
       {
         key: 'languageHints',

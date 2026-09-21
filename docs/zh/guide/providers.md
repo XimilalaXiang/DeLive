@@ -103,7 +103,7 @@ DeLive 通过统一的 Provider 注册机制支持十二种 ASR 后端。每个 
 
 ## AssemblyAI
 
-通过 AssemblyAI WebSocket API 使用 Universal-3 Pro 实时流式 ASR。
+通过 AssemblyAI WebSocket API 使用 Universal-3.5 Pro 实时流式 ASR。
 
 **必填：** `apiKey`
 
@@ -113,7 +113,7 @@ DeLive 通过统一的 Provider 注册机制支持十二种 ASR 后端。每个 
 
 ## ElevenLabs
 
-通过 ElevenLabs WebSocket API 使用 Scribe v2 Realtime ASR。
+通过 ElevenLabs WebSocket API 使用 Scribe v2 Realtime ASR。可选实时模型：`scribe_v2_realtime`（默认）、`scribe_v2_realtime_turbo`、`scribe_v2_realtime_lite`。
 
 **必填：** `apiKey`
 

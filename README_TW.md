@@ -82,11 +82,11 @@ DeLive 是一個面向系統音訊的桌面轉錄工作台。它會擷取電腦�
 |----------|------|----------|----------|------|
 | **Soniox V4** | 雲端 | 即時串流 | 支援 | token 級即時轉錄、即時翻譯、雙語字幕、多發言人辨識 |
 | **火山引擎** | 雲端 | 即時串流 | 支援 | 中文場景友善，內建代理 |
-| **ElevenLabs** | 雲端 | 即時串流 | 支援 | Scribe v2 Realtime，99 種語言 |
+| **ElevenLabs** | 雲端 | 即時串流 | 支援 | Scribe v2 Realtime（標準 / Turbo / Lite），99 種語言 |
 | **Mistral AI** | 雲端 | 即時串流 | 支援 | Voxtral Realtime |
-| **Gladia** | 雲端 | 即時串流 | 支援 | Solaria-1，100+ 種語言，<300ms 延遲 |
+| **Gladia** | 雲端 | 即時串流 | 支援 | 即時 Solaria-1；檔案 Solaria-1 / Solaria-3，100+ 種語言 |
 | **Deepgram** | 雲端 | 即時串流 | 支援 | Nova-3 / Nova-2 串流 |
-| **AssemblyAI** | 雲端 | 即時串流 | 支援 | Universal-3 Pro 串流 |
+| **AssemblyAI** | 雲端 | 即時串流 | 支援 | Universal-3.5 Pro 串流 |
 | **Cloudflare Workers AI** | 雲端 | 視窗批次 | 支援 | 基於 Whisper，低成本含免費額度 |
 | **矽基流動** | 雲端 | 視窗批次 | 支援 | SenseVoice、TeleSpeech、Qwen Omni |
 | **Groq** | 雲端 | 視窗批次 | 支援 | Whisper large-v3-turbo / large-v3 |

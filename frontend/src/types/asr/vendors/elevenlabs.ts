@@ -4,6 +4,36 @@
 
 export const ELEVENLABS_DEFAULT_MODEL = 'scribe_v2_realtime'
 
+export const ELEVENLABS_REALTIME_MODELS = [
+  {
+    value: 'scribe_v2_realtime',
+    label: 'Scribe v2 Realtime',
+  },
+  {
+    value: 'scribe_v2_realtime_turbo',
+    label: 'Scribe v2 Realtime Turbo',
+  },
+  {
+    value: 'scribe_v2_realtime_lite',
+    label: 'Scribe v2 Realtime Lite',
+  },
+] as const
+
+const ELEVENLABS_REALTIME_MODEL_VALUES = new Set(
+  ELEVENLABS_REALTIME_MODELS.map((item) => item.value),
+)
+
+export function resolveElevenLabsRealtimeModel(value: unknown): string {
+  if (typeof value !== 'string') {
+    return ELEVENLABS_DEFAULT_MODEL
+  }
+  const trimmed = value.trim()
+  if (!trimmed || !ELEVENLABS_REALTIME_MODEL_VALUES.has(trimmed)) {
+    return ELEVENLABS_DEFAULT_MODEL
+  }
+  return trimmed
+}
+
 export const ELEVENLABS_SUPPORTED_LANGUAGES = [
   'zh', 'en', 'es', 'fr', 'de', 'it', 'ja', 'ko', 'pt', 'ru',
   'hi', 'nl', 'pl', 'sv', 'tr', 'uk', 'vi',
