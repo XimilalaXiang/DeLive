@@ -23,6 +23,18 @@ import type { AiPostProcessConfig, AppSettings, OpenApiConfig } from '../../type
 import { colorThemes, type ColorThemeId } from '../../themes'
 import { getProxyPort } from '../../utils/proxyUrl'
 
+const LANGUAGE_OPTIONS: { id: Language; labelKey: 'languageChinese' | 'languageEnglish' | 'languageKorean' }[] = [
+  { id: 'zh', labelKey: 'languageChinese' },
+  { id: 'en', labelKey: 'languageEnglish' },
+  { id: 'ko', labelKey: 'languageKorean' },
+]
+
+const PROMPT_LANGUAGE_OPTIONS: { id: 'zh' | 'en' | 'ko'; label: string }[] = [
+  { id: 'zh', label: '中文' },
+  { id: 'en', label: 'English' },
+  { id: 'ko', label: '한국어' },
+]
+
 interface ImportMessage {
   type: 'success' | 'error'
   text: string
@@ -120,26 +132,19 @@ export function GeneralSettingsPanel({
           {t.settings.interfaceLanguageDesc}
         </p>
         <div className="flex gap-2">
-          <button
-            onClick={() => setLanguage('zh')}
-            className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all
-                      ${language === 'zh'
-                        ? 'bg-accent text-foreground border-2 border-foreground/20'
-                        : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
-                      }`}
-          >
-            {t.settings.languageChinese}
-          </button>
-          <button
-            onClick={() => setLanguage('en')}
-            className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all
-                      ${language === 'en'
-                        ? 'bg-accent text-foreground border-2 border-foreground/20'
-                        : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
-                      }`}
-          >
-            {t.settings.languageEnglish}
-          </button>
+          {LANGUAGE_OPTIONS.map(({ id, labelKey }) => (
+            <button
+              key={id}
+              onClick={() => setLanguage(id)}
+              className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all
+                ${language === id
+                  ? 'bg-accent text-foreground border-2 border-foreground/20'
+                  : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
+                }`}
+            >
+              {t.settings[labelKey]}
+            </button>
+          ))}
         </div>
       </section>
 
@@ -259,26 +264,19 @@ export function GeneralSettingsPanel({
         <div className="space-y-2">
           <label className="text-xs font-medium text-muted-foreground">{t.settings.aiPromptLanguage}</label>
           <div className="flex gap-2">
-            <button
-              onClick={() => updateAiPostProcessConfig({ promptLanguage: 'zh' })}
-              className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all ${
-                (aiConfig.promptLanguage || 'zh') === 'zh'
-                  ? 'bg-accent text-foreground border-2 border-foreground/20'
-                  : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
-              }`}
-            >
-              中文
-            </button>
-            <button
-              onClick={() => updateAiPostProcessConfig({ promptLanguage: 'en' })}
-              className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all ${
-                (aiConfig.promptLanguage || 'zh') === 'en'
-                  ? 'bg-accent text-foreground border-2 border-foreground/20'
-                  : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
-              }`}
-            >
-              English
-            </button>
+            {PROMPT_LANGUAGE_OPTIONS.map(({ id, label }) => (
+              <button
+                key={id}
+                onClick={() => updateAiPostProcessConfig({ promptLanguage: id })}
+                className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all ${
+                  (aiConfig.promptLanguage || 'zh') === id
+                    ? 'bg-accent text-foreground border-2 border-foreground/20'
+                    : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
       </section>

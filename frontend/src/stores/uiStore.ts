@@ -66,12 +66,26 @@ export interface UIState {
   setCommandPaletteOpen: (open: boolean) => void
 }
 
+/**
+ * The window title comes from the page, not from the BrowserWindow option —
+ * Electron follows the document title once the page loads. Keeping it in sync
+ * here is what makes the title track the chosen language.
+ */
+function applyDocumentTitle(t: ReturnType<typeof getTranslations>): void {
+  if (typeof document === 'undefined') return
+  document.title = `${t.app.name} - ${t.app.subtitle}`
+}
+
+applyDocumentTitle(getTranslations(getSavedLanguage()))
+
 export const useUIStore = create<UIState>((set, get) => ({
   language: getSavedLanguage(),
   t: getTranslations(getSavedLanguage()),
   setLanguage: (lang) => {
+    const t = getTranslations(lang)
     saveLanguage(lang)
-    set({ language: lang, t: getTranslations(lang) })
+    applyDocumentTitle(t)
+    set({ language: lang, t })
     if (window.electronAPI?.langChange) {
       window.electronAPI.langChange(lang).catch(() => {})
     }

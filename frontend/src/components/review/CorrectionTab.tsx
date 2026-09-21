@@ -46,7 +46,7 @@ export function CorrectionTab({ session }: CorrectionTabProps) {
   const { t, language } = useUIStore()
   const settings = useSettingsStore((s) => s.settings)
   const p = t.preview as Record<string, unknown>
-  const isZh = language === 'zh'
+  const pick = (zh: string, en: string, ko: string) => (language === 'ko' ? ko : language === 'zh' ? zh : en)
 
   const {
     detectSessionCorrectionIssues,
@@ -423,7 +423,11 @@ export function CorrectionTab({ session }: CorrectionTabProps) {
               <div className="flex flex-col items-center justify-center gap-3 py-12 rounded-lg border border-border bg-muted/30">
                 <Loader2 className="w-8 h-8 text-primary/40 animate-spin" />
                 <p className="text-sm text-muted-foreground animate-pulse">
-                  {isZh ? 'AI 正在分析转录内容，请稍候...' : 'AI is analyzing the transcript, please wait...'}
+                  {pick(
+                    'AI 正在分析转录内容，请稍候...',
+                    'AI is analyzing the transcript, please wait...',
+                    'AI가 전사 내용을 분석하고 있습니다. 잠시만 기다려 주세요...',
+                  )}
                 </p>
               </div>
             ) : (

@@ -1,17 +1,20 @@
 import { zh } from './locales/zh'
 import { en } from './locales/en'
+import { ko } from './locales/ko'
 import type { Translations } from './locales/zh'
 
-export type Language = 'zh' | 'en'
+export type Language = 'zh' | 'en' | 'ko'
 
 export const languages: Record<Language, Translations> = {
   zh,
   en,
+  ko,
 }
 
 export const languageNames: Record<Language, string> = {
   zh: '中文',
   en: 'English',
+  ko: '한국어',
 }
 
 // 获取翻译文本
@@ -23,7 +26,7 @@ export function getTranslations(lang: Language): Translations {
 export function getSavedLanguage(): Language {
   if (typeof window !== 'undefined') {
     const saved = localStorage.getItem('language')
-    if (saved === 'zh' || saved === 'en') {
+    if (saved === 'zh' || saved === 'en' || saved === 'ko') {
       return saved
     }
   }
@@ -38,4 +41,4 @@ export function saveLanguage(lang: Language): void {
 }
 
 export type { Translations }
-export { zh, en }
+export { zh, en, ko }

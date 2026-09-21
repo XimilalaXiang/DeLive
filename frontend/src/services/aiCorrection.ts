@@ -25,9 +25,25 @@ function buildTranscriptBlock(session: TranscriptSession): string {
   return session.transcript.trim()
 }
 
+type PromptLang = NonNullable<AiPostProcessConfig['promptLanguage']>
+
 // --------------- Prompt builders ---------------
 
-function buildDetectSystemPrompt(lang: 'zh' | 'en'): string {
+function buildDetectSystemPrompt(lang: PromptLang): string {
+  if (lang === 'ko') {
+    return [
+      '너는 음성 인식 오류 검출기다.',
+      '사용자가 ASR(자동 음성 인식) 시스템이 만든 전사 텍스트를 준다.',
+      '명백한 전사 오류만 찾아라: 동음이의어와 유사 발음 치환, 고유명사 표기 오류, 명백한 문장부호 오류.',
+      '문체 문제, 문법 취향, 다시 쓰기 제안은 보고하지 마라.',
+      'id, originalText, suggestedText, reason, category 키를 가진 객체의 JSON 배열을 반환한다.',
+      'id는 "1", "2", "3"처럼 1부터 이어지는 문자열이어야 한다.',
+      'category는 homophone, proper-noun, grammar, punctuation, other 중 하나여야 한다.',
+      'reason은 한국어로 작성한다.',
+      '오류가 없으면 빈 배열 []을 반환한다.',
+      'JSON 배열만 반환하고 다른 내용은 넣지 마라.',
+    ].join(' ')
+  }
   if (lang === 'en') {
     return [
       'You are a speech-recognition error detector.',
@@ -54,15 +70,29 @@ function buildDetectSystemPrompt(lang: 'zh' | 'en'): string {
   ].join('')
 }
 
-function buildDetectUserPrompt(session: TranscriptSession, lang: 'zh' | 'en'): string {
+function buildDetectUserPrompt(session: TranscriptSession, lang: PromptLang): string {
   const text = buildTranscriptBlock(session)
+  if (lang === 'ko') {
+    return `세션 제목: ${session.title}\n\n전사 내용:\n${text}`
+  }
   if (lang === 'en') {
     return `Session title: ${session.title}\n\nTranscript:\n${text}`
   }
   return `会话标题：${session.title}\n\n转录内容：\n${text}`
 }
 
-function buildQuickCorrectionSystemPrompt(lang: 'zh' | 'en'): string {
+function buildQuickCorrectionSystemPrompt(lang: PromptLang): string {
+  if (lang === 'ko') {
+    return [
+      '너는 전사 텍스트 교정자다.',
+      '사용자가 ASR 시스템이 만든 전사 텍스트를 준다.',
+      '명백한 음성 인식 오류만 고쳐라: 동음이의어와 유사 발음 치환, 고유명사 표기 오류, 명백한 문장부호 오류.',
+      '문장 구조, 어순, 문체, 어조, 의미는 바꾸지 마라.',
+      '오류인지 확실하지 않으면 원문을 그대로 둔다.',
+      '원래의 문단 구분과 서식을 모두 유지한다.',
+      '교정된 전문을 일반 텍스트로만 출력한다. 설명, JSON, 마크다운은 넣지 마라.',
+    ].join(' ')
+  }
   if (lang === 'en') {
     return [
       'You are a transcript proofreader.',
@@ -85,15 +115,27 @@ function buildQuickCorrectionSystemPrompt(lang: 'zh' | 'en'): string {
   ].join('')
 }
 
-function buildQuickCorrectionUserPrompt(session: TranscriptSession, lang: 'zh' | 'en'): string {
+function buildQuickCorrectionUserPrompt(session: TranscriptSession, lang: PromptLang): string {
   const text = buildTranscriptBlock(session)
+  if (lang === 'ko') {
+    return `세션 제목: ${session.title}\n\n다음 전사 내용을 교정해 줘:\n${text}`
+  }
   if (lang === 'en') {
     return `Session title: ${session.title}\n\nPlease proofread and correct this transcript:\n${text}`
   }
   return `会话标题：${session.title}\n\n请校对并纠正以下转录内容：\n${text}`
 }
 
-function buildReviewCorrectionSystemPrompt(lang: 'zh' | 'en'): string {
+function buildReviewCorrectionSystemPrompt(lang: PromptLang): string {
+  if (lang === 'ko') {
+    return [
+      '너는 전사 텍스트 교정자다.',
+      '사용자가 전사 텍스트와 확정된 수정 목록을 준다.',
+      '목록에 있는 수정만 적용하고 그 밖의 변경은 하지 마라.',
+      '교정된 전문을 일반 텍스트로만 출력한다. 설명, JSON, 마크다운은 넣지 마라.',
+      '원래의 문단 구분과 서식을 모두 유지한다.',
+    ].join(' ')
+  }
   if (lang === 'en') {
     return [
       'You are a transcript proofreader.',
@@ -115,13 +157,20 @@ function buildReviewCorrectionSystemPrompt(lang: 'zh' | 'en'): string {
 function buildReviewCorrectionUserPrompt(
   session: TranscriptSession,
   issues: CorrectionIssue[],
-  lang: 'zh' | 'en',
+  lang: PromptLang,
 ): string {
   const text = buildTranscriptBlock(session)
   const issuesList = issues
     .map((i) => `- "${i.originalText}" → "${i.suggestedText}"`)
     .join('\n')
 
+  if (lang === 'ko') {
+    return [
+      `세션 제목: ${session.title}`,
+      `확정된 수정:\n${issuesList}`,
+      `전사 내용:\n${text}`,
+    ].join('\n\n')
+  }
   if (lang === 'en') {
     return [
       `Session title: ${session.title}`,

@@ -254,8 +254,8 @@ registerApiIpc({
 ipcMain.handle('get-proxy-port', () => getProxyPort())
 
 ipcMain.handle('lang:change', (_event, lang: string) => {
-  if (lang === 'zh' || lang === 'en') {
-    refreshElectronLang(lang as 'zh' | 'en')
+  if (lang === 'zh' || lang === 'en' || lang === 'ko') {
+    refreshElectronLang(lang as 'zh' | 'en' | 'ko')
   } else {
     refreshElectronLang()
   }

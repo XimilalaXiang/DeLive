@@ -223,7 +223,7 @@ export function BundledRuntimeSetupGuide({
     if (releaseAssets[0]) {
       setBinaryDownloadUrl(releaseAssets[0].url)
     }
-    setActionMessage('已填入推荐流程：官方 binary + Base 模型 + 默认端口 8177')
+    setActionMessage(t.bundledRuntime.recommendedFilled)
   }
 
   const handleRunValidation = async () => {
@@ -323,7 +323,7 @@ export function BundledRuntimeSetupGuide({
     if (!manager) return
     if (!window.electronAPI?.pickFilePath) {
       setStatusState('error')
-      setActionMessage('当前环境不支持文件选择')
+      setActionMessage(t.bundledRuntime.filePickerUnsupported)
       return
     }
 
@@ -355,7 +355,7 @@ export function BundledRuntimeSetupGuide({
   const handlePickBinaryPath = async () => {
     if (!window.electronAPI?.pickFilePath) {
       setStatusState('error')
-      setActionMessage('当前环境不支持文件选择')
+      setActionMessage(t.bundledRuntime.filePickerUnsupported)
       return
     }
 
@@ -377,7 +377,7 @@ export function BundledRuntimeSetupGuide({
     if (!manager) return
     if (!window.electronAPI?.pickFilePath) {
       setStatusState('error')
-      setActionMessage('当前环境不支持文件选择')
+      setActionMessage(t.bundledRuntime.filePickerUnsupported)
       return
     }
 

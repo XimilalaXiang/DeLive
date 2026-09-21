@@ -32,6 +32,7 @@ export function AboutPanel({
   handleCheckUpdate,
   onViewChangelog,
 }: AboutPanelProps) {
+  const pick = (zh: string, en: string, ko: string) => (_language === 'ko' ? ko : _language === 'zh' ? zh : en)
   const hasElectronApi = !!window.electronAPI
 
   return (
@@ -129,15 +130,15 @@ export function AboutPanel({
       <section className="workspace-panel-muted p-4 space-y-3">
         <label className="text-sm font-medium leading-none flex items-center gap-2">
           <Sparkles className="w-3.5 h-3.5 text-muted-foreground" />
-          {_language === 'zh' ? '更新日志' : 'Changelog'}
+          {pick('更新日志', 'Changelog', '변경 내역')}
         </label>
         <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
           <div>
             <p className="text-sm font-medium">
-              {_language === 'zh' ? '查看版本更新内容' : 'View version history'}
+              {pick('查看版本更新内容', 'View version history', '버전 기록 보기')}
             </p>
             <p className="text-xs text-muted-foreground">
-              {_language === 'zh' ? '了解每个版本的新功能和修复' : 'See what changed in each release'}
+              {pick('了解每个版本的新功能和修复', 'See what changed in each release', '각 릴리스에서 무엇이 바뀌었는지 확인합니다')}
             </p>
           </div>
           <button
@@ -145,7 +146,7 @@ export function AboutPanel({
             className="inline-flex items-center justify-center gap-2 h-9 px-4 text-sm font-medium rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
           >
             <Sparkles className="w-4 h-4" />
-            {_language === 'zh' ? '查看' : 'View'}
+            {pick('查看', 'View', '보기')}
           </button>
         </div>
       </section>

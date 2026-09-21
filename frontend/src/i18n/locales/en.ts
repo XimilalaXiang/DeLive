@@ -95,6 +95,7 @@ export const en: Translations = {
     interfaceLanguageDesc: 'Choose the display language for the app interface',
     languageChinese: '中文',
     languageEnglish: 'English',
+    languageKorean: '한국어',
     // ASR provider settings
     asrProvider: 'Speech Recognition Service',
     asrProviderDesc: 'Choose a speech recognition provider. Different providers have different features and pricing.',
@@ -210,6 +211,13 @@ export const en: Translations = {
     localProviders: 'Local Models',
     // Provider names & descriptions
     soniox: 'Soniox V5',
+    elevenlabsDesc: 'ElevenLabs Scribe v2 Realtime transcription, 90+ languages, latency as low as 150ms',
+    mistralDesc: 'Mistral Voxtral realtime transcription, 13 languages',
+    gladiaDesc: 'Gladia Solaria-1 realtime transcription, 100+ languages, under 300ms latency',
+    deepgramDesc: 'Deepgram Nova-3 realtime transcription, 45+ languages including Mandarin and Cantonese',
+    assemblyaiDesc: 'AssemblyAI realtime and file transcription, 99+ languages, with speaker diarization',
+    sixtydbDesc: '60db realtime transcription, about 40 languages including Indic-English code switching, sentence-based continuous mode, optional speaker diarization',
+    sensevoiceDesc: 'Local FunASR transcription with SenseVoice (emotion and audio events), Paraformer (production Chinese) and other models. No API cost',
     sonioxDesc: 'High-precision real-time speech recognition, supports 60+ languages with one-way or two-way live translation',
     volc: 'Volcengine',
     volcDesc: 'ByteDance speech recognition service, optimized for Chinese',
@@ -285,6 +293,41 @@ export const en: Translations = {
     langFr: 'French',
     langDe: 'German',
     langVi: 'Vietnamese',
+    // Fields that had no locale key upstream
+    fieldEndpointSensitivity: 'Endpoint Detection Sensitivity',
+    fieldEndpointSensitivityDesc: 'New in V5: controls how eagerly speech endpoints are detected. Higher values segment faster, good for voice commands; lower values wait longer, good for long conversations.',
+    optEndpointLowest: 'Lowest (wait longer before segmenting)',
+    optEndpointLower: 'Lower',
+    optEndpointDefault: 'Default',
+    optEndpointHigher: 'Higher',
+    optEndpointHighest: 'Highest (segment faster)',
+    fieldTranslationMode: 'Translation Mode',
+    fieldTranslationModeDesc: 'One-way translates all speech into the target language; two-way translates between two languages.',
+    optTranslationOneWay: 'One-way translation',
+    optTranslationTwoWay: 'Two-way translation (new in V5)',
+    fieldTranslationLanguageA: 'Two-way Language A',
+    fieldTranslationLanguageB: 'Two-way Language B',
+    fieldTranslationBidirectionalDesc: 'Only takes effect in two-way translation mode.',
+    fieldAssemblyaiApiKeyDesc: 'Get your API Key from assemblyai.com/dashboard',
+    optWhisperLargeTurbo: 'Whisper Large V3 Turbo (Recommended)',
+    optWhisperClassic: 'Whisper (Classic)',
+    optWhisperTinyEn: 'Whisper Tiny (English only)',
+    optQwenOmniInstruct: 'Qwen3-Omni-30B-A3B-Instruct (multimodal)',
+    optQwenOmniThinking: 'Qwen3-Omni-30B-A3B-Thinking (multimodal)',
+    optSenseVoice: 'SenseVoice — multilingual, with emotion and audio event detection',
+    optParaformer: 'Paraformer — production Chinese transcription, with VAD and punctuation',
+    optParaformerEn: 'Paraformer-EN — English only',
+    optFunAsrNano: 'Fun-ASR-Nano — LLM-based ASR for 31 languages',
+    fieldDeepgramApiKeyDesc: 'Get your API Key from console.deepgram.com',
+    fieldElevenlabsApiKeyDesc: 'Get your API Key from elevenlabs.io/app/settings/api-keys',
+    fieldGladiaApiKeyDesc: 'Get your API Key from app.gladia.io',
+    fieldMistralApiKeyDesc: 'Get your API Key from console.mistral.ai',
+    fieldSixtydbApiKeyDesc: 'Get your API Key from docs.60db.ai',
+    fieldApiKeyGenericPlaceholder: 'Enter your API Key',
+    fieldLanguageHintsDescAuto: 'Comma-separated language codes. Leave empty for automatic language detection.',
+    fieldSenseVoiceBaseUrl: 'Service URL',
+    fieldSenseVoiceBaseUrlDesc: 'funasr-server address. Start it with: funasr-server --device cuda --port 8000',
+    fieldSenseVoiceModelDesc: 'Choose an ASR model',
   },
 
   // Recording controls
@@ -589,6 +632,10 @@ export const en: Translations = {
   },
 
   bundledRuntime: {
+
+    recommendedFilled: 'Filled in the recommended setup: official binary, Base model, default port 8177',
+
+    filePickerUnsupported: 'File picking is not supported in this environment',
     guideTitle: 'Bundled Runtime Setup',
     guideDesc: 'This provider uses a bundled local runtime. Recommended order: prepare binary, prepare model, start runtime, then test or start recording.',
     step1Title: 'Step 1: Prepare runtime binary',
@@ -691,6 +738,7 @@ export const en: Translations = {
     discoveredModels: 'Discovered models (click to fill)',
     modelReady: (name: string) => `Model ready: ${name}`,
     modelNotFound: (name: string) => `Model not found: ${name}`,
+    noOneClickPull: 'This service does not support one-click pull',
     oneClickPull: 'One-click pull model (Ollama)',
     pullNotSupportedShort: 'This service does not support one-click pull',
     processing: 'Processing...',
@@ -703,6 +751,7 @@ export const en: Translations = {
     dragToAdjust: 'Drag to adjust position',
     captionPlaceholder: 'Captions will appear here',
   },
+
 
   servicePanel: {
     viewDocs: 'View Docs',

@@ -2,6 +2,12 @@ import { Check, Globe, Palette } from 'lucide-react'
 import type { Language, Translations } from '../../i18n'
 import { colorThemes, type ColorThemeId } from '../../themes'
 
+const LANGUAGE_OPTIONS: { id: Language; labelKey: 'languageChinese' | 'languageEnglish' | 'languageKorean' }[] = [
+  { id: 'zh', labelKey: 'languageChinese' },
+  { id: 'en', labelKey: 'languageEnglish' },
+  { id: 'ko', labelKey: 'languageKorean' },
+]
+
 interface AppearancePanelProps {
   t: Translations
   language: Language
@@ -28,26 +34,19 @@ export function AppearancePanel({
           {t.settings.interfaceLanguageDesc}
         </p>
         <div className="flex gap-2">
-          <button
-            onClick={() => setLanguage('zh')}
-            className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all
-              ${language === 'zh'
-                ? 'bg-accent text-foreground border-2 border-foreground/20'
-                : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
-              }`}
-          >
-            {t.settings.languageChinese}
-          </button>
-          <button
-            onClick={() => setLanguage('en')}
-            className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all
-              ${language === 'en'
-                ? 'bg-accent text-foreground border-2 border-foreground/20'
-                : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
-              }`}
-          >
-            {t.settings.languageEnglish}
-          </button>
+          {LANGUAGE_OPTIONS.map(({ id, labelKey }) => (
+            <button
+              key={id}
+              onClick={() => setLanguage(id)}
+              className={`flex-1 h-9 px-3 text-sm font-medium rounded-md transition-all
+                ${language === id
+                  ? 'bg-accent text-foreground border-2 border-foreground/20'
+                  : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
+                }`}
+            >
+              {t.settings[labelKey]}
+            </button>
+          ))}
         </div>
       </section>
 
