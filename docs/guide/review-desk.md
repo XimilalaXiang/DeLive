@@ -25,7 +25,7 @@ AI features require an OpenAI-compatible endpoint configured in **Settings > Gen
 - **Base URL** — defaults to `http://127.0.0.1:11434/v1` (Ollama)
 - **Model** — the model to use for generation
 - **API Key** — optional, depending on the endpoint
-- **Prompt Language** — `zh` (Chinese) or `en` (English)
+- **Prompt Language** — `zh` (Chinese), `en` (English), or `ko` (Korean)
 
 ## Transcript Tab
 

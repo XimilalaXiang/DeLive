@@ -4,6 +4,7 @@ import { createBundledRuntimeManager } from '../../utils/localRuntimeManager'
 import { getPcmChunkDurationMs, isPcm16Silent } from '../../utils/rollingAudioBuffer'
 import { buildPcmWavBlob } from '../../utils/pcmWav'
 import type { TimestampedWord } from '../../utils/hypothesisBuffer'
+import { throwUserError } from '../../utils/userErrors'
 
 const WHISPER_CPP_RUNTIME_ID = 'whisper_cpp'
 const WHISPER_CPP_DEFAULT_PORT = 8177
@@ -165,7 +166,7 @@ export class WhisperCppRuntimeProvider extends WindowedBatchTranscriptionProvide
       ? config.baseUrl.replace(/\/+$/, '')
       : ''
     if (!baseUrl) {
-      throw new Error('本地 whisper.cpp runtime 地址无效')
+      throwUserError('whisperCppRuntimeInvalidUrl')
     }
 
     const fileBlob = buildPcmWavBlob(chunks, {

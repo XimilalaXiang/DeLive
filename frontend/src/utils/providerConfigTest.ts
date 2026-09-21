@@ -12,6 +12,7 @@ import { GLADIA_DEFAULT_MODEL } from '../types/asr/vendors/gladia'
 import { CLOUDFLARE_DEFAULT_MODEL } from '../types/asr/vendors/cloudflare'
 import { SENSEVOICE_DEFAULT_BASE_URL, SENSEVOICE_DEFAULT_MODEL } from '../types/asr/vendors/sensevoice'
 import { transcribeSiliconFlowAudio } from './siliconflow'
+import { throwUserError, userErrorMessage } from './userErrors'
 
 type ProviderConfigTester = (config: ProviderConfigData) => Promise<void>
 
@@ -48,7 +49,7 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
   soniox: async (config) => {
     const apiKey = typeof config.apiKey === 'string' ? config.apiKey.trim() : ''
     if (!apiKey) {
-      throw new Error('请输入 API Key')
+      throwUserError('enterApiKey')
     }
 
     await new Promise<void>((resolve, reject) => {
@@ -109,10 +110,10 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
     const accessKey = typeof config.accessKey === 'string' ? config.accessKey.trim() : ''
 
     if (!appKey) {
-      throw new Error('请输入 APP ID')
+      throwUserError('enterAppId')
     }
     if (!accessKey) {
-      throw new Error('请输入 Access Token')
+      throwUserError('enterAccessToken')
     }
 
     const volcBaseUrl = await getProxyWsUrl('/ws/volc')
@@ -188,7 +189,7 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
     const apiKey = typeof config.apiKey === 'string' ? config.apiKey.trim() : ''
 
     if (!apiKey) {
-      throw new Error('请输入 Mistral API Key')
+      throwUserError('enterMistralApiKey')
     }
 
     const mistralBaseUrl = await getProxyWsUrl('/ws/mistral')
@@ -260,7 +261,7 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
     const apiKey = typeof config.apiKey === 'string' ? config.apiKey.trim() : ''
 
     if (!apiKey) {
-      throw new Error('请输入 Deepgram API Key')
+      throwUserError('enterDeepgramApiKey')
     }
 
     const deepgramBaseUrl = await getProxyWsUrl('/ws/deepgram')
@@ -332,7 +333,7 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
     const apiKey = typeof config.apiKey === 'string' ? config.apiKey.trim() : ''
 
     if (!apiKey) {
-      throw new Error('请输入 AssemblyAI API Key')
+      throwUserError('enterAssemblyAiApiKey')
     }
 
     const assemblyaiBaseUrl = await getProxyWsUrl('/ws/assemblyai')
@@ -403,7 +404,7 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
     const apiKey = typeof config.apiKey === 'string' ? config.apiKey.trim() : ''
 
     if (!apiKey) {
-      throw new Error('请输入 ElevenLabs API Key')
+      throwUserError('enterElevenLabsApiKey')
     }
 
     const elevenlabsBaseUrl = await getProxyWsUrl('/ws/elevenlabs')
@@ -475,7 +476,7 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
     const apiKey = typeof config.apiKey === 'string' ? config.apiKey.trim() : ''
 
     if (!apiKey) {
-      throw new Error('请输入 Gladia API Key')
+      throwUserError('enterGladiaApiKey')
     }
 
     const gladiaBaseUrl = await getProxyWsUrl('/ws/gladia')
@@ -553,10 +554,10 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
       : CLOUDFLARE_DEFAULT_MODEL
 
     if (!apiToken) {
-      throw new Error('请输入 Cloudflare API Token')
+      throwUserError('enterCloudflareApiToken')
     }
     if (!accountId) {
-      throw new Error('请输入 Cloudflare Account ID')
+      throwUserError('enterCloudflareAccountId')
     }
 
     const wavBlob = createSilentWavBlob()
@@ -578,17 +579,17 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
     if (!response.ok) {
       const details = await response.text().catch(() => '')
       if (response.status === 401 || response.status === 403) {
-        throw new Error('API Token 无效或权限不足，请检查 Token 是否具有 Workers AI 读写权限')
+        throwUserError('cloudflareTokenInvalid')
       }
       if (response.status === 404) {
-        throw new Error('Account ID 无效或模型不存在，请检查配置')
+        throwUserError('cloudflareAccountInvalid')
       }
-      throw new Error(details || `Cloudflare API 返回错误: ${response.status}`)
+      throw new Error(details || userErrorMessage('cloudflareApiError', undefined, response.status))
     }
 
     const result = await response.json() as { success?: boolean; errors?: unknown[] }
     if (!result.success) {
-      throw new Error('Cloudflare API 返回失败状态，请检查配置')
+      throwUserError('cloudflareApiFailedStatus')
     }
   },
   local_openai: async (config) => {
@@ -596,17 +597,17 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
     const model = typeof config.model === 'string' ? config.model.trim() : ''
 
     if (!rawBaseUrl) {
-      throw new Error('请输入 Base URL')
+      throwUserError('enterBaseUrl')
     }
     if (!model) {
-      throw new Error('请输入模型名称')
+      throwUserError('enterModelName')
     }
 
     let url: URL
     try {
       url = new URL(rawBaseUrl.replace(/\/+$/, ''))
     } catch {
-      throw new Error('Base URL 格式不正确')
+      throwUserError('invalidBaseUrl')
     }
 
     const headers: HeadersInit = {}
@@ -622,7 +623,7 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
 
     if (!response.ok) {
       const details = await response.text().catch(() => '')
-      throw new Error(details || `服务返回错误: ${response.status}`)
+      throw new Error(details || userErrorMessage('serviceReturnedError', undefined, response.status))
     }
   },
   groq: async (config) => {
@@ -632,7 +633,7 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
       : GROQ_DEFAULT_MODEL
 
     if (!apiKey) {
-      throw new Error('请输入 Groq API Key')
+      throwUserError('enterGroqApiKey')
     }
 
     const formData = new FormData()
@@ -649,7 +650,7 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
 
     if (!response.ok) {
       const details = await response.text().catch(() => '')
-      throw new Error(details || `Groq 服务返回错误: ${response.status}`)
+      throw new Error(details || userErrorMessage('groqServiceError', undefined, response.status))
     }
   },
   siliconflow: async (config) => {
@@ -659,7 +660,7 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
       : SILICONFLOW_DEFAULT_MODEL
 
     if (!apiKey) {
-      throw new Error('请输入硅基流动 API Key')
+      throwUserError('enterSiliconflowApiKey')
     }
 
     const language = Array.isArray(config.languageHints)
@@ -677,7 +678,7 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
     const apiKey = typeof config.apiKey === 'string' ? config.apiKey.trim() : ''
 
     if (!apiKey) {
-      throw new Error('请输入 60db API Key')
+      throwUserError('enterSixtydbApiKey')
     }
 
     const sixtydbBaseUrl = await getProxyWsUrl('/ws/sixtydb')
@@ -751,17 +752,17 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
     try {
       new URL(baseUrl)
     } catch {
-      throw new Error('服务地址格式不正确')
+      throwUserError('invalidServiceUrl')
     }
 
     const healthRes = await fetch(`${baseUrl}/health`, {
       signal: AbortSignal.timeout(5000),
     }).catch((err: Error) => {
-      throw new Error(`无法连接 funasr-server (${baseUrl})：${err.message}。请确认服务已启动。`)
+      throwUserError('funasrConnectFailed', undefined, baseUrl, err instanceof Error ? err.message : String(err))
     })
 
     if (!healthRes.ok) {
-      throw new Error(`funasr-server 健康检查失败: HTTP ${healthRes.status}`)
+      throwUserError('funasrHealthCheckFailed', undefined, healthRes.status)
     }
 
     const model = typeof config.model === 'string' && config.model.trim()
@@ -781,12 +782,12 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
 
     if (!response.ok) {
       const details = await response.text().catch(() => '')
-      throw new Error(details || `funasr-server 转录测试失败: HTTP ${response.status}`)
+      throw new Error(details || userErrorMessage('funasrTranscriptionTestFailed', undefined, response.status))
     }
   },
   local_whisper_cpp: async (config) => {
     if (!window.electronAPI?.isElectron) {
-      throw new Error('当前不在 Electron 环境中，无法测试本地 whisper.cpp runtime')
+      throwUserError('notElectronWhisperTest')
     }
 
     const manager = createBundledRuntimeManager('whisper_cpp')
@@ -796,7 +797,7 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
     try {
       const snapshot = await manager.start(config)
       if (snapshot.status !== 'running') {
-        throw new Error(snapshot.message || '本地 whisper.cpp runtime 未成功启动')
+        throw new Error(snapshot.message || userErrorMessage('whisperRuntimeStartFailed'))
       }
 
       const formData = new FormData()
@@ -810,7 +811,7 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
 
       if (!response.ok) {
         const details = await response.text().catch(() => '')
-        throw new Error(details || `whisper.cpp /inference 返回错误: HTTP ${response.status}`)
+        throw new Error(details || userErrorMessage('whisperInferenceError', undefined, response.status))
       }
     } finally {
       if (shouldStopAfterTest) {
@@ -830,7 +831,7 @@ export async function testProviderConfig(
 
   const tester = providerConfigTesters[provider.id]
   if (!tester) {
-    throw new Error('该提供商暂未实现配置测试')
+    throwUserError('providerConfigTestNotImplemented')
   }
 
   await tester(config)

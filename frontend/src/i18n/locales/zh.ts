@@ -1,3 +1,5 @@
+import { zhErrors } from './errors.zh'
+
 // 中文语言包
 export const zh = {
   // 应用信息
@@ -853,6 +855,8 @@ export const zh = {
     statusError: '出错',
     statusCancelled: '已取消',
   },
+
+  errors: zhErrors,
 }
 
 export type Translations = typeof zh

@@ -8,6 +8,7 @@ import {
   probeLocalService,
   pullOllamaModel,
 } from './localModelSetup'
+import { throwUserError, userErrorMessage } from './userErrors'
 
 export type LocalRuntimeManagerKind = 'service' | 'runtime'
 export type LocalRuntimeStatus = 'stopped' | 'starting' | 'running' | 'error'
@@ -94,14 +95,14 @@ const localServiceManager: LocalServiceRuntimeManager = {
   async installModel(config, onProgress) {
     const model = readTextConfig(config, 'model')
     if (!model) {
-      throw new Error('请先填写模型名称')
+      throwUserError('fillModelNameFirst')
     }
 
     const baseUrl = readTextConfig(config, 'baseUrl')
     const apiKey = readTextConfig(config, 'apiKey')
     const result = await probeLocalService(baseUrl, apiKey)
     if (result.kind !== 'ollama') {
-      throw new Error('当前服务暂不支持一键拉取，请在服务侧先下载模型')
+      throwUserError('pullNotSupportedDownloadOnServer')
     }
 
     await pullOllamaModel(baseUrl, model, onProgress)
@@ -112,7 +113,7 @@ const localRuntimeManagers: Partial<Record<ASRVendor, LocalRuntimeManager>> = {}
 
 function getElectronRuntimeApi() {
   if (!window.electronAPI) {
-    throw new Error('当前不在 Electron 环境中，无法管理 bundled runtime')
+    throwUserError('notElectronBundledRuntime')
   }
   return window.electronAPI
 }
@@ -127,21 +128,21 @@ export function createBundledRuntimeManager(runtimeId: string): BundledRuntimeMa
     async start(config) {
       const result = await getElectronRuntimeApi().localRuntimeStart(runtimeId, buildRuntimeLaunchOptionsFromConfig(config))
       if (!result.success) {
-        throw new Error(result.error || result.status.message || '启动 runtime 失败')
+        throw new Error(result.error || result.status.message || userErrorMessage('runtimeStartFailed'))
       }
       return result.status
     },
     async stop(config) {
       const result = await getElectronRuntimeApi().localRuntimeStop(runtimeId, buildRuntimeLaunchOptionsFromConfig(config))
       if (!result.success) {
-        throw new Error(result.error || result.status.message || '停止 runtime 失败')
+        throw new Error(result.error || result.status.message || userErrorMessage('runtimeStopFailed'))
       }
       return result.status
     },
     async openModelsPath() {
       const result = await getElectronRuntimeApi().localRuntimeOpenModelsPath(runtimeId)
       if (!result.success) {
-        throw new Error(result.error || '打开模型目录失败')
+        throw new Error(result.error || userErrorMessage('openModelsDirFailed'))
       }
       return result.path
     },
@@ -151,28 +152,28 @@ export function createBundledRuntimeManager(runtimeId: string): BundledRuntimeMa
     async importModel(sourcePath) {
       const result = await getElectronRuntimeApi().localRuntimeImportModel(runtimeId, sourcePath)
       if (!result.success) {
-        throw new Error(result.error || '导入模型失败')
+        throw new Error(result.error || userErrorMessage('importModelFailed'))
       }
       return result.path
     },
     async importBinary(sourcePath) {
       const result = await getElectronRuntimeApi().localRuntimeImportBinary(runtimeId, sourcePath)
       if (!result.success) {
-        throw new Error(result.error || '导入 runtime binary 失败')
+        throw new Error(result.error || userErrorMessage('importRuntimeBinaryFailed'))
       }
       return result.path
     },
     async downloadModel(urlString) {
       const result = await getElectronRuntimeApi().localRuntimeDownloadModel(runtimeId, urlString)
       if (!result.success) {
-        throw new Error(result.error || '下载模型失败')
+        throw new Error(result.error || userErrorMessage('downloadModelFailed'))
       }
       return result.path
     },
     async downloadBinary(urlString) {
       const result = await getElectronRuntimeApi().localRuntimeDownloadBinary(runtimeId, urlString)
       if (!result.success) {
-        throw new Error(result.error || '下载 runtime binary 失败')
+        throw new Error(result.error || userErrorMessage('downloadRuntimeBinaryFailed'))
       }
       return result.path
     },

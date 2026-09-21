@@ -8,6 +8,7 @@ import type {
   TranscriptQaCitation,
   TranscriptSession,
 } from '../types'
+import { throwUserError, userErrorMessage } from '../utils/userErrors'
 
 const DEFAULT_AI_BASE_URL = 'http://127.0.0.1:11434/v1'
 const DEFAULT_PROMPT_LANGUAGE: NonNullable<AiPostProcessConfig['promptLanguage']> = 'zh'
@@ -38,7 +39,7 @@ export async function fetchAvailableModels(
     .filter(Boolean)
     .sort((a, b) => a.localeCompare(b))
 
-  if (models.length === 0) throw new Error('API 未返回可用模型')
+  if (models.length === 0) throwUserError('apiNoModelsReturned')
   return models
 }
 
@@ -175,7 +176,7 @@ function normalizeBriefingPayload(payload: AiBriefingPayload, model: string): Tr
     : undefined
 
   if (!summary && !actionItems?.length && !keywords?.length && !chapters?.length && !titleSuggestion && !tagSuggestions?.length) {
-    throw new Error('AI 未返回可用的结构化结果')
+    throwUserError('aiNoStructuredResult')
   }
 
   return {
@@ -202,7 +203,7 @@ function normalizeQaPayload(payload: SessionQaPayload, model: string): SessionQa
     : undefined
 
   if (!answer) {
-    throw new Error('AI 未返回有效回答')
+    throwUserError('aiNoValidAnswer')
   }
 
   return {
@@ -217,7 +218,7 @@ function normalizeMindMapPayload(payload: SessionMindMapPayload, model: string):
   const markdown = typeof payload.markdown === 'string' ? payload.markdown.trim() : ''
 
   if (!markdown) {
-    throw new Error('AI 未返回思维导图 Markdown')
+    throwUserError('aiNoMindMapMarkdown')
   }
 
   return {
@@ -250,7 +251,7 @@ function extractTextContent(content: ChatCompletionResponse['choices']): string 
 function extractJsonObject(raw: string): string {
   const trimmed = raw.trim()
   if (!trimmed) {
-    throw new Error('AI 未返回内容')
+    throwUserError('aiNoContent')
   }
 
   const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i)
@@ -264,7 +265,7 @@ function extractJsonObject(raw: string): string {
     return trimmed.slice(start, end + 1)
   }
 
-  throw new Error('AI 返回内容不是有效 JSON')
+  throwUserError('aiInvalidJson')
 }
 
 function buildSystemPrompt(language: NonNullable<AiPostProcessConfig['promptLanguage']>): string {
@@ -553,7 +554,7 @@ export function parseAiBriefingResponse(raw: string, model: string): TranscriptP
   try {
     parsed = JSON.parse(jsonText) as AiBriefingPayload
   } catch {
-    throw new Error('AI 返回内容无法解析为 JSON')
+    throwUserError('aiJsonParseFailed')
   }
 
   return normalizeBriefingPayload(parsed, model)
@@ -566,7 +567,7 @@ export function parseSessionQaResponse(raw: string, model: string): SessionQaRes
   try {
     parsed = JSON.parse(jsonText) as SessionQaPayload
   } catch {
-    throw new Error('AI 返回内容无法解析为 JSON')
+    throwUserError('aiJsonParseFailed')
   }
 
   return normalizeQaPayload(parsed, model)
@@ -579,7 +580,7 @@ export function parseSessionMindMapResponse(raw: string, model: string): Transcr
   try {
     parsed = JSON.parse(jsonText) as SessionMindMapPayload
   } catch {
-    throw new Error('AI 返回内容无法解析为 JSON')
+    throwUserError('aiJsonParseFailed')
   }
 
   return normalizeMindMapPayload(parsed, model)
@@ -595,15 +596,15 @@ export async function generateSessionBriefing(
   const promptLanguage = config.promptLanguage || DEFAULT_PROMPT_LANGUAGE
 
   if (!config.enabled) {
-    throw new Error('请先在设置中启用 AI 后处理')
+    throwUserError('aiPostProcessDisabled')
   }
 
   if (!model) {
-    throw new Error('请先配置 AI 模型')
+    throwUserError('aiModelNotConfigured')
   }
 
   if (!session.transcript.trim()) {
-    throw new Error('当前会话没有可用于 AI 分析的转录内容')
+    throwUserError('noTranscriptForAnalysis')
   }
 
   const response = await fetch(`${baseUrl}/chat/completions`, {
@@ -625,7 +626,7 @@ export async function generateSessionBriefing(
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => '')
-    throw new Error(errorText || `AI 请求失败: HTTP ${response.status}`)
+    throw new Error(errorText || userErrorMessage('aiRequestFailed', undefined, response.status))
   }
 
   const payload = await response.json() as ChatCompletionResponse
@@ -648,19 +649,19 @@ export async function askQuestionForSession(
   const normalizedQuestion = question.trim()
 
   if (!config.enabled) {
-    throw new Error('请先在设置中启用 AI 后处理')
+    throwUserError('aiPostProcessDisabled')
   }
 
   if (!model) {
-    throw new Error('请先配置 AI 模型')
+    throwUserError('aiModelNotConfigured')
   }
 
   if (!session.transcript.trim()) {
-    throw new Error('当前会话没有可用于问答的转录内容')
+    throwUserError('noTranscriptForQa')
   }
 
   if (!normalizedQuestion) {
-    throw new Error('请输入问题')
+    throwUserError('enterQuestion')
   }
 
   const conversationId = options?.conversationId?.trim()
@@ -694,7 +695,7 @@ export async function askQuestionForSession(
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => '')
-    throw new Error(errorText || `AI 请求失败: HTTP ${response.status}`)
+    throw new Error(errorText || userErrorMessage('aiRequestFailed', undefined, response.status))
   }
 
   const payload = await response.json() as ChatCompletionResponse
@@ -721,10 +722,10 @@ export async function askQuestionForSessionStreaming(
   const promptLanguage = config.promptLanguage || DEFAULT_PROMPT_LANGUAGE
   const normalizedQuestion = question.trim()
 
-  if (!config.enabled) throw new Error('请先在设置中启用 AI 后处理')
-  if (!model) throw new Error('请先配置 AI 模型')
-  if (!session.transcript.trim()) throw new Error('当前会话没有可用于问答的转录内容')
-  if (!normalizedQuestion) throw new Error('请输入问题')
+  if (!config.enabled) throwUserError('aiPostProcessDisabled')
+  if (!model) throwUserError('aiModelNotConfigured')
+  if (!session.transcript.trim()) throwUserError('noTranscriptForQa')
+  if (!normalizedQuestion) throwUserError('enterQuestion')
 
   const conversationId = options?.conversationId?.trim()
 
@@ -758,11 +759,11 @@ export async function askQuestionForSessionStreaming(
 
   if (!res.ok) {
     const errorText = await res.text().catch(() => '')
-    throw new Error(errorText || `AI 请求失败: HTTP ${res.status}`)
+    throw new Error(errorText || userErrorMessage('aiRequestFailed', undefined, res.status))
   }
 
   const reader = res.body?.getReader()
-  if (!reader) throw new Error('Response body is not readable')
+  if (!reader) throwUserError('responseBodyNotReadable')
 
   const decoder = new TextDecoder()
   let buffer = ''
@@ -818,15 +819,15 @@ export async function generateSessionMindMap(
   const promptLanguage = config.promptLanguage || DEFAULT_PROMPT_LANGUAGE
 
   if (!config.enabled) {
-    throw new Error('请先在设置中启用 AI 后处理')
+    throwUserError('aiPostProcessDisabled')
   }
 
   if (!model) {
-    throw new Error('请先配置 AI 模型')
+    throwUserError('aiModelNotConfigured')
   }
 
   if (!session.transcript.trim()) {
-    throw new Error('当前会话没有可用于生成思维导图的转录内容')
+    throwUserError('noTranscriptForMindMap')
   }
 
   const response = await fetch(`${baseUrl}/chat/completions`, {
@@ -848,7 +849,7 @@ export async function generateSessionMindMap(
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => '')
-    throw new Error(errorText || `AI 请求失败: HTTP ${response.status}`)
+    throw new Error(errorText || userErrorMessage('aiRequestFailed', undefined, response.status))
   }
 
   const payload = await response.json() as ChatCompletionResponse

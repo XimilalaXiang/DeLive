@@ -8,6 +8,7 @@ import {
 import { getPcmChunkDurationMs, isPcm16Silent } from '../../utils/rollingAudioBuffer'
 import { buildPcmWavBlob } from '../../utils/pcmWav'
 import type { TimestampedWord } from '../../utils/hypothesisBuffer'
+import { throwUserError } from '../../utils/userErrors'
 
 const CF_SAMPLE_RATE = 16000
 const CF_CHANNELS = 1
@@ -145,7 +146,7 @@ export class CloudflareProvider extends WindowedBatchTranscriptionProvider<Array
     const apiToken = this.normalizeOptional(config.apiToken as string)
     const accountId = this.normalizeOptional(config.accountId as string)
     if (!apiToken || !accountId) {
-      throw new Error('Cloudflare API Token 或 Account ID 缺失')
+      throwUserError('cloudflareCredentialsMissing')
     }
 
     const model = this.normalizeModel(config.model)

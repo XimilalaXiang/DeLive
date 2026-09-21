@@ -32,7 +32,7 @@ For **Local whisper.cpp**, the bundled runtime guide helps you:
 
 ### Interface Language
 
-Switch between **Chinese** (default) and **English**.
+Switch between **Chinese** (default), **English**, and **Korean**.
 
 ### Color Theme
 
@@ -47,7 +47,7 @@ Configure the OpenAI-compatible endpoint for AI features:
 | Base URL | Chat completions endpoint | `http://127.0.0.1:11434/v1` |
 | Model | Model identifier | — |
 | API Key | Optional authentication | — |
-| Prompt Language | `zh` or `en` | `zh` |
+| Prompt Language | `zh`, `en`, or `ko` | `zh` |
 
 ### Open API
 

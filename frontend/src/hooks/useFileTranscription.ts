@@ -5,6 +5,7 @@ import { useSessionStore } from '../stores/sessionStore'
 import { sessionRepository } from '../utils/sessionRepository'
 import { createDraftSession } from '../utils/sessionLifecycle'
 import { useUIStore } from '../stores/uiStore'
+import { throwUserError, userErrorMessage } from '../utils/userErrors'
 import type { FileTranscriptionConfig } from '../types/fileTranscription'
 import type { TranscriptTokenData, TranscriptSegment, TranscriptSpeaker } from '../types'
 import {
@@ -593,7 +594,7 @@ async function executeGladia(
     const debugInfo = result.result
       ? `metadata: ${JSON.stringify(result.result.metadata)}`
       : `result is ${result.result === null ? 'null' : 'undefined'}`
-    throw new Error(`Gladia 返回了空的转录结果 (${debugInfo})。请检查音频文件是否包含可识别的语音。`)
+    throwUserError('gladiaEmptyTranscript', undefined, debugInfo)
   }
 
   const tokens = gladiaUtterancesToTokens(utterances)
@@ -725,7 +726,7 @@ async function executeLocalOpenAI(
 
   if (!response.ok) {
     const details = await response.text().catch(() => '')
-    throw new Error(details || `OpenAI-compatible 服务返回错误: HTTP ${response.status}`)
+    throw new Error(details || userErrorMessage('openAiCompatibleServiceError', undefined, response.status))
   }
 
   updateJob(jobId, { progress: 80 })
@@ -748,7 +749,7 @@ async function executeLocalOpenAI(
   const transcript = (result.text ?? '').trim()
 
   if (!transcript) {
-    throw new Error('OpenAI-compatible 服务返回了空的转录结果，请检查音频文件或服务配置。')
+    throwUserError('openAiCompatibleEmptyTranscript')
   }
 
   let tokens: TranscriptTokenData[]
@@ -993,7 +994,7 @@ async function executeVolc(
 
   if (!transcript && utterances.length === 0) {
     console.warn('[Volcengine] Empty transcription result. Full response:', JSON.stringify(response))
-    throw new Error('火山引擎返回了空的转录结果，请检查音频文件或尝试其他提供商。')
+    throwUserError('volcEmptyTranscript')
   }
 
   const allWords = utterances.flatMap((u) => u.words ?? [])
@@ -1121,21 +1122,21 @@ export function useFileTranscription() {
       const apiToken = providerConfig?.apiToken as string | undefined
       const accountId = providerConfig?.accountId as string | undefined
       if (!apiToken || !accountId) {
-        throw new Error('Cloudflare API Token 或 Account ID 未配置')
+        throwUserError('cloudflareCredentialsNotConfigured')
       }
     } else if (providerId === 'volc') {
       const appKey = providerConfig?.appKey as string | undefined
       const accessKey = providerConfig?.accessKey as string | undefined
       if (!appKey || !accessKey) {
-        throw new Error('火山引擎 APP ID 或 Access Token 未配置')
+        throwUserError('volcCredentialsNotConfigured')
       }
     } else if (providerId === 'local_openai' || providerId === 'sensevoice') {
       const baseUrl = providerConfig?.baseUrl as string | undefined
       if (!baseUrl?.trim()) {
-        throw new Error('请先配置 Base URL')
+        throwUserError('configureBaseUrlFirst')
       }
     } else if (!apiKey) {
-      throw new Error(`${providerId} API Key not configured`)
+      throwUserError('providerApiKeyNotConfigured', undefined, providerId)
     }
 
     const jobId = addJob({

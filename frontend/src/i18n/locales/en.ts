@@ -1,5 +1,6 @@
 // English language pack
 import type { Translations } from './zh'
+import { enErrors } from './errors.en'
 
 export const en: Translations = {
   // App info
@@ -858,4 +859,6 @@ export const en: Translations = {
     statusError: 'Error',
     statusCancelled: 'Cancelled',
   },
+
+  errors: enErrors,
 }

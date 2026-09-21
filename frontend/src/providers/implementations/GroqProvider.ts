@@ -9,6 +9,7 @@ import {
 import { getPcmChunkDurationMs, isPcm16Silent } from '../../utils/rollingAudioBuffer'
 import { buildPcmWavBlob } from '../../utils/pcmWav'
 import type { TimestampedWord } from '../../utils/hypothesisBuffer'
+import { throwUserError } from '../../utils/userErrors'
 
 const GROQ_SAMPLE_RATE = 16000
 const GROQ_CHANNELS = 1
@@ -132,7 +133,7 @@ export class GroqProvider extends WindowedBatchTranscriptionProvider<ArrayBuffer
   protected async transcribeWindow(chunks: ArrayBuffer[], config: ProviderConfig, prompt?: string): Promise<TimestampedWord[]> {
     const apiKey = this.normalizeOptional(config.apiKey)
     if (!apiKey) {
-      throw new Error('Groq API Key 缺失')
+      throwUserError('groqApiKeyMissing')
     }
 
     const formData = new FormData()

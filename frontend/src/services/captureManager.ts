@@ -1,4 +1,5 @@
 import { AudioProcessor } from '../utils/audioProcessor'
+import { throwUserError } from '../utils/userErrors'
 import type { ASRAudioProfileCapabilities, ASRProviderCapabilities } from '../types/asr'
 
 export interface CaptureCallbacks {
@@ -226,7 +227,7 @@ export class CaptureManager {
 
     if (audioTracks.length === 0) {
       displayStream.getTracks().forEach((track) => track.stop())
-      throw new Error('未能获取系统音频。请确保在选择共享时勾选了"共享音频"选项。')
+      throwUserError('systemAudioShareHint')
     }
 
     displayStream.getVideoTracks().forEach((track) => track.stop())
