@@ -9,6 +9,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.0-beta.1] - 2026-09-21
+
+### 🧪 Beta preview / 测试预览版
+
+This is a **beta preview** release (`2.3.0-beta.1`). Stable users on `latest.yml` / non-prerelease channels will **not** receive this update automatically.
+
+此为 **测试预览版**（`2.3.0-beta.1`）。使用稳定版更新通道（`latest.yml` / 非预发布）的用户**不会**自动收到此更新。
+
+### Added / 新增
+- 🇰🇷 **Korean UI locale** — full Korean (`ko`) interface, language picker entry, and Electron tray / main-process strings
+- 🇰🇷 **韩语界面** — 完整韩语（`ko`）UI、语言选择器入口，以及 Electron 托盘与主进程文案
+- 🎙️ **FunASR / SenseVoice local ASR** — new local speech recognition provider (SenseVoice)
+- 🎙️ **FunASR / SenseVoice 本地 ASR** — 新增本地语音识别提供商（SenseVoice）
+- 🔊 **60DB provider** — integrated 60DB cloud ASR service with proxy route and config testers
+- 🔊 **60DB 提供商** — 集成 60DB 云端 ASR 服务，含代理路由与配置检测
+- ⬆️ **Soniox V5 models** — upgraded Soniox integration from V4 to V5
+- ⬆️ **Soniox V5 模型** — Soniox 集成从 V4 升级至 V5
+- 📁 **File transcription** — file upload transcription for `local_openai` and `sensevoice` providers
+- 📁 **文件转录** — `local_openai` 与 `sensevoice` 提供商支持文件上传转录
+
+### Fixed / 修复
+- 🌐 **Provider i18n fallback** — provider names/descriptions no longer silently fall back to Chinese in non-zh locales
+- 🌐 **提供商 i18n 回退** — 非中文环境下提供商名称/描述不再静默回退为中文
+- 🌐 **Main process language at startup** — Electron main process now receives the user’s language choice on launch
+- 🌐 **启动时主进程语言** — Electron 主进程在启动时即可获取用户所选语言
+- 💬 **Localized user-facing errors** — `errors.*` / `throwUserError` paths localized; WhatsNew Korean copy and fallbacks improved
+- 💬 **用户可见错误本地化** — `errors.*` / `throwUserError` 路径本地化；What's New 韩语文案与回退优化
+- 🧩 **HypothesisBuffer single-blob** — split single-blob transcription results into words (fixes Issue #12 display/buffer behavior)
+- 🧩 **HypothesisBuffer 单块结果** — 将单块转录结果拆分为词级数据（修复 Issue #12 显示/缓冲问题）
+- 🍎 **macOS arm64 signing** — resolved “app is damaged” code signing issue on Apple Silicon builds
+- 🍎 **macOS arm64 签名** — 修复 Apple Silicon 构建「应用已损坏」的代码签名问题
+- 🔌 **Dynamic proxy port** — replaced hardcoded proxy port with dynamic port allocation
+- 🔌 **动态代理端口** — 用动态端口分配替代硬编码代理端口
+- 🔧 **60DB robustness** — improved 60DB provider error handling and zh-CN localization
+- 🔧 **60DB 稳定性** — 改进 60DB 提供商错误处理与简体中文本地化
+- 🔧 **Proxy / TypeScript** — fixed `proxyUrl.ts` type cast (TS2352) and async Promise issues; added missing sixtydb proxy route
+- 🔧 **代理 / TypeScript** — 修复 `proxyUrl.ts` 类型转换（TS2352）与 async Promise 问题；补全 sixtydb 代理路由
+
+### Changed / 变更
+- 📦 **SenseVoice / 60DB config** — added missing config testers and barrel exports for new providers
+- 📦 **SenseVoice / 60DB 配置** — 为新提供商补充配置检测与 barrel 导出
+
+### Docs / 文档
+- 📝 **Korean UI & prompt language** — documentation updated for Korean interface and prompt-language guidance
+- 📝 **韩语 UI 与提示词语言** — 文档更新韩语界面与提示词语言说明
+
+---
+
 ## [2.2.4] - 2026-05-21
 
 ### Added / 新增

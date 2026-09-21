@@ -11,6 +11,39 @@ export interface WhatsNewEntry {
 
 const entries: WhatsNewEntry[] = [
   {
+    version: '2.3.0',
+    date: '2026-09-21',
+    features: [
+      {
+        zh: '韩语界面 — 完整韩语 UI、语言选择器，以及 Electron 托盘与主进程文案（测试预览版 2.3.0-beta.1）',
+        en: 'Korean UI — full Korean locale, language picker, and Electron tray/main-process strings (beta preview 2.3.0-beta.1)',
+        ko: '한국어 UI — 전체 한국어 인터페이스, 언어 선택, Electron 트레이·메인 프로세스 문자열 (베타 2.3.0-beta.1)',
+      },
+      {
+        zh: 'FunASR / SenseVoice 本地 ASR 与 60DB 云端提供商；Soniox 升级至 V5',
+        en: 'FunASR / SenseVoice local ASR and 60DB cloud provider; Soniox upgraded to V5',
+        ko: 'FunASR / SenseVoice 로컬 ASR 및 60DB 클라우드 제공자; Soniox V5로 업그레이드',
+      },
+      {
+        zh: 'local_openai 与 sensevoice 支持文件上传转录',
+        en: 'File upload transcription for local_openai and sensevoice providers',
+        ko: 'local_openai 및 sensevoice에서 파일 업로드 전사 지원',
+      },
+    ],
+    fixes: [
+      {
+        zh: '提供商文案与启动时主进程语言不再错误回退为中文；用户可见错误全面本地化',
+        en: 'Provider strings and main-process language at startup no longer fall back to Chinese; localized user-facing errors',
+        ko: '제공자 문자열과 시작 시 메인 프로세스 언어가 더 이상 중국어로 되돌아가지 않음; 사용자 오류 메시지 다국어화',
+      },
+      {
+        zh: 'HypothesisBuffer 单块转录拆分为词级；macOS arm64「应用已损坏」签名修复；动态代理端口',
+        en: 'HypothesisBuffer splits single-blob transcripts into words; macOS arm64 damaged-app signing fix; dynamic proxy port',
+        ko: 'HypothesisBuffer 단일 블록 전사를 단어 단위로 분할; macOS arm64 손상된 앱 서명 수정; 동적 프록시 포트',
+      },
+    ],
+  },
+  {
     version: '2.2.4',
     date: '2026-05-21',
     features: [
