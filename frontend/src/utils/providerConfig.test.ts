@@ -137,4 +137,31 @@ describe('isProviderConfigured', () => {
     const provider = makeProviderInfo({ requiredConfigKeys: ['apiKey'] })
     expect(isProviderConfigured(provider, {})).toBe(false)
   })
+
+  it('returns true for local-runtime providers that require modelPath instead of apiKey', () => {
+    const provider = makeProviderInfo({
+      type: 'local',
+      requiredConfigKeys: ['modelPath'],
+      configFields: [
+        { key: 'modelPath', label: '模型文件路径', type: 'text', required: true },
+      ],
+    })
+    expect(isProviderConfigured(provider, { modelPath: '/models/ggml-base.bin' })).toBe(true)
+    expect(isProviderConfigured(provider, {})).toBe(false)
+    expect(isProviderConfigured(provider, { apiKey: 'should-not-matter' })).toBe(false)
+  })
+
+  it('returns false for cloudflare when apiToken or accountId is missing', () => {
+    const provider = makeProviderInfo({
+      id: 'cloudflare' as ASRProviderInfo['id'],
+      requiredConfigKeys: ['apiToken', 'accountId'],
+      configFields: [
+        { key: 'apiToken', label: 'API Token', type: 'password', required: true },
+        { key: 'accountId', label: 'Account ID', type: 'text', required: true },
+      ],
+    })
+    expect(isProviderConfigured(provider, { apiToken: 'token', accountId: 'acct' })).toBe(true)
+    expect(isProviderConfigured(provider, { apiToken: 'token' })).toBe(false)
+    expect(isProviderConfigured(provider, { accountId: 'acct' })).toBe(false)
+  })
 })
