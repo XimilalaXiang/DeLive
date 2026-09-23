@@ -32,11 +32,11 @@ export function FileTranscriptionView() {
 
   const selectedProvider = fileProviders.find((p) => p.id === selectedProviderId) ?? fileProviders[0]
   const providerConfig = useSettingsStore((s) => s.getProviderConfig(selectedProviderId))
-  const hasApiKey = selectedProviderId === 'cloudflare'
-    ? Boolean(providerConfig?.apiToken && providerConfig?.accountId)
-    : selectedProviderId === 'volc'
-      ? Boolean(providerConfig?.appKey && providerConfig?.accessKey)
-      : Boolean(providerConfig?.apiKey)
+  const normalizedProviderConfig = useMemo(
+    () => buildProviderConnectConfig(selectedProvider, providerConfig, settings),
+    [selectedProvider, providerConfig, settings],
+  )
+  const hasApiKey = isProviderConfigured(selectedProvider, normalizedProviderConfig)
 
   const activeJobs = useFileTranscriptionStore((s) => s.getActiveJobs())
   const isProcessing = activeJobs.length > 0
