@@ -145,4 +145,16 @@ describe('isProviderConfigured', () => {
     const provider = makeProviderInfo({ requiredConfigKeys: [] })
     expect(isProviderConfigured(provider, {})).toBe(true)
   })
+
+  it('returns true for local-runtime providers that require modelPath instead of apiKey', () => {
+    const provider = makeProviderInfo({
+      type: 'local',
+      requiredConfigKeys: ['modelPath'],
+      configFields: [
+        { key: 'modelPath', label: '模型文件路径', type: 'text', required: true },
+      ],
+    })
+    expect(isProviderConfigured(provider, { modelPath: '/models/ggml-base.bin' })).toBe(true)
+    expect(isProviderConfigured(provider, {})).toBe(false)
+  })
 })
