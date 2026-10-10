@@ -1,6 +1,6 @@
 # API Key Guide
 
-This page walks you through obtaining API keys for each cloud-based ASR provider supported by DeLive. Local providers (OpenAI-compatible and whisper.cpp) do not require API keys.
+This page walks you through obtaining API keys for each cloud-based ASR provider supported by DeLive. Local providers (OpenAI-compatible, FunASR / SenseVoice, and whisper.cpp) do not require API keys.
 
 > **Tip:** After obtaining your key, open DeLive **Settings → ASR Provider**, select the provider, and paste your key into the corresponding field.
 
@@ -18,6 +18,7 @@ This page walks you through obtaining API keys for each cloud-based ASR provider
 | [Cloudflare Workers AI](#cloudflare-workers-ai) | 10,000 Neurons/day free | [dash.cloudflare.com](https://dash.cloudflare.com) | No |
 | [SiliconFlow](#siliconflow) | $1 free credits for new users | [cloud.siliconflow.cn](https://cloud.siliconflow.cn) | No |
 | [Groq](#groq) | Free (rate-limited, no card needed) | [console.groq.com](https://console.groq.com) | No |
+| [60db](#_60db) | See 60db.ai for current pricing | [60db.ai](https://60db.ai) | — |
 
 ---
 
@@ -242,6 +243,26 @@ Groq offers a generous free tier with no credit card. Great for trying DeLive wi
 
 ---
 
+## 60db
+
+**Website:** [60db.ai](https://60db.ai) · [API docs](https://docs.60db.ai/api-reference/websocket/stt)
+
+**Pricing:** Check [60db.ai](https://60db.ai) for current plans.
+
+**Steps:**
+
+1. Sign up at [60db.ai](https://60db.ai)
+2. Create an API key in the dashboard (it starts with `sk_live_`)
+3. In DeLive, select **60db** as provider and paste the key
+
+**DeLive field:** `apiKey`
+
+::: tip Indic languages
+60db covers Hindi, Bengali, Tamil, Telugu and other Indic languages, including speech that switches between them and English.
+:::
+
+---
+
 ## Troubleshooting
 
 ### Key not working?
@@ -271,8 +292,9 @@ Groq offers a generous free tier with no credit card. Great for trying DeLive wi
 | Best accuracy (English) | Soniox, Deepgram, AssemblyAI |
 | Chinese content | Soniox, Volcengine, SiliconFlow, ElevenLabs, Mistral AI |
 | Multilingual | Soniox, ElevenLabs, Gladia |
+| Indic languages | 60db |
 | Budget-conscious | Cloudflare Workers AI, Groq |
-| Fully offline | Local whisper.cpp (no key needed) |
+| Fully offline | Local whisper.cpp or FunASR / SenseVoice (no key needed) |
 
 ---
 

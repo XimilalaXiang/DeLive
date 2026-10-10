@@ -11,7 +11,7 @@ flowchart TB
     entry["main.ts → mainWindow · captionWindow · tray · shortcuts"]
     subgraph services["核心服务"]
       direction LR
-      volc["🌐 多 Provider 代理\n/ws/volc · /ws/mistral · /ws/deepgram\n/ws/assemblyai · /ws/elevenlabs\n端口 23456"]
+      volc["🌐 多 Provider 代理\n/ws/volc · /ws/mistral · /ws/deepgram\n/ws/assemblyai · /ws/elevenlabs\n/ws/gladia · /ws/sixtydb\n端口 23456（被占用时自动换端口）"]
       api["⚡ API 服务器\n/api/v1/* · /ws/live"]
       runtime["🔧 本地 Runtime\nwhisper.cpp 生命周期"]
     end
@@ -26,11 +26,11 @@ flowchart TB
       direction LR
       hooks["useASR\nCaptureManager\nProviderSession"]
       stores["Zustand Stores\nsessionStore · settingsStore\nuiStore · topicStore · tagStore"]
-      ui["UI 组件\nLive · Review · Topics\n5 主题 × 2 模式"]
+      ui["UI 组件\nLive · Review · Topics\n8 主题 × 2 模式"]
     end
     subgraph data["数据层"]
       direction LR
-      providers["Provider 注册表\n(12 种 ASR 后端)"]
+      providers["Provider 注册表\n(14 种 ASR 后端)"]
       persistence["Session 仓库\nIndexedDB + 内存缓存"]
     end
   end
@@ -112,21 +112,25 @@ flowchart TB
     deepgram["Deepgram\n实时流式\nNova-3 · Nova-2"]
     assemblyai["AssemblyAI\n实时流式\nUniversal-3.5 Pro"]
     elevenlabs["ElevenLabs\n实时流式\nScribe v2 Realtime"]
+    gladia["Gladia\n实时流式\nSolaria-1 · Solaria-3（文件）"]
+    sixtydb["60db\n实时流式\n约 40 种语言 · 印度语系"]
+    cloudflare["Cloudflare Workers AI\n窗口批处理\nWhisper"]
   end
 
   subgraph local["💻 本地 Provider"]
     openai["OpenAI 兼容\n窗口批处理\nOllama / 任意端点"]
     whisper["whisper.cpp\nElectron 管理\n完全离线"]
+    sensevoice["FunASR / SenseVoice\n窗口批处理\n自建 funasr-server"]
   end
 
   registry["Provider 注册表\n(单例)"]
   capture["CaptureManager"]
 
-  registry --> soniox & volc & groq & silicon & mistral & deepgram & assemblyai & elevenlabs & openai & whisper
+  registry --> soniox & volc & groq & silicon & mistral & deepgram & assemblyai & elevenlabs & gladia & sixtydb & cloudflare & openai & sensevoice & whisper
   capture -->|"MediaRecorder\n(流式)"| soniox
-  capture -->|"AudioWorklet\nPCM16 (流式)"| volc & mistral & deepgram & assemblyai & elevenlabs
-  capture -->|"AudioWorklet\nPCM16 (批处理)"| groq & silicon & whisper
-  capture -->|"MediaRecorder\n(批处理)"| openai
+  capture -->|"AudioWorklet\nPCM16 (流式)"| volc & mistral & deepgram & assemblyai & elevenlabs & gladia & sixtydb
+  capture -->|"AudioWorklet\nPCM16 (批处理)"| groq & silicon & cloudflare & whisper
+  capture -->|"MediaRecorder\n(批处理)"| openai & sensevoice
 
   style registry fill:#6366f1,color:#fff
   style capture fill:#0ea5e9,color:#fff
@@ -142,7 +146,7 @@ flowchart TB
 
 ### 单一 HTTP 服务器
 
-端口 23456 在一个 `http.createServer()` 上托管多个 WebSocket 代理（`/ws/volc`、`/ws/mistral`、`/ws/deepgram`、`/ws/assemblyai`、`/ws/elevenlabs`）、REST API（`/api/v1/*`）和实时转录 WebSocket（`/ws/live`）。每个代理使用 `noServer: true` 模式并手动路由 `upgrade` 事件。
+端口 23456（被占用时依次尝试 23456–23460，再退回系统分配的空闲端口）在一个 `http.createServer()` 上托管多个 WebSocket 代理（`/ws/volc`、`/ws/mistral`、`/ws/deepgram`、`/ws/assemblyai`、`/ws/elevenlabs`、`/ws/gladia`、`/ws/sixtydb`）、REST API（`/api/v1/*`）和实时转录 WebSocket（`/ws/live`）。每个代理使用 `noServer: true` 模式并手动路由 `upgrade` 事件。
 
 ### MCP 作为独立进程
 
@@ -150,7 +154,7 @@ MCP 服务器是独立的 Node.js 脚本，未嵌入 Electron。Claude Desktop �
 
 ### Provider 注册机制
 
-十二种 ASR 后端注册在单例 `ProviderRegistry` 中。每个 Provider 实现通用的 `ASRProvider` 契约，但使用不同的音频格式和传输方法。`CaptureManager` 根据 Provider 能力选择合适的音频管线。
+十四种 ASR 后端注册在单例 `ProviderRegistry` 中。每个 Provider 实现通用的 `ASRProvider` 契约，但使用不同的音频格式和传输方法。`CaptureManager` 根据 Provider 能力选择合适的音频管线。
 
 ## 模块映射
 

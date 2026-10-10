@@ -29,7 +29,7 @@ cd frontend && npx vitest
 
 ## Test Coverage
 
-Current suite: **~200 tests across 23 files**.
+Current suite: **373 tests across 44 files**.
 
 ### What's Tested
 

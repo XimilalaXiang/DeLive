@@ -6,7 +6,7 @@ DeLive 是一个桌面转录工作台：捕获系统音频，路由到最合适�
 
 ### 多 Provider ASR
 
-DeLive 在统一界面下支持 **十二种 ASR 后端**。云端服务需要 API Key — 详见 [API Key 获取指引](./api-keys)。
+DeLive 在统一界面下支持 **十四种 ASR 后端**。云端服务需要 API Key — 详见 [API Key 获取指引](./api-keys)。
 
 | Provider | 类型 | 模式 | 亮点 |
 |----------|------|------|------|
@@ -17,11 +17,17 @@ DeLive 在统一界面下支持 **十二种 ASR 后端**。云端服务需要 AP
 | **Gladia** | 云端 | 实时流式 | 实时 Solaria-1；文件 Solaria-1 / Solaria-3；100+ 种语言；代理处理会话初始化 |
 | **Deepgram** | 云端 | 实时流式 | Nova-3 / Nova-2 流式 ASR；最适合英语和多语言 |
 | **AssemblyAI** | 云端 | 实时流式 | Universal-3.5 Pro 流式；针对英语优化 |
+| **60db** | 云端 | 实时流式 | 约 40 种语言，含印度语系与英语混说；内置代理处理认证 |
 | **Cloudflare Workers AI** | 云端 | 窗口批处理 | 基于 Whisper；低成本、免费额度；VAD 过滤 |
 | **硅基流动** | 云端 | 窗口批处理 | SenseVoice、TeleSpeech、通义千问 Omni 模型 |
 | **Groq** | 云端 | 窗口批处理 | Whisper large-v3-turbo，准实时更新 |
 | **本地 OpenAI 兼容** | 本地 | 窗口批处理 | 兼容 Ollama 或任何 `/v1/audio/transcriptions` 端点 |
+| **本地 FunASR / SenseVoice** | 本地 | 窗口批处理 | 自建 `funasr-server`；SenseVoice、Paraformer、Fun-ASR-Nano；无 API 费用 |
 | **本地 whisper.cpp** | 本地 | Electron 托管运行时 | 完全离线；DeLive 管理二进制文件和模型生命周期 |
+
+### 文件转录
+
+上传音频/视频文件，可使用全部 14 种 Provider 转录。云端 Provider 走各自的文件接口；本地 whisper.cpp 接收解码后的 16 kHz 单声道 WAV，FunASR / SenseVoice 与本地 OpenAI 兼容服务通过 `/v1/audio/transcriptions` 接收文件。60db 单个文件最大 10MB。
 
 ### AI 复盘工作台
 
@@ -60,5 +66,5 @@ DeLive 运行于 **Windows**、**macOS** 和 **Linux**。
 | 平台 | 格式 |
 |------|------|
 | Windows | `.exe` 安装包、便携版 `.exe` |
-| macOS | `.dmg`（Intel x64 和 Apple Silicon arm64） |
+| macOS | `.dmg`、`.zip`（Intel x64 和 Apple Silicon arm64） |
 | Linux | `.AppImage`、`.deb` |

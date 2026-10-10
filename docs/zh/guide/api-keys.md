@@ -1,6 +1,6 @@
 # API Key 获取指引
 
-本页介绍如何获取 DeLive 支持的各个云端 ASR 服务的 API Key。本地方案（OpenAI 兼容和 whisper.cpp）不需要 API Key。
+本页介绍如何获取 DeLive 支持的各个云端 ASR 服务的 API Key。本地方案（OpenAI 兼容、FunASR / SenseVoice 和 whisper.cpp）不需要 API Key。
 
 > **提示：** 获取 Key 后，打开 DeLive **设置 → ASR Provider**，选择对应的服务商，将 Key 粘贴到相应字段即可。
 
@@ -18,6 +18,7 @@
 | [Cloudflare Workers AI](#cloudflare-workers-ai) | 每天 10,000 Neurons 免费 | [dash.cloudflare.com](https://dash.cloudflare.com) | 否 |
 | [硅基流动](#硅基流动-siliconflow) | 新用户赠送 ¥14 / $1 额度 | [cloud.siliconflow.cn](https://cloud.siliconflow.cn) | 否 |
 | [Groq](#groq) | 免费（有速率限制，无需信用卡） | [console.groq.com](https://console.groq.com) | 否 |
+| [60db](#_60db) | 以 60db.ai 当前定价为准 | [60db.ai](https://60db.ai) | — |
 
 ---
 
@@ -250,6 +251,26 @@ Groq 免费层无需信用卡，速率限制对个人使用足够，非常适合
 
 ---
 
+## 60db
+
+**官网：** [60db.ai](https://60db.ai) · [API 文档](https://docs.60db.ai/api-reference/websocket/stt)
+
+**计费：** 以 [60db.ai](https://60db.ai) 当前方案为准。
+
+**获取步骤：**
+
+1. 在 [60db.ai](https://60db.ai) 注册
+2. 在控制台创建 API Key（以 `sk_live_` 开头）
+3. 在 DeLive 中选择 **60db**，粘贴 Key
+
+**DeLive 字段：** `apiKey`
+
+::: tip 印度语系
+60db 覆盖印地语、孟加拉语、泰米尔语、泰卢固语等印度语系语言，也支持这些语言与英语混说。
+:::
+
+---
+
 ## 常见问题
 
 ### Key 无法使用？
@@ -279,8 +300,9 @@ Groq 免费层无需信用卡，速率限制对个人使用足够，非常适合
 | 英语高精度 | Soniox、Deepgram、AssemblyAI | 英语场景首选 |
 | 中文内容 | Soniox、火山引擎、硅基流动、ElevenLabs、Mistral AI | Deepgram/AssemblyAI 对中文支持有限 |
 | 多语言 | Soniox、ElevenLabs、Gladia | Soniox 支持翻译和说话人分离 |
+| 印度语系 | 60db | 支持与英语混说 |
 | 预算敏感 | Cloudflare Workers AI、Groq | 免费层额度充足 |
-| 完全离线 | 本地 whisper.cpp（无需 Key） | 无网络依赖 |
+| 完全离线 | 本地 whisper.cpp 或 FunASR / SenseVoice（无需 Key） | 无网络依赖 |
 
 ---
 

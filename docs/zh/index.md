@@ -3,7 +3,7 @@ layout: home
 hero:
   name: DeLive
   text: 桌面转录工作台
-  tagline: 捕获系统音频 · 十二大 ASR 后端转录 · AI 复盘 — 纠错、摘要、对话、思维导图，全部本地优先
+  tagline: 捕获系统音频 · 十四大 ASR 后端转录 · AI 复盘 — 纠错、摘要、对话、思维导图，全部本地优先
   image:
     src: /logo.svg
     alt: DeLive
@@ -19,8 +19,8 @@ hero:
       link: /zh/api/rest
 features:
   - icon: 🎙️
-    title: 十二大 ASR 后端，统一界面
-    details: Soniox、火山引擎、ElevenLabs、Mistral AI、Gladia、Deepgram、AssemblyAI、Cloudflare Workers AI、硅基流动、Groq、本地 OpenAI 兼容、本地 whisper.cpp — 三种执行模式覆盖所有场景。
+    title: 十四大 ASR 后端，统一界面
+    details: Soniox、火山引擎、ElevenLabs、Mistral AI、Gladia、Deepgram、AssemblyAI、60db、Cloudflare Workers AI、硅基流动、Groq、本地 OpenAI 兼容、本地 FunASR / SenseVoice、本地 whisper.cpp — 三种执行模式覆盖所有场景。
   - icon: 🧠
     title: AI 复盘工作台
     details: 全页工作台，四个标签页 — 转录（带 AI 侧边栏）、总结（概览、行动项、关键词）、多线程对话（流式输出）、Markmap 思维导图。AI 纠错支持智能文本源选择。
@@ -35,7 +35,7 @@ features:
     details: 本地 REST API（8 个端点）、实时 WebSocket 流、独立 MCP 服务器（支持 Claude Desktop 和 Cursor）、Agent Skill 定义、Agent Skills 一键调用转录 — AI 集成一步到位。
   - icon: 📁
     title: 文件转录
-    details: 上传音频/视频文件，使用十种云端 ASR 引擎离线转录。支持说话人分离、词级时间戳和多语言检测。
+    details: 上传音频/视频文件，可使用全部 14 种 Provider 转录，从云端引擎到完全本地的 whisper.cpp 与 FunASR / SenseVoice。说话人分离、词级时间戳和语言检测视 Provider 能力而定。
   - icon: 🎨
     title: 八套主题，明暗切换
     details: 紫罗兰、青蓝、玫瑰、绿色、琥珀、樱粉、石板灰、橙韵八种配色。全新持久化侧栏导航和命令面板（Ctrl+K）。
@@ -257,52 +257,52 @@ features:
 
 <div class="whats-new">
   <h2>最新特性</h2>
-  <p class="subtitle">高级 UI 重构、八种主题配色、AI 流式对话、实时波形等</p>
+  <p class="subtitle">v2.3 即将发布（现已提供测试版）：两个新 Provider、韩语界面，以及所有 Provider 均可文件转录</p>
   <div class="new-features">
     <div class="new-feature">
       <div class="icon">📁</div>
-      <h3>文件转录</h3>
-      <p>上传音频/视频文件，使用十种云端 ASR 引擎离线转录 — Soniox、火山引擎、ElevenLabs、Mistral、Gladia、Deepgram、AssemblyAI、Cloudflare、硅基流动和 Groq。支持说话人分离和词级时间戳。</p>
+      <h3>所有 Provider 均可文件转录</h3>
+      <p>全部 14 种 Provider 都能转录上传的音频/视频，包括完全本地的 whisper.cpp（解码为 16 kHz WAV 后发送给 <code>whisper-server</code>）和 FunASR / SenseVoice。不再悄悄回退到 Soniox，缺少配置时会显示为失败任务。</p>
     </div>
     <div class="new-feature">
-      <div class="icon">☁️</div>
-      <h3>Cloudflare Workers AI</h3>
-      <p>新增 ASR 提供商 — 基于 Whisper 模型的 Cloudflare Workers AI 转录。低成本、免费额度充裕，支持 VAD 过滤和防幻觉。</p>
+      <div class="icon">🔊</div>
+      <h3>60db</h3>
+      <p>新增云端 Provider，支持约 40 种语言（含印度语系与英语混说）。实时转录经内置代理连接；文件转录走 60db REST 接口（单文件最大 10MB）。</p>
+    </div>
+    <div class="new-feature">
+      <div class="icon">🖥️</div>
+      <h3>FunASR / SenseVoice</h3>
+      <p>新增本地 Provider，连接自建的 <code>funasr-server</code>。可选 SenseVoice（情感与音频事件标签）、Paraformer 或 Fun-ASR-Nano，无 API 费用。</p>
+    </div>
+    <div class="new-feature">
+      <div class="icon">🇰🇷</div>
+      <h3>韩语界面</h3>
+      <p>在中文、英文之外新增完整韩语界面，涵盖托盘菜单、主进程文案和本地化错误信息。</p>
+    </div>
+    <div class="new-feature">
+      <div class="icon">⬆️</div>
+      <h3>Soniox V5</h3>
+      <p>Soniox 集成从 V4 升级到 V5，实时模型默认使用 <code>stt-rt-v5</code>。</p>
+    </div>
+    <div class="new-feature">
+      <div class="icon">⚡</div>
+      <h3>ElevenLabs Turbo 与 Lite</h3>
+      <p>Scribe v2 Realtime 在标准模型之外新增 Turbo 与 Lite 两个版本。</p>
     </div>
     <div class="new-feature">
       <div class="icon">🎙️</div>
-      <h3>Gladia 实时 ASR</h3>
-      <p>Solaria-1 实时流式；文件转录可选 Solaria-1 或 Solaria-3（异步）。内嵌代理处理会话初始化和认证。</p>
+      <h3>Gladia 文件转录 Solaria-3</h3>
+      <p>文件与异步任务可选 Solaria-3；实时流式仍使用 Solaria-1。</p>
     </div>
     <div class="new-feature">
-      <div class="icon">🤖</div>
-      <h3>AI 纠错增强</h3>
-      <p>纠错流式文本跨标签页持久化、实时进度显示（字数、已用时间）、改进的 AI 分析状态追踪。</p>
-    </div>
-    <div class="new-feature">
-      <div class="icon">🧠</div>
-      <h3>智能文本源选择</h3>
-      <p>AI 后处理现在自动使用纠错后的文本。支持偏好设置（自动 / 始终原始 / 始终纠错后），各标签页实时状态横幅。</p>
-    </div>
-    <div class="new-feature">
-      <div class="icon">📋</div>
-      <h3>Provider 列表重排</h3>
-      <p>Provider 选择列表重新排序：Soniox、火山引擎、ElevenLabs、Mistral AI、Gladia、Deepgram、AssemblyAI、Cloudflare、硅基流动、Groq、本地 OpenAI、whisper.cpp。</p>
+      <div class="icon">🔌</div>
+      <h3>代理端口更稳健</h3>
+      <p>内置代理依次尝试 23456–23460 端口，均被占用时改用系统分配的空闲端口；代理启动失败时主窗口仍会打开。</p>
     </div>
     <div class="new-feature">
       <div class="icon">🧪</div>
-      <h3>314 个测试通过</h3>
-      <p>扩展测试套件至 32 个文件 314 个测试，新增 AI 校正、假设缓冲区、PCM/WAV 编码等测试覆盖。</p>
-    </div>
-    <div class="new-feature">
-      <div class="icon">🔄</div>
-      <h3>窗口批处理重构</h3>
-      <p>提取 WindowedBatchTranscriptionProvider 基类 — 共享区间重转写、静音检测和假设缓冲区管理逻辑。</p>
-    </div>
-    <div class="new-feature">
-      <div class="icon">🌍</div>
-      <h3>Electron 主进程 i18n</h3>
-      <p>主进程托盘菜单、对话框标题和系统通知现在跟随用户语言设置。</p>
+      <h3>373 个测试通过</h3>
+      <p>测试套件扩展到 44 个文件、373 个测试，覆盖新 Provider、文件转录路由和代理握手。</p>
     </div>
   </div>
 </div>

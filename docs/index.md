@@ -3,7 +3,7 @@ layout: home
 hero:
   name: DeLive
   text: Desktop Transcription Workspace
-  tagline: Capture system audio. Transcribe with twelve ASR backends. Review with AI — correction, summaries, chat, mind maps. All local-first.
+  tagline: Capture system audio. Transcribe with fourteen ASR backends. Review with AI — correction, summaries, chat, mind maps. All local-first.
   image:
     src: /logo.svg
     alt: DeLive
@@ -19,8 +19,8 @@ hero:
       link: /api/rest
 features:
   - icon: 🎙️
-    title: Twelve ASR Backends, One UI
-    details: Soniox, Volcengine, ElevenLabs, Mistral AI, Gladia, Deepgram, AssemblyAI, Cloudflare Workers AI, SiliconFlow, Groq, local OpenAI-compatible, and local whisper.cpp — three execution modes in one app.
+    title: Fourteen ASR Backends, One UI
+    details: Soniox, Volcengine, ElevenLabs, Mistral AI, Gladia, Deepgram, AssemblyAI, 60db, Cloudflare Workers AI, SiliconFlow, Groq, local OpenAI-compatible, local FunASR / SenseVoice, and local whisper.cpp — three execution modes in one app.
   - icon: 🧠
     title: AI Review Desk
     details: Full-page workspace with four tabs — Transcript (with AI side panel), Summary (overview, action items, keywords), multi-thread Chat with streaming output, and Markmap mind maps. AI Correction with smart text-source selection.
@@ -35,7 +35,7 @@ features:
     details: Local REST API (8 endpoints), real-time WebSocket streaming, standalone MCP server for Claude Desktop and Cursor, Agent Skill definition, and Agent Skills for one-call transcription inside any agent.
   - icon: 📁
     title: File Transcription
-    details: Upload audio or video files and transcribe them offline using ten cloud ASR engines. Supports speaker diarization, word-level timestamps, and multi-language detection.
+    details: Upload audio or video files and transcribe them with any of the fourteen providers, from cloud engines to fully local whisper.cpp and FunASR / SenseVoice. Speaker diarization, word-level timestamps, and language detection where the provider supports them.
   - icon: 🎨
     title: Eight Themes, Light & Dark
     details: Violet, Cyan, Rose, Green, Amber, Pink, Slate, and Orange accent palettes — each with full light and dark mode. New persistent sidebar navigation and Command Palette (Ctrl+K).
@@ -257,52 +257,52 @@ features:
 
 <div class="whats-new">
   <h2>What's New</h2>
-  <p class="subtitle">Premium UI overhaul, eight color themes, AI streaming chat, real-time waveform, and more</p>
+  <p class="subtitle">Coming in v2.3 (available now as a beta): two new providers, a Korean interface, and file transcription on every provider</p>
   <div class="new-features">
     <div class="new-feature">
       <div class="icon">📁</div>
-      <h3>File Transcription</h3>
-      <p>Upload audio or video files and transcribe them offline. Ten cloud ASR engines supported — Soniox, Volcengine, ElevenLabs, Mistral, Gladia, Deepgram, AssemblyAI, Cloudflare, SiliconFlow, and Groq — with speaker diarization and word-level timestamps.</p>
+      <h3>File Transcription on Every Provider</h3>
+      <p>All fourteen providers can now transcribe uploaded audio or video, including fully local whisper.cpp (decoded to 16 kHz WAV and sent to <code>whisper-server</code>) and FunASR / SenseVoice. Providers no longer fall back to Soniox, and missing credentials show up as a failed job.</p>
     </div>
     <div class="new-feature">
-      <div class="icon">☁️</div>
-      <h3>Cloudflare Workers AI</h3>
-      <p>New ASR provider — Whisper-based transcription via Cloudflare Workers AI. Low cost with generous free tier, VAD filter, and anti-hallucination.</p>
+      <div class="icon">🔊</div>
+      <h3>60db</h3>
+      <p>New cloud provider with ~40 languages, including Indic languages mixed with English. Live capture runs through the embedded proxy; file jobs use the 60db REST API (up to 10 MB).</p>
+    </div>
+    <div class="new-feature">
+      <div class="icon">🖥️</div>
+      <h3>FunASR / SenseVoice</h3>
+      <p>New local provider backed by a self-hosted <code>funasr-server</code>. Choose SenseVoice (emotion and audio-event tags), Paraformer, or Fun-ASR-Nano, with no API cost.</p>
+    </div>
+    <div class="new-feature">
+      <div class="icon">🇰🇷</div>
+      <h3>Korean Interface</h3>
+      <p>Full Korean UI alongside Chinese and English, including tray menu, main-process strings, and localized error messages.</p>
+    </div>
+    <div class="new-feature">
+      <div class="icon">⬆️</div>
+      <h3>Soniox V5</h3>
+      <p>Soniox integration upgraded from V4 to V5; the real-time model defaults to <code>stt-rt-v5</code>.</p>
+    </div>
+    <div class="new-feature">
+      <div class="icon">⚡</div>
+      <h3>ElevenLabs Turbo &amp; Lite</h3>
+      <p>Scribe v2 Realtime now offers Turbo and Lite variants next to the standard model.</p>
     </div>
     <div class="new-feature">
       <div class="icon">🎙️</div>
-      <h3>Gladia Realtime ASR</h3>
-      <p>Solaria-1 real-time streaming; file jobs support Solaria-1 or Solaria-3 (async). Embedded proxy handles session init and authentication.</p>
+      <h3>Gladia Solaria-3 for Files</h3>
+      <p>File and async jobs can use Solaria-3; live streaming stays on Solaria-1.</p>
     </div>
     <div class="new-feature">
-      <div class="icon">🤖</div>
-      <h3>AI Correction Enhancements</h3>
-      <p>Persisted correction streaming text across tab switches, real-time progress display (character count, elapsed time), and improved AI analysis status tracking.</p>
-    </div>
-    <div class="new-feature">
-      <div class="icon">🧠</div>
-      <h3>Smart Text-Source Selection</h3>
-      <p>AI post-processing now auto-selects corrected transcript when available. Configurable preference (Auto / Always Original / Always Corrected) with real-time status banners.</p>
-    </div>
-    <div class="new-feature">
-      <div class="icon">📋</div>
-      <h3>Reordered Provider List</h3>
-      <p>Provider selection reordered to: Soniox, Volcengine, ElevenLabs, Mistral AI, Gladia, Deepgram, AssemblyAI, Cloudflare, SiliconFlow, Groq, Local OpenAI, whisper.cpp.</p>
+      <div class="icon">🔌</div>
+      <h3>Resilient Proxy Port</h3>
+      <p>The embedded proxy tries ports 23456–23460 and then falls back to a free system port, and the main window opens even if the proxy cannot start.</p>
     </div>
     <div class="new-feature">
       <div class="icon">🧪</div>
-      <h3>314 Tests Passing</h3>
-      <p>Expanded test suite with 314 tests across 32 files, including AI correction, hypothesis buffer, PCM/WAV encoding, and all previous coverage areas.</p>
-    </div>
-    <div class="new-feature">
-      <div class="icon">🔄</div>
-      <h3>Refactored Windowed Batch</h3>
-      <p>WindowedBatchTranscriptionProvider base class extracted — shared logic for interval-based retranscription, silence detection, and hypothesis buffer management.</p>
-    </div>
-    <div class="new-feature">
-      <div class="icon">🌍</div>
-      <h3>Electron Main Process i18n</h3>
-      <p>Main process tray menu, dialog titles, and system notifications now respect the user's language setting.</p>
+      <h3>373 Tests Passing</h3>
+      <p>Test suite expanded to 373 tests across 44 files, covering the new providers, file transcription routing, and proxy handshakes.</p>
     </div>
   </div>
 </div>
