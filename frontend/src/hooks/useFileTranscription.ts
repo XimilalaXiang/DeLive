@@ -69,6 +69,11 @@ import {
   whisperCppResponseToResult,
 } from '../utils/whisperCppFileApi'
 import { decodeFileToMonoWav } from '../utils/audioFileToWav'
+import {
+  transcribeFile as sixtydbTranscribeFile,
+  sixtydbResponseToResult,
+  SIXTYDB_MAX_FILE_BYTES,
+} from '../utils/sixtydbFileApi'
 import { createBundledRuntimeManager } from '../utils/localRuntimeManager'
 import { getFileTranscriptionConfigError } from '../utils/fileTranscriptionRouting'
 import { buildProviderConnectConfig } from '../utils/providerConfig'
@@ -1068,6 +1073,41 @@ async function executeWhisperCpp(
   return result
 }
 
+/* ─── 60db (REST /stt) ─────────────────────────────────────── */
+
+async function executeSixtydb(
+  file: File,
+  config: FileTranscriptionConfig,
+  apiKey: string,
+  jobId: string,
+  updateJob: (id: string, u: Record<string, unknown>) => void,
+  signal: AbortSignal,
+): Promise<TranscriptionResult> {
+  if (file.size > SIXTYDB_MAX_FILE_BYTES) {
+    throwUserError('sixtydbFileTooLarge', undefined, (file.size / (1024 * 1024)).toFixed(1))
+  }
+
+  updateJob(jobId, { status: 'uploading', progress: 20 })
+  updateJob(jobId, { status: 'transcribing', progress: 40 })
+
+  const response = await sixtydbTranscribeFile(
+    apiKey,
+    file,
+    file.name,
+    { languageHints: config.languageHints, diarize: config.enableSpeakerDiarization },
+    signal,
+  )
+
+  updateJob(jobId, { progress: 90 })
+
+  const result = sixtydbResponseToResult(response)
+  if (!result.transcript) {
+    console.warn('[60db] Empty transcription result. warning_codes:', response.warning_codes)
+    throwUserError('sixtydbEmptyTranscript')
+  }
+  return result
+}
+
 /* ─── Deepgram helpers ─────────────────────────────────────── */
 
 function parseDeepgramResponse(response: import('../utils/deepgramFileApi').DeepgramFileTranscriptionResponse) {
@@ -1242,6 +1282,8 @@ export function useFileTranscription() {
           result = await executeLocalOpenAI(file, config, baseUrl, model, localApiKey, jobId, updateJob, controller.signal)
         } else if (providerId === 'local_whisper_cpp') {
           result = await executeWhisperCpp(file, config, providerConfig, jobId, updateJob, controller.signal)
+        } else if (providerId === 'sixtydb') {
+          result = await executeSixtydb(file, config, apiKey!, jobId, updateJob, controller.signal)
         } else if (providerId === 'soniox') {
           result = await executeSoniox(file, config, apiKey!, jobId, updateJob, controller.signal)
         } else {

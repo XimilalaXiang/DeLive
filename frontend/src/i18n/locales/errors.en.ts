@@ -105,6 +105,8 @@ export const enErrors = {
   whisperCppModelPathNotConfigured: 'Configure the whisper.cpp model file path in Settings first',
   audioDecodeFailed: (detail: string) => `Could not decode this audio/video file: ${detail}`,
   whisperCppEmptyTranscript: 'whisper.cpp returned an empty transcript. Check that the audio contains speech.',
+  sixtydbFileTooLarge: (sizeMb: string) => `60db file transcription accepts files up to 10 MB; this file is ${sizeMb} MB. Compress it or choose another provider.`,
+  sixtydbEmptyTranscript: '60db returned an empty transcript. Check that the audio contains speech.',
 
   localModelSetupServiceError: (status: number) => `Service returned error: ${status}`,
   localModelPullFailed: (status: number) => `Pull failed: ${status}`,

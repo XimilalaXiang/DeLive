@@ -21,6 +21,7 @@ export const FILE_TRANSCRIPTION_PROVIDER_IDS = [
   'local_openai',
   'sensevoice',
   'local_whisper_cpp',
+  'sixtydb',
 ] as const
 
 export type FileTranscriptionProviderId = typeof FILE_TRANSCRIPTION_PROVIDER_IDS[number]

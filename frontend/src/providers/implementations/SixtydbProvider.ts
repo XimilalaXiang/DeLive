@@ -51,10 +51,12 @@ export class SixtydbProvider extends BaseASRProvider {
           inputSources: ['system-audio'],
           acceptedFileKinds: ['audio'],
         },
-        // No file-transcription executor yet (60db's REST /stt is not wired
-        // up); declaring it made file jobs fall through to Soniox (#17).
+        // Files go to the REST /stt endpoint, not the realtime WebSocket.
         fileTranscription: {
-          availability: 'unsupported',
+          availability: 'compatible',
+          executionMode: 'single-request',
+          inputSources: ['file'],
+          acceptedFileKinds: ['audio', 'video'],
         },
       },
       supportsConfigTest: true,

@@ -17,15 +17,16 @@ describe('file transcription routing', () => {
     }
   })
 
-  it('does not offer 60db for file transcription (#17)', () => {
-    const sixtydb = providerRegistry.getInfo('sixtydb' as never)
-    expect(sixtydb).toBeDefined()
-    expect(supportsProviderWorkload(sixtydb!.capabilities, 'file-transcription')).toBe(false)
+  it('routes 60db to its own executor and requires its API key (#17)', () => {
+    expect(hasFileTranscriptionExecutor('sixtydb')).toBe(true)
+    expect(getFileTranscriptionConfigError('sixtydb', { apiKey: 'sk_live_x' }, { isElectron: true })).toBeNull()
+    expect(getFileTranscriptionConfigError('sixtydb', {}, { isElectron: true }))
+      .toEqual({ key: 'providerApiKeyNotConfigured', args: ['sixtydb'] })
   })
 
   it('rejects providers without an executor instead of falling back to Soniox', () => {
-    expect(getFileTranscriptionConfigError('sixtydb', { apiKey: 'sk_live_x' }, { isElectron: true }))
-      .toEqual({ key: 'fileTranscriptionUnsupported', args: ['sixtydb'] })
+    expect(getFileTranscriptionConfigError('some_new_vendor', { apiKey: 'k' }, { isElectron: true }))
+      .toEqual({ key: 'fileTranscriptionUnsupported', args: ['some_new_vendor'] })
   })
 
   it('does not require an API key for local whisper.cpp (#26)', () => {

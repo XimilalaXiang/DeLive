@@ -99,6 +99,8 @@ export const zhErrors = {
   whisperCppModelPathNotConfigured: '请先在设置中配置 whisper.cpp 模型文件路径',
   audioDecodeFailed: (detail: string) => `无法解码该音频/视频文件：${detail}`,
   whisperCppEmptyTranscript: 'whisper.cpp 返回了空的转录结果，请检查音频是否包含语音',
+  sixtydbFileTooLarge: (sizeMb: string) => `60db 文件转录单个文件最大 10MB，当前文件 ${sizeMb}MB，请压缩或换用其他服务`,
+  sixtydbEmptyTranscript: '60db 返回了空的转录结果，请检查音频是否包含语音',
 
   localModelSetupServiceError: (status: number) => `服务返回错误: ${status}`,
   localModelPullFailed: (status: number) => `拉取失败: ${status}`,

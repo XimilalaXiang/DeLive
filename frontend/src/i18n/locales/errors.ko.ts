@@ -105,6 +105,8 @@ export const koErrors = {
   whisperCppModelPathNotConfigured: '먼저 설정에서 whisper.cpp 모델 파일 경로를 구성하세요',
   audioDecodeFailed: (detail: string) => `이 오디오/비디오 파일을 디코딩할 수 없습니다: ${detail}`,
   whisperCppEmptyTranscript: 'whisper.cpp가 빈 전사 결과를 반환했습니다. 오디오에 음성이 있는지 확인하세요.',
+  sixtydbFileTooLarge: (sizeMb: string) => `60db 파일 전사는 최대 10MB까지 지원합니다. 현재 파일은 ${sizeMb}MB입니다. 압축하거나 다른 서비스를 선택하세요.`,
+  sixtydbEmptyTranscript: '60db가 빈 전사 결과를 반환했습니다. 오디오에 음성이 있는지 확인하세요.',
 
   localModelSetupServiceError: (status: number) => `서비스 오류: ${status}`,
   localModelPullFailed: (status: number) => `가져오기 실패: ${status}`,
