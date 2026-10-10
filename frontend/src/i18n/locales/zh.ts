@@ -319,7 +319,6 @@ export const zh = {
     optQwenOmniThinking: 'Qwen3-Omni-30B-A3B-Thinking（多模态）',
     optSenseVoice: 'SenseVoice — 多语言 + 情感/音频事件检测',
     optParaformer: 'Paraformer — 中文生产级转录（含 VAD + 标点）',
-    optParaformerEn: 'Paraformer-EN — 英语专用',
     optFunAsrNano: 'Fun-ASR-Nano — 31 语言 LLM-based ASR',
     fieldDeepgramApiKeyDesc: '从 console.deepgram.com 获取 API Key',
     fieldElevenlabsApiKeyDesc: '从 elevenlabs.io/app/settings/api-keys 获取 API Key',
@@ -329,7 +328,7 @@ export const zh = {
     fieldApiKeyGenericPlaceholder: '输入你的 API Key',
     fieldLanguageHintsDescAuto: '用逗号分隔的语言代码，留空则自动检测语言。',
     fieldSenseVoiceBaseUrl: '服务地址',
-    fieldSenseVoiceBaseUrlDesc: 'funasr-server 服务地址。启动命令：funasr-server --device cuda --port 8000',
+    fieldSenseVoiceBaseUrlDesc: 'funasr-server 服务地址。启动命令：funasr-server --device cuda --port 8000（没有 NVIDIA 显卡用 --device cpu，Apple 芯片可用 --device mps）',
     fieldSenseVoiceModelDesc: '选择 ASR 模型',
   },
 

@@ -13,9 +13,24 @@ export const SENSEVOICE_DEFAULT_MODEL = 'sensevoice'
 export const SENSEVOICE_MODEL_OPTIONS = [
   { value: 'sensevoice', label: 'SenseVoice — 多语言 + 情感/音频事件检测' },
   { value: 'paraformer', label: 'Paraformer — 中文生产级转录（含 VAD + 标点）' },
-  { value: 'paraformer-en', label: 'Paraformer-EN — 英语专用' },
   { value: 'fun-asr-nano', label: 'Fun-ASR-Nano — 31 语言 LLM-based ASR' },
 ] as const
+
+/**
+ * funasr-server only accepts the model names above (plus "custom" when it is
+ * started with --model-path). Earlier versions offered "paraformer-en", which
+ * the server rejects with HTTP 400; map it to the multilingual default.
+ */
+const SENSEVOICE_LEGACY_MODEL_ALIASES: Record<string, string> = {
+  'paraformer-en': SENSEVOICE_DEFAULT_MODEL,
+}
+
+export function resolveSenseVoiceModel(value: unknown): string {
+  if (typeof value !== 'string') return SENSEVOICE_DEFAULT_MODEL
+  const trimmed = value.trim()
+  if (!trimmed) return SENSEVOICE_DEFAULT_MODEL
+  return SENSEVOICE_LEGACY_MODEL_ALIASES[trimmed] ?? trimmed
+}
 
 export const SENSEVOICE_SUPPORTED_LANGUAGES = [
   'zh', 'en', 'ja', 'ko', 'yue',

@@ -10,7 +10,7 @@ import { ASSEMBLYAI_DEFAULT_MODEL } from '../types/asr/vendors/assemblyai'
 import { resolveElevenLabsRealtimeModel } from '../types/asr/vendors/elevenlabs'
 import { GLADIA_DEFAULT_MODEL } from '../types/asr/vendors/gladia'
 import { CLOUDFLARE_DEFAULT_MODEL } from '../types/asr/vendors/cloudflare'
-import { SENSEVOICE_DEFAULT_BASE_URL, SENSEVOICE_DEFAULT_MODEL } from '../types/asr/vendors/sensevoice'
+import { SENSEVOICE_DEFAULT_BASE_URL, resolveSenseVoiceModel } from '../types/asr/vendors/sensevoice'
 import { transcribeSiliconFlowAudio } from './siliconflow'
 import { throwUserError, userErrorMessage } from './userErrors'
 
@@ -772,9 +772,7 @@ const providerConfigTesters: Partial<Record<ASRVendor, ProviderConfigTester>> = 
       throwUserError('funasrHealthCheckFailed', undefined, healthRes.status)
     }
 
-    const model = typeof config.model === 'string' && config.model.trim()
-      ? config.model.trim()
-      : SENSEVOICE_DEFAULT_MODEL
+    const model = resolveSenseVoiceModel(config.model)
 
     const wavBlob = createSilentWavBlob()
     const formData = new FormData()

@@ -241,7 +241,6 @@ const FIELD_OPTION_MAP: Record<string, Record<string, Record<string, keyof Provi
     model: {
       sensevoice: 'optSenseVoice',
       paraformer: 'optParaformer',
-      'paraformer-en': 'optParaformerEn',
       'fun-asr-nano': 'optFunAsrNano',
     },
   },

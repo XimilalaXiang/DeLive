@@ -2,6 +2,7 @@ import { app, BrowserWindow, shell, type BrowserWindowConstructorOptions } from 
 import path from 'path'
 import { buildCSP, isAllowedNavigationUrl } from './ipcSecurity'
 import { getElectronStrings } from './i18n'
+import { applyLocalServiceCors } from '../shared/localServiceCors'
 
 interface CreateMainWindowOptions {
   isDev: boolean
@@ -69,11 +70,13 @@ export function createMainWindow(options: CreateMainWindowOptions): BrowserWindo
   })
 
   mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+    const localCors = applyLocalServiceCors(details)
     callback({
       responseHeaders: {
-        ...details.responseHeaders,
+        ...(localCors?.responseHeaders ?? details.responseHeaders),
         'Content-Security-Policy': [buildCSP(options.isDev)],
       },
+      ...(localCors?.statusLine ? { statusLine: localCors.statusLine } : {}),
     })
   })
 
