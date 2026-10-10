@@ -24,7 +24,14 @@ export interface SixtydbSttSegment {
   language?: string | null
   confidence?: number
   words?: SixtydbSttWord[]
-  speakers?: Array<{ speaker: string; start: number; end: number }>
+  /** Set on each segment when diarize=true. */
+  speaker?: string
+}
+
+export interface SixtydbSpeakerTurn {
+  speaker: string
+  start: number
+  end: number
 }
 
 export interface SixtydbSttResponse {
@@ -34,6 +41,8 @@ export interface SixtydbSttResponse {
   text?: string
   segments?: SixtydbSttSegment[]
   words?: SixtydbSttWord[]
+  /** Speaker turns for the whole file when diarize=true. */
+  speakers?: SixtydbSpeakerTurn[]
   warning_codes?: string[]
 }
 
@@ -88,11 +97,13 @@ export async function transcribeFile(
   return res.json() as Promise<SixtydbSttResponse>
 }
 
-function dominantSpeaker(segment: SixtydbSttSegment): string | undefined {
+function segmentSpeaker(segment: SixtydbSttSegment, turns: SixtydbSpeakerTurn[]): string | undefined {
+  if (typeof segment.speaker === 'string' && segment.speaker) return segment.speaker
+  // Fall back to the top-level turn that overlaps the segment the most.
   let best: { speaker: string; overlap: number } | undefined
-  for (const turn of segment.speakers ?? []) {
+  for (const turn of turns) {
     const overlap = Math.min(turn.end, segment.end) - Math.max(turn.start, segment.start)
-    if (!best || overlap > best.overlap) best = { speaker: turn.speaker, overlap }
+    if (overlap > 0 && (!best || overlap > best.overlap)) best = { speaker: turn.speaker, overlap }
   }
   return best?.speaker
 }
@@ -123,7 +134,7 @@ export function sixtydbResponseToResult(response: SixtydbSttResponse): {
     text: seg.text.trim(),
     startMs: Math.round(seg.start * 1000),
     endMs: Math.round(seg.end * 1000),
-    speakerId: dominantSpeaker(seg),
+    speakerId: segmentSpeaker(seg, response.speakers ?? []),
     language: seg.language ?? response.language ?? undefined,
     isFinal: true,
   }))

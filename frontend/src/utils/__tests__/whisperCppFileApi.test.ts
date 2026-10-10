@@ -72,6 +72,22 @@ describe('whisperCppResponseToResult', () => {
     expect(result.tokens[1]).toMatchObject({ startMs: 2200, endMs: 4500, isFinal: true })
   })
 
+  it('normalizes the language name and drops server line breaks (real whisper-server output)', () => {
+    const result = whisperCppResponseToResult({
+      text: ' Hello, this is a short test of the file transcription\n feature.\n The quick brown fox.',
+      language: 'english',
+      duration: 12.822,
+      segments: [
+        { text: ' Hello, this is a short test of the file transcription', start: 0, end: 2.95 },
+        { text: ' feature.', start: 2.95, end: 3.68 },
+        { text: ' The quick brown fox.', start: 4.48, end: 6.96 },
+      ],
+    }, 0)
+    expect(result.transcript).toBe('Hello, this is a short test of the file transcription feature. The quick brown fox.')
+    expect(result.segments.map((s) => s.language)).toEqual(['en', 'en', 'en'])
+    expect(result.durationMs).toBe(12822)
+  })
+
   it('falls back to a single segment for plain json responses', () => {
     const result = whisperCppResponseToResult({ text: ' just text ' }, 3000)
     expect(result.transcript).toBe('just text')

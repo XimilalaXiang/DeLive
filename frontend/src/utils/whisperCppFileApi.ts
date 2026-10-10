@@ -69,12 +69,32 @@ export interface WhisperCppFileResult {
   durationMs: number
 }
 
+// whisper-server reports the language by name ("english"); sessions use codes.
+const WHISPER_LANGUAGE_CODES: Record<string, string> = {
+  english: 'en', chinese: 'zh', japanese: 'ja', korean: 'ko', spanish: 'es', french: 'fr',
+  german: 'de', italian: 'it', portuguese: 'pt', russian: 'ru', cantonese: 'yue', dutch: 'nl',
+  arabic: 'ar', hindi: 'hi', turkish: 'tr', vietnamese: 'vi', thai: 'th', indonesian: 'id',
+  polish: 'pl', ukrainian: 'uk',
+}
+
+export function normalizeWhisperLanguage(value: string | undefined): string | undefined {
+  const lower = value?.trim().toLowerCase()
+  if (!lower) return undefined
+  if (WHISPER_LANGUAGE_CODES[lower]) return WHISPER_LANGUAGE_CODES[lower]
+  return /^[a-z]{2,3}$/.test(lower) ? lower : undefined
+}
+
 export function whisperCppResponseToResult(
   response: WhisperCppVerboseResponse,
   fallbackDurationMs: number,
 ): WhisperCppFileResult {
   const rawSegments = (response.segments ?? []).filter((seg) => typeof seg.text === 'string' && seg.text.trim())
-  const transcript = (response.text ?? rawSegments.map((seg) => seg.text).join('')).trim()
+  // The top-level text carries the server's line breaks; segment text joins cleanly.
+  const transcript = (rawSegments.length > 0
+    ? rawSegments.map((seg) => seg.text).join('')
+    : response.text ?? ''
+  ).replace(/\s*\n\s*/g, ' ').trim()
+  const language = normalizeWhisperLanguage(response.language)
   const durationMs = typeof response.duration === 'number' && response.duration > 0
     ? Math.round(response.duration * 1000)
     : fallbackDurationMs
@@ -93,7 +113,7 @@ export function whisperCppResponseToResult(
     text: seg.text.trim(),
     startMs: Math.round(seg.start * 1000),
     endMs: Math.round(seg.end * 1000),
-    language: response.language,
+    language,
     isFinal: true,
   }))
   const tokens: TranscriptTokenData[] = rawSegments.map((seg) => ({
@@ -101,7 +121,7 @@ export function whisperCppResponseToResult(
     isFinal: true,
     startMs: Math.round(seg.start * 1000),
     endMs: Math.round(seg.end * 1000),
-    language: response.language,
+    language,
   }))
 
   return { transcript, tokens, segments, speakers: [], durationMs }

@@ -45,18 +45,19 @@ describe('60db file transcription request', () => {
 })
 
 describe('sixtydbResponseToResult', () => {
-  it('maps segments, speakers and duration', () => {
+  it('maps segments, speakers and duration (diarize=true response shape)', () => {
     const result = sixtydbResponseToResult({
       language: 'en',
       duration_sec: 5.2,
       text: 'Hello there. General Kenobi.',
       segments: [
-        {
-          start: 0, end: 2.5, text: ' Hello there. ', language: 'en', confidence: 0.9,
-          speakers: [{ speaker: 'SPEAKER_00', start: 0, end: 2.4 }, { speaker: 'SPEAKER_01', start: 2.4, end: 2.5 }],
-        },
-        { start: 2.5, end: 5.2, text: 'General Kenobi.', speakers: [{ speaker: 'SPEAKER_01', start: 2.5, end: 5.2 }] },
+        { start: 0, end: 2.5, text: ' Hello there. ', language: 'en', confidence: 0.9, speaker: 'SPEAKER_00', words: [] },
+        { start: 2.5, end: 5.2, text: 'General Kenobi.', speaker: 'SPEAKER_01', words: [] },
         { start: 5.2, end: 5.2, text: '  ' },
+      ],
+      speakers: [
+        { speaker: 'SPEAKER_00', start: 0, end: 2.4 },
+        { speaker: 'SPEAKER_01', start: 2.4, end: 5.2 },
       ],
     })
 
@@ -71,6 +72,21 @@ describe('sixtydbResponseToResult', () => {
       { id: 'SPEAKER_00', label: 'SPEAKER_00' },
       { id: 'SPEAKER_01', label: 'SPEAKER_01' },
     ])
+  })
+
+  it('falls back to top-level speaker turns when a segment has no speaker', () => {
+    const result = sixtydbResponseToResult({
+      text: 'a b',
+      segments: [{ start: 0, end: 2, text: 'a' }, { start: 2, end: 4, text: 'b' }],
+      speakers: [{ speaker: 'SPEAKER_00', start: 0, end: 1.8 }, { speaker: 'SPEAKER_01', start: 1.8, end: 4 }],
+    })
+    expect(result.segments.map((s) => s.speakerId)).toEqual(['SPEAKER_00', 'SPEAKER_01'])
+  })
+
+  it('leaves speakers empty without diarization', () => {
+    const result = sixtydbResponseToResult({ text: 'hi', duration_sec: 1, segments: [{ start: 0, end: 1, text: 'hi' }] })
+    expect(result.segments[0].speakerId).toBeUndefined()
+    expect(result.speakers).toEqual([])
   })
 
   it('falls back to the full text when there are no segments', () => {
