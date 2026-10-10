@@ -11,6 +11,7 @@ import { supportsProviderWorkload, type ASRProviderInfo } from '../types/asr/com
 import { buildProviderConnectConfig, isProviderConfigured } from '../utils/providerConfig'
 import { getProviderName, getProviderDescription } from '../utils/providerI18n'
 import { getProviderLogo } from './icons/ProviderLogos'
+import { hasFileTranscriptionExecutor } from '../utils/fileTranscriptionRouting'
 import type { FileTranscriptionConfig } from '../types/fileTranscription'
 
 export function FileTranscriptionView() {
@@ -20,7 +21,8 @@ export function FileTranscriptionView() {
   const { settings, availableProviders } = useSettingsStore()
 
   const fileProviders = useMemo(
-    () => availableProviders.filter((p) => supportsProviderWorkload(p.capabilities, 'file-transcription')),
+    () => availableProviders.filter((p) =>
+      supportsProviderWorkload(p.capabilities, 'file-transcription') && hasFileTranscriptionExecutor(p.id)),
     [availableProviders],
   )
 

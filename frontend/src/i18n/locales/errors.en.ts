@@ -100,6 +100,11 @@ export const enErrors = {
   gladiaEmptyTranscript: (debugInfo: string) =>
     `Gladia returned an empty transcript (${debugInfo}). Check that the audio contains recognizable speech.`,
   providerApiKeyNotConfigured: (providerId: string) => `${providerId} API Key not configured`,
+  fileTranscriptionUnsupported: (providerId: string) => `${providerId} does not support file transcription yet. Please choose another provider.`,
+  whisperCppFileNeedsElectron: 'Local whisper.cpp file transcription requires the DeLive desktop app',
+  whisperCppModelPathNotConfigured: 'Configure the whisper.cpp model file path in Settings first',
+  audioDecodeFailed: (detail: string) => `Could not decode this audio/video file: ${detail}`,
+  whisperCppEmptyTranscript: 'whisper.cpp returned an empty transcript. Check that the audio contains speech.',
 
   localModelSetupServiceError: (status: number) => `Service returned error: ${status}`,
   localModelPullFailed: (status: number) => `Pull failed: ${status}`,
