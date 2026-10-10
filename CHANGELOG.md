@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Fixed / 修复
+- 📁 **whisper.cpp file transcription (#26)** — file jobs no longer ask for an API Key; the local runtime is started, the file is decoded to 16 kHz mono WAV and sent to whisper-server `/inference` (auto language detection unless a hint is set)
+- 📁 **whisper.cpp 文件转录 (#26)** — 不再要求 API Key；启动本地 runtime，将文件解码为 16 kHz 单声道 WAV 后发送到 whisper-server `/inference`（未设置语言提示时自动识别语言）
+- 🔀 **No more Soniox fallback (#17)** — providers without a file-transcription implementation are no longer listed or silently routed to Soniox; 60db is hidden from file transcription until its REST API is supported
+- 🔀 **去掉 Soniox 兜底 (#17)** — 没有文件转录实现的服务不再显示，也不会被悄悄转给 Soniox；60db 暂不在文件转录中提供
+- ⚠️ **Visible config errors** — missing credentials on the file transcription page now show as a failed job instead of doing nothing
+- ⚠️ **配置错误可见** — 文件转录缺少配置时会显示为失败任务，而不是没有任何反应
+- 🧩 **FunASR / SenseVoice (#10)** — removed the `paraformer-en` model that funasr-server rejects (saved configs fall back to `sensevoice`); start command now mentions `--device cpu` / `mps`; local services without CORS headers now work in dev mode too
+- 🧩 **FunASR / SenseVoice (#10)** — 移除 funasr-server 不支持的 `paraformer-en`（已保存的配置回退到 `sensevoice`）；启动命令补充 `--device cpu` / `mps`；开发模式下无 CORS 头的本地服务也能连接
+- 🔌 **Proxy port exhaustion (#16)** — if ports 23456–23460 are all taken the proxy uses a free system port, and the main window opens even if the proxy cannot start
+- 🔌 **代理端口耗尽 (#16)** — 23456–23460 全被占用时改用系统分配的空闲端口；代理无法启动时主窗口仍会打开
+
+---
+
 ## [2.3.0-beta.2] - 2026-09-21
 
 ### 🧪 Beta preview / 测试预览版
