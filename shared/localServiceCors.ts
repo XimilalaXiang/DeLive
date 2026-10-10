@@ -2,10 +2,12 @@
  * CORS shim for local ASR services (funasr-server, OpenAI-compatible servers,
  * whisper.cpp ...) that the renderer calls directly with fetch().
  *
- * In production the renderer is loaded from file:// (origin "null"); in dev it
- * is http://localhost:5173. Either way requests to http://127.0.0.1:8000 etc.
- * are cross-origin, and many local servers send no CORS headers by default
- * (funasr-server only does with --cors-origin), so Chromium blocks them.
+ * In dev the renderer is served from http://localhost:5173, so requests to
+ * http://127.0.0.1:8000 etc. are cross-origin, and many local servers send no
+ * CORS headers by default (funasr-server only does with --cors-origin), so
+ * Chromium blocks them. The packaged app loads from file://, which Electron
+ * currently exempts from these checks; the headers keep both modes working
+ * the same way.
  *
  * Only loopback responses are touched, so remote APIs keep their own policy.
  */
