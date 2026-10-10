@@ -95,6 +95,17 @@ describe('sixtydbResponseToResult', () => {
     expect(result.segments).toEqual([{ text: 'only text', startMs: 0, endMs: 3000, isFinal: true }])
   })
 
+  it('joins segment text when the top-level text is empty', () => {
+    const result = sixtydbResponseToResult({
+      text: ' ',
+      segments: [
+        { start: 0, end: 1, text: ' Hello ' },
+        { start: 1, end: 2, text: 'world.' },
+      ],
+    })
+    expect(result.transcript).toBe('Hello world.')
+  })
+
   it('reports an empty transcript for silence', () => {
     const result = sixtydbResponseToResult({ text: '', segments: [], warning_codes: ['no_speech_detected'] })
     expect(result.transcript).toBe('')

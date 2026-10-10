@@ -116,7 +116,7 @@ export function sixtydbResponseToResult(response: SixtydbSttResponse): {
   durationMs: number
 } {
   const rawSegments = (response.segments ?? []).filter((seg) => typeof seg.text === 'string' && seg.text.trim())
-  const transcript = (response.text ?? rawSegments.map((seg) => seg.text.trim()).join(' ')).trim()
+  const transcript = response.text?.trim() || rawSegments.map((seg) => seg.text.trim()).join(' ')
   const durationMs = Math.round((response.duration_sec ?? 0) * 1000)
     || Math.round((rawSegments[rawSegments.length - 1]?.end ?? 0) * 1000)
 

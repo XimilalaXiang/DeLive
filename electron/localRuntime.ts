@@ -143,10 +143,17 @@ function formatRuntimeExitError(code: number | null, signal: NodeJS.Signals | nu
   return latestLog ? base + '；最近日志: ' + latestLog : base
 }
 
-async function waitForRuntimeReady(baseUrl: string, timeoutMs = 20000): Promise<void> {
+async function waitForRuntimeReady(
+  baseUrl: string,
+  isCancelled: () => boolean = () => false,
+  timeoutMs = 20000
+): Promise<void> {
   const startedAt = Date.now()
 
   while (Date.now() - startedAt < timeoutMs) {
+    if (isCancelled()) {
+      throw new Error('本地 runtime 已停止')
+    }
     for (const endpoint of ['/', '/inference']) {
       try {
         const controller = new AbortController()
@@ -228,15 +235,28 @@ async function stopLocalRuntimeProcess(runtimeId: string): Promise<void> {
 // whisper-server at once; without this, a second start would kill the first
 // one's process while it is still loading and leave an untracked child.
 const localRuntimeStartQueues = new Map<string, Promise<unknown>>()
+// Bumped by an explicit stop, so starts queued before it do not relaunch the
+// runtime afterwards.
+const localRuntimeStopGenerations = new Map<string, number>()
+
+function getStopGeneration(runtimeId: string): number {
+  return localRuntimeStopGenerations.get(runtimeId) ?? 0
+}
+
+async function stopLocalRuntimeOnRequest(runtimeId: string): Promise<void> {
+  localRuntimeStopGenerations.set(runtimeId, getStopGeneration(runtimeId) + 1)
+  await stopLocalRuntimeProcess(runtimeId)
+}
 
 function startLocalRuntimeProcess(
   runtimeId: string,
   options: LocalRuntimeLaunchOptions = {}
 ): Promise<LocalRuntimeSnapshot> {
+  const generation = getStopGeneration(runtimeId)
   const previous = localRuntimeStartQueues.get(runtimeId) ?? Promise.resolve()
   const next = previous
     .catch(() => undefined)
-    .then(() => startLocalRuntimeProcessNow(runtimeId, options))
+    .then(() => startLocalRuntimeProcessNow(runtimeId, options, generation))
   localRuntimeStartQueues.set(runtimeId, next)
   void next.finally(() => {
     if (localRuntimeStartQueues.get(runtimeId) === next) {
@@ -248,8 +268,13 @@ function startLocalRuntimeProcess(
 
 async function startLocalRuntimeProcessNow(
   runtimeId: string,
-  options: LocalRuntimeLaunchOptions = {}
+  options: LocalRuntimeLaunchOptions,
+  generation: number
 ): Promise<LocalRuntimeSnapshot> {
+  if (getStopGeneration(runtimeId) !== generation) {
+    return getLocalRuntimeSnapshot(runtimeId, options)
+  }
+
   const definition = getLocalRuntimeDefinition(runtimeId)
   if (!definition) {
     throw new Error(`Unknown local runtime: ${runtimeId}`)
@@ -303,6 +328,9 @@ async function startLocalRuntimeProcessNow(
 
   if (existingState?.process) {
     await stopLocalRuntimeProcess(runtimeId)
+    if (getStopGeneration(runtimeId) !== generation) {
+      return getLocalRuntimeSnapshot(runtimeId, options)
+    }
   }
 
   const child = spawn(resolved.binaryPath, getWhisperCppLaunchArgs(resolved), {
@@ -348,7 +376,7 @@ async function startLocalRuntimeProcessNow(
   })
 
   try {
-    await waitForRuntimeReady(resolved.baseUrl)
+    await waitForRuntimeReady(resolved.baseUrl, () => getStopGeneration(runtimeId) !== generation)
     const currentState = localRuntimeStates.get(runtimeId) || { status: 'starting' as LocalRuntimeStatus }
     localRuntimeStates.set(runtimeId, {
       ...currentState,
@@ -361,6 +389,10 @@ async function startLocalRuntimeProcessNow(
     })
   } catch (error) {
     await stopLocalRuntimeProcess(runtimeId)
+    if (getStopGeneration(runtimeId) !== generation) {
+      // Stopped on request while loading: leave it stopped, not errored.
+      return getLocalRuntimeSnapshot(runtimeId, options)
+    }
     const currentState = localRuntimeStates.get(runtimeId) || { status: 'error' as LocalRuntimeStatus }
     localRuntimeStates.set(runtimeId, {
       ...currentState,
@@ -529,7 +561,7 @@ export function createLocalRuntimeController(): LocalRuntimeController {
     },
     async stop(runtimeId, options) {
       try {
-        await stopLocalRuntimeProcess(runtimeId)
+        await stopLocalRuntimeOnRequest(runtimeId)
         return {
           success: true,
           status: getLocalRuntimeSnapshot(runtimeId, options),
@@ -543,8 +575,9 @@ export function createLocalRuntimeController(): LocalRuntimeController {
       }
     },
     async stopAll() {
-      for (const runtimeId of localRuntimeStates.keys()) {
-        await stopLocalRuntimeProcess(runtimeId)
+      const runtimeIds = new Set([...localRuntimeStates.keys(), ...localRuntimeStartQueues.keys()])
+      for (const runtimeId of runtimeIds) {
+        await stopLocalRuntimeOnRequest(runtimeId)
       }
     },
   }
