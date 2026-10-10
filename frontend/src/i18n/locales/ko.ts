@@ -320,7 +320,6 @@ export const ko: Translations = {
     optQwenOmniThinking: 'Qwen3-Omni-30B-A3B-Thinking (멀티모달)',
     optSenseVoice: 'SenseVoice — 다국어 + 감정/오디오 이벤트 감지',
     optParaformer: 'Paraformer — 중국어 프로덕션 전사 (VAD + 문장부호 포함)',
-    optParaformerEn: 'Paraformer-EN — 영어 전용',
     optFunAsrNano: 'Fun-ASR-Nano — 31개 언어 LLM 기반 ASR',
     fieldDeepgramApiKeyDesc: 'console.deepgram.com에서 API 키를 발급받으세요',
     fieldElevenlabsApiKeyDesc: 'elevenlabs.io/app/settings/api-keys에서 API 키를 발급받으세요',
@@ -330,7 +329,7 @@ export const ko: Translations = {
     fieldApiKeyGenericPlaceholder: 'API 키를 입력하세요',
     fieldLanguageHintsDescAuto: '쉼표로 구분한 언어 코드입니다. 비워 두면 언어를 자동으로 감지합니다.',
     fieldSenseVoiceBaseUrl: '서비스 주소',
-    fieldSenseVoiceBaseUrlDesc: 'funasr-server 주소입니다. 실행 명령: funasr-server --device cuda --port 8000',
+    fieldSenseVoiceBaseUrlDesc: 'funasr-server 주소입니다. 실행 명령: funasr-server --device cuda --port 8000 (NVIDIA GPU가 없으면 --device cpu, Apple Silicon은 --device mps)',
     fieldSenseVoiceModelDesc: 'ASR 모델을 선택하세요',
   },
 

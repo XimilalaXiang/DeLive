@@ -110,8 +110,16 @@ export async function startVolcProxyServer(): Promise<{ server: Server; port: nu
   }
 
   if (boundPort == null) {
-    console.error('[Proxy] 所有候选端口均被占用，无法启动代理服务器')
-    throw new Error('所有代理候选端口 (23456-23460) 均被占用')
+    // All preferred ports are taken: let the OS pick a free one. The renderer
+    // reads the real port over IPC, so only external MCP/API clients need to
+    // look up the new port in Settings.
+    console.warn('[Proxy] 候选端口 (23456-23460) 均不可用，改用系统分配的空闲端口')
+    await tryListen(server, 0)
+    const address = server.address()
+    if (!address || typeof address === 'string') {
+      throw new Error('代理服务器无法获取监听端口')
+    }
+    boundPort = address.port
   }
 
   actualProxyPort = boundPort

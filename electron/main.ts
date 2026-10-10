@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, session, Tray, globalShortcut } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, session, Tray, globalShortcut } from 'electron'
 import { registerAppIpc } from './appIpc'
 import { setupAutoUpdater } from './autoUpdater'
 import { registerCaptionIpc } from './captionIpc'
@@ -132,9 +132,17 @@ if (!gotTheLock) {
       }
     }
 
-    const { server: httpServer, port: proxyPort } = await startVolcProxyServer()
-    console.log(`[Main] 代理服务器运行在端口: ${proxyPort}`)
-    attachApiServer({ server: httpServer })
+    try {
+      const { server: httpServer, port: proxyPort } = await startVolcProxyServer()
+      console.log(`[Main] 代理服务器运行在端口: ${proxyPort}`)
+      attachApiServer({ server: httpServer })
+    } catch (error) {
+      // Still open the window: without it the app looks like it never started.
+      // Providers that need the proxy will report connection errors instead.
+      console.error('[Main] 代理服务器启动失败:', error)
+      const detail = error instanceof Error ? error.message : String(error)
+      dialog.showErrorBox('DeLive', getElectronStrings().proxyStartFailed(detail))
+    }
 
     createWindow()
     tray = createAppTray({

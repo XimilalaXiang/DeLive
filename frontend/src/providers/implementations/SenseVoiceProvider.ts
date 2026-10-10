@@ -14,6 +14,7 @@ import type { SenseVoiceTranscriptionResponse } from '../../types/asr/vendors/se
 import {
   SENSEVOICE_DEFAULT_BASE_URL,
   SENSEVOICE_DEFAULT_MODEL,
+  resolveSenseVoiceModel,
   SENSEVOICE_MODEL_OPTIONS,
   SENSEVOICE_SUPPORTED_LANGUAGES,
 } from '../../types/asr/vendors/sensevoice'
@@ -80,7 +81,7 @@ export class SenseVoiceProvider extends WindowedBatchTranscriptionProvider<Blob>
         required: true,
         placeholder: 'http://127.0.0.1:8000',
         defaultValue: SENSEVOICE_DEFAULT_BASE_URL,
-        description: 'funasr-server 服务地址。启动命令：funasr-server --device cuda --port 8000',
+        description: 'funasr-server 服务地址。启动命令：funasr-server --device cuda --port 8000（没有 NVIDIA 显卡用 --device cpu，Apple 芯片可用 --device mps）',
       },
       {
         key: 'model',
@@ -224,7 +225,6 @@ export class SenseVoiceProvider extends WindowedBatchTranscriptionProvider<Blob>
   }
 
   private normalizeModel(value: unknown): string {
-    if (typeof value !== 'string') return SENSEVOICE_DEFAULT_MODEL
-    return value.trim() || SENSEVOICE_DEFAULT_MODEL
+    return resolveSenseVoiceModel(value)
   }
 }

@@ -100,6 +100,13 @@ export const koErrors = {
   gladiaEmptyTranscript: (debugInfo: string) =>
     `Gladia가 빈 전사 결과를 반환했습니다 (${debugInfo}). 오디오에 인식 가능한 음성이 있는지 확인하세요.`,
   providerApiKeyNotConfigured: (providerId: string) => `${providerId} API Key not configured`,
+  fileTranscriptionUnsupported: (providerId: string) => `${providerId}은(는) 아직 파일 전사를 지원하지 않습니다. 다른 서비스를 선택하세요.`,
+  whisperCppFileNeedsElectron: '로컬 whisper.cpp 파일 전사는 DeLive 데스크톱 앱에서만 사용할 수 있습니다',
+  whisperCppModelPathNotConfigured: '먼저 설정에서 whisper.cpp 모델 파일 경로를 구성하세요',
+  audioDecodeFailed: (detail: string) => `이 오디오/비디오 파일을 디코딩할 수 없습니다: ${detail}`,
+  whisperCppEmptyTranscript: 'whisper.cpp가 빈 전사 결과를 반환했습니다. 오디오에 음성이 있는지 확인하세요.',
+  sixtydbFileTooLarge: (sizeMb: string) => `60db 파일 전사는 최대 10MB까지 지원합니다. 현재 파일은 ${sizeMb}MB입니다. 압축하거나 다른 서비스를 선택하세요.`,
+  sixtydbEmptyTranscript: '60db가 빈 전사 결과를 반환했습니다. 오디오에 음성이 있는지 확인하세요.',
 
   localModelSetupServiceError: (status: number) => `서비스 오류: ${status}`,
   localModelPullFailed: (status: number) => `가져오기 실패: ${status}`,

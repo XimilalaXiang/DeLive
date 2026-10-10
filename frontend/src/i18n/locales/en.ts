@@ -320,7 +320,6 @@ export const en: Translations = {
     optQwenOmniThinking: 'Qwen3-Omni-30B-A3B-Thinking (multimodal)',
     optSenseVoice: 'SenseVoice — multilingual, with emotion and audio event detection',
     optParaformer: 'Paraformer — production Chinese transcription, with VAD and punctuation',
-    optParaformerEn: 'Paraformer-EN — English only',
     optFunAsrNano: 'Fun-ASR-Nano — LLM-based ASR for 31 languages',
     fieldDeepgramApiKeyDesc: 'Get your API Key from console.deepgram.com',
     fieldElevenlabsApiKeyDesc: 'Get your API Key from elevenlabs.io/app/settings/api-keys',
@@ -330,7 +329,7 @@ export const en: Translations = {
     fieldApiKeyGenericPlaceholder: 'Enter your API Key',
     fieldLanguageHintsDescAuto: 'Comma-separated language codes. Leave empty for automatic language detection.',
     fieldSenseVoiceBaseUrl: 'Service URL',
-    fieldSenseVoiceBaseUrlDesc: 'funasr-server address. Start it with: funasr-server --device cuda --port 8000',
+    fieldSenseVoiceBaseUrlDesc: 'funasr-server address. Start it with: funasr-server --device cuda --port 8000 (use --device cpu without an NVIDIA GPU, or --device mps on Apple Silicon)',
     fieldSenseVoiceModelDesc: 'Choose an ASR model',
   },
 

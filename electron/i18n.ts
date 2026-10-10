@@ -19,6 +19,7 @@ const strings = {
     updateInstallPrompt: '点击"立即安装"将关闭应用并安装更新，点击"稍后"将在下次启动时自动安装。',
     updateInstallNow: '立即安装',
     updateLater: '稍后',
+    proxyStartFailed: (detail: string) => `本地代理服务启动失败，依赖代理的转录服务将无法连接。\n\n${detail}`,
   },
   ko: {
     trayShowWindow: '메인 창 표시',
@@ -34,6 +35,7 @@ const strings = {
     updateInstallPrompt: '"지금 설치"를 누르면 앱을 닫고 업데이트를 설치합니다. "나중에"를 누르면 다음 실행 시 자동으로 설치합니다.',
     updateInstallNow: '지금 설치',
     updateLater: '나중에',
+    proxyStartFailed: (detail: string) => `로컬 프록시 서버를 시작하지 못했습니다. 프록시가 필요한 전사 서비스는 연결되지 않습니다.\n\n${detail}`,
   },
   en: {
     trayShowWindow: 'Show Main Window',
@@ -49,6 +51,7 @@ const strings = {
     updateInstallPrompt: 'Click "Install Now" to close the app and install. Click "Later" to auto-install on next startup.',
     updateInstallNow: 'Install Now',
     updateLater: 'Later',
+    proxyStartFailed: (detail: string) => `The local proxy server failed to start. Providers that rely on it will not be able to connect.\n\n${detail}`,
   },
 } as const
 

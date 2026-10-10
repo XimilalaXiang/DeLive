@@ -63,6 +63,21 @@ import {
   LOCAL_OPENAI_DEFAULT_BASE_URL,
   LOCAL_OPENAI_DEFAULT_MODEL,
 } from '../types/asr/vendors/localOpenAI'
+import { resolveSenseVoiceModel } from '../types/asr/vendors/sensevoice'
+import {
+  transcribeFile as whisperCppTranscribeFile,
+  whisperCppResponseToResult,
+} from '../utils/whisperCppFileApi'
+import { decodeFileToMonoWav } from '../utils/audioFileToWav'
+import {
+  transcribeFile as sixtydbTranscribeFile,
+  sixtydbResponseToResult,
+  SIXTYDB_MAX_FILE_BYTES,
+} from '../utils/sixtydbFileApi'
+import { createBundledRuntimeManager } from '../utils/localRuntimeManager'
+import { getFileTranscriptionConfigError } from '../utils/fileTranscriptionRouting'
+import { buildProviderConnectConfig } from '../utils/providerConfig'
+import type { ProviderConfigData } from '../types'
 
 /* ─── Soniox result conversion ──────────────────────────────── */
 
@@ -1014,6 +1029,85 @@ async function executeVolc(
   return { transcript, tokens, segments, speakers, durationMs }
 }
 
+/* ─── Local whisper.cpp runtime ────────────────────────────── */
+
+async function executeWhisperCpp(
+  file: File,
+  config: FileTranscriptionConfig,
+  providerConfig: ProviderConfigData,
+  jobId: string,
+  updateJob: (id: string, u: Record<string, unknown>) => void,
+  signal: AbortSignal,
+): Promise<TranscriptionResult> {
+  updateJob(jobId, { status: 'uploading', progress: 10 })
+
+  // Starts the bundled whisper-server, or reuses it if live capture already did.
+  const snapshot = await createBundledRuntimeManager('whisper_cpp').start(providerConfig)
+  if (signal.aborted) throw new Error('Transcription cancelled')
+
+  updateJob(jobId, { progress: 25 })
+
+  let decoded: { wav: Blob; durationMs: number }
+  try {
+    decoded = await decodeFileToMonoWav(file, 16000)
+  } catch (err) {
+    throwUserError('audioDecodeFailed', undefined, err instanceof Error ? err.message : String(err))
+  }
+  if (signal.aborted) throw new Error('Transcription cancelled')
+
+  updateJob(jobId, { status: 'transcribing', progress: 40 })
+
+  const response = await whisperCppTranscribeFile(
+    snapshot.baseUrl,
+    decoded.wav,
+    { language: config.languageHints?.[0] },
+    signal,
+  )
+
+  updateJob(jobId, { progress: 90 })
+
+  const result = whisperCppResponseToResult(response, decoded.durationMs)
+  if (!result.transcript) {
+    throwUserError('whisperCppEmptyTranscript')
+  }
+  return result
+}
+
+/* ─── 60db (REST /stt) ─────────────────────────────────────── */
+
+async function executeSixtydb(
+  file: File,
+  config: FileTranscriptionConfig,
+  apiKey: string,
+  jobId: string,
+  updateJob: (id: string, u: Record<string, unknown>) => void,
+  signal: AbortSignal,
+): Promise<TranscriptionResult> {
+  if (file.size > SIXTYDB_MAX_FILE_BYTES) {
+    throwUserError('sixtydbFileTooLarge', undefined, (file.size / (1024 * 1024)).toFixed(1))
+  }
+
+  updateJob(jobId, { status: 'uploading', progress: 20 })
+  updateJob(jobId, { status: 'transcribing', progress: 40 })
+
+  const response = await sixtydbTranscribeFile(
+    apiKey,
+    file,
+    file.name,
+    { languageHints: config.languageHints, diarize: config.enableSpeakerDiarization },
+    signal,
+  )
+
+  updateJob(jobId, { progress: 90 })
+
+  const result = sixtydbResponseToResult(response)
+  if (!result.transcript) {
+    console.warn('[60db] Empty transcription result. warning_codes:', response.warning_codes)
+    throwUserError('sixtydbEmptyTranscript')
+  }
+  return result
+}
+
 /* ─── Deepgram helpers ─────────────────────────────────────── */
 
 function parseDeepgramResponse(response: import('../utils/deepgramFileApi').DeepgramFileTranscriptionResponse) {
@@ -1118,29 +1212,14 @@ export function useFileTranscription() {
 
   const submitFile = useCallback(async (file: File, config: FileTranscriptionConfig) => {
     const providerId = config.provider
-    const providerConfig = useSettingsStore.getState().getProviderConfig(providerId)
-    const apiKey = providerConfig?.apiKey as string | undefined
-
-    if (providerId === 'cloudflare') {
-      const apiToken = providerConfig?.apiToken as string | undefined
-      const accountId = providerConfig?.accountId as string | undefined
-      if (!apiToken || !accountId) {
-        throwUserError('cloudflareCredentialsNotConfigured')
-      }
-    } else if (providerId === 'volc') {
-      const appKey = providerConfig?.appKey as string | undefined
-      const accessKey = providerConfig?.accessKey as string | undefined
-      if (!appKey || !accessKey) {
-        throwUserError('volcCredentialsNotConfigured')
-      }
-    } else if (providerId === 'local_openai' || providerId === 'sensevoice') {
-      const baseUrl = providerConfig?.baseUrl as string | undefined
-      if (!baseUrl?.trim()) {
-        throwUserError('configureBaseUrlFirst')
-      }
-    } else if (!apiKey) {
-      throwUserError('providerApiKeyNotConfigured', undefined, providerId)
-    }
+    const settingsState = useSettingsStore.getState()
+    const providerInfo = settingsState.availableProviders.find((p) => p.id === providerId)
+    const providerConfig: ProviderConfigData = buildProviderConnectConfig(
+      providerInfo,
+      settingsState.getProviderConfig(providerId),
+      settingsState.settings,
+    )
+    const apiKey = providerConfig.apiKey as string | undefined
 
     const jobId = addJob({
       fileName: file.name,
@@ -1148,6 +1227,19 @@ export function useFileTranscription() {
       mimeType: file.type || 'audio/mpeg',
       provider: config.provider,
     })
+
+    // Report config problems on the job itself so they show in the list,
+    // instead of rejecting before a job exists (which the page only logged).
+    const configError = getFileTranscriptionConfigError(providerId, providerConfig, {
+      isElectron: Boolean(window.electronAPI?.isElectron),
+    })
+    if (configError) {
+      updateJob(jobId, {
+        status: 'error',
+        error: userErrorMessage(configError.key, undefined, ...configError.args),
+      })
+      return jobId
+    }
 
     const controller = new AbortController()
     abortControllers.current.set(jobId, controller)
@@ -1183,11 +1275,21 @@ export function useFileTranscription() {
           const rawBaseUrl = providerConfig?.baseUrl as string | undefined
           const defaultBase = providerId === 'sensevoice' ? 'http://127.0.0.1:8000' : LOCAL_OPENAI_DEFAULT_BASE_URL
           const baseUrl = (rawBaseUrl?.trim() || defaultBase).replace(/\/+$/, '')
-          const model = (providerConfig?.model as string)?.trim() || (providerId === 'sensevoice' ? 'sensevoice' : LOCAL_OPENAI_DEFAULT_MODEL)
+          const model = providerId === 'sensevoice'
+            ? resolveSenseVoiceModel(providerConfig?.model)
+            : (providerConfig?.model as string)?.trim() || LOCAL_OPENAI_DEFAULT_MODEL
           const localApiKey = (providerConfig?.apiKey as string)?.trim() || undefined
           result = await executeLocalOpenAI(file, config, baseUrl, model, localApiKey, jobId, updateJob, controller.signal)
-        } else {
+        } else if (providerId === 'local_whisper_cpp') {
+          result = await executeWhisperCpp(file, config, providerConfig, jobId, updateJob, controller.signal)
+        } else if (providerId === 'sixtydb') {
+          result = await executeSixtydb(file, config, apiKey!, jobId, updateJob, controller.signal)
+        } else if (providerId === 'soniox') {
           result = await executeSoniox(file, config, apiKey!, jobId, updateJob, controller.signal)
+        } else {
+          // Unreachable while FILE_TRANSCRIPTION_PROVIDER_IDS matches the
+          // branches above; never fall back to another vendor's API (#17).
+          throwUserError('fileTranscriptionUnsupported', undefined, providerId)
         }
 
         const now = Date.now()
@@ -1226,7 +1328,7 @@ export function useFileTranscription() {
         })
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Unknown error'
-        if (message !== 'Transcription cancelled') {
+        if (message !== 'Transcription cancelled' && !controller.signal.aborted) {
           updateJob(jobId, { status: 'error', error: message })
         }
       } finally {

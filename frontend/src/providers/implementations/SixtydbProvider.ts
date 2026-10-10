@@ -51,6 +51,7 @@ export class SixtydbProvider extends BaseASRProvider {
           inputSources: ['system-audio'],
           acceptedFileKinds: ['audio'],
         },
+        // Files go to the REST /stt endpoint, not the realtime WebSocket.
         fileTranscription: {
           availability: 'compatible',
           executionMode: 'single-request',
