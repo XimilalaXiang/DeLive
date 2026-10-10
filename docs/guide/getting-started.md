@@ -49,12 +49,14 @@ Windows may show a SmartScreen warning on first launch. Click **More info** → 
 | Gladia | API key from [gladia.io](https://gladia.io) |
 | Mistral AI | API key from [mistral.ai](https://mistral.ai) |
 | Cloudflare Workers AI | API token + Account ID from [cloudflare.com](https://cloudflare.com) |
+| 60db | API key from [60db.ai](https://60db.ai) |
 
 ### Local Providers
 
 | Provider | What You Need |
 |----------|--------------|
 | Local OpenAI-compatible | A service exposing `/v1/models` and `/v1/audio/transcriptions` (e.g. Ollama) |
+| Local FunASR / SenseVoice | A running `funasr-server` (`pip install funasr`, then `funasr-server --device cuda --port 8000`) |
 | Local whisper.cpp | `whisper-server` binary + a `.bin` or `.gguf` model — or let DeLive download them |
 
 ## Building from Source
