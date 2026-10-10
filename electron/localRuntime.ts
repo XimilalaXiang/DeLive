@@ -224,7 +224,29 @@ async function stopLocalRuntimeProcess(runtimeId: string): Promise<void> {
   })
 }
 
-async function startLocalRuntimeProcess(
+// Starts of the same runtime run one at a time. Several file jobs can ask for
+// whisper-server at once; without this, a second start would kill the first
+// one's process while it is still loading and leave an untracked child.
+const localRuntimeStartQueues = new Map<string, Promise<unknown>>()
+
+function startLocalRuntimeProcess(
+  runtimeId: string,
+  options: LocalRuntimeLaunchOptions = {}
+): Promise<LocalRuntimeSnapshot> {
+  const previous = localRuntimeStartQueues.get(runtimeId) ?? Promise.resolve()
+  const next = previous
+    .catch(() => undefined)
+    .then(() => startLocalRuntimeProcessNow(runtimeId, options))
+  localRuntimeStartQueues.set(runtimeId, next)
+  void next.finally(() => {
+    if (localRuntimeStartQueues.get(runtimeId) === next) {
+      localRuntimeStartQueues.delete(runtimeId)
+    }
+  }).catch(() => undefined)
+  return next
+}
+
+async function startLocalRuntimeProcessNow(
   runtimeId: string,
   options: LocalRuntimeLaunchOptions = {}
 ): Promise<LocalRuntimeSnapshot> {
