@@ -100,7 +100,7 @@ function handleDeepgramConnection(clientWs: NodeWebSocket, req: IncomingMessage)
           const isFinal = msg.is_final === true
 
           if (transcript) {
-            console.log(`[DeepgramProxy] ${isFinal ? '最终' : '中间'}结果: ${transcript.substring(0, 60)}`)
+            console.log(`[DeepgramProxy] ${isFinal ? '最终' : '中间'}结果: ${transcript.length} 字`)
             clientWs.send(JSON.stringify({
               type: isFinal ? 'final' : 'partial',
               text: transcript,

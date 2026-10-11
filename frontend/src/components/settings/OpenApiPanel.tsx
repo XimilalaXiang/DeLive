@@ -4,20 +4,12 @@ import { Switch } from '../ui'
 import type { Translations } from '../../i18n'
 import type { OpenApiConfig } from '../../types'
 import { getProxyPort } from '../../utils/proxyUrl'
+import { generateOpenApiToken } from '../../utils/openApiToken'
 
 interface OpenApiPanelProps {
   t: Translations
   openApiConfig: OpenApiConfig
   updateOpenApiConfig: (config: Partial<OpenApiConfig>) => void
-}
-
-function generateRandomToken(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-  let result = 'dlv_'
-  for (let i = 0; i < 32; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  return result
 }
 
 export function OpenApiPanel({
@@ -92,7 +84,7 @@ export function OpenApiPanel({
               </div>
               <button
                 type="button"
-                onClick={() => updateOpenApiConfig({ token: generateRandomToken() })}
+                onClick={() => updateOpenApiConfig({ token: generateOpenApiToken() })}
                 className="inline-flex items-center justify-center gap-1.5 h-10 px-3 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors whitespace-nowrap"
                 title={t.settings.openApiGenerateToken}
               >

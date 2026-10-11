@@ -17,6 +17,7 @@ import {
 import { getDefaultSettings } from '../utils/storageShared'
 import { providerRegistry } from '../providers'
 import type { ASRProviderInfo, ASRVendor } from '../types/asr'
+import { withOpenApiToken } from '../utils/openApiToken'
 
 const defaultCaptionStyle: CaptionStyle = {
   fontSize: 24,
@@ -96,6 +97,13 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       merged.aiPostProcess.defaultModel = merged.aiPostProcess.model
     }
 
+    // Older versions allowed the Open API to run without a token.
+    const openApiWithToken = withOpenApiToken(merged.openApi)
+    if (openApiWithToken !== merged.openApi) {
+      merged.openApi = openApiWithToken
+      saveSettings(merged)
+    }
+
     set({ settings: merged })
 
     if (window.electronAPI) {
@@ -142,7 +150,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   updateOpenApiConfig: (config) => {
     const { settings } = get()
     const currentConfig = settings.openApi || {}
-    const nextConfig = { ...currentConfig, ...config }
+    const mergedConfig = { ...currentConfig, ...config }
+    // Turning the API on without a token would leave it refusing every request.
+    const nextConfig = config.enabled && !currentConfig.enabled
+      ? withOpenApiToken(mergedConfig)
+      : mergedConfig
     const newSettings = { ...settings, openApi: nextConfig }
 
     saveSettings(newSettings)

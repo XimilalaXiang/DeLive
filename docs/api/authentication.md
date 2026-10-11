@@ -1,21 +1,23 @@
 # Authentication
 
-DeLive's Open API supports optional Bearer token authentication to prevent unauthorized local access.
+DeLive's Open API requires a Bearer token. The server listens on `127.0.0.1` only, so other machines on your network cannot reach it.
 
 ## Setup
 
 1. Go to **Settings > General > Open API**
 2. Toggle **Enable Open API** on
-3. Enter a token or click **Generate Random Token**
+3. A random token is generated for you; copy it, or click **Generate Random Token** for a new one
 
 ## How It Works
 
 - **API disabled** → all requests (except `/api/v1/health`) return `403 Forbidden`
-- **API enabled, no token** → all requests are accepted without authentication
-- **API enabled, token set** → requests must include the token
+- **API enabled** → requests must include the token; a missing or wrong token returns `401`
+- **API enabled, token field cleared** → every request returns `401` until a token is set
+- **Request with a non-local `Host` header** → `403` (blocks DNS-rebinding pages)
+- **WebSocket with a web-page `Origin`** → `403` on `/ws/live` and the provider proxies; only DeLive's own windows and local clients that send no `Origin` are accepted
 
-::: warning
-When enabled with an empty token, any process on your machine can read your transcription data. Always set a token if you're on a shared machine.
+::: info Upgrading
+Versions before 2.3 accepted requests without a token when the token field was empty. If you had the API enabled that way, DeLive now generates a token on startup: copy it from Settings into your MCP or script configuration.
 :::
 
 ## REST API
@@ -31,7 +33,7 @@ curl -H "Authorization: Bearer dlv_your_token_here" \
 
 Two authentication methods:
 
-**Query parameter** (works in browsers):
+**Query parameter** (for clients that cannot set headers):
 ```
 ws://localhost:23456/ws/live?token=dlv_your_token_here
 ```

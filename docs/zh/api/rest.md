@@ -14,7 +14,7 @@ http://localhost:23456/api/v1
 
 ## 鉴权
 
-配置了令牌时，在 `Authorization` Header 中包含：
+在 `Authorization` Header 中包含令牌：
 
 ```
 Authorization: Bearer <your-token>

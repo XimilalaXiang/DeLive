@@ -67,12 +67,13 @@ The local REST API and WebSocket have multiple security layers:
 | Layer | Behavior |
 |-------|----------|
 | **Disabled by default** | API returns 403 until explicitly enabled |
-| **Optional Bearer token** | When set, all requests must include the token |
-| **Localhost only** | Server binds to localhost; not accessible from network |
+| **Required Bearer token** | Every request must include the token; an empty token refuses all requests |
+| **Localhost only** | Server listens on `127.0.0.1` (and `::1`); not accessible from the network |
+| **Host / Origin checks** | Non-local `Host` headers get `403` (DNS rebinding); WebSocket routes refuse web-page origins |
 | **Read-only** | No mutation endpoints; sessions cannot be modified via API |
 
-::: warning
-When the API is enabled with no token, any process on the local machine can read transcription data. This is a deliberate convenience trade-off for local development.
+::: info
+Any process on the local machine that has the token can read transcription data. Treat the token like a password.
 :::
 
 ## No Recording Control via API

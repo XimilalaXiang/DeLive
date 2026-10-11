@@ -1,21 +1,23 @@
 # 鉴权
 
-DeLive 的 Open API 支持可选的 Bearer Token 鉴权，防止未授权的本地访问。
+DeLive 的 Open API 必须使用 Bearer Token 鉴权。服务器只监听 `127.0.0.1`，局域网内的其他机器无法访问。
 
 ## 设置
 
 1. 前往 **设置 > 通用 > Open API**
 2. 开启 **启用 Open API**
-3. 输入令牌或点击 **生成随机令牌**
+3. 开启时会自动生成随机令牌，复制即可；也可以点击 **生成随机令牌** 换一个
 
 ## 工作原理
 
 - **API 已禁用** → 所有请求（`/api/v1/health` 除外）返回 `403 Forbidden`
-- **API 已启用，无令牌** → 所有请求无需认证即可接受
-- **API 已启用，已设令牌** → 请求必须包含令牌
+- **API 已启用** → 请求必须携带令牌，缺少或错误返回 `401`
+- **API 已启用但清空了令牌** → 在重新设置令牌前，所有请求都返回 `401`
+- **请求的 `Host` 头不是本机** → 返回 `403`（防御 DNS rebinding 网页）
+- **带网页 `Origin` 的 WebSocket 连接** → `/ws/live` 和各 Provider 代理都返回 `403`；只接受 DeLive 自己的窗口和不带 `Origin` 的本地客户端
 
-::: warning
-启用但令牌为空时，你机器上的任何进程都可以读取转录数据。在共享机器上请务必设置令牌。
+::: info 升级说明
+2.3 之前的版本在令牌为空时不鉴权。如果你之前这样开启了 API，DeLive 启动时会自动生成令牌，请到设置里复制它，填到 MCP 或脚本配置中。
 :::
 
 ## REST API
@@ -31,7 +33,7 @@ curl -H "Authorization: Bearer dlv_your_token_here" \
 
 两种认证方式：
 
-**查询参数**（浏览器可用）：
+**查询参数**（适用于无法设置 Header 的客户端）：
 ```
 ws://localhost:23456/ws/live?token=dlv_your_token_here
 ```

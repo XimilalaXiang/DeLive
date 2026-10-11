@@ -319,18 +319,18 @@ export interface ElectronAPI {
   apiNotifySessionStart: (sessionId: string) => void
   apiNotifySessionEnd: (sessionId: string) => void
 
-  onApiGetSessions: (callback: (event: unknown) => void) => () => void
-  apiRespondSessions: (sessions: SessionSummary[]) => void
-  onApiGetSessionDetail: (callback: (event: unknown, sessionId: string) => void) => () => void
-  apiRespondSessionDetail: (session: SessionDetail | null) => void
-  onApiSearchSessions: (callback: (event: unknown, query: string) => void) => () => void
-  apiRespondSearchSessions: (sessions: SessionSummary[]) => void
-  onApiGetTopics: (callback: (event: unknown) => void) => () => void
-  apiRespondTopics: (topics: ApiTopicData[]) => void
-  onApiGetTags: (callback: (event: unknown) => void) => () => void
-  apiRespondTags: (tags: ApiTagData[]) => void
-  onApiGetRecordingStatus: (callback: (event: unknown) => void) => () => void
-  apiRespondRecordingStatus: (status: ApiRecordingStatus) => void
+  onApiGetSessions: (callback: (event: unknown, requestId: number) => void) => () => void
+  apiRespondSessions: (requestId: number, sessions: SessionSummary[]) => void
+  onApiGetSessionDetail: (callback: (event: unknown, requestId: number, sessionId: string) => void) => () => void
+  apiRespondSessionDetail: (requestId: number, session: SessionDetail | null) => void
+  onApiSearchSessions: (callback: (event: unknown, requestId: number, query: string) => void) => () => void
+  apiRespondSearchSessions: (requestId: number, sessions: SessionSummary[]) => void
+  onApiGetTopics: (callback: (event: unknown, requestId: number) => void) => () => void
+  apiRespondTopics: (requestId: number, topics: ApiTopicData[]) => void
+  onApiGetTags: (callback: (event: unknown, requestId: number) => void) => () => void
+  apiRespondTags: (requestId: number, tags: ApiTagData[]) => void
+  onApiGetRecordingStatus: (callback: (event: unknown, requestId: number) => void) => () => void
+  apiRespondRecordingStatus: (requestId: number, status: ApiRecordingStatus) => void
 
   apiUpdateOpenApiConfig: (config: { enabled: boolean; token: string }) => void
 

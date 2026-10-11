@@ -57,13 +57,19 @@ import { getTranslations } from '../i18n'
 import { throwUserError, userErrorMessage } from '../utils/userErrors'
 
 const SESSION_AUTOSAVE_DELAY_MS = 1200
+// Upper bound between autosaves. The debounce alone never fires while
+// transcript events keep arriving less than SESSION_AUTOSAVE_DELAY_MS apart
+// (continuous audio), which left nothing to recover after a crash.
+export const SESSION_AUTOSAVE_MAX_WAIT_MS = 10_000
 let sessionAutosaveTimer: ReturnType<typeof setTimeout> | null = null
+let sessionAutosaveDeadline: number | null = null
 
 function clearSessionAutosaveTimer(): void {
   if (sessionAutosaveTimer) {
     clearTimeout(sessionAutosaveTimer)
     sessionAutosaveTimer = null
   }
+  sessionAutosaveDeadline = null
 }
 
 function getTranslationTargetLanguage(): string | undefined {
@@ -205,8 +211,13 @@ export const useSessionStore = create<SessionState>((set, get) => {
   }
 
   const scheduleCurrentSessionAutosave = () => {
+    const now = Date.now()
+    const deadline = sessionAutosaveDeadline ?? now + SESSION_AUTOSAVE_MAX_WAIT_MS
     clearSessionAutosaveTimer()
+    sessionAutosaveDeadline = deadline
     sessionAutosaveTimer = setTimeout(() => {
+      sessionAutosaveTimer = null
+      sessionAutosaveDeadline = null
       const state = get()
       if (!state.currentSessionId) return
 
@@ -217,7 +228,7 @@ export const useSessionStore = create<SessionState>((set, get) => {
 
       const sessions = sessionRepository.saveProgress(state.currentSessionId, snapshot)
       set({ sessions })
-    }, SESSION_AUTOSAVE_DELAY_MS)
+    }, Math.max(0, Math.min(SESSION_AUTOSAVE_DELAY_MS, deadline - now)))
   }
 
   const replaceSessionPostProcess = (

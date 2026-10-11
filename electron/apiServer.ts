@@ -1,6 +1,10 @@
 import type { Server, IncomingMessage, ServerResponse } from 'http'
+import { timingSafeEqual } from 'crypto'
 import { app, ipcMain } from 'electron'
 import { WebSocketServer } from 'ws'
+import { isLoopbackHostHeader } from '../shared/localApiGuard'
+import { isTrustedSender } from './ipcSecurity'
+import { registerUpgradeRoute } from './volcProxy'
 import {
   requestSessions,
   requestSessionDetail,
@@ -48,25 +52,42 @@ function extractBearerToken(req: IncomingMessage): string | null {
   return match ? match[1] : null
 }
 
-function checkAuth(req: IncomingMessage, res: ServerResponse): boolean {
+function tokenMatches(provided: string | null): boolean {
+  const expected = openApiConfig.token
+  if (!expected || !provided) return false
+  const a = Buffer.from(provided)
+  const b = Buffer.from(expected)
+  return a.length === b.length && timingSafeEqual(a, b)
+}
+
+/** Returns the HTTP status and message that refuse this request, or null when it may proceed. */
+function getAuthFailure(provided: string | null): { status: number; error: string } | null {
   if (!openApiConfig.enabled) {
-    jsonResponse(res, 403, { error: 'Open API is disabled. Enable it in DeLive settings.' })
+    return { status: 403, error: 'Open API is disabled. Enable it in DeLive settings.' }
+  }
+  // An empty token used to mean "no auth". Every request is now refused until
+  // a token is set; the settings page generates one when the API is enabled.
+  if (!openApiConfig.token) {
+    return { status: 401, error: 'Open API token is not set. Set or generate one in DeLive settings.' }
+  }
+  if (!tokenMatches(provided)) {
+    return { status: 401, error: 'Unauthorized. Provide a valid Bearer token.' }
+  }
+  return null
+}
+
+function checkAuth(req: IncomingMessage, res: ServerResponse): boolean {
+  const failure = getAuthFailure(extractBearerToken(req))
+  if (failure) {
+    jsonResponse(res, failure.status, { error: failure.error })
     return false
   }
-
-  if (openApiConfig.token) {
-    const provided = extractBearerToken(req)
-    if (provided !== openApiConfig.token) {
-      jsonResponse(res, 401, { error: 'Unauthorized. Provide a valid Bearer token.' })
-      return false
-    }
-  }
-
   return true
 }
 
 export function attachApiServer({ server }: ApiServerOptions): void {
-  ipcMain.on('api-update-open-api-config', (_event, config: { enabled: boolean; token: string }) => {
+  ipcMain.on('api-update-open-api-config', (event, config: { enabled: boolean; token: string }) => {
+    if (!isTrustedSender(event)) return
     updateOpenApiConfig(config)
   })
 
@@ -86,31 +107,19 @@ export function attachApiServer({ server }: ApiServerOptions): void {
     })
   })
 
-  server.on('upgrade', (req, socket, head) => {
-    const { pathname } = parseUrl(req)
-
-    if (pathname === '/ws/live') {
-      if (!openApiConfig.enabled) {
-        socket.write('HTTP/1.1 403 Forbidden\r\n\r\n')
-        socket.destroy()
-        return
-      }
-
-      if (openApiConfig.token) {
-        const { params } = parseUrl(req)
-        const tokenFromQuery = params.get('token')
-        const tokenFromHeader = extractBearerToken(req)
-        if (tokenFromQuery !== openApiConfig.token && tokenFromHeader !== openApiConfig.token) {
-          socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n')
-          socket.destroy()
-          return
-        }
-      }
-
-      liveWss.handleUpgrade(req, socket, head, (ws) => {
-        liveWss.emit('connection', ws, req)
-      })
+  registerUpgradeRoute(server, '/ws/live', (req, socket, head) => {
+    const { params } = parseUrl(req)
+    const failure = getAuthFailure(params.get('token') ?? extractBearerToken(req))
+    if (failure) {
+      const statusText = failure.status === 403 ? 'Forbidden' : 'Unauthorized'
+      socket.write(`HTTP/1.1 ${failure.status} ${statusText}\r\n\r\n`)
+      socket.destroy()
+      return
     }
+
+    liveWss.handleUpgrade(req, socket, head, (ws) => {
+      liveWss.emit('connection', ws, req)
+    })
   })
 
   const existingListeners = server.listeners('request').slice()
@@ -120,9 +129,19 @@ export function attachApiServer({ server }: ApiServerOptions): void {
     const { pathname, params } = parseUrl(req)
 
     if (!pathname.startsWith('/api/')) {
+      if (existingListeners.length === 0) {
+        jsonResponse(res, 404, { error: 'Not found' })
+        return
+      }
       for (const listener of existingListeners) {
         (listener as (req: IncomingMessage, res: ServerResponse) => void)(req, res)
       }
+      return
+    }
+
+    // A DNS-rebinding page (attacker.com -> 127.0.0.1) sends its own hostname.
+    if (!isLoopbackHostHeader(req.headers.host)) {
+      jsonResponse(res, 403, { error: 'Forbidden host' })
       return
     }
 

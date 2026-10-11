@@ -11,6 +11,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security / 安全
+- 🔒 **Local server is localhost-only** — the proxy and Open API now listen on `127.0.0.1` (and `::1`) instead of every network interface, and requests with a non-local `Host` header are refused (DNS rebinding)
+- 🔒 **本地服务仅限本机** — 代理和 Open API 改为只监听 `127.0.0.1`（及 `::1`），不再对局域网开放；`Host` 头不是本机的请求一律拒绝（防 DNS rebinding）
+- 🔑 **Open API token is required** — an empty token no longer means "no auth"; enabling the API (or starting with it enabled and no token) generates a random token. Copy it into your MCP / script configuration
+- 🔑 **Open API 必须使用令牌** — 令牌为空不再表示不鉴权；开启 API（或以开启且无令牌的状态启动）时会自动生成随机令牌，请复制到 MCP / 脚本配置中
+- 🙈 **No transcript text in diagnostics** — proxy logs record only the length of recognized text, so exported diagnostics no longer contain meeting content
+- 🙈 **诊断日志不含转录内容** — 代理日志只记录识别文本的长度，导出的诊断文件不再包含会议内容
+
+### Fixed / 修复
+- 📡 **`/ws/live` works again** — the proxy closed every `/ws/live` connection before the Open API could accept it; web-page origins are now refused on it and on the provider proxies
+- 📡 **`/ws/live` 可以连接了** — 之前代理会在 Open API 接手前关闭所有 `/ws/live` 连接；现在该接口和各 Provider 代理都会拒绝来自网页的连接
+- 🔀 **Concurrent Open API requests** — parallel requests (e.g. from MCP tools) no longer receive each other's data or time out with 404
+- 🔀 **Open API 并发请求** — 并行请求（如 MCP 工具同时调用）不再拿到彼此的数据或超时返回 404
+- 💾 **Autosave during continuous audio** — the recording is saved at least every 10 seconds even when transcript events never pause, so crash recovery no longer loses everything since the last pause
+- 💾 **连续音频时的自动保存** — 即使转录事件一直不停，也至少每 10 秒保存一次，崩溃恢复不再丢失上次停顿之后的全部内容
 ### Fixed / 修复
 - 📁 **whisper.cpp file transcription (#26)** — file jobs no longer ask for an API Key; the local runtime is started, the file is decoded to 16 kHz mono WAV and sent to whisper-server `/inference` (auto language detection unless a hint is set)
 - 📁 **whisper.cpp 文件转录 (#26)** — 不再要求 API Key；启动本地 runtime，将文件解码为 16 kHz 单声道 WAV 后发送到 whisper-server `/inference`（未设置语言提示时自动识别语言）

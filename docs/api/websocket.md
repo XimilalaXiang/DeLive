@@ -10,13 +10,15 @@ ws://localhost:23456/ws/live
 
 ### Authentication
 
-If a token is configured, authenticate via query parameter or header:
+Authenticate with the Open API token via query parameter or header:
 
 ```
 ws://localhost:23456/ws/live?token=your-token
 ```
 
 Or include the `Authorization: Bearer <token>` header in the upgrade request (supported by most WebSocket libraries but not browser `WebSocket`).
+
+Connections from web pages (any browser `Origin` other than DeLive itself) are refused with `403`. Use a local client such as Node.js or Python.
 
 ## Message Types
 
