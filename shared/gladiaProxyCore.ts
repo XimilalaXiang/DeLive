@@ -130,7 +130,7 @@ function handleGladiaConnection(clientWs: NodeWebSocket, req: IncomingMessage): 
             if (!text) return
 
             const isFinal = msg.data?.is_final === true
-            console.log(`[GladiaProxy] ${isFinal ? '最终' : '中间'}结果: ${text.substring(0, 60)}`)
+            console.log(`[GladiaProxy] ${isFinal ? '最终' : '中间'}结果: ${text.length} 字`)
             clientWs.send(JSON.stringify({
               type: isFinal ? 'final' : 'partial',
               text,
@@ -179,7 +179,7 @@ function handleGladiaConnection(clientWs: NodeWebSocket, req: IncomingMessage): 
             return
           }
 
-          console.log(`[GladiaProxy] 事件: ${msg.type || 'unknown'}`, JSON.stringify(msg).substring(0, 200))
+          console.log(`[GladiaProxy] 事件: ${msg.type || 'unknown'}`, `字段: ${Object.keys(msg).join(',')}`)
         } catch (error) {
           console.error('[GladiaProxy] 解析 Gladia 消息失败:', error)
         }

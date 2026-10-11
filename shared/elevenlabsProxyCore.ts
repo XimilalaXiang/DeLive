@@ -96,7 +96,7 @@ function handleElevenLabsConnection(clientWs: NodeWebSocket, req: IncomingMessag
         case 'partial_transcript': {
           const text = msg.text || ''
           if (text) {
-            console.log(`[ElevenLabsProxy] 中间结果: ${text.substring(0, 60)}`)
+            console.log(`[ElevenLabsProxy] 中间结果: ${text.length} 字`)
             clientWs.send(JSON.stringify({
               type: 'partial',
               text,
@@ -110,7 +110,7 @@ function handleElevenLabsConnection(clientWs: NodeWebSocket, req: IncomingMessag
         case 'committed_transcript_with_timestamps': {
           const text = msg.text || ''
           if (text) {
-            console.log(`[ElevenLabsProxy] 最终结果: ${text.substring(0, 60)}`)
+            console.log(`[ElevenLabsProxy] 最终结果: ${text.length} 字`)
             clientWs.send(JSON.stringify({
               type: 'final',
               text,
@@ -132,7 +132,7 @@ function handleElevenLabsConnection(clientWs: NodeWebSocket, req: IncomingMessag
         }
 
         default:
-          console.log(`[ElevenLabsProxy] 未知事件: ${msgType}`, JSON.stringify(msg).substring(0, 200))
+          console.log(`[ElevenLabsProxy] 未知事件: ${msgType}`, `字段: ${Object.keys(msg).join(',')}`)
       }
     } catch (error) {
       console.error('[ElevenLabsProxy] 解析 ElevenLabs 消息失败:', error)

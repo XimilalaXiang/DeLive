@@ -239,7 +239,7 @@ function handleVolcConnection(clientWs: NodeWebSocket, req: IncomingMessage): vo
           const text = result?.result?.text || ''
           const isFinal = (flags & FLAG_SERVER_FINAL_MASK) === FLAG_SERVER_FINAL_MASK
 
-          console.log(`[VolcProxy] 收到结果 (final=${isFinal}): ${text.substring(0, 50)}...`)
+          console.log(`[VolcProxy] 收到结果 (final=${isFinal}): ${text.length} 字`)
 
           clientWs.send(JSON.stringify({
             type: isFinal ? 'final' : 'partial',

@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { generateOpenApiToken } from '../../utils/openApiToken'
 
 describe('Settings panels – group navigation', () => {
   const GROUPS = ['provider', 'appearance', 'caption', 'aiPostProcess', 'openApi', 'cloudBackup', 'dataManagement', 'about'] as const
@@ -71,11 +72,7 @@ describe('Settings panels – nav item configuration', () => {
 
 describe('OpenApiPanel – token generation', () => {
   it('generates tokens with dlv_ prefix', () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-    let result = 'dlv_'
-    for (let i = 0; i < 32; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length))
-    }
+    const result = generateOpenApiToken()
     expect(result.startsWith('dlv_')).toBe(true)
     expect(result.length).toBe(36)
   })

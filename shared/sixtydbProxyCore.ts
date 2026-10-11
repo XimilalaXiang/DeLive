@@ -120,7 +120,7 @@ function handleSixtydbConnection(clientWs: NodeWebSocket, req: IncomingMessage):
       // 仅将 speech_final 作为 "final" 事件，其余均为 partial。
       const speechFinal = !!(msg as { speech_final?: boolean }).speech_final
       if (speechFinal) {
-        console.log(`[SixtydbProxy] 最终结果: ${text.substring(0, 60)}`)
+        console.log(`[SixtydbProxy] 最终结果: ${text.length} 字`)
         clientWs.send(JSON.stringify({ type: 'final', text, raw: msg }))
       } else {
         clientWs.send(JSON.stringify({ type: 'partial', text, raw: msg }))

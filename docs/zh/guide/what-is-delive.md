@@ -57,7 +57,7 @@ DeLive 通过本地 API 暴露数据：
 - 会话存储在 IndexedDB，配合内存缓存
 - API 密钥通过 Electron `safeStorage` 加密
 - 上下文隔离、可信 IPC 校验、CSP 注入
-- Open API 默认关闭，可选 Bearer Token 鉴权
+- Open API 默认关闭，仅限本机访问，必须使用 Bearer Token 鉴权
 
 ## 支持平台
 

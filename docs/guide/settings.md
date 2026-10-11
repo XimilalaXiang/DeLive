@@ -56,12 +56,12 @@ Control external access to DeLive data (Electron only):
 | Setting | Description |
 |---------|-------------|
 | **Enable Open API** | Toggle the local REST API and WebSocket on/off |
-| **Access Token** | Optional Bearer token for authentication |
+| **Access Token** | Required Bearer token; generated automatically when you enable the API |
 | **Generate Random Token** | Creates a cryptographically random token |
 | **Endpoint URLs** | Shows REST and WebSocket URLs with copy buttons |
 
 ::: warning
-When Open API is enabled with an empty token, any local process can access your transcription data. Set a token for production use.
+If you clear the token, the API refuses every request until a new one is set.
 :::
 
 ### Data Management

@@ -6,106 +6,65 @@ import type {
   SessionDetail,
   SessionSummary,
 } from '../shared/electronApi'
+import { createPendingRequests } from '../shared/pendingRequests'
 import { broadcastSessionEvent } from './apiBroadcast'
+import { isTrustedSender } from './ipcSecurity'
 
 interface RegisterApiIpcOptions {
   ipcMain: IpcMain
   getMainWindow: () => BrowserWindow | null
 }
 
-type PendingResolver<T> = {
-  resolve: (value: T) => void
-  timer: ReturnType<typeof setTimeout>
-}
-
-let pendingSessionsReq: PendingResolver<SessionSummary[]> | null = null
-let pendingSessionDetailReq: PendingResolver<SessionDetail | null> | null = null
-let pendingSearchReq: PendingResolver<SessionSummary[]> | null = null
-let pendingTopicsReq: PendingResolver<ApiTopicData[]> | null = null
-let pendingTagsReq: PendingResolver<ApiTagData[]> | null = null
-let pendingRecordingStatusReq: PendingResolver<ApiRecordingStatus> | null = null
-
 let _getMainWindow: () => BrowserWindow | null = () => null
 
 const IPC_TIMEOUT_MS = 5000
 
-function createPending<T>(fallback: T): { promise: Promise<T>; pending: PendingResolver<T> } {
-  let pending!: PendingResolver<T>
-  const promise = new Promise<T>((resolve) => {
-    const timer = setTimeout(() => {
-      resolve(fallback)
-    }, IPC_TIMEOUT_MS)
-    pending = { resolve, timer }
-  })
-  return { promise, pending }
-}
+// Every request carries an id that the renderer echoes back, so concurrent
+// API calls of the same kind each receive their own reply.
+const pendingRequests = createPendingRequests(IPC_TIMEOUT_MS)
 
-function resolvePending<T>(slot: PendingResolver<T> | null, value: T): void {
-  if (!slot) return
-  clearTimeout(slot.timer)
-  slot.resolve(value)
+function requestFromRenderer<T>(channel: string, fallback: T, ...args: unknown[]): Promise<T> {
+  const win = _getMainWindow()
+  if (!win || win.isDestroyed()) return Promise.resolve(fallback)
+
+  const { id, promise } = pendingRequests.create(fallback)
+  win.webContents.send(channel, id, ...args)
+  return promise
 }
 
 export function requestSessions(): Promise<SessionSummary[]> {
-  const win = _getMainWindow()
-  if (!win || win.isDestroyed()) return Promise.resolve([])
-
-  const { promise, pending } = createPending<SessionSummary[]>([])
-  pendingSessionsReq = pending
-  win.webContents.send('api-get-sessions')
-  return promise
+  return requestFromRenderer<SessionSummary[]>('api-get-sessions', [])
 }
 
 export function requestSessionDetail(sessionId: string): Promise<SessionDetail | null> {
-  const win = _getMainWindow()
-  if (!win || win.isDestroyed()) return Promise.resolve(null)
-
-  const { promise, pending } = createPending<SessionDetail | null>(null)
-  pendingSessionDetailReq = pending
-  win.webContents.send('api-get-session-detail', sessionId)
-  return promise
+  return requestFromRenderer<SessionDetail | null>('api-get-session-detail', null, sessionId)
 }
 
 export function requestSearchSessions(query: string): Promise<SessionSummary[]> {
-  const win = _getMainWindow()
-  if (!win || win.isDestroyed()) return Promise.resolve([])
-
-  const { promise, pending } = createPending<SessionSummary[]>([])
-  pendingSearchReq = pending
-  win.webContents.send('api-search-sessions', query)
-  return promise
+  return requestFromRenderer<SessionSummary[]>('api-search-sessions', [], query)
 }
 
 export function requestTopics(): Promise<ApiTopicData[]> {
-  const win = _getMainWindow()
-  if (!win || win.isDestroyed()) return Promise.resolve([])
-
-  const { promise, pending } = createPending<ApiTopicData[]>([])
-  pendingTopicsReq = pending
-  win.webContents.send('api-get-topics')
-  return promise
+  return requestFromRenderer<ApiTopicData[]>('api-get-topics', [])
 }
 
 export function requestTags(): Promise<ApiTagData[]> {
-  const win = _getMainWindow()
-  if (!win || win.isDestroyed()) return Promise.resolve([])
-
-  const { promise, pending } = createPending<ApiTagData[]>([])
-  pendingTagsReq = pending
-  win.webContents.send('api-get-tags')
-  return promise
+  return requestFromRenderer<ApiTagData[]>('api-get-tags', [])
 }
 
 export function requestRecordingStatus(): Promise<ApiRecordingStatus> {
-  const win = _getMainWindow()
   const fallback: ApiRecordingStatus = { isRecording: false, currentSessionId: null, recordingState: 'idle' }
-  if (!win || win.isDestroyed()) return Promise.resolve(fallback)
-
-  const { promise, pending } = createPending<ApiRecordingStatus>(fallback)
-  pendingRecordingStatusReq = pending
-  win.webContents.send('api-get-recording-status')
-  return promise
+  return requestFromRenderer<ApiRecordingStatus>('api-get-recording-status', fallback)
 }
+
+const RESPONSE_CHANNELS = [
+  'api-respond-sessions',
+  'api-respond-session-detail',
+  'api-respond-search-sessions',
+  'api-respond-topics',
+  'api-respond-tags',
+  'api-respond-recording-status',
+]
 
 export function registerApiIpc({ ipcMain, getMainWindow }: RegisterApiIpcOptions): void {
   _getMainWindow = getMainWindow
@@ -118,33 +77,10 @@ export function registerApiIpc({ ipcMain, getMainWindow }: RegisterApiIpcOptions
     broadcastSessionEvent('session-end', sessionId)
   })
 
-  ipcMain.on('api-respond-sessions', (_event, sessions: SessionSummary[]) => {
-    resolvePending(pendingSessionsReq, sessions)
-    pendingSessionsReq = null
-  })
-
-  ipcMain.on('api-respond-session-detail', (_event, session: SessionDetail | null) => {
-    resolvePending(pendingSessionDetailReq, session)
-    pendingSessionDetailReq = null
-  })
-
-  ipcMain.on('api-respond-search-sessions', (_event, sessions: SessionSummary[]) => {
-    resolvePending(pendingSearchReq, sessions)
-    pendingSearchReq = null
-  })
-
-  ipcMain.on('api-respond-topics', (_event, topics: ApiTopicData[]) => {
-    resolvePending(pendingTopicsReq, topics)
-    pendingTopicsReq = null
-  })
-
-  ipcMain.on('api-respond-tags', (_event, tags: ApiTagData[]) => {
-    resolvePending(pendingTagsReq, tags)
-    pendingTagsReq = null
-  })
-
-  ipcMain.on('api-respond-recording-status', (_event, status: ApiRecordingStatus) => {
-    resolvePending(pendingRecordingStatusReq, status)
-    pendingRecordingStatusReq = null
-  })
+  for (const channel of RESPONSE_CHANNELS) {
+    ipcMain.on(channel, (event, requestId: number, value: unknown) => {
+      if (!isTrustedSender(event)) return
+      pendingRequests.resolve(requestId, value)
+    })
+  }
 }

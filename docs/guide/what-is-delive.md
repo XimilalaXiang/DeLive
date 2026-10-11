@@ -57,7 +57,7 @@ DeLive exposes its data through a local API:
 - Sessions stored in IndexedDB with an in-memory cache
 - API keys encrypted via Electron `safeStorage`
 - Context isolation, trusted IPC verification, CSP injection
-- Open API disabled by default with optional Bearer token authentication
+- Open API disabled by default, localhost only, with required Bearer token authentication
 
 ## Platforms
 

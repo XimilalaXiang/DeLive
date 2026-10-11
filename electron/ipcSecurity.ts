@@ -9,7 +9,7 @@ export function registerTrustedWindow(provider: TrustedWindowProvider): void {
   trustedWindows.push(provider)
 }
 
-export function isTrustedSender(event: IpcMainInvokeEvent): boolean {
+export function isTrustedSender(event: Pick<IpcMainInvokeEvent, 'sender'>): boolean {
   const senderWc = event.sender
   if (senderWc.isDestroyed()) return false
 

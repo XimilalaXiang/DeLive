@@ -14,7 +14,7 @@ http://localhost:23456/api/v1
 
 ## Authentication
 
-When a token is configured, include it in the `Authorization` header:
+Include the token in the `Authorization` header:
 
 ```
 Authorization: Bearer <your-token>

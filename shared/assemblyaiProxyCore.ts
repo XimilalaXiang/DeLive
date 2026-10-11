@@ -95,7 +95,7 @@ function handleAssemblyAIConnection(clientWs: NodeWebSocket, req: IncomingMessag
           const endOfTurn = msg.end_of_turn === true
 
           if (transcript) {
-            console.log(`[AssemblyAIProxy] ${endOfTurn ? '最终' : '中间'}结果: ${transcript.substring(0, 60)}`)
+            console.log(`[AssemblyAIProxy] ${endOfTurn ? '最终' : '中间'}结果: ${transcript.length} 字`)
             clientWs.send(JSON.stringify({
               type: endOfTurn ? 'final' : 'partial',
               text: transcript,

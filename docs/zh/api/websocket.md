@@ -10,13 +10,15 @@ ws://localhost:23456/ws/live
 
 ### 鉴权
 
-如果配置了令牌，通过查询参数或 Header 认证：
+使用 Open API 令牌，通过查询参数或 Header 认证：
 
 ```
 ws://localhost:23456/ws/live?token=your-token
 ```
 
 或在升级请求中包含 `Authorization: Bearer <token>` Header（大多数 WebSocket 库支持，但浏览器 `WebSocket` 不支持）。
+
+来自网页的连接（带有 DeLive 以外的浏览器 `Origin`）会被 `403` 拒绝，请使用 Node.js、Python 等本地客户端。
 
 ## 消息类型
 

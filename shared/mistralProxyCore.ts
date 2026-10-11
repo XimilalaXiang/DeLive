@@ -99,14 +99,14 @@ function handleMistralConnection(clientWs: NodeWebSocket, req: IncomingMessage):
         case 'transcription.segment': {
           const segText = msg.text || ''
           if (segText) {
-            console.log(`[MistralProxy] segment: ${segText.substring(0, 60)}`)
+            console.log(`[MistralProxy] segment: ${segText.length} 字`)
           }
           break
         }
 
         case 'transcription.done': {
           const finalText = accumulatedText
-          console.log(`[MistralProxy] 转录完成: ${finalText.substring(0, 60)}`)
+          console.log(`[MistralProxy] 转录完成: ${finalText.length} 字`)
           clientWs.send(JSON.stringify({
             type: 'final',
             text: finalText,
