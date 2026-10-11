@@ -6,7 +6,7 @@ DeLive is a desktop transcription workspace that captures system audio, routes i
 
 ### Multi-Provider ASR
 
-DeLive supports **twelve ASR backends** behind a single unified interface. Cloud providers require an API key — see the [API Key Guide](./api-keys) for setup instructions.
+DeLive supports **fourteen ASR backends** behind a single unified interface. Cloud providers require an API key — see the [API Key Guide](./api-keys) for setup instructions.
 
 | Provider | Type | Mode | Highlights |
 |----------|------|------|------------|
@@ -17,11 +17,17 @@ DeLive supports **twelve ASR backends** behind a single unified interface. Cloud
 | **Gladia** | Cloud | Real-time streaming | Live Solaria-1; file Solaria-1 or Solaria-3; 100+ languages; proxy handles session init |
 | **Deepgram** | Cloud | Real-time streaming | Nova-3 / Nova-2 streaming ASR; best for English and multilingual |
 | **AssemblyAI** | Cloud | Real-time streaming | Universal-3.5 Pro streaming; optimized for English |
+| **60db** | Cloud | Real-time streaming | ~40 languages incl. Indic + English code-switching; embedded proxy handles auth |
 | **Cloudflare Workers AI** | Cloud | Windowed batch | Whisper-based; low cost with free tier; VAD filter |
 | **SiliconFlow** | Cloud | Windowed batch | SenseVoice, TeleSpeech, and Qwen Omni models |
 | **Groq** | Cloud | Windowed batch | Whisper large-v3-turbo with quasi-realtime updates |
 | **Local OpenAI-compatible** | Local | Windowed batch | Works with Ollama or any `/v1/audio/transcriptions` endpoint |
+| **Local FunASR / SenseVoice** | Local | Windowed batch | Self-hosted `funasr-server`; SenseVoice, Paraformer, Fun-ASR-Nano; no API cost |
 | **Local whisper.cpp** | Local | Electron-managed runtime | Fully offline; DeLive manages the binary and model lifecycle |
+
+### File Transcription
+
+Upload audio or video files and transcribe them with any of the fourteen providers. Cloud providers use their own file APIs; local whisper.cpp receives the file as 16 kHz mono WAV, and FunASR / SenseVoice and Local OpenAI-compatible receive it through `/v1/audio/transcriptions`. 60db file jobs are limited to 10 MB.
 
 ### AI Review Desk
 
@@ -60,5 +66,5 @@ DeLive runs on **Windows**, **macOS**, and **Linux**.
 | Platform | Formats |
 |----------|---------|
 | Windows | `.exe` installer, portable `.exe` |
-| macOS | `.dmg` (Intel x64 and Apple Silicon arm64) |
+| macOS | `.dmg`, `.zip` (Intel x64 and Apple Silicon arm64) |
 | Linux | `.AppImage`, `.deb` |

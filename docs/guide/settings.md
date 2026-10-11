@@ -6,7 +6,7 @@ DeLive settings are organized into two tabs: **Service** (provider configuration
 
 ### Provider Selection
 
-Choose from twelve ASR providers. Each provider has its own set of configuration fields (API keys, endpoints, models, language hints).
+Choose from fourteen ASR providers. Each provider has its own set of configuration fields (API keys, endpoints, models, language hints).
 
 ### Config Test
 
@@ -16,10 +16,10 @@ All providers support **Test Config**, a button that verifies credentials and co
 
 ### Local Service Discovery
 
-For **Local OpenAI-compatible**, DeLive can:
+For **Local OpenAI-compatible** and **FunASR / SenseVoice**, DeLive can:
 - Probe the service at the configured base URL
 - List installed models via `/v1/models`
-- Pull models from Ollama if detected
+- Pull models from Ollama if detected (Local OpenAI-compatible only)
 
 ### Runtime Setup
 
@@ -36,7 +36,7 @@ Switch between **Chinese** (default), **English**, and **Korean**.
 
 ### Color Theme
 
-Five accent palettes: **Cyan**, **Violet**, **Rose**, **Green**, **Amber**. Each supports full light and dark mode. The light/dark toggle is in the top navigation bar.
+Eight accent palettes: **Violet** (default), **Cyan**, **Rose**, **Emerald**, **Amber**, **Pink**, **Slate**, **Orange**. Each supports full light and dark mode. The light/dark toggle is in the top navigation bar.
 
 ### AI Post-Process
 

@@ -11,7 +11,7 @@ flowchart TB
     entry["main.ts → mainWindow · captionWindow · tray · shortcuts"]
     subgraph services["Core Services"]
       direction LR
-      volc["🌐 Multi-Provider Proxy\n/ws/volc · /ws/mistral · /ws/deepgram\n/ws/assemblyai · /ws/elevenlabs\nPort 23456"]
+      volc["🌐 Multi-Provider Proxy\n/ws/volc · /ws/mistral · /ws/deepgram\n/ws/assemblyai · /ws/elevenlabs\n/ws/gladia · /ws/sixtydb\nPort 23456 (fallback: free port)"]
       api["⚡ API Server\n/api/v1/* · /ws/live"]
       runtime["🔧 Local Runtime\nwhisper.cpp Lifecycle"]
     end
@@ -26,11 +26,11 @@ flowchart TB
       direction LR
       hooks["useASR\nCaptureManager\nProviderSession"]
       stores["Zustand Stores\nsessionStore · settingsStore\nuiStore · topicStore · tagStore"]
-      ui["UI Components\nLive · Review · Topics\n5 Themes × 2 Modes"]
+      ui["UI Components\nLive · Review · Topics\n8 Themes × 2 Modes"]
     end
     subgraph data["Data Layer"]
       direction LR
-      providers["Provider Registry\n(12 ASR Backends)"]
+      providers["Provider Registry\n(14 ASR Backends)"]
       persistence["Session Repository\nIndexedDB + Memory Cache"]
     end
   end
@@ -112,21 +112,25 @@ flowchart TB
     deepgram["Deepgram\nReal-time streaming\nNova-3 · Nova-2"]
     assemblyai["AssemblyAI\nReal-time streaming\nUniversal-3.5 Pro"]
     elevenlabs["ElevenLabs\nReal-time streaming\nScribe v2 Realtime"]
+    gladia["Gladia\nReal-time streaming\nSolaria-1 · Solaria-3 (files)"]
+    sixtydb["60db\nReal-time streaming\n~40 languages · Indic"]
+    cloudflare["Cloudflare Workers AI\nWindowed batch\nWhisper"]
   end
 
   subgraph local["💻 Local Providers"]
     openai["OpenAI-compatible\nWindowed batch\nOllama / any endpoint"]
     whisper["whisper.cpp\nElectron-managed\nFully offline"]
+    sensevoice["FunASR / SenseVoice\nWindowed batch\nSelf-hosted funasr-server"]
   end
 
   registry["Provider Registry\n(Singleton)"]
   capture["CaptureManager"]
 
-  registry --> soniox & volc & groq & silicon & mistral & deepgram & assemblyai & elevenlabs & openai & whisper
+  registry --> soniox & volc & groq & silicon & mistral & deepgram & assemblyai & elevenlabs & gladia & sixtydb & cloudflare & openai & sensevoice & whisper
   capture -->|"MediaRecorder\n(streaming)"| soniox
-  capture -->|"AudioWorklet\nPCM16 (streaming)"| volc & mistral & deepgram & assemblyai & elevenlabs
-  capture -->|"AudioWorklet\nPCM16 (batch)"| groq & silicon & whisper
-  capture -->|"MediaRecorder\n(batch)"| openai
+  capture -->|"AudioWorklet\nPCM16 (streaming)"| volc & mistral & deepgram & assemblyai & elevenlabs & gladia & sixtydb
+  capture -->|"AudioWorklet\nPCM16 (batch)"| groq & silicon & cloudflare & whisper
+  capture -->|"MediaRecorder\n(batch)"| openai & sensevoice
 
   style registry fill:#6366f1,color:#fff
   style capture fill:#0ea5e9,color:#fff
@@ -142,7 +146,7 @@ All session data lives in the Renderer's IndexedDB with an in-memory cache in `s
 
 ### Single HTTP Server
 
-Port 23456 hosts multiple WebSocket proxies (`/ws/volc`, `/ws/mistral`, `/ws/deepgram`, `/ws/assemblyai`, `/ws/elevenlabs`), the REST API (`/api/v1/*`), and the live transcript WebSocket (`/ws/live`) on a single `http.createServer()`. Each proxy uses `noServer: true` mode with manual `upgrade` event routing.
+Port 23456 (or the next free port in 23456–23460, then any free system port) hosts multiple WebSocket proxies (`/ws/volc`, `/ws/mistral`, `/ws/deepgram`, `/ws/assemblyai`, `/ws/elevenlabs`, `/ws/gladia`, `/ws/sixtydb`), the REST API (`/api/v1/*`), and the live transcript WebSocket (`/ws/live`) on a single `http.createServer()`. Each proxy uses `noServer: true` mode with manual `upgrade` event routing.
 
 ### MCP as Separate Process
 
@@ -150,7 +154,7 @@ The MCP server is a standalone Node.js script, not embedded in Electron. Claude 
 
 ### Provider Registry
 
-Twelve ASR backends are registered in a singleton `ProviderRegistry`. Each provider implements a common `ASRProvider` contract but uses different audio formats and transport methods. The `CaptureManager` selects the right audio pipeline based on provider capabilities.
+Fourteen ASR backends are registered in a singleton `ProviderRegistry`. Each provider implements a common `ASRProvider` contract but uses different audio formats and transport methods. The `CaptureManager` selects the right audio pipeline based on provider capabilities.
 
 ## Module Map
 

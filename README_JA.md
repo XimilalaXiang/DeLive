@@ -4,7 +4,7 @@
 
 ---
 
-システム音声キャプチャ | 12 種の ASR プロバイダー | ローカルファーストの AI 振り返りワークスペース
+システム音声キャプチャ | 14 種の ASR プロバイダー | ローカルファーストの AI 振り返りワークスペース
 
 [English](./README.md) | [简体中文](./README_ZH.md) | [繁體中文](./README_TW.md) | 日本語
 
@@ -25,7 +25,7 @@
 
 </div>
 
-DeLive は、PC で再生中のシステム音声をそのまま取り込み、リアルタイムで文字起こしできるデスクトップアプリです。12 種の ASR プロバイダーに対応し、セッション、タグ、トピック、設定はローカルに保存されます。録音後は AI による校正、要約、Q&A、Markdown チャット、マインドマップで内容を整理できます。音声・動画ファイルのアップロード文字起こしにも対応し、10 種のクラウドエンジンを利用できます。
+DeLive は、PC で再生中のシステム音声をそのまま取り込み、リアルタイムで文字起こしできるデスクトップアプリです。14 種の ASR プロバイダーに対応し、セッション、タグ、トピック、設定はローカルに保存されます。録音後は AI による校正、要約、Q&A、Markdown チャット、マインドマップで内容を整理できます。音声・動画ファイルのアップロード文字起こしにも対応し、クラウド・ローカルを問わず全 14 種のプロバイダーを利用できます。
 
 <div align="center">
 
@@ -33,7 +33,7 @@ DeLive は、PC で再生中のシステム音声をそのまま取り込み、�
 
 | リアルタイム文字起こし | 字幕オーバーレイ | MCP 連携 |
 |:---:|:---:|:---:|
-| 12 種の ASR プロバイダーに対応 | ドラッグできる常時前面の字幕ウィンドウ | 外部 AI ツールから MCP 経由で利用 |
+| 14 種の ASR プロバイダーに対応 | ドラッグできる常時前面の字幕ウィンドウ | 外部 AI ツールから MCP 経由で利用 |
 | <img width="300" src="assets/screenshot-live.png" alt="リアルタイム文字起こし" /> | <img width="300" src="assets/screenshot-caption-overlay.png" alt="字幕オーバーレイ" /> | <img width="300" src="assets/screenshot-mcp-integration.png" alt="MCP 連携" /> |
 
 | AI 概要 | AI 校正 | AI チャット |
@@ -48,14 +48,15 @@ DeLive は、PC で再生中のシステム音声をそのまま取り込み、�
 ## 🎯 主な機能
 
 - **システム音声キャプチャ** — ブラウザ動画、ライブ配信、会議、講義、ポッドキャストなど、PC で再生中の音声を取り込み
-- **12 種の ASR プロバイダー** — Soniox、Volcengine、Groq、SiliconFlow、Mistral AI、Deepgram、AssemblyAI、ElevenLabs、Gladia、Cloudflare Workers AI、ローカル OpenAI 互換、ローカル whisper.cpp
-- **ファイル文字起こし** — 音声・動画ファイルをアップロードし、10 種のクラウドエンジンで文字起こし
+- **14 種の ASR プロバイダー** — Soniox、Volcengine、Groq、SiliconFlow、Mistral AI、Deepgram、AssemblyAI、ElevenLabs、Gladia、Cloudflare Workers AI、60db、ローカル OpenAI 互換、ローカル FunASR / SenseVoice、ローカル whisper.cpp
+- **ファイル文字起こし** — 音声・動画ファイルをアップロードし、全 14 種のプロバイダーで文字起こし（完全ローカルの whisper.cpp や FunASR / SenseVoice を含む）
 - **AI 振り返りワークスペース** — 校正（クイック修正 / 確認して修正）、要約、Q&A、チャット、マインドマップ
 - **字幕オーバーレイ** — 常時前面表示、原文 / 翻訳 / 二言語表示に対応
 - **Soniox の二言語・話者分離** — リアルタイム翻訳、二言語字幕、話者分離
 - **トピック管理** — セッションをプロジェクト単位で整理
 - **ローカルファースト** — セッション、タグ、トピック、設定をローカル保存。S3/WebDAV バックアップは任意
 - **Open API & MCP** — ローカル REST API、リアルタイム WebSocket、AI エージェント向け MCP サーバー
+- **多言語 UI** — English、简体中文、한국어
 - **クロスプラットフォーム** — Windows、macOS、Linux
 
 > 📖 機能の詳細：[ドキュメント](https://docs.delive.me/guide/what-is-delive)
@@ -76,22 +77,26 @@ DeLive は、PC で再生中のシステム音声をそのまま取り込み、�
 | macOS | `.dmg`、`.zip`（Intel x64 / Apple Silicon arm64） |
 | Linux | `.AppImage`、`.deb` |
 
+> 🧪 60db、FunASR / SenseVoice、韓国語 UI、ローカルプロバイダーのファイル文字起こしは現在の安定版より新しい機能です。[プレリリース](https://github.com/XimilalaXiang/DeLive/releases) で試すか、ソースからビルドしてください。
+
 ## 🔌 対応 ASR プロバイダー
 
 | プロバイダー | 種別 | 転送方式 | ファイル文字起こし | 特長 |
 |-------------|------|----------|--------------------|------|
 | **Soniox V5** | クラウド | リアルタイムストリーミング | 対応 | トークン単位の文字起こし、リアルタイム翻訳、二言語字幕、話者分離 |
 | **Volcengine** | クラウド | リアルタイムストリーミング | 対応 | 中国語に強く、組み込みプロキシに対応 |
-| **ElevenLabs** | クラウド | リアルタイムストリーミング | 対応 | Scribe v2 Realtime、99 言語 |
+| **ElevenLabs** | クラウド | リアルタイムストリーミング | 対応 | Scribe v2 Realtime（Standard / Turbo / Lite）、99 言語 |
 | **Mistral AI** | クラウド | リアルタイムストリーミング | 対応 | Voxtral Realtime |
 | **Gladia** | クラウド | リアルタイムストリーミング | 対応 | ライブ Solaria-1；ファイル Solaria-1 / Solaria-3、100+ 言語 |
 | **Deepgram** | クラウド | リアルタイムストリーミング | 対応 | Nova-3 / Nova-2 ストリーミング |
 | **AssemblyAI** | クラウド | リアルタイムストリーミング | 対応 | Universal-3.5 Pro ストリーミング |
+| **60db** | クラウド | リアルタイムストリーミング | 対応 | 約 40 言語（インド系言語と英語の混在に対応）、話者分離は任意；ファイルは REST（10 MB まで） |
 | **Cloudflare Workers AI** | クラウド | ウィンドウバッチ | 対応 | Whisper ベース、低コストで無料枠あり |
 | **SiliconFlow** | クラウド | ウィンドウバッチ | 対応 | SenseVoice、TeleSpeech、Qwen Omni |
 | **Groq** | クラウド | ウィンドウバッチ | 対応 | Whisper large-v3-turbo / large-v3 |
-| **ローカル OpenAI 互換** | ローカル | ウィンドウバッチ | — | Ollama や互換ゲートウェイに対応 |
-| **ローカル whisper.cpp** | ローカル | Electron 管理 | — | 完全ローカル動作。DeLive がバイナリとモデルを管理 |
+| **ローカル OpenAI 互換** | ローカル | ウィンドウバッチ | 対応 | Ollama や互換ゲートウェイに対応 |
+| **ローカル FunASR / SenseVoice** | ローカル | ウィンドウバッチ | 対応 | セルフホストの funasr-server。SenseVoice（感情・音響イベント）、Paraformer、API 費用なし |
+| **ローカル whisper.cpp** | ローカル | Electron 管理 | 対応 | 完全ローカル動作。DeLive がバイナリとモデルを管理 |
 
 > 📖 プロバイダー設定：[API Key ガイド](https://docs.delive.me/guide/api-keys) · [プロバイダー比較](https://docs.delive.me/guide/providers)
 
@@ -151,6 +156,8 @@ graph TB
         SIL[SiliconFlow]
         GRQ[Groq]
         LOA[ローカル OpenAI 互換]
+        SDB[60db]
+        FUN[FunASR / SenseVoice]
         WCP[whisper.cpp Runtime]
     end
 
@@ -177,10 +184,10 @@ graph TB
     GDM --> MR
     GDM --> AP
     PROVSESS --> REG
-    REG --> SON & VOL & ELB & MIS & GLA & DPG & AAI & CFL & SIL & GRQ & LOA & WCP
-    MR --> SON & LOA
-    AP --> VOL & ELB & MIS & GLA & DPG & AAI & CFL & SIL & GRQ & WCP
-    VOL & MIS & DPG & AAI & ELB & GLA --> PROXY
+    REG --> SON & VOL & ELB & MIS & GLA & DPG & AAI & CFL & SIL & GRQ & SDB & LOA & FUN & WCP
+    MR --> SON & LOA & FUN
+    AP --> VOL & ELB & MIS & GLA & DPG & AAI & CFL & SIL & GRQ & SDB & WCP
+    VOL & MIS & DPG & AAI & ELB & GLA & SDB --> PROXY
     WCP --> RTM
     STORES --> REPO
     REPO --> IDB & LS
@@ -228,7 +235,7 @@ DeLive/
 | フロントエンド | React 18.3 + TypeScript 5.6 + Vite 6 |
 | スタイリング | Tailwind CSS 3.4 |
 | 状態管理 | Zustand 4.5 |
-| テスト | Vitest 4（314 テスト / 32 ファイル） |
+| テスト | Vitest 4（373 テスト / 44 ファイル） |
 | 永続化 | IndexedDB、localStorage、Electron safeStorage |
 | パッケージング | electron-builder + GitHub Actions |
 

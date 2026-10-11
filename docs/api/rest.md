@@ -2,6 +2,10 @@
 
 DeLive exposes a local REST API on port **23456** when the Open API is enabled in Settings.
 
+::: info
+If port 23456 is taken, DeLive tries 23457–23460 and then any free port. The Open API panel in Settings shows the port actually in use.
+:::
+
 ## Base URL
 
 ```

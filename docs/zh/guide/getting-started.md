@@ -49,12 +49,14 @@ Windows 可能在首次启动时显示 SmartScreen 警告。点击 **更多信�
 | Gladia | [gladia.io](https://gladia.io) 的 API Key |
 | Mistral AI | [mistral.ai](https://mistral.ai) 的 API Key |
 | Cloudflare Workers AI | [cloudflare.com](https://cloudflare.com) 的 API Token + Account ID |
+| 60db | [60db.ai](https://60db.ai) 的 API Key |
 
 ### 本地 Provider
 
 | Provider | 需要什么 |
 |----------|---------|
 | 本地 OpenAI 兼容 | 暴露 `/v1/models` 和 `/v1/audio/transcriptions` 的服务（如 Ollama） |
+| 本地 FunASR / SenseVoice | 运行中的 `funasr-server`（`pip install funasr` 后执行 `funasr-server --device cuda --port 8000`） |
 | 本地 whisper.cpp | `whisper-server` 二进制文件 + `.bin` 或 `.gguf` 模型 — 或让 DeLive 自动下载 |
 
 ## 从源码构建
