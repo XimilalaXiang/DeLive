@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isAllowedLiveOrigin, isLoopbackHostHeader } from '../../../../shared/localApiGuard'
+import { isAllowedAppOrigin, isLoopbackHostHeader } from '../../../../shared/localApiGuard'
 
 describe('isLoopbackHostHeader', () => {
   it('accepts loopback hosts with or without a port', () => {
@@ -19,15 +19,17 @@ describe('isLoopbackHostHeader', () => {
   })
 })
 
-describe('isAllowedLiveOrigin', () => {
+describe('isAllowedAppOrigin', () => {
   it('allows local tools (no Origin) and DeLive windows', () => {
-    expect(isAllowedLiveOrigin(undefined)).toBe(true)
-    expect(isAllowedLiveOrigin('file://')).toBe(true)
-    expect(isAllowedLiveOrigin('http://localhost:5173')).toBe(true)
+    expect(isAllowedAppOrigin(undefined)).toBe(true)
+    expect(isAllowedAppOrigin('file://')).toBe(true)
+    expect(isAllowedAppOrigin('http://localhost:5173')).toBe(true)
   })
 
   it('refuses web pages', () => {
-    expect(isAllowedLiveOrigin('https://evil.example.com')).toBe(false)
-    expect(isAllowedLiveOrigin('http://localhost:8080')).toBe(false)
+    expect(isAllowedAppOrigin('https://evil.example.com')).toBe(false)
+    expect(isAllowedAppOrigin('http://localhost:8080')).toBe(false)
+    // Sandboxed iframes on any site send an opaque origin.
+    expect(isAllowedAppOrigin('null')).toBe(false)
   })
 })

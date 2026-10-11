@@ -3,7 +3,7 @@ import { createServer as createNetServer } from 'net'
 import type { Duplex } from 'stream'
 import { URL } from 'url'
 import { WebSocketServer } from 'ws'
-import { isLoopbackHostHeader } from '../shared/localApiGuard'
+import { isAllowedAppOrigin, isLoopbackHostHeader } from '../shared/localApiGuard'
 import { attachVolcProxyServer } from '../shared/volcProxyCore'
 import { attachMistralProxyServer } from '../shared/mistralProxyCore'
 import { attachDeepgramProxyServer } from '../shared/deepgramProxyCore'
@@ -27,8 +27,9 @@ const upgradeRoutes = new WeakMap<Server, Map<string, UpgradeHandler>>()
 
 /**
  * Routes WebSocket upgrades for `pathname` on `server`. All routes share one
- * 'upgrade' listener so an unknown path is refused only after every route
- * (including /ws/live, added by apiServer) has been checked.
+ * 'upgrade' listener, which first refuses non-local hosts and web-page
+ * origins, and refuses an unknown path only after every route (including
+ * /ws/live, added by apiServer) has been checked.
  */
 export function registerUpgradeRoute(
   server: Server,
@@ -41,7 +42,9 @@ export function registerUpgradeRoute(
     routes = table
     upgradeRoutes.set(server, table)
     server.on('upgrade', (request: IncomingMessage, socket: Duplex, head: Buffer) => {
-      if (!isLoopbackHostHeader(request.headers.host)) {
+      // WebSockets are not covered by CORS: without the Origin check any web
+      // page could use the proxies or subscribe to /ws/live.
+      if (!isLoopbackHostHeader(request.headers.host) || !isAllowedAppOrigin(request.headers.origin)) {
         socket.write('HTTP/1.1 403 Forbidden\r\n\r\n')
         socket.destroy()
         return

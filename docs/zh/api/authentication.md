@@ -14,7 +14,7 @@ DeLive 的 Open API 必须使用 Bearer Token 鉴权。服务器只监听 `127.0
 - **API 已启用** → 请求必须携带令牌，缺少或错误返回 `401`
 - **API 已启用但清空了令牌** → 在重新设置令牌前，所有请求都返回 `401`
 - **请求的 `Host` 头不是本机** → 返回 `403`（防御 DNS rebinding 网页）
-- **带浏览器 `Origin` 连接 `/ws/live`** → 返回 `403`，网页无法订阅实时转录
+- **带网页 `Origin` 的 WebSocket 连接** → `/ws/live` 和各 Provider 代理都返回 `403`；只接受 DeLive 自己的窗口和不带 `Origin` 的本地客户端
 
 ::: info 升级说明
 2.3 之前的版本在令牌为空时不鉴权。如果你之前这样开启了 API，DeLive 启动时会自动生成令牌，请到设置里复制它，填到 MCP 或脚本配置中。
@@ -33,7 +33,7 @@ curl -H "Authorization: Bearer dlv_your_token_here" \
 
 两种认证方式：
 
-**查询参数**（浏览器可用）：
+**查询参数**（适用于无法设置 Header 的客户端）：
 ```
 ws://localhost:23456/ws/live?token=dlv_your_token_here
 ```

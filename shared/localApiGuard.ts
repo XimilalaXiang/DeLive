@@ -24,12 +24,13 @@ export function isLoopbackHostHeader(host: string | undefined): boolean {
 }
 
 /**
- * Origins allowed to open /ws/live. Local tools (the MCP server, scripts)
- * send no Origin; DeLive's own windows send file:// (packaged) or the Vite
- * dev server. Any other origin is a web page and is refused.
+ * Origins allowed to open a WebSocket on the local server. Local tools (the
+ * MCP server, scripts) send no Origin; DeLive's own windows send file://
+ * (packaged) or the Vite dev server. Any other origin is a web page and is
+ * refused, including `null` (sandboxed iframes on any site send that).
  */
-export function isAllowedLiveOrigin(origin: string | undefined): boolean {
+export function isAllowedAppOrigin(origin: string | undefined): boolean {
   if (!origin) return true
   const value = origin.trim().toLowerCase()
-  return value === 'file://' || value === 'null' || value === 'http://localhost:5173'
+  return value === 'file://' || value === 'http://localhost:5173'
 }

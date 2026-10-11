@@ -69,7 +69,7 @@ The local REST API and WebSocket have multiple security layers:
 | **Disabled by default** | API returns 403 until explicitly enabled |
 | **Required Bearer token** | Every request must include the token; an empty token refuses all requests |
 | **Localhost only** | Server listens on `127.0.0.1` (and `::1`); not accessible from the network |
-| **Host / Origin checks** | Non-local `Host` headers get `403` (DNS rebinding); `/ws/live` refuses browser origins |
+| **Host / Origin checks** | Non-local `Host` headers get `403` (DNS rebinding); WebSocket routes refuse web-page origins |
 | **Read-only** | No mutation endpoints; sessions cannot be modified via API |
 
 ::: info

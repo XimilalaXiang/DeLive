@@ -69,7 +69,7 @@ API Key 使用 Electron 的 `safeStorage` API 加密：
 | **默认禁用** | 显式启用前 API 返回 403 |
 | **必填 Bearer Token** | 所有请求必须携带令牌；令牌为空时拒绝所有请求 |
 | **仅 localhost** | 服务器只监听 `127.0.0.1`（及 `::1`）；网络不可访问 |
-| **Host / Origin 校验** | 非本机 `Host` 头返回 `403`（防 DNS rebinding）；`/ws/live` 拒绝浏览器来源 |
+| **Host / Origin 校验** | 非本机 `Host` 头返回 `403`（防 DNS rebinding）；WebSocket 路由拒绝网页来源 |
 | **只读** | 无修改端点；会话无法通过 API 修改 |
 
 ::: info

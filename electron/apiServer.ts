@@ -2,7 +2,7 @@ import type { Server, IncomingMessage, ServerResponse } from 'http'
 import { timingSafeEqual } from 'crypto'
 import { app, ipcMain } from 'electron'
 import { WebSocketServer } from 'ws'
-import { isAllowedLiveOrigin, isLoopbackHostHeader } from '../shared/localApiGuard'
+import { isLoopbackHostHeader } from '../shared/localApiGuard'
 import { isTrustedSender } from './ipcSecurity'
 import { registerUpgradeRoute } from './volcProxy'
 import {
@@ -108,14 +108,6 @@ export function attachApiServer({ server }: ApiServerOptions): void {
   })
 
   registerUpgradeRoute(server, '/ws/live', (req, socket, head) => {
-    // WebSockets are not covered by CORS, so a web page could otherwise
-    // subscribe to live transcripts.
-    if (!isAllowedLiveOrigin(req.headers.origin)) {
-      socket.write('HTTP/1.1 403 Forbidden\r\n\r\n')
-      socket.destroy()
-      return
-    }
-
     const { params } = parseUrl(req)
     const failure = getAuthFailure(params.get('token') ?? extractBearerToken(req))
     if (failure) {

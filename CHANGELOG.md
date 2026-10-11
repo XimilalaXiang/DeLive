@@ -20,8 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🙈 **诊断日志不含转录内容** — 代理日志只记录识别文本的长度，导出的诊断文件不再包含会议内容
 
 ### Fixed / 修复
-- 📡 **`/ws/live` works again** — the proxy closed every `/ws/live` connection before the Open API could accept it; browser origins are now refused on this endpoint
-- 📡 **`/ws/live` 可以连接了** — 之前代理会在 Open API 接手前关闭所有 `/ws/live` 连接；现在该接口会拒绝来自网页的连接
+- 📡 **`/ws/live` works again** — the proxy closed every `/ws/live` connection before the Open API could accept it; web-page origins are now refused on it and on the provider proxies
+- 📡 **`/ws/live` 可以连接了** — 之前代理会在 Open API 接手前关闭所有 `/ws/live` 连接；现在该接口和各 Provider 代理都会拒绝来自网页的连接
 - 🔀 **Concurrent Open API requests** — parallel requests (e.g. from MCP tools) no longer receive each other's data or time out with 404
 - 🔀 **Open API 并发请求** — 并行请求（如 MCP 工具同时调用）不再拿到彼此的数据或超时返回 404
 - 💾 **Autosave during continuous audio** — the recording is saved at least every 10 seconds even when transcript events never pause, so crash recovery no longer loses everything since the last pause

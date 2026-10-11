@@ -14,7 +14,7 @@ DeLive's Open API requires a Bearer token. The server listens on `127.0.0.1` onl
 - **API enabled** → requests must include the token; a missing or wrong token returns `401`
 - **API enabled, token field cleared** → every request returns `401` until a token is set
 - **Request with a non-local `Host` header** → `403` (blocks DNS-rebinding pages)
-- **`/ws/live` with a browser `Origin`** → `403`, so web pages cannot subscribe to live transcripts
+- **WebSocket with a web-page `Origin`** → `403` on `/ws/live` and the provider proxies; only DeLive's own windows and local clients that send no `Origin` are accepted
 
 ::: info Upgrading
 Versions before 2.3 accepted requests without a token when the token field was empty. If you had the API enabled that way, DeLive now generates a token on startup: copy it from Settings into your MCP or script configuration.
@@ -33,7 +33,7 @@ curl -H "Authorization: Bearer dlv_your_token_here" \
 
 Two authentication methods:
 
-**Query parameter** (works in browsers):
+**Query parameter** (for clients that cannot set headers):
 ```
 ws://localhost:23456/ws/live?token=dlv_your_token_here
 ```
