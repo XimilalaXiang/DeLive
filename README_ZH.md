@@ -27,6 +27,27 @@
 
 DeLive 是一个面向系统音频的桌面转录工作台。它会把电脑正在播放的声音捕获下来，按所选 Provider 的能力选择最合适的转录链路（共支持 14 种 ASR 后端），把会话保存在本地，并在录制结束后提供完整的 AI 复盘工作台——支持 AI 纠错、富文本 Markdown 对话、结构化 briefing、会话问答和思维导图整理。同时支持上传音频/视频文件进行离线转录，云端与本地共 14 种 Provider 均可用于文件转录。
 
+## 演示
+
+由 Xiang 录制的中文产品演示视频，带你快速了解 DeLive 的核心能力。
+
+<div align="center">
+
+<video src="https://github.com/user-attachments/assets/d363c237-e112-4f47-b72e-252aef45e6b4" controls width="100%"></video>
+
+[视频直链](https://github.com/user-attachments/assets/d363c237-e112-4f47-b72e-252aef45e6b4)
+
+</div>
+
+**章节**
+
+1. 整体浏览
+2. 实时转录 + 双语字幕 + 多人识别
+3. AI 摘要 + 思维导图 + AI 对话 + AI 纠错
+4. 文件转录
+5. MCP 调用
+6. Skill 调用
+
 <div align="center">
 
 #

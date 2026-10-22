@@ -27,6 +27,27 @@
 
 DeLive 是一個面向系統音訊的桌面轉錄工作台。它會擷取電腦正在播放的聲音，按所選 Provider 的能力選擇最合適的轉錄鏈路（共支援 14 種 ASR 後端），把會話保存在本機，並在錄製結束後提供完整的 AI 複盤工作台——支援 AI 糾錯、富文本 Markdown 對話、結構化 briefing、會話問答和思維導圖整理。同時支援上傳音訊/影片檔案進行離線轉錄，雲端與本地共 14 種 Provider 均可用於檔案轉錄。
 
+## 示範
+
+由 Xiang 錄製的中文產品示範影片，快速帶你了解 DeLive 的核心能力。
+
+<div align="center">
+
+<video src="https://github.com/user-attachments/assets/d363c237-e112-4f47-b72e-252aef45e6b4" controls width="100%"></video>
+
+[影片直連](https://github.com/user-attachments/assets/d363c237-e112-4f47-b72e-252aef45e6b4)
+
+</div>
+
+**章節**
+
+1. 整體瀏覽
+2. 即時轉錄 + 雙語字幕 + 多人辨識
+3. AI 摘要 + 思維導圖 + AI 對話 + AI 糾錯
+4. 檔案轉錄
+5. MCP 呼叫
+6. Skill 呼叫
+
 <div align="center">
 
 #
