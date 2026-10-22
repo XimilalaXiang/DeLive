@@ -28,6 +28,27 @@ English | [简体中文](./README_ZH.md) | [繁體中文](./README_TW.md) | [日
 
 DeLive is a desktop transcription workspace for system audio. It captures whatever your computer is playing, routes the audio through any of fourteen ASR backends, keeps everything on your machine, and turns completed transcripts into searchable history with a full AI Review Desk — AI transcript correction, rich Markdown-rendered chat, Q&A threads, structured briefings, and mind maps. It also supports uploading audio/video files for offline transcription, and every provider, cloud or local, can transcribe files.
 
+## Demo
+
+Chinese-language product walkthrough by Xiang — a quick tour of DeLive’s core workflows (narration and UI are in Chinese).
+
+<div align="center">
+
+<video src="https://github.com/user-attachments/assets/d363c237-e112-4f47-b72e-252aef45e6b4" controls width="100%"></video>
+
+[Direct video link](https://github.com/user-attachments/assets/d363c237-e112-4f47-b72e-252aef45e6b4)
+
+</div>
+
+**Chapters**
+
+1. Overview — workspace tour
+2. Real-time transcription, bilingual captions, and multi-speaker identification
+3. AI summary, mind map, AI chat, and AI correction
+4. File transcription
+5. MCP integration
+6. Skill invocation
+
 <div align="center">
 
 #
