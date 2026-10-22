@@ -29,13 +29,11 @@ DeLive 是一个面向系统音频的桌面转录工作台。它会把电脑正�
 
 ## 演示
 
-由 Xiang 录制的中文产品演示视频，带你快速了解 DeLive 的核心能力。
+中文产品演示，快速了解 DeLive 的核心能力。
 
 <div align="center">
 
-<video src="https://github.com/user-attachments/assets/d363c237-e112-4f47-b72e-252aef45e6b4" controls width="100%"></video>
-
-[视频直链](https://github.com/user-attachments/assets/d363c237-e112-4f47-b72e-252aef45e6b4)
+https://github.com/user-attachments/assets/d363c237-e112-4f47-b72e-252aef45e6b4
 
 </div>
 

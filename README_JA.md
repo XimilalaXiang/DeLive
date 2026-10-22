@@ -29,13 +29,11 @@ DeLive は、PC で再生中のシステム音声をそのまま取り込み、�
 
 ## デモ
 
-Xiang による中国語の製品デモ動画。DeLive の主要なワークフローを紹介します（ナレーションと UI は中国語）。
+中国語の製品デモで、DeLive のコア機能を素早く把握できます。
 
 <div align="center">
 
-<video src="https://github.com/user-attachments/assets/d363c237-e112-4f47-b72e-252aef45e6b4" controls width="100%"></video>
-
-[動画の直リンク](https://github.com/user-attachments/assets/d363c237-e112-4f47-b72e-252aef45e6b4)
+https://github.com/user-attachments/assets/d363c237-e112-4f47-b72e-252aef45e6b4
 
 </div>
 
