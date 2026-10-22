@@ -30,7 +30,7 @@ DeLive is a desktop transcription workspace for system audio. It captures whatev
 
 ## Demo
 
-Chinese-language product walkthrough by Xiang — a quick tour of DeLive’s core workflows (narration and UI are in Chinese).
+Chinese product walkthrough of DeLive’s core workflows.
 
 <div align="center">
 
