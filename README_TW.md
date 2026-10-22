@@ -33,9 +33,7 @@ DeLive 是一個面向系統音訊的桌面轉錄工作台。它會擷取電腦�
 
 <div align="center">
 
-<video src="https://github.com/user-attachments/assets/d363c237-e112-4f47-b72e-252aef45e6b4" controls width="100%"></video>
-
-[影片直連](https://github.com/user-attachments/assets/d363c237-e112-4f47-b72e-252aef45e6b4)
+https://github.com/user-attachments/assets/d363c237-e112-4f47-b72e-252aef45e6b4
 
 </div>
 

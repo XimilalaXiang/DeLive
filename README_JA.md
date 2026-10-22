@@ -33,9 +33,7 @@ Xiang による中国語の製品デモ動画。DeLive の主要なワークフ�
 
 <div align="center">
 
-<video src="https://github.com/user-attachments/assets/d363c237-e112-4f47-b72e-252aef45e6b4" controls width="100%"></video>
-
-[動画の直リンク](https://github.com/user-attachments/assets/d363c237-e112-4f47-b72e-252aef45e6b4)
+https://github.com/user-attachments/assets/d363c237-e112-4f47-b72e-252aef45e6b4
 
 </div>
 

@@ -34,9 +34,7 @@ Chinese-language product walkthrough by Xiang — a quick tour of DeLive’s cor
 
 <div align="center">
 
-<video src="https://github.com/user-attachments/assets/d363c237-e112-4f47-b72e-252aef45e6b4" controls width="100%"></video>
-
-[Direct video link](https://github.com/user-attachments/assets/d363c237-e112-4f47-b72e-252aef45e6b4)
+https://github.com/user-attachments/assets/d363c237-e112-4f47-b72e-252aef45e6b4
 
 </div>
 
